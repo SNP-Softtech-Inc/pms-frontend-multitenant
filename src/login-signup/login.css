@@ -1,0 +1,232 @@
+/* Login Page Styles */
+.logininfo {
+  background: linear-gradient(135deg, #043a77 0%, #0a4d8c 100%);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.logininfo::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-logo {
+  margin-bottom: 2rem;
+  z-index: 1;
+}
+
+.wbtext {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  z-index: 1;
+}
+
+.logininfo .fontchange {
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  z-index: 1;
+}
+
+.logininput {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.loginalign {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.donthaveacc {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #666;
+}
+
+.route-links {
+  color: #043a77;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.route-links:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .logininfo {
+    display: none;
+  }
+  
+  .loginalign {
+    padding: 1.5rem;
+  }
+  
+  .wbtext {
+    font-size: 2rem;
+  }
+}
+
+/* Form Styles */
+.logininput .MuiInputLabel-root {
+  color: #333;
+  font-weight: 500;
+}
+
+.logininput .MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+.logininput .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #043a77;
+}
+
+.logininput .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #043a77;
+}
+
+/* Button Styles */
+.logininput .MuiButton-containedPrimary {
+  background: linear-gradient(135deg, #043a77 0%, #0a4d8c 100%);
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(4, 58, 119, 0.3);
+}
+
+.logininput .MuiButton-containedPrimary:hover {
+  background: linear-gradient(135deg, #052d5c 0%, #083d70 100%);
+  box-shadow: 0 6px 15px rgba(4, 58, 119, 0.4);
+}
+
+/* Checkbox Styles */
+.logininput .MuiCheckbox-root {
+  color: #043a77;
+}
+
+.logininput .MuiCheckbox-root.Mui-checked {
+  color: #043a77;
+}
+
+/* Select Styles */
+.logininput .MuiSelect-select {
+  padding: 12px;
+}
+
+/* Social Media Icons */
+.social-icons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.social-icons a {
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.social-icons a:hover {
+  transform: translateY(-3px);
+}
+
+/* Terms and Conditions Link */
+.terms-link {
+  color: #043a77;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.terms-link:hover {
+  text-decoration: underline;
+}
+
+/* Error and Success Messages */
+.error-message {
+  color: #d32f2f;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.success-message {
+  color: #2e7d32;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Animation for form transitions */
+.fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
+}

@@ -1,0 +1,217 @@
+
+
+
+import React, { useEffect, useState, useRef } from 'react';
+import { Box, Button, Popover, List, ListItem, ListItemText } from '@mui/material';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; // Quill Snow theme
+import 'quill-emoji/dist/quill-emoji.css'; // Emoji styles
+import Quill from 'quill';
+import 'quill-emoji';
+
+Quill.register('modules/emoji', require('quill-emoji'));
+
+export default function Editor({ initialContent, onChange }) {
+    const [editorContent, setEditorContent] = useState(initialContent || '');
+  const [shortcuts, setShortcuts] = useState([]);
+  const quillRef = useRef(null); // Reference to Quill editor
+ const [filteredShortcuts, setFilteredShortcuts] = useState([]);
+  const [selectedOption, setSelectedOption] = useState("contacts");
+  const [popoverAnchor, setPopoverAnchor] = useState(null);
+ useEffect(() => {
+    // Simulate filtered shortcuts based on some logic (e.g., search)
+    setFilteredShortcuts(shortcuts.filter((shortcut) => shortcut.title.toLowerCase().includes("")));
+  }, [shortcuts]);
+  useEffect(() => {
+  if (selectedOption === "contacts" || selectedOption === "account") {
+    const accountShortcuts = [
+      { title: "Account Shortcodes", isBold: true },
+      { title: "Account Name", isBold: false, value: "ACCOUNT_NAME" },
+      // { title: "Custom field:Website", isBold: false, value: "ACCOUNT_CUSTOM_FIELD:Website" },
+      { title: "Date Shortcodes", isBold: true },
+      { title: "Current day full date", isBold: false, value: "CURRENT_DAY_FULL_DATE" },
+      { title: "Current day number", isBold: false, value: "CURRENT_DAY_NUMBER" },
+      { title: "Current day name", isBold: false, value: "CURRENT_DAY_NAME" },
+      { title: "Current week", isBold: false, value: "CURRENT_WEEK" },
+      { title: "Current month number", isBold: false, value: "CURRENT_MONTH_NUMBER" },
+      { title: "Current month name", isBold: false, value: "CURRENT_MONTH_NAME" },
+      { title: "Current quarter", isBold: false, value: "CURRENT_QUARTER" },
+      { title: "Current year", isBold: false, value: "CURRENT_YEAR" },
+      { title: "Last day full date", isBold: false, value: "LAST_DAY_FULL_DATE" },
+      { title: "Last day number", isBold: false, value: "LAST_DAY_NUMBER" },
+      { title: "Last day name", isBold: false, value: "LAST_DAY_NAME" },
+      { title: "Last week", isBold: false, value: "LAST_WEEK" },
+      { title: "Last month number", isBold: false, value: "LAST_MONTH_NUMBER" },
+      { title: "Last month name", isBold: false, value: "LAST_MONTH_NAME" },
+      { title: "Last quarter", isBold: false, value: "LAST_QUARTER" },
+      { title: "Last_year", isBold: false, value: "LAST_YEAR" },
+      { title: "Next day full date", isBold: false, value: "NEXT_DAY_FULL_DATE" },
+      { title: "Next day number", isBold: false, value: "NEXT_DAY_NUMBER" },
+      { title: "Next day name", isBold: false, value: "NEXT_DAY_NAME" },
+      { title: "Next week", isBold: false, value: "NEXT_WEEK" },
+      { title: "Next month number", isBold: false, value: "NEXT_MONTH_NUMBER" },
+      { title: "Next month name", isBold: false, value: "NEXT_MONTH_NAME" },
+      { title: "Next quarter", isBold: false, value: "NEXT_QUARTER" },
+      { title: "Next year", isBold: false, value: "NEXT_YEAR" },
+    ];
+    setShortcuts(accountShortcuts);
+  }
+}, [selectedOption]);
+
+
+ 
+
+  // Open dropdown at button position
+  const handleOpenDropdown = (event) => {
+    setPopoverAnchor(event.currentTarget);
+  };
+
+  // Close dropdown
+  const handleCloseDropdown = () => {
+    setPopoverAnchor(null);
+  };
+
+  // Insert shortcode into editor at cursor position
+  // const insertShortcode = (value) => {
+  //   if (quillRef.current) {
+  //     const editor = quillRef.current.getEditor();
+  //     const range = editor.getSelection();
+  //     if (range) {
+  //       editor.insertText(range.index, `[${value}]`);
+  //       editor.setSelection(range.index + value.length + 4); // Move cursor after inserted text
+  //     }
+  //   }
+  //   handleCloseDropdown();
+  // };
+
+  const insertShortcode = (value) => {
+  if (quillRef.current) {
+    const editor = quillRef.current.getEditor();
+
+    editor.focus(); // ✅ IMPORTANT: ensure editor is focused
+
+    let range = editor.getSelection();
+
+    // If no selection, place cursor at end
+    if (!range) {
+      range = { index: editor.getLength(), length: 0 };
+    }
+
+    editor.insertText(range.index, `[${value}]`);
+    editor.setSelection(range.index + value.length + 2); // corrected cursor position
+  }
+
+  handleCloseDropdown();
+};
+    // Handle content change
+    const handleEditorChange = (content) => {
+        setEditorContent(content);
+        onChange(content); // Call the onChange prop with the current content
+    };
+
+    useEffect(() => {
+        if (initialContent) {
+            setEditorContent(initialContent);
+        }
+    }, [initialContent]);
+  // Toolbar configuration
+  const modules = {
+    toolbar: {
+      container: [
+        [{ 'font': [] }, { 'size': [] }],
+        [{ 'header': '1' }, { 'header': '2' }, { 'align': [] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'color': [] }, { 'background': [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image'],
+        [{ 'emoji': true }],
+        [{ 'indent': '-1' }, { 'indent': '+1' }],
+        ['clean'],
+        ['undo', 'redo'],
+      ],
+    },
+    'emoji-toolbar': true,
+    'emoji-textarea': false,
+    'emoji-shortname': true,
+    history: {
+      delay: 1000,
+      maxStack: 50,
+      userOnly: true,
+    },
+  };
+
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike',
+    'script', 'list', 'bullet', 'indent',
+    'color', 'background', 'align',
+    'blockquote', 'code-block', 'link', 'image',
+    'undo', 'redo', 'emoji'
+  ];
+
+  return (
+   
+    <Box sx={{
+  "& .ql-editor": {
+    minHeight: "150px",
+    height: "auto",
+    overflowY: "visible"
+  }
+}}>
+  <ReactQuill
+  ref={quillRef}
+    value={editorContent}
+       onChange={(content) => {
+          setEditorContent(content);
+          onChange(content);
+        }}
+    modules={modules}
+    formats={formats}
+    theme="snow"
+  />
+
+
+      {/* Shortcodes Button */}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleOpenDropdown}
+        sx={{mt:2}}
+      >
+        Insert Shortcode
+      </Button>
+
+      {/* Popover Dropdown */}
+      <Popover
+        open={Boolean(popoverAnchor)}
+        anchorEl={popoverAnchor}
+        onClose={handleCloseDropdown}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        <Box sx={{ p: 1 }}>
+          <List sx={{ width: "250px", maxHeight: "200px", overflowY: "auto" }}>
+            {filteredShortcuts.map((shortcut, index) => (
+              <ListItem key={index} onClick={() => insertShortcode(shortcut.value)} button>
+                <ListItemText
+                  primary={shortcut.title}
+                  primaryTypographyProps={{
+                    style: {
+                      fontWeight: shortcut.isBold ? "bold" : "normal",
+                    },
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Popover>
+
+  
+    </Box>
+  );
+}
