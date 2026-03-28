@@ -45,7 +45,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useDropzone } from "react-dropzone";
 import debounce from "lodash.debounce";
 import { templateAPI, authAPI } from "../../../services/api"; // Adjust the import path as needed
-
+import ShortcodePopover from "../../../components/ShortcodePopover"
 const EmailTemp = () => {
   const confirm = useConfirm();
   // ================= STATE =================
@@ -712,7 +712,7 @@ const EmailTemp = () => {
                       isClearable={true}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 12 }}>
+                  {/* <Grid size={{ xs: 12, md: 12 }}>
                     <Typography variant="subtitle1" mb={1}>
                       Subject
                     </Typography>
@@ -785,7 +785,46 @@ const EmailTemp = () => {
                         </Box>
                       </Popover>
                     </Box>
-                  </Grid>
+                  </Grid> */}
+                  <Grid size={{ xs: 12, md: 12 }}>
+  <Typography variant="subtitle1" mb={1}>
+    Subject
+  </Typography>
+
+  <TextField
+    fullWidth
+    name="subject"
+    onChange={handleSubjectChange}
+    inputRef={textFieldRef}
+    value={inputText}
+    onClick={(e) => setCursorPosition(e.target.selectionStart)}
+    onKeyUp={(e) => setCursorPosition(e.target.selectionStart)}
+    placeholder="Subject"
+  />
+
+  <Box>
+    <Button
+      variant="outlined"
+      size="small"
+      sx={{ mt: 2, textTransform: "none" }}
+      onClick={(e) => {
+        setAnchorEl(e.currentTarget);
+        setShowDropdown(true);
+      }}
+    >
+      Add Shortcode
+    </Button>
+
+    {/* ✅ Replace Popover with reusable component */}
+    <ShortcodePopover
+      open={showDropdown}
+      anchorEl={anchorEl}
+      onClose={() => setShowDropdown(false)}
+      shortcuts={filteredShortcuts}
+      onSelectShortcut={(value) => handleAddShortcut(value)}
+    />
+  </Box>
+</Grid>
                   <Grid size={{ xs: 12, md: 12 }}>
                     <EditorShortcodes
                       onChange={handleEditorChange}

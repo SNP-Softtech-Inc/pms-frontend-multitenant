@@ -16,7 +16,7 @@ import FolderTemplate from "./pages/Templates/FolderTemp/FolderTemplates";
 import InvoiceTemplate from "./pages/Templates/InvoiceTemp/InvoiceTemplates";
 import OrgaizerTemplate from "./pages/Templates/OrganizerTemp/OrgaizerTemplate";
 import ProposalTemplate from "./pages/Templates/ProposalTemp/ProposalsTable";
-import ProposalForm from "./pages/Templates/ProposalTemp/ProposalForm"
+import ProposalForm from "./pages/Templates/ProposalTemp/ProposalForm";
 import TeamMember from "./pages/Teammembers/TeamMember";
 import ActivateAccount from "./pages/Teammembers/ActivateAccount";
 import Tags from "./pages/Templates/Tags/Tags";
@@ -26,7 +26,7 @@ import ForgotPassword from "./login-signup/ForgotPassword";
 import ResetPassword from "./login-signup/ResetPassword";
 import MyAccount from "./pages/Settings/MyAccount";
 import FirmSetting from "./pages/Settings/FirmSetting";
-
+import PipelineTemplate from "./pages/Templates/PipelineTemp/PipelineTemplate";
 function App() {
   return (
     <Routes>
@@ -90,6 +90,7 @@ function App() {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="tasks" replace />} />
           {/* ✅ Child Routes */}
           <Route path="tasks" element={<Tasks />} />
 
@@ -108,8 +109,9 @@ function App() {
           <Route path="organizers" element={<OrgaizerTemplate />} />
 
           <Route path="proposals" element={<ProposalTemplate />} />
-          <Route path="proposals/proposal-form" element={<ProposalForm/>}/>
+          <Route path="proposals/proposal-form" element={<ProposalForm />} />
         </Route>
+        <Route path="firmtemp/pipelines" element={<PipelineTemplate />} />
         <Route path="firmtemp/teammember" element={<TeamMember />} />
         <Route path="firmtemp/tags" element={<Tags />} />
         <Route path="firmtemp/service" element={<Service />} />

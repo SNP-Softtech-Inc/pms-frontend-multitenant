@@ -26,10 +26,9 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
- 
   Divider,
 } from "@mui/material";
-import { Delete as DeleteIcon,} from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -43,6 +42,7 @@ import dayjs from "dayjs";
 import { RiDeleteBin6Line, RiEdit2Line } from "react-icons/ri";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import ShortcodeTextField from "../../../components/ShortcodeTextField";
 const JobTemp = () => {
   const confirm = useConfirm();
   // Form state
@@ -64,7 +64,7 @@ const JobTemp = () => {
   const [startsInDuration, setStartsInDuration] = useState("Days");
   const [dueinduration, setDueinduration] = useState("Days");
   const [description, setDescription] = useState("");
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null); // Track which template is being edited
@@ -111,8 +111,6 @@ const JobTemp = () => {
     // fetchUsersData();
     fetchJobTemplatesData();
   }, []);
-
-  
 
   // Update shortcuts based on selected option
   useEffect(() => {
@@ -330,7 +328,7 @@ const JobTemp = () => {
     setSelectedJob(null);
     setErrors({});
     setTemplateNameError("");
-   
+
     setCharCount(0);
     setCursorPosition(0);
   };
@@ -718,8 +716,6 @@ const JobTemp = () => {
           </Box>
         ) : (
           <Box sx={{ mt: 2 }}>
-            
-
             <Box textAlign="center" mb={3}>
               <Typography variant="h6">
                 {editingId ? "Edit Job Template" : "Create Job Template"}
@@ -729,7 +725,6 @@ const JobTemp = () => {
             <Divider sx={{ mt: 1, margin: "0 auto" }} />
 
             <Box m={2}>
-             
               <Grid
                 container
                 rowSpacing={3}
@@ -755,19 +750,28 @@ const JobTemp = () => {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 12 }}>
-                      <Typography sx={{ mb: 1 }}>Job Name</Typography>
-                      <TextField
+                      <ShortcodeTextField
+                        label="Job Name"
                         value={jobName}
-                        onChange={handleJobNameChange}
+                        onChange={(e) => {
+                          const { value, selectionStart } = e.target;
+                          setJobName(value);
+                          setCursorPosition(selectionStart);
+                        }}
+                        placeholder="Job Name"
+                        inputRef={textFieldRef}
                         onClick={(e) =>
                           setCursorPosition(e.target.selectionStart)
                         }
-                        size="small"
-                        fullWidth
-                        placeholder="Job Name"
+                        // shortcuts
+                        shortcuts={filteredShortcuts}
+                        showShortcutDropdown={showDropdown}
+                        anchorElShortcut={anchorEl}
+                        onToggleShortcutDropdown={toggleDropdown}
+                        onCloseShortcutDropdown={handleCloseDropdown}
+                        onAddShortcut={handleAddShortcut}
                       />
-
-                      <Box>
+                      {/* <Box>
                         <Button
                           variant="contained"
                           color="primary"
@@ -813,7 +817,7 @@ const JobTemp = () => {
                             </List>
                           </Box>
                         </Popover>
-                      </Box>
+                      </Box> */}
                     </Grid>
                     <Grid size={{ xs: 12, md: 12 }}>
                       <Typography variant="subtitle1" mb={1}>
@@ -826,9 +830,9 @@ const JobTemp = () => {
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 12 }}>
-                       <Typography variant="subtitle1" mb={1}>
-                                                Priority
-                                              </Typography>
+                      <Typography variant="subtitle1" mb={1}>
+                        Priority
+                      </Typography>
                       <Priority
                         onPriorityChange={handlePriorityChange}
                         selectedPriority={priority}
@@ -1011,78 +1015,27 @@ const JobTemp = () => {
                   <Box mb={2}>
                     {clientFacingStatus && (
                       <>
-                        <Box>
-                          <Typography variant="subtitle1" mb={1}>
-                            Job name for client
-                          </Typography>
-
-                          <TextField
-                            fullWidth
-                            name="subject"
-                            inputRef={textFieldRef}
-                            value={inputText}
-                            onChange={handleChatSubject}
-                            onClick={(e) =>
-                              setCursorPosition(e.target.selectionStart)
-                            }
-                            placeholder="Job name for client"
-                            size="small"
-                            sx={{ background: "#fff", mt: 2 }}
-                          />
-                        </Box>
-                        <Box mt={2}>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={toggleShortcodeDropdown}
-                          >
-                            Add Shortcode
-                          </Button>
-                          <Popover
-                            open={showDropdownClientJob}
-                            anchorEl={anchorElClientJob}
-                            onClose={handleCloseDropdown}
-                            anchorOrigin={{
-                              vertical: "bottom",
-                              horizontal: "left",
-                            }}
-                            transformOrigin={{
-                              vertical: "top",
-                              horizontal: "left",
-                            }}
-                          >
-                            <Box>
-                              <List
-                                className="dropdown-list"
-                                sx={{
-                                  width: "300px",
-                                  height: "300px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {filteredShortcuts.map((shortcut, index) => (
-                                  <ListItem
-                                    key={index}
-                                    onClick={() =>
-                                      handleJobAddShortcut(shortcut.value)
-                                    }
-                                  >
-                                    <ListItemText
-                                      primary={shortcut.title}
-                                      primaryTypographyProps={{
-                                        style: {
-                                          fontWeight: shortcut.isBold
-                                            ? "bold"
-                                            : "normal",
-                                        },
-                                      }}
-                                    />
-                                  </ListItem>
-                                ))}
-                              </List>
-                            </Box>
-                          </Popover>
-                        </Box>
+                        <ShortcodeTextField
+                          label="Job name for client"
+                          value={inputText}
+                          onChange={(e) => {
+                            const { value, selectionStart } = e.target;
+                            setInputText(value);
+                            setCursorPosition(selectionStart);
+                          }}
+                          placeholder="Job name for client"
+                          inputRef={textFieldRef}
+                          onClick={(e) =>
+                            setCursorPosition(e.target.selectionStart)
+                          }
+                          // shortcuts
+                          shortcuts={filteredShortcuts}
+                          showShortcutDropdown={showDropdownClientJob}
+                          anchorElShortcut={anchorElClientJob}
+                          onToggleShortcutDropdown={toggleShortcodeDropdown}
+                          onCloseShortcutDropdown={handleCloseDropdown}
+                          onAddShortcut={handleJobAddShortcut}
+                        />
                         <Box mt={2}>
                           <Typography variant="subtitle1" mb={1}>
                             Status
@@ -1143,22 +1096,10 @@ const JobTemp = () => {
                           />
                         </Box>
 
-                        <Box sx={{ position: "relative", mt: 2 }}>
-                          <Typography variant="subtitle1">
-                            Description
-                          </Typography>
-
-                          <TextField
-                            fullWidth
-                            size="small"
-                            margin="normal"
-                            multiline
-                            rows={4}
+                        <Box mt={2}>
+                          <ShortcodeTextField
+                            label="Description"
                             value={clientDescription}
-                            inputRef={descriptionFieldRef}
-                            onClick={(e) =>
-                              setCursorPosition(e.target.selectionStart)
-                            }
                             onChange={(e) => {
                               const value = e.target.value;
                               if (value.length <= 4000) {
@@ -1167,93 +1108,59 @@ const JobTemp = () => {
                               }
                             }}
                             placeholder="Description"
-                            inputProps={{ maxLength: 4000 }}
-                            helperText={`${clientDescription.length}/${4000} characters`}
+                            multiline
+                            rows={4}
+                            maxLength={4000}
+                            inputRef={descriptionFieldRef}
+                            onClick={(e) =>
+                              setCursorPosition(e.target.selectionStart)
+                            }
+                            helperText={`${clientDescription.length}/4000 characters`}
+                            // shortcuts
+                            shortcuts={filteredShortcuts}
+                            showShortcutDropdown={showDropdownDescription}
+                            anchorElShortcut={anchorElDescription}
+                            onToggleShortcutDropdown={toggleDescriptionDropdown}
+                            onCloseShortcutDropdown={handleCloseDropdown}
+                            onAddShortcut={handleDescriptionAddShortcut}
                           />
-                        </Box>
-
-                        <Box>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={toggleDescriptionDropdown}
-                          >
-                            Add Shortcode
-                          </Button>
-
-                          <Popover
-                            open={showDropdownDescription}
-                            anchorEl={anchorElDescription}
-                            onClose={handleCloseDropdown}
-                          >
-                            <Box>
-                              <List
-                                className="dropdown-list"
-                                sx={{
-                                  width: "300px",
-                                  height: "300px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {filteredShortcuts.map((shortcut, index) => (
-                                  <ListItem
-                                    key={index}
-                                    onClick={() =>
-                                      handleDescriptionAddShortcut(
-                                        shortcut.value,
-                                      )
-                                    }
-                                  >
-                                    <ListItemText
-                                      primary={shortcut.title}
-                                      primaryTypographyProps={{
-                                        style: {
-                                          fontWeight: shortcut.isBold
-                                            ? "bold"
-                                            : "normal",
-                                        },
-                                      }}
-                                    />
-                                  </ListItem>
-                                ))}
-                              </List>
-                            </Box>
-                          </Popover>
                         </Box>
                       </>
                     )}
                   </Box>
-                 
+
                   <Divider sx={{ mt: 5, margin: "0 auto" }} />
                   <Box textAlign="center" m={3}>
                     <Button onClick={addCommentField}>Add comments</Button>
-                    
-                    <Box m={2}>{comments.map((comment, index) => (
-                      <Box
-                        key={index}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <TextField
-                          size="small"
-                          value={comment}
-                          onChange={(e) =>
-                            handleCommentChange(index, e.target.value)
-                          }
-                          placeholder={`Comment ${index + 1}`}
-                          variant="outlined"
-                          fullWidth
-                          multiline
-                          margin="normal"
-                        />
-                        <IconButton onClick={() => deleteCommentField(index)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    ))}</Box>
+
+                    <Box m={2}>
+                      {comments.map((comment, index) => (
+                        <Box
+                          key={index}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <TextField
+                            size="small"
+                            value={comment}
+                            onChange={(e) =>
+                              handleCommentChange(index, e.target.value)
+                            }
+                            placeholder={`Comment ${index + 1}`}
+                            variant="outlined"
+                            fullWidth
+                            multiline
+                            margin="normal"
+                          />
+                          <IconButton onClick={() => deleteCommentField(index)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
                   </Box>
                 </Grid>
               </Grid>

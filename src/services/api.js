@@ -1,18 +1,12 @@
 import axios from "axios";
 
 // ================= BASE URLs =================
-const AUTH_USER_URL =
-  process.env.REACT_APP_AUTH_USER ;
-
-const SIDEBAR_URL = process.env.REACT_APP_SIDEBAR ;
-
-const TEMPLATE_URL = process.env.REACT_APP_TEMPLATE ;
-
-const ACCOUNT_CONTACT_URL =
-  process.env.REACT_APP_ACCOUNT_CONTACT ;
-
-  const PROPOSAL_URL = process.env.REACT_APP_PROPOSAL;
-
+const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
+const SIDEBAR_URL = process.env.REACT_APP_SIDEBAR;
+const TEMPLATE_URL = process.env.REACT_APP_TEMPLATE;
+const ACCOUNT_CONTACT_URL = process.env.REACT_APP_ACCOUNT_CONTACT;
+const PROPOSAL_URL = process.env.REACT_APP_PROPOSAL;
+const ORGANIZER_URL = process.env.REACT_APP_ORGANIZER;
 
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
@@ -49,6 +43,12 @@ const proposalApi = axios.create({
     "Content-Type": "application/json",
   },
 });
+const organizerApi = axios.create({
+  baseURL:ORGANIZER_URL,
+  headers:{
+    "Content-Type":"application/json",
+  },
+})
 
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
@@ -114,6 +114,7 @@ attachInterceptors(authUserApi);
 attachInterceptors(sidebarApi);
 attachInterceptors(accountcontactApi);
 attachInterceptors(proposalApi);
+attachInterceptors(organizerApi);
 
 // ================= AUTH + USER APIs =================
 export const authAPI = {
@@ -187,9 +188,7 @@ export const authAPI = {
   // Delete team member
   deleteTeamMember: (id) => authUserApi.delete(`/api/teammember/${id}`),
 
-
-
-   // ======================= NOTIFICATIONS APIs ===============================
+  // ======================= NOTIFICATIONS APIs ===============================
 
   // Get all notifications for logged-in tenant
   getNotifications: () => authUserApi.get("/api/notifications/"),
@@ -207,12 +206,14 @@ export const authAPI = {
   // // Update a notification
   // updateNotification: (id, data) =>
   //   authUserApi.put(`/api/notifications/${id}`, data),
-// New: use notification _id
-updateNotification: (notificationDocId, notificationId, data) =>
-  authUserApi.put(`/api/notifications/${notificationDocId}/${notificationId}`, data),
+  // New: use notification _id
+  updateNotification: (notificationDocId, notificationId, data) =>
+    authUserApi.put(
+      `/api/notifications/${notificationDocId}/${notificationId}`,
+      data,
+    ),
   // Delete a notification
-  deleteNotification: (id) =>
-    authUserApi.delete(`/api/notifications/${id}`),
+  deleteNotification: (id) => authUserApi.delete(`/api/notifications/${id}`),
 };
 
 // ================= SIDEBAR APIs =================
@@ -405,6 +406,47 @@ export const templateAPI = {
   // CHECK NAME
   checkJobTemplateNameExists: (name) =>
     templateApi.get(`/temp/jobs/check-name?name=${encodeURIComponent(name)}`),
+
+
+
+  // ================= PIPELINE =================
+
+// GET ALL PIPELINES
+getAllPipelines: () => templateApi.get("/temp/pipeline/pipelines"),
+
+// GET PIPELINES BY USER
+getPipelinesByUser: (userId) =>
+  templateApi.get(`/temp/pipeline/pipelines/${userId}`),
+
+// GET SINGLE PIPELINE
+getPipelineById: (id) =>
+  templateApi.get(`/temp/pipeline/pipeline/${id}`),
+
+// CREATE PIPELINE
+createPipeline: (data) =>
+  templateApi.post("/temp/pipeline/createpipeline", data),
+
+// UPDATE PIPELINE
+updatePipeline: (id, data) =>
+  templateApi.patch(`/temp/pipeline/pipeline/${id}`, data),
+
+// DELETE PIPELINE
+deletePipeline: (id) =>
+  templateApi.delete(`/temp/pipeline/pipeline/${id}`),
+
+// GET PIPELINE TEMPLATE LIST (with automations populated)
+getPipelineTemplateList: (id) =>
+  templateApi.get(`/temp/pipeline/pipeline/pipelinelist/${id}`),
+
+// GET PIPELINES WITH ACTIVE JOB COUNT
+getPipelinesWithCount: () =>
+  templateApi.get("/temp/pipeline/pipelines/count"),
+
+// CHECK NAME EXISTS
+checkPipelineNameExists: (name) =>
+  templateApi.get(
+    `/temp/pipeline/check-name?name=${encodeURIComponent(name)}`
+  ),
 };
 
 // ================= ACCOUNTS APIs =================
@@ -562,27 +604,53 @@ export const contactsAPI = {
     accountcontactApi.post(`/api/contacts/${contactId}/resend-activation`),
 };
 
-
 // ================= PROPOSALS APIs =================
 export const proposalAPI = {
   // CREATE
-  createProposal: (data) =>
-    proposalApi.post("/api/proposals/", data),
+  createProposal: (data) => proposalApi.post("/api/proposals/", data),
 
   // GET ALL
-  getAllProposals: () =>
-    proposalApi.get("/api/proposals/"),
+  getAllProposals: () => proposalApi.get("/api/proposals/"),
 
   // GET SINGLE
-  getProposalById: (id) =>
-    proposalApi.get(`/api/proposals/${id}`),
+  getProposalById: (id) => proposalApi.get(`/api/proposals/${id}`),
 
   // UPDATE
-  updateProposal: (id, data) =>
-    proposalApi.put(`/api/proposals/${id}`, data),
+  updateProposal: (id, data) => proposalApi.put(`/api/proposals/${id}`, data),
 
   // DELETE
-  deleteProposal: (id) =>
-    proposalApi.delete(`/api/proposals/${id}`),
+  deleteProposal: (id) => proposalApi.delete(`/api/proposals/${id}`),
 };
 
+
+// ================= ORGANIZER TEMPLATE APIs =================
+export const organizerAPI = {
+  // GET ALL
+  getOrganizerTemplates: () =>
+    organizerApi.get("/api/organizertemp/organizertemplate"),
+
+  // GET SINGLE
+  getOrganizerTemplateById: (id) =>
+    organizerApi.get(`/api/organizertemp/organizertemplate/${id}`),
+
+  // CREATE
+  createOrganizerTemplate: (data) =>
+    organizerApi.post("/api/organizertemp/organizertemplate", data),
+
+  // UPDATE
+  updateOrganizerTemplate: (id, data) =>
+    organizerApi.patch(`/api/organizertemp/organizertemplate/${id}`, data),
+
+  // DELETE
+  deleteOrganizerTemplate: (id) =>
+    organizerApi.delete(`/api/organizertemp/organizertemplate/${id}`),
+
+  // CHECK NAME
+  checkTemplateNameExists: (name) =>
+    organizerApi.get(
+      `/api/organizertemp/check-name?name=${encodeURIComponent(name)}`
+    ),
+     // DUPLICATE ✅
+  duplicateOrganizerTemplate: (id) =>
+    organizerApi.post(`/api/organizertemp/organizertemplate/duplicate/${id}`),
+};

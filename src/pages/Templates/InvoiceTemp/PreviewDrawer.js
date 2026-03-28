@@ -223,7 +223,7 @@ const PreviewDrawer = ({
           </Typography>
         </Box>
 
-        <Box>{clientNote}</Box>
+        {/* <Box>{clientNote}</Box> */}
 
         {/* Footer Buttons */}
         <Box

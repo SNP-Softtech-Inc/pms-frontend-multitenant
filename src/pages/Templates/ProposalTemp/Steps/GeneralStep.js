@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import MultiSelectDropdown from "../../../../components/MultiSelectDropdown"
+import ShortcodeTextField from "../../../../components/ShortcodeTextField";
 const GeneralStep = ({
   formData,
   updateFormData,
@@ -109,17 +110,7 @@ const GeneralStep = ({
     });
   };
 
-  // Handle team member selection
-  // const handleTeamMembersChange = ( newSelectedUsers) => {
-  //   const selectedValues = newSelectedUsers.map((user) => user.value);
 
-  //   // Update form data
-  //   updateFormData("general", {
-  //     teamMembers: selectedValues,
-  //   });
-
-  //   console.log("Selected team members:", selectedValues);
-  // };
 const handleTeamMembersChange = (newSelectedUsers) => {
   updateFormData("general", {
     teamMembers: newSelectedUsers, // store full objects
@@ -270,7 +261,7 @@ const handleTeamMembersChange = (newSelectedUsers) => {
           sx={{ mb: 2 }}
         />
        
-        <TextField
+        {/* <TextField
           fullWidth
           // label="Proposal Name"
           label="Proposal name (visible to clients)"
@@ -286,9 +277,51 @@ const handleTeamMembersChange = (newSelectedUsers) => {
           sx={{ mb: 2 }}
           error={!!stepErrors.proposalName}
           helperText={stepErrors.proposalName}
-        />
+        /> */}
+<Box sx={{ mb: 2 }}>
+  <ShortcodeTextField
+    label="Proposal name (visible to clients)"
+    value={formData.general.proposalName || ""}
+    onChange={(e) => {
+      const { value, selectionStart } = e.target;
 
-        <Button
+      handleInputChange("proposalName", value);
+      setCursorPosition(selectionStart);
+    }}
+    onClick={(e) => setCursorPosition(e.target.selectionStart)}
+    inputRef={textFieldRef}
+    required
+    error={!!stepErrors.proposalName}
+    helperText={stepErrors.proposalName}
+  placeholder="Proposal name (visible to clients)"
+    // shortcuts
+    shortcuts={filteredShortcuts}
+    showShortcutDropdown={showDropdown}
+    anchorElShortcut={anchorEl}
+    onToggleShortcutDropdown={toggleDropdown}
+    onCloseShortcutDropdown={handleCloseDropdown}
+    onAddShortcut={(shortcut) => {
+      const current = formData.general.proposalName || "";
+
+      const newValue =
+        current.slice(0, cursorPosition) +
+        `[${shortcut}]` +
+        current.slice(cursorPosition);
+
+      updateFormData("general", { proposalName: newValue });
+
+      setTimeout(() => {
+        if (textFieldRef.current) {
+          const newCursor = cursorPosition + shortcut.length + 2;
+          textFieldRef.current.focus();
+          textFieldRef.current.setSelectionRange(newCursor, newCursor);
+          setCursorPosition(newCursor);
+        }
+      }, 0);
+    }}
+  />
+</Box>
+        {/* <Button
           variant="contained"
           color="primary"
           onClick={toggleDropdown}
@@ -333,7 +366,7 @@ const handleTeamMembersChange = (newSelectedUsers) => {
               ))}
             </List>
           </Box>
-        </Popover>
+        </Popover> */}
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
