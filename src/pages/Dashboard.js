@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from "react";
 // import {
 //   Box,
@@ -271,9 +270,6 @@
 
 // export default Dashboard;
 
-
-
-
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -347,24 +343,22 @@ const Dashboard = () => {
   };
 
   // ✅ ACTIVE CHECK (main + submenu)
- 
-const isActive = (path, submenu = []) => {
-  // ✅ exact match
-  if (location.pathname === path) return true;
 
-  // ✅ handle nested routes like /firmtemp/templates/*
-  if (
-    path.includes("/firmtemp/templates") &&
-    location.pathname.startsWith("/firmtemp/templates")
-  ) {
-    return true;
-  }
+  const isActive = (path, submenu = []) => {
+    // ✅ exact match
+    if (location.pathname === path) return true;
 
-  // ✅ fallback for submenu
-  return submenu?.some((sub) =>
-    location.pathname.startsWith(sub.path)
-  );
-};
+    // ✅ handle nested routes like /firmtemp/templates/*
+    if (
+      path.includes("/firmtemp/templates") &&
+      location.pathname.startsWith("/firmtemp/templates")
+    ) {
+      return true;
+    }
+
+    // ✅ fallback for submenu
+    return submenu?.some((sub) => location.pathname.startsWith(sub.path));
+  };
   const isSubActive = (path) => {
     return location.pathname.startsWith(path);
   };
@@ -400,38 +394,29 @@ const isActive = (path, submenu = []) => {
     }));
   };
 
-  // const handleDrawerToggle = () => {
-  //   if (isSmUp) {
-  //     setOpen(!open);
-  //   } else {
-  //     setMobileOpen(!mobileOpen);
-  //   }
-  // };
-const handleDrawerToggle = () => {
-  if (isSmUp) {
-    setOpen((prev) => {
-      const newState = !prev;
+  const handleDrawerToggle = () => {
+    if (isSmUp) {
+      setOpen((prev) => {
+        const newState = !prev;
 
-      // ✅ if collapsing → close all menus
-      if (!newState) {
-        setOpenMenus({});
-      }
+        // ✅ if collapsing → close all menus
+        if (!newState) {
+          setOpenMenus({});
+        }
 
-      return newState;
-    });
-  } else {
-    setMobileOpen(!mobileOpen);
-  }
-};
+        return newState;
+      });
+    } else {
+      setMobileOpen(!mobileOpen);
+    }
+  };
   const drawerContent = (
     <Box>
       {/* HEADER */}
       <Box sx={{ display: "flex", alignItems: "center", p: 2 }}>
         <Avatar sx={{ bgcolor: "primary.main" }}>S</Avatar>
         {open && isSmUp && (
-          <Typography sx={{ ml: 1, fontWeight: 600 }}>
-            SNP Admin
-          </Typography>
+          <Typography sx={{ ml: 1, fontWeight: 600 }}>SNP Admin</Typography>
         )}
       </Box>
 
@@ -464,9 +449,7 @@ const handleDrawerToggle = () => {
                       mb: 0.5,
                       transition: "all 0.2s ease",
 
-                      bgcolor: active
-                        ? "rgba(25,118,210,0.08)"
-                        : "transparent",
+                      bgcolor: active ? "rgba(25,118,210,0.08)" : "transparent",
 
                       color: active ? "primary.main" : "text.primary",
 
@@ -492,9 +475,7 @@ const handleDrawerToggle = () => {
                     <ListItemIcon
                       sx={{
                         minWidth: 35,
-                        color: active
-                          ? "primary.main"
-                          : "text.secondary",
+                        color: active ? "primary.main" : "text.secondary",
                       }}
                     >
                       {getIcon(item.icon)}
@@ -511,12 +492,9 @@ const handleDrawerToggle = () => {
                       }}
                     />
 
-                    {item.submenu?.length > 0 && open &&
-                      (openMenus[index] ? (
-                        <ExpandLess />
-                      ) : (
-                        <ExpandMore />
-                      ))}
+                    {item.submenu?.length > 0 &&
+                      open &&
+                      (openMenus[index] ? <ExpandLess /> : <ExpandMore />)}
                   </ListItemButton>
                 </Tooltip>
               </ListItem>
@@ -600,39 +578,29 @@ const handleDrawerToggle = () => {
       {isSmUp ? (
         <Drawer
           variant="permanent"
-          // sx={{
-          //   width: open ? drawerWidth : collapsedDrawerWidth,
-          //   [`& .MuiDrawer-paper`]: {
-          //     width: open ? drawerWidth : collapsedDrawerWidth,
-          //     transition: "all 0.3s ease",
-          //     overflowX: "hidden",
-          //     borderRight: "1px solid rgba(0,0,0,0.08)",
-          //     background: "#fff",
-          //   },
-          // }}
           sx={{
-  width: open ? drawerWidth : collapsedDrawerWidth,
-  [`& .MuiDrawer-paper`]: {
-    width: open ? drawerWidth : collapsedDrawerWidth,
-    transition: "all 0.3s ease",
+            width: open ? drawerWidth : collapsedDrawerWidth,
+            [`& .MuiDrawer-paper`]: {
+              width: open ? drawerWidth : collapsedDrawerWidth,
+              transition: "all 0.3s ease",
 
-    // ✅ FIX START
-    overflowX: "hidden",
-    overflowY: "auto",
+              // ✅ FIX START
+              overflowX: "hidden",
+              overflowY: "auto",
 
-    // hide scrollbar (all browsers)
-    scrollbarWidth: "none", // Firefox
-    msOverflowStyle: "none", // IE/Edge
+              // hide scrollbar (all browsers)
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE/Edge
 
-    "&::-webkit-scrollbar": {
-      display: "none", // Chrome/Safari
-    },
-    // ✅ FIX END
+              "&::-webkit-scrollbar": {
+                display: "none", // Chrome/Safari
+              },
+              // ✅ FIX END
 
-    borderRight: "1px solid rgba(0,0,0,0.08)",
-    background: "#fff",
-  },
-}}
+              borderRight: "1px solid rgba(0,0,0,0.08)",
+              background: "#fff",
+            },
+          }}
         >
           {drawerContent}
         </Drawer>
@@ -669,9 +637,7 @@ const handleDrawerToggle = () => {
             <IconButton onClick={handleDrawerToggle}>
               <MenuIcon />
             </IconButton>
-            <Typography sx={{ ml: 2, fontWeight: 600 }}>
-              Dashboard
-            </Typography>
+            <Typography sx={{ ml: 2, fontWeight: 600 }}>Dashboard</Typography>
           </Box>
 
           <LogoutButton size="small" />

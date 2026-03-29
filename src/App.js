@@ -26,7 +26,8 @@ import ForgotPassword from "./login-signup/ForgotPassword";
 import ResetPassword from "./login-signup/ResetPassword";
 import MyAccount from "./pages/Settings/MyAccount";
 import FirmSetting from "./pages/Settings/FirmSetting";
-import PipelineTemplate from "./pages/Templates/PipelineTemp/PipelineTemplate";
+import PipelineForm from "./pages/Templates/PipelineTemp/PipelineTemplate";
+import PipelineTable from "./pages/Templates/PipelineTemp/PipelineTable";
 function App() {
   return (
     <Routes>
@@ -111,7 +112,8 @@ function App() {
           <Route path="proposals" element={<ProposalTemplate />} />
           <Route path="proposals/proposal-form" element={<ProposalForm />} />
         </Route>
-        <Route path="firmtemp/pipelines" element={<PipelineTemplate />} />
+        <Route path="firmtemp/pipelines" element={<PipelineTable />} />
+        <Route path="firmtemp/pipelines/pipelineform" element={<PipelineForm />} />
         <Route path="firmtemp/teammember" element={<TeamMember />} />
         <Route path="firmtemp/tags" element={<Tags />} />
         <Route path="firmtemp/service" element={<Service />} />

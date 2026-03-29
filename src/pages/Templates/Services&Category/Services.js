@@ -223,6 +223,10 @@ const deleteService = async (id) => {
     value: cat._id,
     label: cat.categoryName,
   }));
+  const updatedCategoryOptions = [
+  ...categoryOptions,
+  { label: "+ Add Category", isAddNew: true },
+];
 
   return (
     <Box>
@@ -391,7 +395,7 @@ const deleteService = async (id) => {
             <Typography variant="subtitle1" mb={1}>
               Category
             </Typography>
-            <Autocomplete
+            {/* <Autocomplete
               size="small"
               fullWidth
               options={categoryOptions}
@@ -401,7 +405,35 @@ const deleteService = async (id) => {
               renderInput={(params) => (
                 <TextField {...params} placeholder="Select Category" />
               )}
-            />
+            /> */}
+            <Autocomplete
+  size="small"
+  fullWidth
+  options={updatedCategoryOptions}
+  getOptionLabel={(opt) => opt.label}
+  value={selectedCategory}
+  onChange={(e, val) => {
+    if (val?.isAddNew) {
+      openCategoryDrawer(); // 👈 open drawer
+      return;
+    }
+    setSelectedCategory(val);
+  }}
+  renderOption={(props, option) => (
+    <li
+      {...props}
+      style={{
+        fontWeight: option.isAddNew ? 600 : 400,
+        color: option.isAddNew ? "#1976d2" : "inherit",
+      }}
+    >
+      {option.label}
+    </li>
+  )}
+  renderInput={(params) => (
+    <TextField {...params} placeholder="Select Category" />
+  )}
+/>
           </Box>
 
           <Button sx={{ mt: 2 }} variant="contained" onClick={saveService}>

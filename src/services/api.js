@@ -447,6 +447,26 @@ checkPipelineNameExists: (name) =>
   templateApi.get(
     `/temp/pipeline/check-name?name=${encodeURIComponent(name)}`
   ),
+
+  // ================= SORT JOBS BY =================
+
+// GET ALL
+getAllSortJobsBy: () => templateApi.get("/temp/sortjobs/sortjobby"),
+
+// GET SINGLE
+getSortJobById: (id) => templateApi.get(`/temp/sortjobs/sortjobby/${id}`),
+
+// CREATE
+createSortJobsBy: (data) =>
+  templateApi.post("/temp/sortjobs/sortjobby", data),
+
+// UPDATE
+updateSortJobsBy: (id, data) =>
+  templateApi.patch(`/temp/sortjobs/sortjobby/${id}`, data),
+
+// DELETE
+deleteSortJobsBy: (id) =>
+  templateApi.delete(`/temp/sortjobs/sortjobby/${id}`),
 };
 
 // ================= ACCOUNTS APIs =================
