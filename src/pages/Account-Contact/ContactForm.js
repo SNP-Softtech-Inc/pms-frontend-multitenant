@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -34,7 +31,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
+  DialogActions,Paper,Stack
 } from "@mui/material";
 import countryList from "react-select-country-list";
 import { AddCircle, RemoveCircle } from "@mui/icons-material";
@@ -42,7 +39,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import ContactSelectionDialog from "./ContactSelectionDialog";
 import SelectedContactsDisplay from "./SelectedContactsDisplay";
-import { templateAPI } from "../../services/api"; 
+import { templateAPI } from "../../services/api";
 // Personalization Dialog Component
 const PersonalizationDialog = ({
   open,
@@ -104,17 +101,18 @@ const PersonalizationDialog = ({
 export default function ContactForm({ onBack, onSubmit, isEditing }) {
   const dispatch = useDispatch();
   const { contacts, selectedContacts } = useSelector(
-    (state) => state.accountContact
+    (state) => state.accountContact,
   );
-  
+
   console.log("selected contacts", contacts);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [personalizationDialogOpen, setPersonalizationDialogOpen] = useState(false);
+  const [personalizationDialogOpen, setPersonalizationDialogOpen] =
+    useState(false);
   const [personalMessage, setPersonalMessage] = useState("");
   const [showContactForm, setShowContactForm] = useState(contacts.length > 0);
   const [contactErrors, setContactErrors] = useState([]);
   const [pendingSubmit, setPendingSubmit] = useState(false);
-  
+
   // Track newly selected contacts (without _id) and newly added form contacts
   const [newlySelectedContacts, setNewlySelectedContacts] = useState([]);
   const [newFormContacts, setNewFormContacts] = useState([]);
@@ -122,16 +120,16 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
   // Track when new contacts are added via the dialog
   const handleAddExistingContacts = (newContacts) => {
     // Mark these as newly selected contacts (they have _id but are newly linked)
-    const contactsWithNewFlag = newContacts.map(contact => ({
+    const contactsWithNewFlag = newContacts.map((contact) => ({
       ...contact,
-      isNewlySelected: true
+      isNewlySelected: true,
     }));
     dispatch(addSelectedContacts(contactsWithNewFlag));
-    
+
     // Store the newly selected contact IDs
-    setNewlySelectedContacts(prev => [
+    setNewlySelectedContacts((prev) => [
       ...prev,
-      ...newContacts.map(contact => contact._id)
+      ...newContacts.map((contact) => contact._id),
     ]);
   };
 
@@ -139,48 +137,49 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
   const handleAddContact = () => {
     dispatch(addContact());
     setShowContactForm(true);
-    
+
     // The last contact in the array is the new one
     const newContactIndex = contacts.length;
-    setNewFormContacts(prev => [...prev, newContactIndex]);
+    setNewFormContacts((prev) => [...prev, newContactIndex]);
   };
 
   // Check if there are any NEW contacts that need activation (login = true)
   const getNewContactsNeedingActivation = () => {
     const allContacts = [...contacts, ...selectedContacts];
-    
-    return allContacts.filter(contact => {
+
+    return allContacts.filter((contact) => {
       // Contact needs activation
       const needsActivation = contact.login === true;
-      
+
       // Contact is NEW (either newly selected or newly added form contact)
-      const isNewContact = 
+      const isNewContact =
         // New form contact (no _id and in newFormContacts array)
-        (contact._id === undefined && newFormContacts.includes(contacts.indexOf(contact))) ||
+        (contact._id === undefined &&
+          newFormContacts.includes(contacts.indexOf(contact))) ||
         // Newly selected contact (has _id and in newlySelectedContacts array)
         (contact._id && newlySelectedContacts.includes(contact._id));
-      
+
       return needsActivation && isNewContact;
     });
   };
 
   const getNewContactEmailsNeedingActivation = () => {
     const activationContacts = getNewContactsNeedingActivation();
-    return activationContacts.map(contact => contact.email).filter(Boolean);
+    return activationContacts.map((contact) => contact.email).filter(Boolean);
   };
-const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmitWithPersonalization = async (event) => {
     if (event) event.preventDefault();
-    
-      // Prevent multiple submissions
-  if (isSubmitting) return;
+
+    // Prevent multiple submissions
+    if (isSubmitting) return;
     // Check if there are NEW contacts that need activation
     const newActivationContacts = getNewContactsNeedingActivation();
     const newActivationEmails = getNewContactEmailsNeedingActivation();
-    
+
     console.log("New contacts needing activation:", newActivationContacts);
     console.log("New activation emails:", newActivationEmails);
-    
+
     // if (newActivationContacts.length > 0) {
     //   // Show personalization dialog only for NEW contacts
     //   setPendingSubmit(true);
@@ -190,65 +189,48 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     //   await onSubmit(event, "");
     // }
     if (newActivationContacts.length > 0) {
-    // Show personalization dialog only for NEW contacts
-    setPendingSubmit(true);
-    setPersonalizationDialogOpen(true);
-  } else {
-    // No NEW contacts need activation, submit directly without message
+      // Show personalization dialog only for NEW contacts
+      setPendingSubmit(true);
+      setPersonalizationDialogOpen(true);
+    } else {
+      // No NEW contacts need activation, submit directly without message
+      setIsSubmitting(true); // Disable button
+      try {
+        await onSubmit(event, "");
+      } finally {
+        setIsSubmitting(false); // Re-enable button
+      }
+    }
+  };
+  const handleConfirmPersonalization = async () => {
     setIsSubmitting(true); // Disable button
+    setPersonalizationDialogOpen(false);
+
     try {
-      await onSubmit(event, "");
+      // Submit with the personal message
+      await onSubmit(null, personalMessage);
+      // Reset tracking after successful submission
+      setPersonalMessage("");
+      setPendingSubmit(false);
+      setNewlySelectedContacts([]);
+      setNewFormContacts([]);
     } finally {
       setIsSubmitting(false); // Re-enable button
     }
-  }
   };
-const handleConfirmPersonalization = async () => {
-  setIsSubmitting(true); // Disable button
-  setPersonalizationDialogOpen(false);
-  
-  try {
-    // Submit with the personal message
-    await onSubmit(null, personalMessage);
-    // Reset tracking after successful submission
+
+  const handleCancelPersonalization = () => {
+    setPersonalizationDialogOpen(false);
     setPersonalMessage("");
     setPendingSubmit(false);
-    setNewlySelectedContacts([]);
-    setNewFormContacts([]);
-  } finally {
-    setIsSubmitting(false); // Re-enable button
-  }
-};
-
-const handleCancelPersonalization = () => {
-  setPersonalizationDialogOpen(false);
-  setPersonalMessage("");
-  setPendingSubmit(false);
-};
-  // const handleConfirmPersonalization = async () => {
-  //   setPersonalizationDialogOpen(false);
-  //   // Submit with the personal message
-  //   await onSubmit(null, personalMessage);
-  //   setPersonalMessage("");
-  //   setPendingSubmit(false);
-    
-  //   // Reset tracking after submission
-  //   setNewlySelectedContacts([]);
-  //   setNewFormContacts([]);
-  // };
-
-  // const handleCancelPersonalization = () => {
-  //   setPersonalizationDialogOpen(false);
-  //   setPersonalMessage("");
-  //   setPendingSubmit(false);
-  // };
+  };
 
   // Remove contact from tracking when it's removed from form
   const handleRemoveSelectedContact = (index) => {
     const contactToRemove = selectedContacts[index];
     if (contactToRemove && contactToRemove._id) {
-      setNewlySelectedContacts(prev => 
-        prev.filter(id => id !== contactToRemove._id)
+      setNewlySelectedContacts((prev) =>
+        prev.filter((id) => id !== contactToRemove._id),
       );
     }
     dispatch(removeSelectedContact(index));
@@ -256,10 +238,10 @@ const handleCancelPersonalization = () => {
 
   // Remove form contact from tracking when it's removed
   const handleRemoveContact = (contactIndex) => {
-    setNewFormContacts(prev => 
-      prev.filter(index => index !== contactIndex).map(index => 
-        index > contactIndex ? index - 1 : index
-      )
+    setNewFormContacts((prev) =>
+      prev
+        .filter((index) => index !== contactIndex)
+        .map((index) => (index > contactIndex ? index - 1 : index)),
     );
     dispatch(removeContact(contactIndex));
   };
@@ -314,37 +296,41 @@ const handleCancelPersonalization = () => {
     dispatch(updateSelectedContactField({ index, field, value }));
   };
 
-  const TAGS_API = process.env.REACT_APP_TAGS_TEMP_URL;
+
   const [tags, setTags] = useState([]);
-  
+
   useEffect(() => {
     const fetchTags = async () => {
       try {
         // const res = await fetch(`${TAGS_API}/tags/`);
         const res = await templateAPI.getAllTags();
         // const data = await res.json();
-       const data = res?.data?.tags || [];
+        const data = res?.data?.tags || [];
         setTags(
           data.map((tag) => ({
-              value: tag._id,
-              label: tag.tagName,
-              colour: tag.tagColour,
-            }))
+            value: tag._id,
+            label: tag.tagName,
+            colour: tag.tagColour,
+          })),
         );
       } catch (err) {
         console.error("Error fetching tags:", err);
       }
     };
     fetchTags();
-  }, [TAGS_API]);
-  
+  }, []);
+
   const options = useMemo(() => countryList().getData(), []);
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Contact Form
-      </Typography>
+     <Typography
+  variant="h5"
+  fontWeight={600}
+  sx={{ mb: 2 }}
+>
+  Contact Form
+</Typography>
       <Button
         variant="outlined"
         startIcon={<AddCircle />}
@@ -364,10 +350,13 @@ const handleCancelPersonalization = () => {
         onUpdateField={handleUpdateSelectedContactField}
         isEditing={isEditing}
       />
-      <Typography variant="h6" gutterBottom>
-        Add New Contacts
-      </Typography>
-      {showContactForm && (
+      <Typography
+  variant="subtitle1"
+  sx={{ color: "text.secondary", mb: 3 }}
+>
+  Add New Contacts
+</Typography>
+      {/* {showContactForm && (
         <>
           {contacts.map((contact, contactIndex) => (
             <Box
@@ -377,17 +366,16 @@ const handleCancelPersonalization = () => {
                 borderRadius: 2,
                 p: 2,
                 mb: 3,
-                background: "#fafafa",
               }}
             >
               <Typography variant="subtitle1" gutterBottom>
                 Contact #{contactIndex + 1}
                 {newFormContacts.includes(contactIndex) && (
-                  <Chip 
-                    label="New" 
-                    size="small" 
-                    color="primary" 
-                    sx={{ ml: 1 }} 
+                  <Chip
+                    label="New"
+                    size="small"
+                    color="primary"
+                    sx={{ ml: 1 }}
                   />
                 )}
               </Typography>
@@ -492,7 +480,7 @@ const handleCancelPersonalization = () => {
                             index: contactIndex,
                             field: "login",
                             value: e.target.checked,
-                          })
+                          }),
                         )
                       }
                     />
@@ -510,7 +498,7 @@ const handleCancelPersonalization = () => {
                             index: contactIndex,
                             field: "notify",
                             value: e.target.checked,
-                          })
+                          }),
                         )
                       }
                     />
@@ -529,7 +517,7 @@ const handleCancelPersonalization = () => {
                             index: contactIndex,
                             field: "emailSync",
                             value: e.target.checked,
-                          })
+                          }),
                         )
                       }
                     />
@@ -544,7 +532,7 @@ const handleCancelPersonalization = () => {
                 value={contact.tags || []}
                 onChange={(e, newValue) =>
                   dispatch(
-                    setContactTags({ index: contactIndex, tags: newValue })
+                    setContactTags({ index: contactIndex, tags: newValue }),
                   )
                 }
                 filterSelectedOptions
@@ -606,7 +594,11 @@ const handleCancelPersonalization = () => {
                       value={phone}
                       onChange={(value) =>
                         dispatch(
-                          updatePhoneNumber({ contactIndex, phoneIndex, value })
+                          updatePhoneNumber({
+                            contactIndex,
+                            phoneIndex,
+                            value,
+                          }),
                         )
                       }
                       inputStyle={{ width: "100%" }}
@@ -615,7 +607,7 @@ const handleCancelPersonalization = () => {
                       color="error"
                       onClick={() =>
                         dispatch(
-                          removePhoneNumber({ contactIndex, phoneIndex })
+                          removePhoneNumber({ contactIndex, phoneIndex }),
                         )
                       }
                       disabled={contact.phoneNumbers.length === 1}
@@ -641,7 +633,7 @@ const handleCancelPersonalization = () => {
                   Address
                 </FormLabel>
 
-                {/* Country */}
+               
                 <Autocomplete
                   options={options}
                   getOptionLabel={(option) => option.label}
@@ -651,7 +643,7 @@ const handleCancelPersonalization = () => {
                       setContactCountry({
                         index: contactIndex,
                         country: newValue,
-                      })
+                      }),
                     )
                   }
                   renderInput={(params) => (
@@ -663,7 +655,7 @@ const handleCancelPersonalization = () => {
                   )}
                 />
 
-                {/* Street Address */}
+                
                 <TextField
                   fullWidth
                   margin="normal"
@@ -674,7 +666,7 @@ const handleCancelPersonalization = () => {
                   onChange={(e) => handleChange(contactIndex, e)}
                 />
 
-                {/* City */}
+               
                 <TextField
                   fullWidth
                   margin="normal"
@@ -685,7 +677,7 @@ const handleCancelPersonalization = () => {
                   onChange={(e) => handleChange(contactIndex, e)}
                 />
 
-                {/* State */}
+               
                 <TextField
                   fullWidth
                   margin="normal"
@@ -696,7 +688,6 @@ const handleCancelPersonalization = () => {
                   onChange={(e) => handleChange(contactIndex, e)}
                 />
 
-                {/* Zip Code */}
                 <TextField
                   fullWidth
                   margin="normal"
@@ -707,19 +698,411 @@ const handleCancelPersonalization = () => {
                   onChange={(e) => handleChange(contactIndex, e)}
                 />
               </Box>
-              {/* {contacts.length > 1 && ( */}
-                <Button
-                  color="error"
-                  sx={{ mt: 2 }}
-                  onClick={() => handleRemoveContact(contactIndex)}
-                >
-                  Remove Contact
-                </Button>
-              {/* )} */}
+             
+             
             </Box>
           ))}
         </>
-      )}
+      )} */}
+
+      {showContactForm && (
+  <>
+    {contacts.map((contact, contactIndex) => (
+      <Paper
+        key={contactIndex}
+        elevation={2}
+        sx={{
+          borderRadius: 3,
+          p: 3,
+          mb: 3,
+        }}
+      >
+        {/* HEADER */}
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          mb={2}
+        >
+          <Typography variant="h6" fontWeight={600}>
+            Contact #{contactIndex + 1}
+          </Typography>
+
+          {newFormContacts.includes(contactIndex) && (
+            <Chip label="New" size="small" color="primary" />
+          )}
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {/* NAME FIELDS */}
+        <Grid container
+                rowSpacing={3}
+                columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="First Name"
+              name="firstName"
+              value={contact.firstName || ""}
+              onChange={(e) => handleChange(contactIndex, e)}
+              error={!!contactErrors[contactIndex]?.firstName}
+              helperText={contactErrors[contactIndex]?.firstName}
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Middle Name"
+              name="middleName"
+              value={contact.middleName || ""}
+              onChange={(e) => handleChange(contactIndex, e)}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Last Name"
+              name="lastName"
+              value={contact.lastName || ""}
+              onChange={(e) => handleChange(contactIndex, e)}
+              error={!!contactErrors[contactIndex]?.lastName}
+              helperText={contactErrors[contactIndex]?.lastName}
+              required
+            />
+          </Grid>
+        </Grid>
+
+        <Stack spacing={2} mt={2}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Contact Name"
+            value={contact.contactName || ""}
+            disabled
+          />
+
+          <TextField
+            fullWidth
+            size="small"
+            label="Company Name"
+            name="companyName"
+            value={contact.companyName || ""}
+            onChange={(e) => handleChange(contactIndex, e)}
+          />
+
+          <TextField
+            fullWidth
+            size="small"
+            label="Note"
+            name="note"
+            multiline
+            value={contact.note || ""}
+            onChange={(e) => handleChange(contactIndex, e)}
+          />
+
+          <TextField
+            fullWidth
+            size="small"
+            label="SSN"
+            name="ssn"
+            value={contact.ssn || ""}
+            onChange={(e) => handleSSNChange(contactIndex, e)}
+            inputProps={{
+              maxLength: 11,
+              inputMode: "numeric",
+              pattern: "[0-9]*",
+            }}
+            helperText={
+              contact.ssnError
+                ? contact.ssnError
+                : "Format: 123-45-6789"
+            }
+            error={!!contact.ssnError}
+          />
+
+          <TextField
+            fullWidth
+            size="small"
+            label="Email"
+            name="email"
+            value={contact.email || ""}
+            onChange={(e) => handleChange(contactIndex, e)}
+            error={!!contactErrors[contactIndex]?.email}
+            helperText={contactErrors[contactIndex]?.email}
+            required
+          />
+        </Stack>
+
+        {/* CHECKBOXES */}
+        <FormGroup row sx={{ mt: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={contact.login || false}
+                disabled
+                onChange={(e) =>
+                  dispatch(
+                    updateContactField({
+                      index: contactIndex,
+                      field: "login",
+                      value: e.target.checked,
+                    })
+                  )
+                }
+              />
+            }
+            label="Login"
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={contact.notify || false}
+                disabled
+                onChange={(e) =>
+                  dispatch(
+                    updateContactField({
+                      index: contactIndex,
+                      field: "notify",
+                      value: e.target.checked,
+                    })
+                  )
+                }
+              />
+            }
+            label="Notify"
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={contact.emailSync || false}
+                // disabled
+                onChange={(e) =>
+                  dispatch(
+                    updateContactField({
+                      index: contactIndex,
+                      field: "emailSync",
+                      value: e.target.checked,
+                    })
+                  )
+                }
+              />
+            }
+            label="Email Sync"
+          />
+        </FormGroup>
+
+        {/* TAGS */}
+        <Autocomplete
+          multiple
+          options={tags}
+          getOptionLabel={(option) => option.label}
+          value={contact.tags || []}
+          onChange={(e, newValue) =>
+            dispatch(
+              setContactTags({ index: contactIndex, tags: newValue })
+            )
+          }
+          filterSelectedOptions
+          renderTags={(selected, getTagProps) =>
+            selected.map((option, index) => (
+              <Chip
+                {...getTagProps({ index })}
+                key={option.value}
+                label={option.label}
+                sx={{
+                  backgroundColor: option.colour,
+                  color: "#fff",
+                  fontWeight: 500,
+                }}
+              />
+            ))
+          }
+          renderOption={(props, option) => (
+            <Box
+              component="li"
+              {...props}
+              sx={{
+                backgroundColor: option.colour,
+                color: "#fff",
+                borderRadius: 2,
+                px: 1,
+                py: 0.5,
+                my: 0.5,
+                width: "fit-content",
+                fontSize: 12,
+              }}
+            >
+              {option.label}
+            </Box>
+          )}
+          renderInput={(params) => (
+            <TextField {...params} label="Select Tags" size="small" />
+          )}
+          sx={{ mt: 2 }}
+        />
+
+        {/* PHONE NUMBERS */}
+        <Box mt={3}>
+          <Typography fontWeight={600} mb={1}>
+            Phone Numbers
+          </Typography>
+
+          {contact.phoneNumbers &&
+            contact.phoneNumbers.map((phone, phoneIndex) => (
+              <Box
+                key={phoneIndex}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1,
+                }}
+              >
+                <Box sx={{ flex: 1 }}>
+                  <PhoneInput
+                    country={"us"}
+                    value={phone}
+                    onChange={(value) =>
+                      dispatch(
+                        updatePhoneNumber({
+                          contactIndex,
+                          phoneIndex,
+                          value,
+                        })
+                      )
+                    }
+                    inputStyle={{ width: "100%" }}
+                  />
+                </Box>
+
+                <IconButton
+                  color="error"
+                  onClick={() =>
+                    dispatch(
+                      removePhoneNumber({ contactIndex, phoneIndex })
+                    )
+                  }
+                  disabled={contact.phoneNumbers.length === 1}
+                >
+                  <RemoveCircle />
+                </IconButton>
+
+                {phoneIndex === contact.phoneNumbers.length - 1 && (
+                  <IconButton
+                    color="primary"
+                    onClick={() =>
+                      dispatch(addPhoneNumber(contactIndex))
+                    }
+                  >
+                    <AddCircle />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
+        </Box>
+
+        {/* ADDRESS */}
+        <Box mt={3}>
+          <Divider sx={{ mb: 2 }} />
+
+          <Typography variant="h6" fontWeight={600} mb={2}>
+            Address
+          </Typography>
+
+          <Stack spacing={2}>
+            <Autocomplete
+              options={options}
+              getOptionLabel={(option) => option.label}
+              value={contact.country || null}
+              onChange={(e, newValue) =>
+                dispatch(
+                  setContactCountry({
+                    index: contactIndex,
+                    country: newValue,
+                  })
+                )
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Select Country" size="small" />
+              )}
+            />
+
+            <TextField
+              fullWidth
+              size="small"
+              label="Street Address"
+              name="streetAdd"
+              value={contact.streetAdd || ""}
+              onChange={(e) => handleChange(contactIndex, e)}
+            />
+
+            <Grid container
+                rowSpacing={3}
+                columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="City"
+                  name="city"
+                  value={contact.city || ""}
+                  onChange={(e) => handleChange(contactIndex, e)}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="State"
+                  name="state"
+                  value={contact.state || ""}
+                  onChange={(e) => handleChange(contactIndex, e)}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Zip Code"
+                  name="zipCode"
+                  value={contact.zipCode || ""}
+                  onChange={(e) => handleChange(contactIndex, e)}
+                />
+              </Grid>
+            </Grid>
+          </Stack>
+        </Box>
+
+        {/* REMOVE BUTTON */}
+        <Box mt={3} display="flex" justifyContent="flex-end">
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => handleRemoveContact(contactIndex)}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 500,
+            }}
+          >
+            Remove Contact
+          </Button>
+        </Box>
+      </Paper>
+    ))}
+  </>
+)}
       <Button
         variant="outlined"
         startIcon={<AddCircle />}
@@ -736,13 +1119,13 @@ const handleCancelPersonalization = () => {
         {/* <Button variant="contained" onClick={handleSubmitWithPersonalization}>
           Submit
         </Button> */}
-        <Button 
-  variant="contained" 
-  onClick={handleSubmitWithPersonalization}
-  disabled={isSubmitting} // Add disabled state
->
-  {isSubmitting ? "Submitting..." : "Submit"}
-</Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmitWithPersonalization}
+          disabled={isSubmitting} // Add disabled state
+        >
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </Button>
       </Box>
 
       <PersonalizationDialog

@@ -12,7 +12,7 @@ import Emails from "./pages/Templates/EmailTemp/EmailTemplate";
 import JobTemplate from "./pages/Templates/JobTemp/JobTemplate";
 import ClientFacingJobTemplate from "./pages/Templates/ClientFacingJobTemp/ClientFacingJobTemplate";
 import ChatTemp from "./pages/Templates/ChatTemp/ChatTemplate";
-import FolderTemplate from "./pages/Templates/FolderTemp/FolderTemplates";
+import FolderTemplate from "./pages/Templates/FolderTemp/FolderTemp";
 import InvoiceTemplate from "./pages/Templates/InvoiceTemp/InvoiceTemplates";
 import OrgaizerTemplate from "./pages/Templates/OrganizerTemp/OrgaizerTemplate";
 import ProposalTemplate from "./pages/Templates/ProposalTemp/ProposalsTable";
@@ -28,6 +28,9 @@ import MyAccount from "./pages/Settings/MyAccount";
 import FirmSetting from "./pages/Settings/FirmSetting";
 import PipelineForm from "./pages/Templates/PipelineTemp/PipelineTemplate";
 import PipelineTable from "./pages/Templates/PipelineTemp/PipelineTable";
+import FolderTreeView from "./pages/Templates/FolderTemp/FolderTreeView";
+import TemplateCreator from "./pages/Templates/FolderTemp/TemplateCreator";
+import ContactsTable from "./pages/Account-Contact/ContactTable";
 function App() {
   return (
     <Routes>
@@ -67,6 +70,14 @@ function App() {
           }
         ></Route>
         <Route
+          path="/clients/contacts"
+          element={
+            <ProtectedRoute>
+              <ContactsTable />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
           path="/settings/myaccount"
           element={
             <ProtectedRoute>
@@ -102,13 +113,15 @@ function App() {
           <Route path="clientfacing" element={<ClientFacingJobTemplate />} />
 
           <Route path="folders" element={<FolderTemplate />} />
+           <Route path="createfolder" element={<TemplateCreator />} />
+           <Route path="tree/:templateId" element={<FolderTreeView />} />
 
           <Route path="chats" element={<ChatTemp />} />
 
           <Route path="invoices" element={<InvoiceTemplate />} />
 
           <Route path="organizers" element={<OrgaizerTemplate />} />
-
+ 
           <Route path="proposals" element={<ProposalTemplate />} />
           <Route path="proposals/proposal-form" element={<ProposalForm />} />
         </Route>

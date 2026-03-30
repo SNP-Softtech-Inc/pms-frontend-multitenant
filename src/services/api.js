@@ -7,6 +7,7 @@ const TEMPLATE_URL = process.env.REACT_APP_TEMPLATE;
 const ACCOUNT_CONTACT_URL = process.env.REACT_APP_ACCOUNT_CONTACT;
 const PROPOSAL_URL = process.env.REACT_APP_PROPOSAL;
 const ORGANIZER_URL = process.env.REACT_APP_ORGANIZER;
+const FOLDER_MANAGEMENT_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
 
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
@@ -44,11 +45,18 @@ const proposalApi = axios.create({
   },
 });
 const organizerApi = axios.create({
-  baseURL:ORGANIZER_URL,
-  headers:{
-    "Content-Type":"application/json",
+  baseURL: ORGANIZER_URL,
+  headers: {
+    "Content-Type": "application/json",
   },
-})
+});
+
+const folderManagementApi = axios.create({
+  baseURL: FOLDER_MANAGEMENT_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
@@ -115,7 +123,7 @@ attachInterceptors(sidebarApi);
 attachInterceptors(accountcontactApi);
 attachInterceptors(proposalApi);
 attachInterceptors(organizerApi);
-
+attachInterceptors(folderManagementApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -221,6 +229,10 @@ export const sidebarAPI = {
   getSidebar: () => sidebarApi.get("/api/sidebar/"),
 };
 
+export const leftSidebarAPI = {
+  getLeftSidebar: () => sidebarApi.get("/api/newsidebar/"),
+};
+// ================= TEMPLATE APIs =================
 export const templateAPI = {
   // ================= CLIENTFACINGJOB STATUS =================
   createJobStatus: (data) =>
@@ -407,66 +419,62 @@ export const templateAPI = {
   checkJobTemplateNameExists: (name) =>
     templateApi.get(`/temp/jobs/check-name?name=${encodeURIComponent(name)}`),
 
-
-
   // ================= PIPELINE =================
 
-// GET ALL PIPELINES
-getAllPipelines: () => templateApi.get("/temp/pipeline/pipelines"),
+  // GET ALL PIPELINES
+  getAllPipelines: () => templateApi.get("/temp/pipeline/pipelines"),
 
-// GET PIPELINES BY USER
-getPipelinesByUser: (userId) =>
-  templateApi.get(`/temp/pipeline/pipelines/${userId}`),
+  // GET PIPELINES BY USER
+  getPipelinesByUser: (userId) =>
+    templateApi.get(`/temp/pipeline/pipelines/${userId}`),
 
-// GET SINGLE PIPELINE
-getPipelineById: (id) =>
-  templateApi.get(`/temp/pipeline/pipeline/${id}`),
+  // GET SINGLE PIPELINE
+  getPipelineById: (id) => templateApi.get(`/temp/pipeline/pipeline/${id}`),
 
-// CREATE PIPELINE
-createPipeline: (data) =>
-  templateApi.post("/temp/pipeline/createpipeline", data),
+  // CREATE PIPELINE
+  createPipeline: (data) =>
+    templateApi.post("/temp/pipeline/createpipeline", data),
 
-// UPDATE PIPELINE
-updatePipeline: (id, data) =>
-  templateApi.patch(`/temp/pipeline/pipeline/${id}`, data),
+  // UPDATE PIPELINE
+  updatePipeline: (id, data) =>
+    templateApi.patch(`/temp/pipeline/pipeline/${id}`, data),
 
-// DELETE PIPELINE
-deletePipeline: (id) =>
-  templateApi.delete(`/temp/pipeline/pipeline/${id}`),
+  // DELETE PIPELINE
+  deletePipeline: (id) => templateApi.delete(`/temp/pipeline/pipeline/${id}`),
 
-// GET PIPELINE TEMPLATE LIST (with automations populated)
-getPipelineTemplateList: (id) =>
-  templateApi.get(`/temp/pipeline/pipeline/pipelinelist/${id}`),
+  // GET PIPELINE TEMPLATE LIST (with automations populated)
+  getPipelineTemplateList: (id) =>
+    templateApi.get(`/temp/pipeline/pipeline/pipelinelist/${id}`),
 
-// GET PIPELINES WITH ACTIVE JOB COUNT
-getPipelinesWithCount: () =>
-  templateApi.get("/temp/pipeline/pipelines/count"),
+  // GET PIPELINES WITH ACTIVE JOB COUNT
+  getPipelinesWithCount: () =>
+    templateApi.get("/temp/pipeline/pipelines/count"),
 
-// CHECK NAME EXISTS
-checkPipelineNameExists: (name) =>
-  templateApi.get(
-    `/temp/pipeline/check-name?name=${encodeURIComponent(name)}`
-  ),
+  // CHECK NAME EXISTS
+  checkPipelineNameExists: (name) =>
+    templateApi.get(
+      `/temp/pipeline/check-name?name=${encodeURIComponent(name)}`,
+    ),
 
   // ================= SORT JOBS BY =================
 
-// GET ALL
-getAllSortJobsBy: () => templateApi.get("/temp/sortjobs/sortjobby"),
+  // GET ALL
+  getAllSortJobsBy: () => templateApi.get("/temp/sortjobs/sortjobby"),
 
-// GET SINGLE
-getSortJobById: (id) => templateApi.get(`/temp/sortjobs/sortjobby/${id}`),
+  // GET SINGLE
+  getSortJobById: (id) => templateApi.get(`/temp/sortjobs/sortjobby/${id}`),
 
-// CREATE
-createSortJobsBy: (data) =>
-  templateApi.post("/temp/sortjobs/sortjobby", data),
+  // CREATE
+  createSortJobsBy: (data) =>
+    templateApi.post("/temp/sortjobs/sortjobby", data),
 
-// UPDATE
-updateSortJobsBy: (id, data) =>
-  templateApi.patch(`/temp/sortjobs/sortjobby/${id}`, data),
+  // UPDATE
+  updateSortJobsBy: (id, data) =>
+    templateApi.patch(`/temp/sortjobs/sortjobby/${id}`, data),
 
-// DELETE
-deleteSortJobsBy: (id) =>
-  templateApi.delete(`/temp/sortjobs/sortjobby/${id}`),
+  // DELETE
+  deleteSortJobsBy: (id) =>
+    templateApi.delete(`/temp/sortjobs/sortjobby/${id}`),
 };
 
 // ================= ACCOUNTS APIs =================
@@ -642,7 +650,6 @@ export const proposalAPI = {
   deleteProposal: (id) => proposalApi.delete(`/api/proposals/${id}`),
 };
 
-
 // ================= ORGANIZER TEMPLATE APIs =================
 export const organizerAPI = {
   // GET ALL
@@ -668,9 +675,107 @@ export const organizerAPI = {
   // CHECK NAME
   checkTemplateNameExists: (name) =>
     organizerApi.get(
-      `/api/organizertemp/check-name?name=${encodeURIComponent(name)}`
+      `/api/organizertemp/check-name?name=${encodeURIComponent(name)}`,
     ),
-     // DUPLICATE ✅
+  // DUPLICATE ✅
   duplicateOrganizerTemplate: (id) =>
     organizerApi.post(`/api/organizertemp/organizertemplate/duplicate/${id}`),
+};
+
+// ================= FOLDER MANAGEMENT APIs =================
+export const folderManagementAPI = {
+  // CREATE
+  createFolderTemplate: (data) =>
+    folderManagementApi.post("/temp/foldertemp/folder-template", data),
+
+  // GET ALL
+  getFolderTemplates: () => folderManagementApi.get("/temp/foldertemp/templatelist"),
+
+  // GET SINGLE
+  getFolderTemplateById: (id) =>
+    folderManagementApi.get(`/temp/foldertemp/${id}`),
+
+  // RENAME
+  renameFolderTemplate: (id, data) =>
+    folderManagementApi.patch(`/temp/foldertemp/rename/${id}`, data),
+
+  // DELETE
+  deleteFolderTemplate: (id) =>
+    folderManagementApi.delete(`/temp/foldertemp/delete/${id}`),
+};
+
+// ================= DOC MANAGEMENT APIs =================
+export const docAPI = {
+  // ================= FOLDER =================
+
+  // Create folder
+  createFolder: (data) => folderManagementApi.post("/temp/docManagement/folder", data),
+
+  // Lock / Unlock folder
+  setFolderReadOnly: (data) =>
+    folderManagementApi.post("/temp/docManagement/folder/readonly", data),
+
+  // Upload folder (multiple files structure)
+  uploadFolderStructure: (data) =>
+    folderManagementApi.post("/temp/docManagement/folder/upload", data),
+
+  // Upload ZIP folder
+  uploadFolderZip: (formData) =>
+    folderManagementApi.post("/temp/docManagement/upload-folder", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+
+  // ================= FILE =================
+
+  // Upload single file
+uploadFile: (formData, folderPath) =>
+  folderManagementApi.post(
+    `/temp/docManagement/file/upload?folderPath=${encodeURIComponent(folderPath)}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  ),
+
+  // Lock / Unlock file
+  setFileReadOnly: (data) =>
+    folderManagementApi.post("/temp/docManagement/file/readonly", data),
+
+  // ================= COMMON =================
+
+  // Delete file or folder
+  deleteItem: (data) => folderManagementApi.post("/temp/docManagement/delete", data),
+
+  // Move file or folder
+  moveItem: (data) => folderManagementApi.post("/temp/docManagement/move", data),
+
+  // Rename file or folder
+  renameItem: (data) => folderManagementApi.post("/temp/docManagement/rename", data),
+
+  // Update metadata
+  updateMeta: (data) => folderManagementApi.post("/temp/docManagement/meta", data),
+
+  // Update status
+  updateStatus: (data) =>
+    folderManagementApi.post("/temp/docManagement/updateStatus", data),
+
+  // ================= LISTING =================
+
+  // List folder content
+  listFolderContent: (folderPath) =>
+    folderManagementApi.get(`/temp/docManagement/list?folderPath=${folderPath}`),
+
+  // List full tree (folders + files)
+  listFoldersAndFiles: (folderPath) =>
+    folderManagementApi.get(`/temp/docManagement/files/list?folderPath=${folderPath}`),
+
+  // ================= TEMPLATE =================
+
+  // Apply template to account
+  applyTemplateToAccount: (data) =>
+    folderManagementApi.post("/temp/docManagement/apply-template", data),
 };

@@ -36,7 +36,7 @@ export default function SelectedContactsDisplay({ contacts, onRemove, onUpdateFi
                       <Checkbox
                         checked={contact.notify || false}
                         onChange={e => onUpdateField(index, "notify", e.target.checked)}
-                        // disabled
+                        disabled
                       />
                     }
                     label="Notify"
