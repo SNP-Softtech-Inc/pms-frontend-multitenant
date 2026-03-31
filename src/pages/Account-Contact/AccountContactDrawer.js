@@ -24,7 +24,7 @@ export default function AccountContactDrawer({
         try {
           // ✅ Use API instead of axios
           const { data: account } = await accountsAPI.getAccountById(accountId);
-
+console.log("Fetched account details:", account);
           // Dispatch account data
           dispatch(setAccountData(account));
 
@@ -57,14 +57,7 @@ export default function AccountContactDrawer({
       onClose={onClose}
       PaperProps={{ sx: { width: 700, maxWidth: "100vw" } }}
     >
-      {/* <Box sx={{ display: "flex", alignItems: "center", p: 2, borderBottom: "1px solid #eee" }}>
-        <Typography variant="h6" flex={1}>
-          {accountId ? "Update Account" : "Create Account"}
-        </Typography>
-        <IconButton onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </Box> */}
+     
       <Box
   sx={{
     display: "flex",

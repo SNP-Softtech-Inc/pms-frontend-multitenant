@@ -24,7 +24,7 @@ import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 import CloseIcon from "@mui/icons-material/Close";
 const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
   const [phoneNumbers, setPhoneNumbers] = useState([]);
-const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const [selectedCountry, setSelectedCountry] = useState(null);
 
   // Individual state hooks for form fields
@@ -67,57 +67,72 @@ const queryClient = useQueryClient();
   };
 
   useEffect(() => {
-  if (mode === "edit" && selectedContact) {
-    setFirstName(selectedContact.firstName || "");
-    setMiddleName(selectedContact.middleName || "");
-    setLastName(selectedContact.lastName || "");
-    setContactName(selectedContact.contactName || "");
-    setCompanyName(selectedContact.companyName || "");
-    setEmail(selectedContact.email || "");
-    setNote(selectedContact.note || "");
-    setSsn(selectedContact.ssn || "");
+    if (mode === "edit" && selectedContact) {
+      console.log(selectedContact);
+      setFirstName(selectedContact.firstName || "");
+      setMiddleName(selectedContact.middleName || "");
+      setLastName(selectedContact.lastName || "");
+      setContactName(selectedContact.contactName || "");
+      setCompanyName(selectedContact.companyName || "");
+      setEmail(selectedContact.email || "");
+      setNote(selectedContact.note || "");
+      setSsn(selectedContact.ssn || "");
 
-    setStreetAddress(selectedContact.streetAddress || "");
-    setCity(selectedContact.city || "");
-    setState(selectedContact.state || "");
-    setPostalCode(selectedContact.postalCode || "");
+      setStreetAddress(selectedContact.streetAddress || "");
+      setCity(selectedContact.city || "");
+      setState(selectedContact.state || "");
+      setPostalCode(selectedContact.postalCode || "");
 
-    // phones
-    const phones =
-      selectedContact.phoneNumbers?.map((p, i) => ({
-        id: Date.now() + i,
-        phone: p,
-        country: "us",
-      })) || [];
+      // phones
+      const phones =
+        selectedContact.phoneNumbers?.map((p, i) => ({
+          id: Date.now() + i,
+          phone: p,
+          country: "us",
+        })) || [];
 
-    setPhoneNumbers(phones);
+      setPhoneNumbers(phones);
 
-    // tags
-    setCombinedValues(selectedContact.tags || []);
+      // tags
+      // ✅ FIX TAGS
+    if (selectedContact.tags && selectedContact.tags.length > 0) {
+      const formattedTags = selectedContact.tags.map((tag) => ({
+        label: tag.tagName,
+        value: tag._id,
+        color: tag.tagColour,
+      }));
+
+      setSelectedTags(formattedTags); // 👈 IMPORTANT (for UI)
+      setCombinedValues(formattedTags.map((t) => t.value)); // 👈 for API
+    } else {
+      setSelectedTags([]);
+      setCombinedValues([]);
+    }
   }
+    
 
-  if (mode === "create") {
-    resetForm();
-  }
-}, [selectedContact, mode]);
+    if (mode === "create") {
+      resetForm();
+    }
+  }, [selectedContact, mode]);
 
-const resetForm = () => {
-  setFirstName("");
-  setMiddleName("");
-  setLastName("");
-  setContactName("");
-  setCompanyName("");
-  setEmail("");
-  setNote("");
-  setSsn("");
-  setStreetAddress("");
-  setCity("");
-  setState("");
-  setPostalCode("");
-  setPhoneNumbers([]);
-  setSelectedTags([]);
-  setCombinedValues([]);
-};
+  const resetForm = () => {
+    setFirstName("");
+    setMiddleName("");
+    setLastName("");
+    setContactName("");
+    setCompanyName("");
+    setEmail("");
+    setNote("");
+    setSsn("");
+    setStreetAddress("");
+    setCity("");
+    setState("");
+    setPostalCode("");
+    setPhoneNumbers([]);
+    setSelectedTags([]);
+    setCombinedValues([]);
+  };
 
   // Main change handler
   const handleSSNChange = (e) => {
@@ -210,92 +225,95 @@ const resetForm = () => {
   };
 
   const sendingData = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-const formattedPhoneNumbers = phoneNumbers.map((item) => item.phone);
+    e.preventDefault();
+    if (!validateForm()) return;
+    const formattedPhoneNumbers = phoneNumbers.map((item) => item.phone);
     const countryPayload = selectedCountry
       ? { name: selectedCountry.label, code: selectedCountry.value }
       : null;
-  const payload = {
-    firstName,
-    middleName,
-    lastName,
-    contactName,
-    companyName,
-    note,
-    ssn,
-    email,
-    tags: combinedValues,
-    country: countryPayload,
-    streetAddress,
-    city,
-    state,
-    postalCode,
-    phoneNumbers: formattedPhoneNumbers,
-  };
+    const payload = {
+      firstName,
+      middleName,
+      lastName,
+      contactName,
+      companyName,
+      note,
+      ssn,
+      email,
+      tags: combinedValues,
+      country: countryPayload,
+      streetAddress,
+      city,
+      state,
+      postalCode,
+      phoneNumbers: formattedPhoneNumbers,
+    };
 
-  try {
-    if (mode === "edit") {
-      await contactsAPI.updateContactWithoutPassword(selectedContact._id, payload);
-      toast.success("Contact updated successfully!");
-    } else {
-      await contactsAPI.createContact(payload);
-      toast.success("Contact created successfully!");
+    try {
+      if (mode === "edit") {
+        await contactsAPI.updateContactWithoutPassword(
+          selectedContact._id,
+          payload,
+        );
+        toast.success("Contact updated successfully!");
+      } else {
+        await contactsAPI.createContact(payload);
+        toast.success("Contact created successfully!");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      onClose();
+    } catch (error) {
+      toast.error("Something went wrong");
     }
+  };
+  //   const sendingData = async (e) => {
+  //     e.preventDefault();
 
-    queryClient.invalidateQueries({ queryKey: ["contacts"] });
-    onClose();
-  } catch (error) {
-    toast.error("Something went wrong");
-  }
-};
-//   const sendingData = async (e) => {
-//     e.preventDefault();
+  //     if (!validateForm()) return;
 
-//     if (!validateForm()) return;
+  //     const formattedPhoneNumbers = phoneNumbers.map((item) => item.phone);
 
-//     const formattedPhoneNumbers = phoneNumbers.map((item) => item.phone);
+  // const countryPayload = selectedCountry
+  //   ? { name: selectedCountry.label, code: selectedCountry.value }
+  //   : null;
 
-    // const countryPayload = selectedCountry
-    //   ? { name: selectedCountry.label, code: selectedCountry.value }
-    //   : null;
+  //     const payload = {
+  //       firstName,
+  //       middleName,
+  //       lastName,
+  //       contactName,
+  //       companyName,
+  //       note,
+  //       ssn,
+  //       email,
+  //       tags: combinedValues,
+  //       country: countryPayload,
+  //       streetAddress,
+  //       city,
+  //       state,
+  //       postalCode,
+  //       phoneNumbers: formattedPhoneNumbers,
+  //     };
 
-//     const payload = {
-//       firstName,
-//       middleName,
-//       lastName,
-//       contactName,
-//       companyName,
-//       note,
-//       ssn,
-//       email,
-//       tags: combinedValues,
-//       country: countryPayload,
-//       streetAddress,
-//       city,
-//       state,
-//       postalCode,
-//       phoneNumbers: formattedPhoneNumbers,
-//     };
-
-//     try {
-//       const res = await contactsAPI.createContact(payload);
-//       toast.success("Contact created successfully!");
-//       onClose();
-//         // 🔥 THIS refreshes table automatically
-//       queryClient.invalidateQueries({ queryKey: ["contacts"] });
-//       // navigate("/clients/contacts");
-//     } catch (error) {
-//       const errMsg = error?.response?.data?.error || "Failed to create contact";
-//       // If email conflict
-//       if (error?.response?.status === 409) {
-//         setEmaileError(errMsg);
-//         toast.warning("Entered email is already used");
-//         return;
-//       }
-//       toast.error(errMsg);
-//     }
-//   };
+  //     try {
+  //       const res = await contactsAPI.createContact(payload);
+  //       toast.success("Contact created successfully!");
+  //       onClose();
+  //         // 🔥 THIS refreshes table automatically
+  //       queryClient.invalidateQueries({ queryKey: ["contacts"] });
+  //       // navigate("/clients/contacts");
+  //     } catch (error) {
+  //       const errMsg = error?.response?.data?.error || "Failed to create contact";
+  //       // If email conflict
+  //       if (error?.response?.status === 409) {
+  //         setEmaileError(errMsg);
+  //         toast.warning("Entered email is already used");
+  //         return;
+  //       }
+  //       toast.error(errMsg);
+  //     }
+  //   };
 
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -326,9 +344,9 @@ const formattedPhoneNumbers = phoneNumbers.map((item) => item.phone);
           bgcolor: "background.paper",
         }}
       >
-       <Typography variant="h6">
-  {mode === "edit" ? "Edit Contact" : "New Contact"}
-</Typography>
+        <Typography variant="h6">
+          {mode === "edit" ? "Edit Contact" : "New Contact"}
+        </Typography>
 
         <IconButton
           onClick={onClose}

@@ -5,18 +5,18 @@ import {
   Box,
   TextField,
   Typography,
-  Button,
+  
   Paper,
-  Alert,
+  
   FormControl,
   FormHelperText,
-  InputLabel
+  
 } from '@mui/material';
 
 import Editor from '../../../../components/Editor'; // Adjust the import path as needed
 
 
-const TermsStep = ({ formData, updateFormData, nextStep, prevStep, stepErrors, setStepErrors }) => {
+const TermsStep = ({ formData, updateFormData,stepErrors, setStepErrors }) => {
   const [touched, setTouched] = useState({});
 
   // Handle field blur

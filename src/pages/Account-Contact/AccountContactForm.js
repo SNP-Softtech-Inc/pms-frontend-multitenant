@@ -4,7 +4,7 @@ import { Box, Stepper, Step, StepLabel } from "@mui/material";
 import AccountForm from "./AccountForm";
 import ContactForm from "./ContactForm";
 import { toast } from "react-toastify";
-import { accountsAPI, contactsAPI } from "../../services/api";
+import { accountsAPI, contactsAPI,docAPI } from "../../services/api";
 import { useQueryClient } from "@tanstack/react-query";
 const steps = ["Account Information", "Contact Information"];
 
@@ -21,7 +21,22 @@ export default function AccountContactForm({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+const assignfoldertemp = async (accountId, foldertempId) => {
+  try {
+    const payload = {
+      accountId: accountId,
+      templateId: foldertempId || null,
+    };
 
+    console.log("assignfoldertemp payload:", payload);
+
+    const res = await docAPI.applyTemplateToAccount(payload);
+
+    console.log("API response:", res.data);
+  } catch (error) {
+    console.error("Error applying template:", error);
+  }
+};
   // ================= MAIN SUBMIT =================
   const handleSubmit = async (event, personalMessage = "") => {
     if (event) event.preventDefault();
@@ -136,10 +151,10 @@ export default function AccountContactForm({
       let finalAccountId;
 
       if (isEditing && accountId) {
-        // const { data } = await accountsAPI.updateAccount(
-        //   accountId,
-        //   accountPayload,
-        // );
+        const { data } = await accountsAPI.updateAccount(
+          accountId,
+          accountPayload,
+        );
         finalAccountId = accountId;
       } else {
         const { data } = await accountsAPI.createAccount(accountPayload);
@@ -179,6 +194,10 @@ export default function AccountContactForm({
             console.error("Email send failed", err);
           }
         }
+      }
+      // STEP 10: Handle folder template assignment
+      if (accountData.folderTemp && accountData.folderTemp.value) {
+        await assignfoldertemp(finalAccountId, accountData.folderTemp.value);
       }
 
       toast.success("Account saved successfully!");

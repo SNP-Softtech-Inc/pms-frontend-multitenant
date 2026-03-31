@@ -11,76 +11,43 @@ import {
   Alert,
   Divider,
   Switch,
-  Button,
+  Button,Paper
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { authAPI } from "../../services/api";
 
-const AddEditTeamMemberDrawer = ({
-  open,
-  onClose,
-  editData,
-  onSuccess,
-}) => {
+const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
   const isEdit = !!editData;
 
-//   const initialPermissions = {
-//     payments: false,
-//     pipelines: false,
-//     timeEntries: false,
-//     accounts: false,
-//     tags: false,
-//     organizers: false,
-//     firmBalance: false,
-//     contacts: false,
-//     site: false,
-//     services: false,
-//     filterTemplates: false,
-//     templates: false,
-//     marketplace: false,
-//     invoices: false,
-//     jobRecurrences: false,
-//     ratesTimeEntries: false,
-//     allAccounts: false,
-//     customFields: false,
-//     teammates: false,
-//     allContacts: false,
-//     proposals: false,
-//     email: false,
-//     organizerAnswers: false,
-//     documents: false,
-//     transcripts: false,
-//     reporting: false,
-//   };
-const initialPermissions = {
-  managePayments: false,
-  managePipelines: false,
-  manageTimeEntries: false,
-  manageAccounts: false,
-  manageTags: false,
-  manageOrganizers: false,
-  chargeFirmBalance: false,
-  manageContacts: false,
-  manageSites: false,
-  manageServices: false,
-  managePublicFilterTemplates: false,
-  manageTemplates: false,
-  manageMarketPlace: false,
+  const initialPermissions = {
+    managePayments: false,
+    managePipelines: false,
+    manageTimeEntries: false,
+    manageAccounts: false,
+    manageTags: false,
+    manageOrganizers: false,
+    chargeFirmBalance: false,
+    manageContacts: false,
+    manageSites: false,
+    manageServices: false,
+    managePublicFilterTemplates: false,
+    manageTemplates: false,
+    manageMarketPlace: false,
 
-  manageInvoices: false,
-  manageJobRecurrence: false,
-  manageRatesinTimeEntries: false,
-  viewallAccounts: false,
-  manageCustomFields: false,
-  assignTeamMates: false,
-  viewAllContacts: false,
-  manageProposals: false,
-  manageEmails: false,
-  editOrganizersAnswers: false,
-  manageDocuments: false,
-  manageIRSTranscripts: false,
-  viewReporting: false,
-};
+    manageInvoices: false,
+    manageJobRecurrence: false,
+    manageRatesinTimeEntries: false,
+    viewallAccounts: false,
+    manageCustomFields: false,
+    assignTeamMates: false,
+    viewAllContacts: false,
+    manageProposals: false,
+    manageEmails: false,
+    editOrganizersAnswers: false,
+    manageDocuments: false,
+    manageIRSTranscripts: false,
+    viewReporting: false,
+  };
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -106,7 +73,7 @@ const initialPermissions = {
       });
 
       setPermissions(editData.permissions || initialPermissions);
-      console.log("set permissions",editData)
+      console.log("set permissions", editData);
     }
   }, [editData]);
 
@@ -162,7 +129,7 @@ const initialPermissions = {
       open={open}
       onClose={onClose}
       PaperProps={{
-        sx: { width: "600px", borderRadius: "10px 0 0 10px" },
+        sx: { width: 700, borderRadius: "10px 0 0 10px" },
       }}
     >
       {/* Header */}
@@ -182,31 +149,69 @@ const initialPermissions = {
 
       {/* Form */}
       <Box sx={{ p: 2, height: "70vh", overflowY: "auto" }}>
-        <Grid container spacing={2}>
-          <Grid item xs={4}>
-            <InputLabel>First Name</InputLabel>
-            <TextField fullWidth name="firstName" value={formData.firstName} onChange={handleChange} size="small" />
+        <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            {/* <InputLabel>First Name</InputLabel> */}
+            <TextField
+              fullWidth
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              size="small"
+              placeholder="First Name"
+              label="First Name"
+            />
           </Grid>
 
-          <Grid item xs={4}>
-            <InputLabel>Middle Name</InputLabel>
-            <TextField fullWidth name="middleName" value={formData.middleName} onChange={handleChange} size="small" />
+          <Grid size={{ xs: 12, md: 4 }}>
+            {/* <InputLabel>Middle Name</InputLabel> */}
+            <TextField
+              fullWidth
+              name="middleName"
+              value={formData.middleName}
+              onChange={handleChange}
+              size="small"
+              placeholder="Middle Name"
+              label="Middle Name"
+            />
           </Grid>
 
-          <Grid item xs={4}>
-            <InputLabel>Last Name</InputLabel>
-            <TextField fullWidth name="lastName" value={formData.lastName} onChange={handleChange} size="small" />
+          <Grid size={{ xs: 12, md: 4 }}>
+            {/* <InputLabel>Last Name</InputLabel> */}
+            <TextField
+              fullWidth
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              size="small"
+              placeholder="Last Name"
+              label="Last Name"
+            />
           </Grid>
         </Grid>
 
         <Box mt={3}>
-          <InputLabel>Email</InputLabel>
-          <TextField fullWidth name="email" value={formData.email} onChange={handleChange} size="small" disabled={isEdit} />
+          {/* <InputLabel>Email</InputLabel> */}
+          <TextField
+            fullWidth
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            size="small"
+            disabled={isEdit}
+            placeholder="Email"
+            label="Email"
+          />
         </Box>
 
         <Box mt={3}>
-          <InputLabel>Role</InputLabel>
-          <Select fullWidth size="small" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })}>
+          {/* <InputLabel>Role</InputLabel> */}
+          <Select
+            fullWidth
+            size="small"
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
             <MenuItem value="">Select Role</MenuItem>
             <MenuItem value="employee">Employee</MenuItem>
             <MenuItem value="admin">Admin</MenuItem>
@@ -216,15 +221,32 @@ const initialPermissions = {
         {/* Permissions */}
         {formData.role === "employee" && (
           <Box mt={3}>
-            <Typography>Access Rights</Typography>
+            <Typography sx={{ fontWeight: 500 }} variant="h6">Access Rights</Typography>
 
-            <Grid container spacing={1} mt={1}>
+            <Grid
+              container
+              rowSpacing={3}
+              columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+              mt={1}
+            >
               {permissionList.map((key) => (
-                <Grid item xs={6} key={key}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography>{key}</Typography>
-                    <Switch checked={permissions[key]} onChange={() => handlePermissionChange(key)} />
-                  </Box>
+                <Grid size={{ xs: 12, sm: 6, md: 6 }} key={key}>
+                  {/* <Box display="flex" justifyContent="space-between"> */}
+                    <Paper
+        elevation={2}
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      ><Typography sx={{ fontWeight: 500 }}>{key}</Typography>
+                    <Switch
+                      checked={permissions[key]}
+                      onChange={() => handlePermissionChange(key)}
+                    />
+                  </Paper>
                 </Grid>
               ))}
             </Grid>

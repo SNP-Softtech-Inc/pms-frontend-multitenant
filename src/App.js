@@ -31,6 +31,26 @@ import PipelineTable from "./pages/Templates/PipelineTemp/PipelineTable";
 import FolderTreeView from "./pages/Templates/FolderTemp/FolderTreeView";
 import TemplateCreator from "./pages/Templates/FolderTemp/TemplateCreator";
 import ContactsTable from "./pages/Account-Contact/ContactTable";
+import AccountsDash from "./pages/AccountDashboard";
+import Overview from "./pages/AccountDashboard/Overview";
+import Info from "./pages/AccountDashboard/Info";
+import Docs from "./pages/AccountDashboard/Docs";
+import Communication from "./pages/AccountDashboard/Communication";
+import Organizers from "./pages/AccountDashboard/Organizers";
+import Invoices from "./pages/AccountDashboard/Invoices";
+import Email from "./pages/AccountDashboard/Email";
+import Proposals from "./pages/AccountDashboard/Proposals";
+import Notes from "./pages/AccountDashboard/Notes";
+import Workflow from "./pages/AccountDashboard/Workflow";
+import Pipeline from "./pages/AccountDashboard/Work-flow/Pipeline";
+import Activejobs from "./pages/AccountDashboard/Work-flow/Activejobs";
+import Archivejobs from "./pages/AccountDashboard/Work-flow/Archivejobs";
+import Pendingtasks from "./pages/AccountDashboard/Work-flow/Pendingtasks";
+import Completedtasks from "./pages/AccountDashboard/Work-flow/Completedtasks";
+import Documents from "./pages/AccountDashboard/Documents/Documents";
+import Approvals from "./pages/AccountDashboard/Documents/Approvals";
+import Signatures from "./pages/AccountDashboard/Documents/Signatures";
+import Trash from "./pages/AccountDashboard/Documents/Trash";
 function App() {
   return (
     <Routes>
@@ -69,6 +89,38 @@ function App() {
             </ProtectedRoute>
           }
         ></Route>
+        <Route
+          path="/clients/accounts/accountsdash"
+          element={
+            <ProtectedRoute>
+              <AccountsDash />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="overview/:accountId" element={<Overview />} />
+          <Route path="info/:accountId" element={<Info />} />
+          <Route path="docs/:accountId" element={<Docs />}>
+            <Route index element={<Documents />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="approvals" element={<Approvals />} />
+            <Route path="signatures" element={<Signatures />} />
+            <Route path="trash" element={<Trash />} />
+          </Route>
+          <Route path="communication/:accountId" element={<Communication />} />
+          <Route path="organizers/:accountId" element={<Organizers />} />
+          <Route path="invoices/:accountId" element={<Invoices />} />
+          <Route path="email/:accountId" element={<Email />} />
+          <Route path="proposals/:accountId" element={<Proposals />} />
+          <Route path="notes/:accountId" element={<Notes />} />
+          <Route path="workflow/:accountId" element={<Workflow />}>
+            <Route index element={<Pipeline />} />
+            <Route path="pipelines" element={<Pipeline />} />
+            <Route path="activejobs" element={<Activejobs />} />
+            <Route path="archivedjobs" element={<Archivejobs />} />
+            <Route path="pendingtasks" element={<Pendingtasks />} />
+            <Route path="completetasks" element={<Completedtasks />} />
+          </Route>
+        </Route>
         <Route
           path="/clients/contacts"
           element={
@@ -113,20 +165,24 @@ function App() {
           <Route path="clientfacing" element={<ClientFacingJobTemplate />} />
 
           <Route path="folders" element={<FolderTemplate />} />
-           <Route path="createfolder" element={<TemplateCreator />} />
-           <Route path="tree/:templateId" element={<FolderTreeView />} />
+          <Route path="createfolder" element={<TemplateCreator />} />
+          <Route path="tree/:templateId" element={<FolderTreeView />} />
 
           <Route path="chats" element={<ChatTemp />} />
 
           <Route path="invoices" element={<InvoiceTemplate />} />
 
           <Route path="organizers" element={<OrgaizerTemplate />} />
- 
+
           <Route path="proposals" element={<ProposalTemplate />} />
           <Route path="proposals/proposal-form" element={<ProposalForm />} />
         </Route>
+
         <Route path="firmtemp/pipelines" element={<PipelineTable />} />
-        <Route path="firmtemp/pipelines/pipelineform" element={<PipelineForm />} />
+        <Route
+          path="firmtemp/pipelines/pipelineform"
+          element={<PipelineForm />}
+        />
         <Route path="firmtemp/teammember" element={<TeamMember />} />
         <Route path="firmtemp/tags" element={<Tags />} />
         <Route path="firmtemp/service" element={<Service />} />
