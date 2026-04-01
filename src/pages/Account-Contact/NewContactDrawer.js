@@ -82,7 +82,12 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
       setCity(selectedContact.city || "");
       setState(selectedContact.state || "");
       setPostalCode(selectedContact.postalCode || "");
-
+  if (selectedContact.country) {
+        const countryOption = options.find(
+          (opt) => opt.value === selectedContact.country.code || opt.label === selectedContact.country.name
+        );
+        setSelectedCountry(countryOption || null);
+      }
       // phones
       const phones =
         selectedContact.phoneNumbers?.map((p, i) => ({
@@ -694,7 +699,8 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
             }}
           >
             <Button variant="contained" onClick={sendingData}>
-              Create
+              {/* Create */}
+               {mode === "edit" ? "Edit Contact" : "Create Contact"}
             </Button>
             <Button variant="outlined" onClick={onClose}>
               Cancel

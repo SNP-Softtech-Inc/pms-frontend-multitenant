@@ -4,6 +4,7 @@ import { Box, Stepper, Step, StepLabel } from "@mui/material";
 import AccountForm from "./AccountForm";
 import ContactForm from "./ContactForm";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext"; // adjust path
 import { accountsAPI, contactsAPI,docAPI } from "../../services/api";
 import { useQueryClient } from "@tanstack/react-query";
 const steps = ["Account Information", "Contact Information"];
@@ -19,7 +20,7 @@ export default function AccountContactForm({
   const { accountData, contacts, selectedContacts } = useSelector(
     (state) => state.accountContact,
   );
-
+const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 const assignfoldertemp = async (accountId, foldertempId) => {
   try {
@@ -143,6 +144,7 @@ const assignfoldertemp = async (accountId, foldertempId) => {
         city: accountData.city || "",
         state: accountData.state || "",
         postalCode: accountData.postalCode || "",
+        adminUserId: user?.id || "",
         contacts: accountContacts,
         active: true,
       };

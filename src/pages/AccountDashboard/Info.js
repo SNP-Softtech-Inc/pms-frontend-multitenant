@@ -14,10 +14,10 @@ import {
   DialogActions,
   Grid,
   Tooltip,
-  IconButton,
+  
   Drawer,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+
 
 import {
   accountsAPI,
@@ -26,10 +26,10 @@ import {
   authAPI,
 } from "../../services/api"; // update path
 import AccountContactDrawer from "../Account-Contact/AccountContactDrawer";
-// import ContactForm from "../../Pages/UpdateContact";
+
 import MenuDropdown from "./MenuDropdown";
 import UploadProfilePicture from "./ProfilePictureUpload";
-
+import NewContactDrawer from "../Account-Contact/NewContactDrawer";
 import { Autocomplete, TextField } from "@mui/material";
 
 const AccountDetails = () => {
@@ -40,7 +40,7 @@ const AccountDetails = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [newCanLoginValue, setNewCanLoginValue] = useState(false);
-
+  const [mode, setMode] = useState("edit");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addContactDrawerOpen, setAddContactDrawerOpen] = useState(false);
 
@@ -136,15 +136,7 @@ const AccountDetails = () => {
   }, []);
 
   // ================= FILTERED TAGS & MEMBERS =================
-  // const accountTags = tagList.length
-  //   ? tagList.filter((tag) => account?.tags?.includes(tag._id))
-  //   : [];
 
-  // const assignedMembers = teamMemberList.length
-  //   ? teamMemberList.filter((member) =>
-  //       account?.teamMember?.includes(member._id)
-  //     )
-  //   : [];
   const accountTags = tagList.length
     ? tagList.filter((tag) => account?.tags?.includes(tag.value))
     : [];
@@ -265,19 +257,24 @@ const AccountDetails = () => {
 
   // ================= CONTACT EDIT =================
   const handleOpenContactEditDrawer = (contactData) => {
+    console.log("Opening edit drawer for contact:", contactData);
     setSelectedContactForEdit(contactData.contact);
     setContactEditDrawerOpen(true);
+    setMode("edit");
+    // setSelectedContact(contactData.contact);
   };
 
-  const handleContactUpdated = () => fetchAccountDetails();
+
 
   if (!account) return <Typography>Loading...</Typography>;
 
   return (
     <Box sx={{ p: 3 }}>
-      <Grid container spacing={3}>
+      <Grid container
+                rowSpacing={3}
+                columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         {/* LEFT SIDE - ACCOUNT DETAILS */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3 }}>
             <Box
               display="flex"
@@ -418,7 +415,7 @@ const AccountDetails = () => {
         </Grid>
 
         {/* RIGHT SIDE - CONTACTS */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3 }}>
             <Box
               display="flex"
@@ -618,34 +615,12 @@ const AccountDetails = () => {
       </Drawer>
 
       {/* Contact Edit Drawer */}
-      <Drawer
-        anchor="right"
+      <NewContactDrawer
         open={contactEditDrawerOpen}
         onClose={() => setContactEditDrawerOpen(false)}
-        sx={{ width: 600 }}
-      >
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          p={2}
-        >
-          <Typography variant="h6" fontWeight="bold">
-            Edit Contact
-          </Typography>
-          <IconButton onClick={() => setContactEditDrawerOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <Divider />
-        {/* {selectedContactForEdit && (
-          <ContactForm
-            selectedContact={selectedContactForEdit}
-            handleClose={() => setContactEditDrawerOpen(false)}
-            onContactUpdated={handleContactUpdated}
-          />
-        )} */}
-      </Drawer>
+        selectedContact={selectedContactForEdit}
+        mode={mode}
+      />
     </Box>
   );
 };

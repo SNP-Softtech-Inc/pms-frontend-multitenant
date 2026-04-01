@@ -779,3 +779,197 @@ uploadFile: (formData, folderPath) =>
   applyTemplateToAccount: (data) =>
     folderManagementApi.post("/temp/docManagement/apply-template", data),
 };
+
+export const accountDocsAPI = {
+  // ================= FOLDER =================
+
+  // Create folder
+  createFolder: (data) =>
+    folderManagementApi.post("/accounts/docs/folder", data),
+
+  // Lock / Unlock folder
+  setFolderReadOnly: (data) =>
+    folderManagementApi.post("/accounts/docs/folder/readonly", data),
+
+  // Upload folder structure (nested)
+  uploadFolderStructure: (data) =>
+    folderManagementApi.post("/accounts/docs/folder/upload", data),
+
+  // Upload ZIP folder
+  uploadFolderZip: (formData) =>
+    folderManagementApi.post("/accounts/docs/upload-folder", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  // Upload ZIP & merge to account
+  uploadAccountFolderZip: (formData) =>
+    folderManagementApi.post("/accounts/docs/account-upload-folder", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  // Delete entire account folder
+  deleteAccountFolder: (data) =>
+    folderManagementApi.delete("/accounts/docs/delete-account-folder", {
+      data,
+    }),
+
+  // ================= FILE =================
+
+  // Upload single file
+  uploadFile: (formData, folderPath) =>
+    folderManagementApi.post(
+      `/accounts/docs/file/upload?folderPath=${encodeURIComponent(folderPath)}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    ),
+
+  // Lock / Unlock file
+  setFileReadOnly: (data) =>
+    folderManagementApi.post("/accounts/docs/file/readonly", data),
+
+  // Remove "new" tag
+  removeNewTag: (data) =>
+    folderManagementApi.patch("/accounts/docs/remove-new-tag", data),
+
+  // Approval toggle
+  toggleApproval: (data) =>
+    folderManagementApi.post("/accounts/docs/file/approval-toggle", data),
+
+  // ================= COMMON =================
+
+  // Delete file/folder
+  deleteItem: (data) =>
+    folderManagementApi.post("/accounts/docs/delete", data),
+
+  // Move to trash
+  trashItem: (data) =>
+    folderManagementApi.patch("/accounts/docs/trash", data),
+
+  bulkTrashItems: (data) =>
+    folderManagementApi.post("/accounts/docs/bulktrash", data),
+
+  // Restore item
+  restoreItem: (data) =>
+    folderManagementApi.patch("/accounts/docs/restore", data),
+
+  // Move item
+  moveItem: (data) =>
+    folderManagementApi.post("/accounts/docs/move", data),
+
+  // Rename item
+  renameItem: (data) =>
+    folderManagementApi.post("/accounts/docs/rename", data),
+
+  // Update metadata
+  updateMeta: (data) =>
+    folderManagementApi.post("/accounts/docs/meta", data),
+
+  // Update status
+  updateStatus: (data) =>
+    folderManagementApi.post("/accounts/docs/updateStatus", data),
+
+  // // Download
+  // downloadItems: (data) =>
+  //   folderManagementApi.post("/accounts/docs/download", data),
+  // Download
+downloadItems: (data) =>
+  folderManagementApi.post("/accounts/docs/download", data, {
+    responseType: "blob", // ✅ THIS FIXES YOUR ERROR
+  }),
+
+  // ================= LISTING =================
+
+  // List folder content
+  listFolderContent: (folderPath) =>
+    folderManagementApi.get(
+      `/accounts/docs/list?folderPath=${encodeURIComponent(folderPath)}`
+    ),
+
+  // List full tree
+  listFoldersAndFiles: (folderPath) =>
+    folderManagementApi.get(
+      `/accounts/docs/files/list?folderPath=${encodeURIComponent(folderPath)}`
+    ),
+
+  // Client view
+  clientListFoldersAndFiles: (folderPath) =>
+    folderManagementApi.get(
+      `/accounts/docs/files/list/clientView?folderPath=${encodeURIComponent(
+        folderPath
+      )}`
+    ),
+
+  // Trashed items
+  listTrashedItems: () =>
+    folderManagementApi.get("/accounts/docs/list-trashed"),
+
+  // ================= DOCUMENT STATES =================
+
+  // New tagged docs
+  getNewTaggedDocs: () =>
+    folderManagementApi.get("/accounts/docs/documents/new-tagged"),
+
+  // Pending approvals
+  getPendingApprovals: () =>
+    folderManagementApi.get(
+      "/accounts/docs/documents/pending-approvals"
+    ),
+
+  // Pending signatures
+  getPendingSignatures: () =>
+    folderManagementApi.get(
+      "/accounts/docs/documents/pending-signature"
+    ),
+
+  // ================= INVOICE =================
+
+  // Lock / Unlock invoice
+  lockUnlockInvoice: (data) =>
+    folderManagementApi.post(
+      "/accounts/docs/invoice/lock-unlock",
+      data
+    ),
+
+  // ================= BULK =================
+
+  bulkDeleteItems: (data) =>
+    folderManagementApi.post("/accounts/docs/bulk-delete", data),
+
+  bulkSetReadOnly: (data) =>
+    folderManagementApi.post("/accounts/docs/bulk-lock", data),
+
+  bulkMoveItems: (data) =>
+    folderManagementApi.post("/accounts/docs/bulk-move", data),
+
+// ================= APPROVALS =================
+
+// Request approval
+requestApproval: (data) =>
+  folderManagementApi.post("/approvals/request-approval", data),
+
+// Get approvals by client email
+getClientApprovals: (email) =>
+  folderManagementApi.get(`/approvals/client-approvals/${email}`),
+
+// Get approval by ID
+getApprovalById: (id) =>
+  folderManagementApi.get(`/approvals/approvals/${id}`),
+
+// Update approval status (approve/reject)
+updateApprovalStatus: (id, data) =>
+  folderManagementApi.patch(`/approvals/client-approvals/${id}`, data),
+
+// Get approvals by accountId
+getApprovalsByAccount: (accountId) =>
+  folderManagementApi.get(`/approvals/approvalList/byaccountid/${accountId}`),
+
+// Get pending approvals by accountId
+getPendingApprovalsByAccount: (accountId) =>
+  folderManagementApi.get(`/approvals/approvalList/${accountId}/pending`),
+
+// Delete approval
+deleteApproval: (id) =>
+  folderManagementApi.delete(`/approvals/${id}`),
+};

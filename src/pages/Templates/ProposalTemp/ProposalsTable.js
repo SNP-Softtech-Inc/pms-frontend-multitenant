@@ -139,8 +139,8 @@ const ProposalsTable = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper} elevation={3}>
-        <Table sx={{ minWidth: 650 }} size="medium">
+      <TableContainer component={Paper} >
+        <Table sx={{ width: "100%" }}>
           <TableHead>
             <TableRow>
               <TableCell>Template Name</TableCell>

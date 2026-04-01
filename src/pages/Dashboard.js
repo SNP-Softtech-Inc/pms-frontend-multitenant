@@ -453,10 +453,7 @@ const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
           plusMenuItems.map((item, index) => (
             <MenuItem
               key={index}
-              // onClick={() => {
-              //   navigate(item.path);
-              //   handlePlusClose();
-              // }}
+              
               onClick={() => {
                 // ✅ condition for Account
                 if (item.label === "Account") {
