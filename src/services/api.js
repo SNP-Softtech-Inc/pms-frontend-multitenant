@@ -8,6 +8,7 @@ const ACCOUNT_CONTACT_URL = process.env.REACT_APP_ACCOUNT_CONTACT;
 const PROPOSAL_URL = process.env.REACT_APP_PROPOSAL;
 const ORGANIZER_URL = process.env.REACT_APP_ORGANIZER;
 const FOLDER_MANAGEMENT_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
+const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
 
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
@@ -53,6 +54,12 @@ const organizerApi = axios.create({
 
 const folderManagementApi = axios.create({
   baseURL: FOLDER_MANAGEMENT_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+const chatApi = axios.create({
+  baseURL: CHAT_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -124,12 +131,13 @@ attachInterceptors(accountcontactApi);
 attachInterceptors(proposalApi);
 attachInterceptors(organizerApi);
 attachInterceptors(folderManagementApi);
+attachInterceptors(chatApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
   sendOTP: (email) => authUserApi.post("/api/auth/send-otp", { email }),
   verifyOTP: (email, otp) =>
-    authUserApi.post("/auth/verify-otp", { email, otp }),
+    authUserApi.post("/api/auth/verify-otp", { email, otp }),
   resendOTP: (email) => authUserApi.post("/api/auth/resend-otp", { email }),
 
   // Register
@@ -517,9 +525,12 @@ export const accountsAPI = {
   getAccountNames: () =>
     accountcontactApi.get("/api/accounts/accountlist/names"),
 
-  getAccountNamesByStatus: () =>
-    accountcontactApi.get("/api/accounts/accountlist/names-by-status"),
-
+  // getAccountNamesByStatus: () =>
+  //   accountcontactApi.get("/api/accounts/accountlist/names-by-status"),
+getAccountNamesByStatus: (active = true) =>
+  accountcontactApi.get(
+    `/api/accounts/accountlist/names-by-status?active=${active}`
+  ),
   getAccountNamesWithEmails: () =>
     accountcontactApi.get("/api/accounts/accounts-by-status-with-emails"),
 
@@ -648,6 +659,58 @@ export const proposalAPI = {
 
   // DELETE
   deleteProposal: (id) => proposalApi.delete(`/api/proposals/${id}`),
+
+  // ===== ACCOUNT PROPOSALS (MAIN MODULE) =====
+
+  // CREATE
+  createAccountProposal: (data) =>
+    proposalApi.post("/account/proposals/", data),
+
+  // GET ALL
+  getAllAccountProposals: () =>
+    proposalApi.get("/account/proposals/"),
+
+  // GET SINGLE
+  getAccountProposalById: (id) =>
+    proposalApi.get(`/account/proposals/${id}`),
+
+  // UPDATE
+  updateAccountProposal: (id, data) =>
+    proposalApi.put(`/account/proposals/${id}`, data),
+
+  // DELETE SINGLE
+  deleteAccountProposal: (id) =>
+    proposalApi.delete(`/account/proposals/${id}`),
+
+  // ===== FILTERS =====
+
+  // GET PENDING
+  getPendingAccountProposals: () =>
+    proposalApi.get("/account/proposals/status/pending"),
+
+  // GET BY ACCOUNT (MULTIPLE IDS SUPPORT)
+  getAccountProposalsByAccountIds: (accountIds) =>
+    proposalApi.get(
+      `/account/proposals/byaccount/${accountIds.join(",")}`
+    ),
+
+  // ===== BULK =====
+
+  // DELETE MULTIPLE
+  deleteMultipleAccountProposals: (data) =>
+    proposalApi.delete("/account/proposals/delete-multiple", {
+      data, // { proposalIds: [] }
+    }),
+
+  // ===== ACTIONS =====
+
+  // SIGN PROPOSAL
+  signAccountProposal: (id, data) =>
+    proposalApi.post(`/account/proposals/sign/${id}`, data),
+
+  // AUTOMATION
+  runProposalAutomation: (data) =>
+    proposalApi.post(`/account/proposals/automation`, data),
 };
 
 // ================= ORGANIZER TEMPLATE APIs =================
@@ -972,4 +1035,86 @@ getPendingApprovalsByAccount: (accountId) =>
 // Delete approval
 deleteApproval: (id) =>
   folderManagementApi.delete(`/approvals/${id}`),
+};
+
+
+export const chatAPI = {
+  // ================= CHAT =================
+
+  getAllChats: () => chatApi.get("/chats/chatsaccountwise"),
+
+  getChatById: (id) => chatApi.get(`/chats/chatsaccountwise/${id}`),
+
+  getChatsByAccount: (accountId) =>
+    chatApi.get(`/chats/chatsaccountwise/chatlistbyaccount/${accountId}`),
+
+  getChatsByAccountAndStatus: (accountId, isactive) =>
+  chatApi.get(
+    `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}`
+  ),
+  createChat: (data) => chatApi.post("/chats/chatsaccountwise", data),
+
+  createChatAdmin: (data) =>
+    chatApi.post("/chats/chatsaccountwise/admin", data),
+
+  deleteChat: (id) => chatApi.delete(`/chats/chatsaccountwise/${id}`),
+
+  updateChat: (id, data) =>
+    chatApi.patch(`/chats/chatsaccountwise/${id}`, data),
+
+  // ================= MESSAGES =================
+
+  updateMessage: (data) =>
+    chatApi.patch(`/chats/chatsaccountwise/chatmessage/bymessageid/update`, data),
+
+  deleteMessage: (data) =>
+    chatApi.delete(`/chats/chatsaccountwise/chatmessage/bymessageid/delete`, {
+      data,
+    }),
+
+  sendMessageFromClient: (id, data) =>
+    chatApi.patch(`/chats/chatsaccountwise/chatmessagefromclient/${id}`, data),
+
+  updateChatDescription: (id, data) =>
+    chatApi.patch(`/chats/chatsaccountwise/chatupdatemessage/${id}`, data),
+
+  // ================= TASK =================
+
+  addClientTask: (data) =>
+    chatApi.post(`/chats/chatsaccountwise/addclienttask`, data),
+
+  updateTaskCheckedStatus: (data) =>
+    chatApi.post(`/chatsaccountwise/updateTaskCheckedStatus`, data),
+
+  // ================= UNREAD =================
+
+  getUnreadChats: () => chatApi.get(`/chats/unreadmessages`),
+
+  getUnreadByAccount: (accountId) =>
+    chatApi.get(`/chats/unread/${accountId}`),
+
+  getUnreadMessages: (accountId, fromwhome) =>
+    chatApi.get(`/chats/unread/${accountId}/${fromwhome}`),
+
+  markMessageAsRead: (chatId, messageId) =>
+    chatApi.patch(`/mark-as-read/${chatId}/${messageId}`),
+
+  markAllAsRead: (chatId, accountId, fromwhome) =>
+    chatApi.patch(
+      `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`
+    ),
+
+  // ================= STATUS =================
+
+  updateChatStatus: (id, data) =>
+    chatApi.post(`/chats/accountchat/updatestatus/${id}`, data),
+
+ // For chatsend
+  sendSecureChat: (data) =>
+    chatApi.post("/chats/securechatsend", data),
+
+  // For chat message send
+  sendSecureMessage: (data) =>
+    chatApi.post("/chats/securemessagechatsend", data),
+
 };

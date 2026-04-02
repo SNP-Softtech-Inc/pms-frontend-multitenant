@@ -55,7 +55,7 @@ import ManageTags from "../BulkActions/ManageTags";
 import ManageTeams from "../BulkActions/ManageTeams";
 import ManageContactSettings from "../BulkActions/ManageContactSettings";
 import { toast } from "react-toastify";
-
+import Cookies from "js-cookie";
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
   if (b[orderBy] > a[orderBy]) return 1;
@@ -271,7 +271,27 @@ const AccountTable = () => {
     });
     setPage(0);
   };
+const updateAccountCookies = (updatedSelected) => {
+  if (updatedSelected.length > 0) {
+    Cookies.set("selectedAccounts", JSON.stringify(updatedSelected), {
+      path: "/",
+    });
 
+    const latestId = updatedSelected[updatedSelected.length - 1];
+    const latestAccount = accountList.find((acc) => acc._id === latestId);
+
+    if (latestAccount) {
+      Cookies.set("accountId", latestAccount._id, { path: "/" });
+      Cookies.set("accountName", latestAccount.accountName, {
+        path: "/",
+      });
+    }
+  } else {
+    Cookies.remove("selectedAccounts", { path: "/" });
+    Cookies.remove("accountId", { path: "/" });
+    Cookies.remove("accountName", { path: "/" });
+  }
+};
   const renderBulkContent = () => {
     switch (bulkDrawer.type) {
       case "tags":
@@ -723,7 +743,11 @@ const AccountTable = () => {
                 <Button
                   size="small"
                   color="error"
-                  onClick={() => setSelectedAccounts([])}
+                  // onClick={() => setSelectedAccounts([])}
+                  onClick={() => {
+    setSelectedAccounts([]);
+    updateAccountCookies([]); // ✅ remove cookies
+  }}
                   startIcon={<ClearIcon />}
                 >
                   Clear
@@ -744,23 +768,43 @@ const AccountTable = () => {
                           selectedAccounts.includes(a._id),
                         )
                       }
+                      // onChange={() => {
+                      //   const pageIds = paginatedList.map((a) => a._id);
+
+                      //   const allSelected = pageIds.every((id) =>
+                      //     selectedAccounts.includes(id),
+                      //   );
+
+                      //   if (allSelected) {
+                      //     setSelectedAccounts((prev) =>
+                      //       prev.filter((id) => !pageIds.includes(id)),
+                      //     );
+                      //   } else {
+                      //     setSelectedAccounts((prev) => [
+                      //       ...new Set([...prev, ...pageIds]),
+                      //     ]);
+                      //   }
+                      // }}
                       onChange={() => {
-                        const pageIds = paginatedList.map((a) => a._id);
+  const pageIds = paginatedList.map((a) => a._id);
 
-                        const allSelected = pageIds.every((id) =>
-                          selectedAccounts.includes(id),
-                        );
+  const allSelected = pageIds.every((id) =>
+    selectedAccounts.includes(id)
+  );
 
-                        if (allSelected) {
-                          setSelectedAccounts((prev) =>
-                            prev.filter((id) => !pageIds.includes(id)),
-                          );
-                        } else {
-                          setSelectedAccounts((prev) => [
-                            ...new Set([...prev, ...pageIds]),
-                          ]);
-                        }
-                      }}
+  let updated;
+
+  if (allSelected) {
+    updated = selectedAccounts.filter(
+      (id) => !pageIds.includes(id)
+    );
+  } else {
+    updated = [...new Set([...selectedAccounts, ...pageIds])];
+  }
+
+  setSelectedAccounts(updated);
+  updateAccountCookies(updated); // ✅ instant cookie update
+}}
                     />
                   </TableCell>
                   <TableCell>Account Code</TableCell>
@@ -812,13 +856,27 @@ const AccountTable = () => {
                         <input
                           type="checkbox"
                           checked={selectedAccounts.includes(account._id)}
+                          // onChange={() => {
+                          //   setSelectedAccounts((prev) =>
+                          //     prev.includes(account._id)
+                          //       ? prev.filter((id) => id !== account._id)
+                          //       : [...prev, account._id],
+                          //   );
+                          // }}
                           onChange={() => {
-                            setSelectedAccounts((prev) =>
-                              prev.includes(account._id)
-                                ? prev.filter((id) => id !== account._id)
-                                : [...prev, account._id],
-                            );
-                          }}
+  let updated;
+
+  if (selectedAccounts.includes(account._id)) {
+    updated = selectedAccounts.filter(
+      (id) => id !== account._id
+    );
+  } else {
+    updated = [...selectedAccounts, account._id];
+  }
+
+  setSelectedAccounts(updated);
+  updateAccountCookies(updated); // ✅ instant cookie update
+}}
                         />
                       </TableCell>
                       <TableCell>

@@ -15,7 +15,7 @@ import {
   InputLabel
 } from '@mui/material';
 import { NavigateBefore, NavigateNext } from '@mui/icons-material';
-import Editor from '../components/Editor'; // Adjust the import path as needed
+import Editor from '../../../../components/Editor'; // Adjust the import path as needed
 
 
 const IntroductionStep = ({ formData, updateFormData, nextStep, prevStep, stepErrors, setStepErrors }) => {
@@ -94,7 +94,7 @@ const IntroductionStep = ({ formData, updateFormData, nextStep, prevStep, stepEr
         <FormControl fullWidth error={!!stepErrors.description}>
           <Box sx={{ mt: 2, mb: 1 }}>
             <Editor
-              initialContent={formData.introduction?.description || ''}
+              value={formData.introduction?.description || ''}
               onChange={handleDescriptionChange}
               onBlur={() => handleBlur('description')}
             />

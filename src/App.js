@@ -51,6 +51,8 @@ import Documents from "./pages/AccountDashboard/Documents/Documents";
 import Approvals from "./pages/AccountDashboard/Documents/Approvals";
 import Signatures from "./pages/AccountDashboard/Documents/Signatures";
 import Trash from "./pages/AccountDashboard/Documents/Trash";
+import AccountProposalForm from "./pages/AccountDashboard/Proposals/AccountProposalForm";
+import AllProposalList from "./pages/AllProposalList";
 function App() {
   return (
     <Routes>
@@ -111,6 +113,10 @@ function App() {
           <Route path="invoices/:accountId" element={<Invoices />} />
           <Route path="email/:accountId" element={<Email />} />
           <Route path="proposals/:accountId" element={<Proposals />} />
+          <Route
+            path="proposals/:accountId/account-proposal"
+            element={<AccountProposalForm />}
+          />
           <Route path="notes/:accountId" element={<Notes />} />
           <Route path="workflow/:accountId" element={<Workflow />}>
             <Route index element={<Pipeline />} />
@@ -128,7 +134,7 @@ function App() {
               <ContactsTable />
             </ProtectedRoute>
           }
-        ></Route>
+        />
         <Route
           path="/settings/myaccount"
           element={
@@ -145,6 +151,23 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/billing/proposalsandels"
+          element={
+            <ProtectedRoute>
+              <AllProposalList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/billing/proposalsandels/new"
+          element={
+            <ProtectedRoute>
+              <AccountProposalForm />
+            </ProtectedRoute>
+          }
+         />
         {/* ✅ Templates Parent Route */}
         <Route
           path="firmtemp/templates"

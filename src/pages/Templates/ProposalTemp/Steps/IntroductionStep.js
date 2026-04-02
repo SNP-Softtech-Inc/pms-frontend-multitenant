@@ -94,7 +94,7 @@ const IntroductionStep = ({ formData, updateFormData, nextStep, prevStep, stepEr
         <FormControl fullWidth error={!!stepErrors.description}>
           <Box sx={{ mt: 2, mb: 1 }}>
             <Editor
-              initialContent={formData.introduction?.description || ''}
+              value={formData.introduction?.description || ''}
               onChange={handleDescriptionChange}
               onBlur={() => handleBlur('description')}
             />

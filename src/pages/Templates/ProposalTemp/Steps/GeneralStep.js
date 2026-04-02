@@ -16,7 +16,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
-import MultiSelectDropdown from "../../../../components/MultiSelectDropdown"
+import MultiSelectDropdown from "../../../../components/MultiSelectDropdown";
 import ShortcodeTextField from "../../../../components/ShortcodeTextField";
 const GeneralStep = ({
   formData,
@@ -27,7 +27,7 @@ const GeneralStep = ({
 }) => {
   const [touched, setTouched] = useState({});
   const [internalOptions, setInternalOptions] = useState([]);
- 
+
   // === SHORTCODES States ===
   const [anchorEl, setAnchorEl] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -93,8 +93,6 @@ const GeneralStep = ({
     setFilteredShortcuts(accountShortcuts);
   }, []);
 
-  
-
   // Get selected users objects from stored IDs
   const getSelectedUsers = () => {
     if (
@@ -110,12 +108,11 @@ const GeneralStep = ({
     });
   };
 
-
-const handleTeamMembersChange = (newSelectedUsers) => {
-  updateFormData("general", {
-    teamMembers: newSelectedUsers, // store full objects
-  });
-};
+  const handleTeamMembersChange = (newSelectedUsers) => {
+    updateFormData("general", {
+      teamMembers: newSelectedUsers, // store full objects
+    });
+  };
   // Handle input changes for other fields
   const handleInputChange = (field, value) => {
     updateFormData("general", { [field]: value });
@@ -243,7 +240,7 @@ const handleTeamMembersChange = (newSelectedUsers) => {
         General Information
       </Typography>
 
-      <Paper elevation={0} sx={{ p: 3, mb: 4, }}>
+      <Paper elevation={0} sx={{ p: 3, mb: 4 }}>
         <Typography variant="h6" gutterBottom color="primary" sx={{ mb: 3 }}>
           Basic Details
         </Typography>
@@ -260,125 +257,61 @@ const handleTeamMembersChange = (newSelectedUsers) => {
           required
           sx={{ mb: 2 }}
         />
-       
-        {/* <TextField
-          fullWidth
-          // label="Proposal Name"
-          label="Proposal name (visible to clients)"
-          value={formData.general.proposalName || ""}
-          onChange={(e) => {
-            handleInputChange("proposalName", e.target.value);
-            handleTextFieldClick();
-          }}
-          onClick={handleTextFieldClick}
-          inputRef={textFieldRef}
-          margin="normal"
-          required
-          sx={{ mb: 2 }}
-          error={!!stepErrors.proposalName}
-          helperText={stepErrors.proposalName}
-        /> */}
-<Box sx={{ mb: 2 }}>
-  <ShortcodeTextField
-    label="Proposal name (visible to clients)"
-    value={formData.general.proposalName || ""}
-    onChange={(e) => {
-      const { value, selectionStart } = e.target;
 
-      handleInputChange("proposalName", value);
-      setCursorPosition(selectionStart);
-    }}
-    onClick={(e) => setCursorPosition(e.target.selectionStart)}
-    inputRef={textFieldRef}
-    required
-    error={!!stepErrors.proposalName}
-    helperText={stepErrors.proposalName}
-  placeholder="Proposal name (visible to clients)"
-    // shortcuts
-    shortcuts={filteredShortcuts}
-    showShortcutDropdown={showDropdown}
-    anchorElShortcut={anchorEl}
-    onToggleShortcutDropdown={toggleDropdown}
-    onCloseShortcutDropdown={handleCloseDropdown}
-    onAddShortcut={(shortcut) => {
-      const current = formData.general.proposalName || "";
+        <Box sx={{ mb: 2 }}>
+          <ShortcodeTextField
+            label="Proposal name (visible to clients)"
+            value={formData.general.proposalName || ""}
+            onChange={(e) => {
+              const { value, selectionStart } = e.target;
 
-      const newValue =
-        current.slice(0, cursorPosition) +
-        `[${shortcut}]` +
-        current.slice(cursorPosition);
+              handleInputChange("proposalName", value);
+              setCursorPosition(selectionStart);
+            }}
+            onClick={(e) => setCursorPosition(e.target.selectionStart)}
+            inputRef={textFieldRef}
+            required
+            error={!!stepErrors.proposalName}
+            helperText={stepErrors.proposalName}
+            placeholder="Proposal name (visible to clients)"
+            // shortcuts
+            shortcuts={filteredShortcuts}
+            showShortcutDropdown={showDropdown}
+            anchorElShortcut={anchorEl}
+            onToggleShortcutDropdown={toggleDropdown}
+            onCloseShortcutDropdown={handleCloseDropdown}
+            onAddShortcut={(shortcut) => {
+              const current = formData.general.proposalName || "";
 
-      updateFormData("general", { proposalName: newValue });
+              const newValue =
+                current.slice(0, cursorPosition) +
+                `[${shortcut}]` +
+                current.slice(cursorPosition);
 
-      setTimeout(() => {
-        if (textFieldRef.current) {
-          const newCursor = cursorPosition + shortcut.length + 2;
-          textFieldRef.current.focus();
-          textFieldRef.current.setSelectionRange(newCursor, newCursor);
-          setCursorPosition(newCursor);
-        }
-      }, 0);
-    }}
-  />
-</Box>
-        {/* <Button
-          variant="contained"
-          color="primary"
-          onClick={toggleDropdown}
-          
-        >
-          Add Shortcode
-        </Button>
+              updateFormData("general", { proposalName: newValue });
 
-        <Popover
-          open={showDropdown}
-          anchorEl={anchorEl}
-          onClose={handleCloseDropdown}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <Box>
-            <List
-              sx={{
-                width: "300px",
-                height: "300px",
-                overflow: "auto",
-                cursor: "pointer",
-              }}
-            >
-              {filteredShortcuts.map((shortcut, index) => (
-                <ListItem
-                  key={index}
-                  onClick={() =>
-                    !shortcut.isBold && handleAddShortcut(shortcut.value)
-                  }
-                  
-                >
-                  <ListItemText
-                    primary={shortcut.title}
-                    primaryTypographyProps={{
-                      style: {
-                        fontWeight: shortcut.isBold ? "bold" : "normal",
-                      },
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Popover> */}
+              setTimeout(() => {
+                if (textFieldRef.current) {
+                  const newCursor = cursorPosition + shortcut.length + 2;
+                  textFieldRef.current.focus();
+                  textFieldRef.current.setSelectionRange(newCursor, newCursor);
+                  setCursorPosition(newCursor);
+                }
+              }, 0);
+            }}
+          />
+        </Box>
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
             Team Members *
           </Typography>
 
-          
-           <MultiSelectDropdown
-                          value={formData.general.teamMembers || []}
-                          onChange={handleTeamMembersChange}
-                          placeholder="Team Member"
-                        />
+          <MultiSelectDropdown
+            value={formData.general.teamMembers || []}
+            onChange={handleTeamMembersChange}
+            placeholder="Team Member"
+          />
         </Box>
       </Paper>
 

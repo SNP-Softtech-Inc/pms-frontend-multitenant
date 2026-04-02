@@ -449,7 +449,7 @@ const Tasks = () => {
                       <Grid size={{ xs: 12, md: 12 }}>
                         <Editor
                           onChange={handleEditorChange}
-                          initialContent={description}
+                          value={description}
                         />
                       </Grid>
                       <Grid size={{ xs: 12, md: 12 }}>

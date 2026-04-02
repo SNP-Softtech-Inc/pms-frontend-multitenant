@@ -92,7 +92,7 @@ const TermsStep = ({ formData, updateFormData,stepErrors, setStepErrors }) => {
         <FormControl fullWidth error={!!stepErrors.description}>
           <Box sx={{ mt: 2, mb: 1 }}>
             <Editor
-              initialContent={formData.terms?.description || ''}
+              value={formData.terms?.description || ''}
               onChange={handleDescriptionChange}
               onBlur={() => handleBlur('description')}
             />

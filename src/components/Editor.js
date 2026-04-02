@@ -8,8 +8,8 @@ import Quill from 'quill';
 import 'quill-emoji';
 
 Quill.register('modules/emoji', require('quill-emoji'));
-export default function Editor({ initialContent, onChange, }) {
-  const [editorContent, setEditorContent] = useState(initialContent);
+export default function Editor({ value, onChange, }) {
+  const [editorContent, setEditorContent] = useState(value);
 
   
   // Toolbar configuration similar to what you had in mui-tiptap
@@ -48,31 +48,22 @@ export default function Editor({ initialContent, onChange, }) {
     'undo', 'redo','emoji'
   ];
 
-  useEffect(() => {
-    if (initialContent) {
-      setEditorContent(initialContent);
-    }
-  }, [initialContent]);
+  // useEffect(() => {
+  //   if (value) {
+  //     setEditorContent(value);
+  //   }
+  // }, [value]);
 
+   useEffect(() => {
+    setEditorContent(value || '');  // Changed from initialContent to value
+  }, [value]);
   const handleChange = (content) => {
     setEditorContent(content);
     onChange(content); // Call the onChange prop with the current content
   };
 
   return (
-    // <Box
-    //   sx={{height:'200px'}}
-    // >
-    //   <ReactQuill
-      
-    //     value={editorContent}
-    //     onChange={handleChange}
-    //     modules={modules}
-    //     formats={formats}
-    //     theme="snow"
-    //     style={{ height: '150px' }}
-    //   />
-    // </Box>
+   
     <Box sx={{
   "& .ql-editor": {
     minHeight: "150px",

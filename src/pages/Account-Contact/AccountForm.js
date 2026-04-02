@@ -151,9 +151,9 @@ export default function AccountForm({ onContinue, isEditing = false }) {
       }
 
       // ================= CREATE MODE =================
-      else if (!isEditing && user?._id) {
+      else if (!isEditing && user?.id) {
         const loggedInUser = teamMembersOptions.find(
-          (member) => member.value === user._id
+          (member) => member.value === user.id
         );
 
         if (loggedInUser) {

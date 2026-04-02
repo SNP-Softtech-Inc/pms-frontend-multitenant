@@ -375,7 +375,7 @@ const ChatTemp = () => {
               />
             </Box>
             <Box mt={2}>
-              <Editor onChange={setDescription} initialContent={description} />
+              <Editor onChange={setDescription} value={description} />
             </Box>
           </Box>
           <Divider sx={{ my: 2 }} />

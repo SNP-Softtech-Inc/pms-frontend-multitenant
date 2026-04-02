@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef,useContext } from "react";
+
+
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   TextField,
@@ -10,15 +12,9 @@ import {
   Paper,
   Card,
   CardContent,
-  Chip,
-  Checkbox,
-  Alert,
   CircularProgress,
   FormControl,
-  InputLabel,
-  FormHelperText,
   Autocomplete,
-  Grid,
   Popover,
   List,
   ListItem,
@@ -27,9 +23,16 @@ import {
 import { InfoOutlined } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import Cookies from "js-cookie";
-import MultiSelectDropdown from "../../Templates/MultiSelectDropdown"
+import MultiSelectDropdown from "../../../../components/MultiSelectDropdown";
+import ShortcodeTextField from "../../../../components/ShortcodeTextField";
+import { useAuth } from "../../../../context/AuthContext";
+import {
+  accountsAPI,
+  proposalAPI,
+  templateAPI,
+  authAPI,
+} from "../../../../services/api";
 
-import { LoginContext } from "../../Sidebar/Context/Context";
 const GeneralStep = ({
   formData,
   updateFormData,
@@ -37,14 +40,16 @@ const GeneralStep = ({
   stepErrors,
   setStepErrors,
 }) => {
-  const { data } = useParams();
-  console.log("selected account", data);
-  const [touched, setTouched] = useState({});
+  const { accountId } = useParams();
+  const { user } = useAuth();
+
+ 
   const [accounts, setAccounts] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [invoiceTemplates, setInvoiceTemplates] = useState([]);
   const [internalOptions, setInternalOptions] = useState([]);
+
   // === SHORTCODES States ===
   const [anchorEl, setAnchorEl] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -52,6 +57,7 @@ const GeneralStep = ({
   const [filteredShortcuts, setFilteredShortcuts] = useState([]);
   const [cursorPosition, setCursorPosition] = useState(0);
   const textFieldRef = useRef(null);
+
   useEffect(() => {
     const accountShortcuts = [
       { title: "Account Shortcodes", isBold: true },
@@ -109,12 +115,6 @@ const GeneralStep = ({
     setShortcuts(accountShortcuts);
     setFilteredShortcuts(accountShortcuts);
   }, []);
-  const LOGIN_API =
-    process.env.REACT_APP_USER_LOGIN || "https://www.snptaxes.com";
-  const ACCOUNT_API =
-    process.env.REACT_APP_ACCOUNTS_URL || "https://www.snptaxes.com";
-  const INVOICE_API =
-    process.env.REACT_APP_INVOICE_API || "https://www.snptaxes.com";
 
   // Fetch accounts and templates on component mount
   useEffect(() => {
@@ -124,187 +124,88 @@ const GeneralStep = ({
     fetchTeamMembers();
   }, []);
 
-  
-// const fetchAccounts = async () => {
-//   try {
-//     const storedUserRole = localStorage.getItem("userRole");
-//     const storedData = JSON.parse(localStorage.getItem("teamMemberData"));
-//     const loginuserid = storedData?.teammember?.userid;
-//     const viewAllAccounts = storedData?.teammember?.viewallAccounts;
+  const fetchAccounts = async () => {
+    try {
+      // Check if account info is in cookies
+      const accountIdCookie = Cookies.get("accountId");
+      const accountName = Cookies.get("accountName");
 
-//     let url = "";
+      if (accountIdCookie && accountName) {
+        const selectedAccount = {
+          label: accountName,
+          value: accountIdCookie,
+        };
 
-//     // === ROLE BASED ACCOUNT FETCH ===
-//     if (storedUserRole === "Admin") {
-//       url =
-//         "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true";
-//     } else {
-//       // Team Member
-//       url =
-//         viewAllAccounts === true
-//           ? "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true"
-//           : `https://www.snptaxes.com/api/accounts/byTeam?userId=${loginuserid}&active=true`;
-//     }
-
-//     console.log("Fetching Accounts From:", url);
-
-//     const response = await fetch(url);
-//     const result = await response.json();
-
-//     // Handle both Admin & TeamMember API response formats
-//     const accountList = Array.isArray(result.accountlist)
-//       ? result.accountlist
-//       : Array.isArray(result.teamAccounts)
-//       ? result.teamAccounts
-//       : [];
-
-//     if (!Array.isArray(accountList)) {
-//       console.error("Account list is not an array:", accountList);
-//       return;
-//     }
-
-//     setAccounts(accountList);
-//     console.log("Fetched accounts:", accountList);
-
-//     // Auto-select account if useParams provides accountId
-//     console.log("Looking for account ID:", data);
-//     const selectedAccountData = accountList.find(
-//       (account) => account._id === data
-//     );
-
-//     console.log("Found matched account:", selectedAccountData);
-
-//     if (selectedAccountData) {
-//       const selectedAccount = {
-//         label: selectedAccountData.accountName,
-//         value: selectedAccountData._id,
-//       };
-
-//       updateFormData("general", {
-//         account: [selectedAccount], // wrap inside array
-//       });
-
-//       if (stepErrors.account) {
-//         setStepErrors((prev) => {
-//           const newErrors = { ...prev };
-//           delete newErrors.account;
-//           return newErrors;
-//         });
-//       }
-
-//       console.log("Auto-selected account:", selectedAccount);
-//     } else {
-//       console.warn("No account found with ID:", data);
-//     }
-//   } catch (error) {
-//     console.error("Error fetching accounts:", error);
-//   }
-// };
-const fetchAccounts = async () => {
-  try {
-    // === 1. Check if account info is in cookies ===
-    const accountId = Cookies.get("accountId");
-    const accountName = Cookies.get("accountName");
-
-    if (accountId && accountName) {
-      // If cookies exist, set the account and skip fetching
-      const selectedAccount = {
-        label: accountName,
-        value: accountId,
-      };
-
-      updateFormData("general", {
-        account: [selectedAccount],
-      });
-
-      if (stepErrors.account) {
-        setStepErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.account;
-          return newErrors;
+        updateFormData("general", {
+          // account: [selectedAccount],
+          account: selectedAccount
         });
+
+        if (stepErrors.account) {
+          setStepErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.account;
+            return newErrors;
+          });
+        }
+
+        console.log("Account set from cookies:", selectedAccount);
+        return;
       }
 
-      console.log("Account set from cookies:", selectedAccount);
-      return; // skip rest of fetch logic
-    }
+      // ✅ ONLY ADMIN API CALL
+      // const response = await accountsAPI.getAccountNamesByStatus();
+const response = await accountsAPI.getAccountNamesByStatus(true);
+      const result = response.data;
+      console.log("Accounts API response:", result);
+      const accountList = Array.isArray(result.accountlist)
+        ? result.accountlist
+        : [];
 
-    // === 2. Proceed with existing API fetch logic ===
-    const storedUserRole = localStorage.getItem("userRole");
-    const storedData = JSON.parse(localStorage.getItem("teamMemberData"));
-    const loginuserid = storedData?.teammember?.userid;
-    const viewAllAccounts = storedData?.teammember?.viewallAccounts;
-
-    let url = "";
-
-    if (storedUserRole === "Admin") {
-      url =
-        "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true";
-    } else {
-      url =
-        viewAllAccounts === true
-          ? "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true"
-          : `https://www.snptaxes.com/api/accounts/byTeam?userId=${loginuserid}&active=true`;
-    }
-
-    console.log("Fetching Accounts From:", url);
-
-    const response = await fetch(url);
-    const result = await response.json();
-
-    const accountList = Array.isArray(result.accountlist)
-      ? result.accountlist
-      : Array.isArray(result.teamAccounts)
-      ? result.teamAccounts
-      : [];
-
-    if (!Array.isArray(accountList)) {
-      console.error("Account list is not an array:", accountList);
-      return;
-    }
-
-    setAccounts(accountList);
-    console.log("Fetched accounts:", accountList);
-
-    // Auto-select account if useParams provides accountId (optional fallback)
-    const selectedAccountData = accountList.find(
-      (account) => account._id === data
-    );
-
-    if (selectedAccountData) {
-      const selectedAccount = {
-        label: selectedAccountData.accountName,
-        value: selectedAccountData._id,
-      };
-
-      updateFormData("general", {
-        account: [selectedAccount],
-      });
-
-      if (stepErrors.account) {
-        setStepErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.account;
-          return newErrors;
-        });
+      if (!Array.isArray(accountList)) {
+        console.error("Account list is not an array:", accountList);
+        return;
       }
 
-      console.log("Auto-selected account:", selectedAccount);
-    } else {
-      console.warn("No account found with ID:", data);
+      setAccounts(accountList);
+      console.log("Fetched accounts:", accountList);
+
+      // Auto-select account if useParams provides accountId
+      const selectedAccountData = accountList.find(
+        (account) => account._id === accountId,
+      );
+
+      if (selectedAccountData) {
+        const selectedAccount = {
+          label: selectedAccountData.accountName,
+          value: selectedAccountData._id,
+        };
+
+        updateFormData("general", {
+          account: [selectedAccount],
+        });
+
+        if (stepErrors.account) {
+          setStepErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.account;
+            return newErrors;
+          });
+        }
+
+        console.log("Auto-selected account:", selectedAccount);
+      }
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
     }
-  } catch (error) {
-    console.error("Error fetching accounts:", error);
-  }
-};
+  };
+
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://www.snptaxes.com/api/proposals");
-      if (!response.ok) throw new Error("Failed to fetch templates");
-      const data = await response.json();
-      setTemplates(data.proposallist || []);
-      console.log("proposal template", data.proposallist);
+      const response = await proposalAPI.getAllProposals();
+      setTemplates(response.data.proposallist || []);
+      console.log("proposal template", response.data.proposallist);
     } catch (error) {
       console.error("Error fetching templates:", error);
     } finally {
@@ -314,54 +215,78 @@ const fetchAccounts = async () => {
 
   const fetchInvoiceTemplates = async () => {
     try {
-      const url = `${INVOICE_API}/workflow/invoicetemp/invoicetemplate`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch templates");
-      const result = await response.json();
-      setInvoiceTemplates(result.invoiceTemplate || result || []);
+      const response = await templateAPI.getAllInvoiceTemplates();
+      setInvoiceTemplates(response.data.invoiceTemplate || response.data || []);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error fetching invoice templates:", error);
     }
   };
 
-  const fetchTeamMembers = async () => {
-    try {
-      setLoading(true);
-      const url = `${LOGIN_API}/common/users/roles?roles=TeamMember,Admin`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const options = data.map((user) => ({
-        value: user._id,
-        label: user.username,
-      }));
-      setInternalOptions(options);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      setLoading(false);
-    }
-  };
-    const { logindata } = useContext(LoginContext);
+const fetchTeamMembers = async () => {
+  try {
+    const response = await authAPI.getAllUsers({
+      page: 1,
+      limit: 50,
+      status: "active",
+    });
 
-  // FIXED: Improved template data fetching and transformation
+    console.log("API RESPONSE:", response.data);
+
+    // Handle different response structures
+    let users = [];
+    if (response.data?.users) {
+      users = response.data.users;
+    } else if (Array.isArray(response.data)) {
+      users = response.data;
+    } else if (response.data?.data?.users) {
+      users = response.data.data.users;
+    }
+
+    if (!users.length) {
+      console.warn("No users found");
+    }
+
+    const formatted = users.map((user) => ({
+      value: user._id,
+      label: user.username,
+      email: user.email, // Keep email for display if needed
+    }));
+
+    console.log("FORMATTED USERS:", formatted);
+    setInternalOptions(formatted);
+  } catch (err) {
+    console.error("User fetch error:", err?.response || err);
+  }
+};
+
+  // Fetch template data
   const fetchTemplateData = async (templateId) => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `https://www.snptaxes.com/api/proposals/${templateId}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch template data");
-      const templateData = await response.json();
+      const response = await proposalAPI.getProposalById(templateId);
+      const templateData = response.data;
 
       console.log("Template data received:", templateData);
 
       // Transform the template data
       const transformedData = transformTemplateToForm(templateData);
+ // Handle team members from template
+    let templateTeamMembers = templateData.general?.teamMembers || [];
+    
+    // Ensure team members are stored as array of IDs (not objects)
+    if (templateTeamMembers.length > 0 && typeof templateTeamMembers[0] === 'object') {
+      // If they are objects, extract the IDs
+      templateTeamMembers = templateTeamMembers.map(tm => tm.value || tm._id || tm);
+    }
 
+    // If template has no team members and we have a logged-in user, use that
+    let teamMembersToUse = templateTeamMembers;
+    if (!teamMembersToUse.length && user?.id) {
+      teamMembersToUse = [user.id];
+    }
       // Update all form sections with the transformed template data
       updateFormData("general", {
         ...formData.general,
-        // proposalTemp: templateId,
         template: {
           value: templateId,
           label:
@@ -378,7 +303,7 @@ const fetchAccounts = async () => {
         termsEnabled: templateData.general?.termsEnabled ?? true,
         servicesEnabled: templateData.general?.servicesEnabled ?? true,
         paymentsEnabled: templateData.general?.paymentsEnabled ?? false,
-        teamMembers: templateData.general?.teamMembers || [],
+        teamMembers: teamMembersToUse,
       });
 
       // Update other sections with transformed template data
@@ -407,10 +332,8 @@ const fetchAccounts = async () => {
     }
   };
 
-  // FIXED: Improved template transformation
+  // Transform template data
   const transformTemplateToForm = (templateData) => {
-    console.log("Transforming template data:", templateData);
-
     return {
       introduction: {
         title: templateData.introduction?.title || "",
@@ -423,10 +346,10 @@ const fetchAccounts = async () => {
       services: {
         option: templateData.services?.option || "",
         invoices: transformInvoicesForForm(
-          templateData.services?.invoices || []
+          templateData.services?.invoices || [],
         ),
         itemizedData: transformItemizedDataForForm(
-          templateData.services?.itemizedData
+          templateData.services?.itemizedData,
         ),
       },
       payments: {
@@ -436,16 +359,14 @@ const fetchAccounts = async () => {
     };
   };
 
-  // Transform functions
   const transformInvoicesForForm = (invoices) => {
-    console.log("template invoice", invoices);
     if (!invoices || invoices.length === 0) {
       return [{ id: 1, ...getEmptyInvoice() }];
     }
 
     return invoices.map((invoice, index) => {
       const template = invoiceTemplates.find(
-        (t) => t._id === invoice.invoiceTemplate
+        (t) => t._id === invoice.invoiceTemplate,
       );
 
       return {
@@ -544,49 +465,55 @@ const fetchAccounts = async () => {
       clientNote: "",
     };
   }
-console.log("logindata",logindata);
-  // Get selected users objects from stored IDs
-  // const getSelectedUsers = () => {
-  //   if (
-  //     !formData.general.teamMembers ||
-  //     formData.general.teamMembers.length === 0
-  //   ) {
-  //     return [];
-  //   }
 
-  //   return formData.general.teamMembers.map((userId) => {
-  //     const user = internalOptions.find((opt) => opt.value === userId);
-  //     return user || { value: userId, label: `User ${userId}` };
-  //   });
-  // };
- // Get selected users objects from stored IDs or default to logged-in user
-  const getSelectedUsers = () => {
-    let selectedIds = formData.general.teamMembers;
+  // Get selected users objects from stored IDs or default to logged-in user
+ const getSelectedUsers = () => {
+  let selectedIds = formData.general.teamMembers || [];
 
-    // If no teamMembers stored, default to logged-in user
-    // If no teamMembers stored, default to logged-in user
-  if (!selectedIds || selectedIds.length === 0) {
-    selectedIds = logindata?.user?.id ? [logindata.user.id] : [];
+  // If no team members selected and we have a logged-in user, set default
+  if (!selectedIds.length && user?.id && !formData.general.proposalTemp) {
+    selectedIds = [user.id];
+    // Update formData with default user
+    updateFormData("general", {
+      teamMembers: selectedIds,
+    });
   }
 
-    return selectedIds.map((userId) => {
-      const user = internalOptions.find((opt) => opt.value === userId);
-      return user || { value: userId, label: `User ${userId}` };
-    });
-  };
-  // Handle team member selection
-  const handleTeamMembersChange = ( newSelectedUsers) => {
-    const selectedValues = newSelectedUsers.map((user) => user.value);
+  // Convert IDs to objects that MultiSelectDropdown expects
+  const selectedUsers = selectedIds
+    .map((userId) => {
+      const foundUser = internalOptions.find((opt) => opt.value === userId);
+      return foundUser || { value: userId, label: `User ${userId}` };
+    })
+    .filter(Boolean); // Remove any undefined/null values
 
-    updateFormData("general", {
-      teamMembers: selectedValues,
+  console.log("Selected users:", selectedUsers);
+  return selectedUsers;
+};
+
+  const handleTeamMembersChange = (newSelectedUsers) => {
+  // Extract just the IDs from the user objects
+  const selectedIds = newSelectedUsers.map((user) => user.value);
+  
+  console.log("Team members changed:", selectedIds);
+  
+  updateFormData("general", {
+    teamMembers: selectedIds,
+  });
+  
+  // Clear error if exists
+  if (stepErrors.teamMembers && selectedIds.length > 0) {
+    setStepErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.teamMembers;
+      return newErrors;
     });
-  };
+  }
+};
 
   const handleInputChange = (field, value) => {
     updateFormData("general", { [field]: value });
 
-    // Clear error when user starts typing
     if (value && value.toString().trim() !== "" && stepErrors[field]) {
       setStepErrors((prev) => {
         const newErrors = { ...prev };
@@ -596,30 +523,38 @@ console.log("logindata",logindata);
     }
   };
 
-  const handleBlur = (field) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
+const handleAccountChange = (selectedAccount) => {
+  updateFormData("general", {
+    account: selectedAccount || null,
+  });
 
-  const handleAccountChange = (selectedAccounts) => {
-    updateFormData("general", {
-      account: selectedAccounts || [],
+  if (selectedAccount && stepErrors.account) {
+    setStepErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.account;
+      return newErrors;
     });
+  }
+};
 
-    // Remove error if any account selected
-    if (selectedAccounts?.length > 0 && stepErrors.account) {
-      setStepErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.account;
-        return newErrors;
-      });
-    }
-  };
+  // const handleAccountChange = (selectedAccounts) => {
+  //   updateFormData("general", {
+  //     account: selectedAccounts || [],
+  //   });
+
+  //   if (selectedAccounts?.length > 0 && stepErrors.account) {
+  //     setStepErrors((prev) => {
+  //       const newErrors = { ...prev };
+  //       delete newErrors.account;
+  //       return newErrors;
+  //     });
+  //   }
+  // };
 
   const getCurrentTemplateValue = () => {
     if (!formData.general.template && formData.general.proposalTemp) {
-      // If we have proposalTemp but no template object, find the matching template
       const foundTemplate = templates.find(
-        (t) => t._id === formData.general.proposalTemp
+        (t) => t._id === formData.general.proposalTemp,
       );
       if (foundTemplate) {
         return {
@@ -633,25 +568,18 @@ console.log("logindata",logindata);
     }
     return formData.general.template || null;
   };
-  // FIXED: Improved template change handler
-  const handleTemplateChange = (event, selectedTemplate) => {
-    console.log("Selected template:", selectedTemplate);
 
+  const handleTemplateChange = (event, selectedTemplate) => {
     if (selectedTemplate) {
-      // Update template reference
       updateFormData("general", {
         template: selectedTemplate,
         proposalTemp: selectedTemplate?.value,
       });
-      console.log("updateFormData", selectedTemplate?.value);
-      // Fetch and apply template data
       fetchTemplateData(selectedTemplate.value);
     } else {
-      // Clear template if deselected
       clearTemplateData();
     }
 
-    // Clear error when template is selected
     if (selectedTemplate && stepErrors.template) {
       setStepErrors((prev) => {
         const newErrors = { ...prev };
@@ -661,9 +589,7 @@ console.log("logindata",logindata);
     }
   };
 
-  // FIXED: Improved clear template function
   const clearTemplateData = () => {
-    // Reset only template-related fields, keep other general settings
     updateFormData("general", {
       ...formData.general,
       template: null,
@@ -675,7 +601,6 @@ console.log("logindata",logindata);
       servicesEnabled: false,
     });
 
-    // Clear other sections but preserve visibility settings
     updateFormData("introduction", {
       title: "",
       description: "",
@@ -710,7 +635,6 @@ console.log("logindata",logindata);
     updateFormData("general", { [field]: value });
   };
 
-  // Toggle dropdown
   const toggleDropdown = (event) => {
     setAnchorEl(event.currentTarget);
     setShowDropdown(!showDropdown);
@@ -721,35 +645,7 @@ console.log("logindata",logindata);
     setShowDropdown(false);
   };
 
-  // Track cursor position inside Proposal Name
-  const handleTextFieldClick = () => {
-    if (textFieldRef.current) {
-      setCursorPosition(textFieldRef.current.selectionStart);
-    }
-  };
-
-  // Insert shortcode at cursor position
-  const handleAddShortcut = (shortcutValue) => {
-    const current = formData.general.proposalName || "";
-
-    const newValue =
-      current.slice(0, cursorPosition) +
-      `[${shortcutValue}]` +
-      current.slice(cursorPosition);
-
-    updateFormData("general", { proposalName: newValue });
-
-    setTimeout(() => {
-      if (textFieldRef.current) {
-        const newCursor = cursorPosition + shortcutValue.length + 2;
-        textFieldRef.current.focus();
-        textFieldRef.current.setSelectionRange(newCursor, newCursor);
-        setCursorPosition(newCursor);
-      }
-    }, 0);
-
-    setShowDropdown(false);
-  };
+  
 
   const StepCard = ({ title, description, checked, onChange, name }) => (
     <Card
@@ -803,7 +699,6 @@ console.log("logindata",logindata);
     </Card>
   );
 
-  // Prepare options for autocomplete
   const accountOptions = accounts.map((account) => ({
     value: account._id,
     label: account.accountName,
@@ -811,7 +706,10 @@ console.log("logindata",logindata);
 
   const templateOptions = templates.map((template) => ({
     value: template._id,
-    label: template.general.templateName,
+    label:
+      template.general?.templateName ||
+      template.general?.proposalName ||
+      "Unnamed Template",
   }));
 
   return (
@@ -833,7 +731,7 @@ console.log("logindata",logindata);
         </Box>
       )}
 
-      <Paper elevation={0} sx={{ p: 3, mb: 4, backgroundColor: "grey.50" }}>
+      <Paper elevation={0} sx={{ p: 3, mb: 4, }}>
         <Typography variant="h6" gutterBottom color="primary" sx={{ mb: 3 }}>
           Basic Details
         </Typography>
@@ -841,10 +739,12 @@ console.log("logindata",logindata);
         {/* Account Selection */}
         <FormControl fullWidth error={!!stepErrors.account} sx={{ mb: 3 }}>
           <Autocomplete
-            multiple
+            // multiple
             options={accountOptions}
-            value={formData.general.account || []}
+            // value={formData.general.account || []}
+            value={formData.general.account || null}
             onChange={(event, value) => handleAccountChange(value)}
+            // onChange={(event, value) => handleAccountChange(value)}
             isOptionEqualToValue={(option, value) =>
               option?.value === value?.value
             }
@@ -852,7 +752,6 @@ console.log("logindata",logindata);
             renderInput={(params) => (
               <TextField
                 {...params}
-                // label="Select Account *"
                 error={!!stepErrors.account}
                 helperText={stepErrors.account}
                 placeholder="Search for an account..."
@@ -866,7 +765,6 @@ console.log("logindata",logindata);
         <FormControl fullWidth error={!!stepErrors.template} sx={{ mb: 3 }}>
           <Autocomplete
             options={templateOptions}
-            // value={formData.general.template || null}
             value={getCurrentTemplateValue()}
             onChange={handleTemplateChange}
             isOptionEqualToValue={(option, value) =>
@@ -876,7 +774,6 @@ console.log("logindata",logindata);
             renderInput={(params) => (
               <TextField
                 {...params}
-                // label="Select Template (Optional)"
                 error={!!stepErrors.proposalTemp}
                 helperText={
                   stepErrors.proposalTemp ||
@@ -890,122 +787,59 @@ console.log("logindata",logindata);
         </FormControl>
 
        
-        <TextField
-          fullWidth
-          // label="Proposal Name"
-          label="Proposal name (visible to clients)"
-          value={formData.general.proposalName || ""}
-          onChange={(e) => {
-            handleInputChange("proposalName", e.target.value);
-            handleTextFieldClick();
-          }}
-          onClick={handleTextFieldClick}
-          inputRef={textFieldRef}
-          margin="normal"
-          required
-          sx={{ mb: 2 }}
-          error={!!stepErrors.proposalName}
-          helperText={stepErrors.proposalName}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={toggleDropdown}
-          sx={{
-            backgroundColor: "var(--color-save-btn)",
-            "&:hover": { backgroundColor: "var(--color-save-hover-btn)" },
-            borderRadius: "15px",
-            mt: 1,
-          }}
-        >
-          Add Shortcode
-        </Button>
 
-        <Popover
-          open={showDropdown}
-          anchorEl={anchorEl}
-          onClose={handleCloseDropdown}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <Box>
-            <List
-              sx={{
-                width: "300px",
-                height: "300px",
-                overflow: "auto",
-                cursor: "pointer",
-              }}
-            >
-              {filteredShortcuts.map((shortcut, index) => (
-                <ListItem
-                  key={index}
-                  onClick={() =>
-                    !shortcut.isBold && handleAddShortcut(shortcut.value)
-                  }
-                  sx={{
-                    backgroundColor: shortcut.isBold
-                      ? "grey.100"
-                      : "transparent",
-                    fontWeight: shortcut.isBold ? "bold" : "normal",
-                    "&:hover": shortcut.isBold
-                      ? {}
-                      : { backgroundColor: "grey.200" },
-                  }}
-                >
-                  <ListItemText
-                    primary={shortcut.title}
-                    primaryTypographyProps={{
-                      style: {
-                        fontWeight: shortcut.isBold ? "bold" : "normal",
-                      },
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Popover>
+        {/* Proposal Name with Shortcode Support */}
+        <Box sx={{ mb: 2 }}>
+          <ShortcodeTextField
+            label="Proposal name (visible to clients)"
+            value={formData.general.proposalName || ""}
+            onChange={(e) => {
+              const { value, selectionStart } = e.target;
+              handleInputChange("proposalName", value);
+              setCursorPosition(selectionStart);
+            }}
+            onClick={(e) => setCursorPosition(e.target.selectionStart)}
+            inputRef={textFieldRef}
+            required
+            error={!!stepErrors.proposalName}
+            helperText={stepErrors.proposalName}
+            placeholder="Proposal name (visible to clients)"
+            shortcuts={filteredShortcuts}
+            showShortcutDropdown={showDropdown}
+            anchorElShortcut={anchorEl}
+            onToggleShortcutDropdown={toggleDropdown}
+            onCloseShortcutDropdown={handleCloseDropdown}
+            onAddShortcut={(shortcut) => {
+              const current = formData.general.proposalName || "";
+              const newValue =
+                current.slice(0, cursorPosition) +
+                `[${shortcut}]` +
+                current.slice(cursorPosition);
+              updateFormData("general", { proposalName: newValue });
+              setTimeout(() => {
+                if (textFieldRef.current) {
+                  const newCursor = cursorPosition + shortcut.length + 2;
+                  textFieldRef.current.focus();
+                  textFieldRef.current.setSelectionRange(newCursor, newCursor);
+                  setCursorPosition(newCursor);
+                }
+              }, 0);
+            }}
+          />
+        </Box>
+
         {/* Team Members */}
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
             Team Members *
           </Typography>
-          {/* <Autocomplete
-            multiple
-            options={internalOptions}
+
+          <MultiSelectDropdown
             value={getSelectedUsers()}
             onChange={handleTeamMembersChange}
-            loading={loading}
-            disableCloseOnSelect
-            getOptionLabel={(option) => option.label}
-            isOptionEqualToValue={(option, value) =>
-              option.value === value.value
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Select team members..."
-                variant="outlined"
-                error={!!stepErrors.teamMembers}
-                helperText={
-                  stepErrors.teamMembers ||
-                  "Select team members who will be involved in this proposal"
-                }
-              />
-            )}
-            renderOption={(props, option, { selected }) => (
-              <li {...props}>
-                <Checkbox checked={selected} sx={{ mr: 1 }} />
-                <Typography variant="body2">{option.label}</Typography>
-              </li>
-            )}
-          /> */}
-           <MultiSelectDropdown
-                          value={getSelectedUsers()}
-                          onChange={handleTeamMembersChange}
-                          placeholder="Team Member"
-                        />
+            placeholder="Team Member"
+            options={internalOptions}
+          />
         </Box>
       </Paper>
 
