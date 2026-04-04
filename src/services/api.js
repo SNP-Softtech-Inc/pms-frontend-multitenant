@@ -9,7 +9,7 @@ const PROPOSAL_URL = process.env.REACT_APP_PROPOSAL;
 const ORGANIZER_URL = process.env.REACT_APP_ORGANIZER;
 const FOLDER_MANAGEMENT_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
 const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
-
+const INVOICE_URL = process.env.REACT_APP_INVOICE;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -60,6 +60,12 @@ const folderManagementApi = axios.create({
 });
 const chatApi = axios.create({
   baseURL: CHAT_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+const invoiceApi = axios.create({
+  baseURL: INVOICE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -132,6 +138,7 @@ attachInterceptors(proposalApi);
 attachInterceptors(organizerApi);
 attachInterceptors(folderManagementApi);
 attachInterceptors(chatApi);
+attachInterceptors(invoiceApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -743,6 +750,83 @@ export const organizerAPI = {
   // DUPLICATE ✅
   duplicateOrganizerTemplate: (id) =>
     organizerApi.post(`/api/organizertemp/organizertemplate/duplicate/${id}`),
+
+
+  // ================= ACCOUNT-WISE ORGANIZER APIs =================
+
+  // GET ALL
+  getOrganizerAccountWises: () =>
+    organizerApi.get("/api/orgaccwise/organizeraccountwise"),
+
+  // GET SINGLE
+  getOrganizerAccountWiseById: (id) =>
+    organizerApi.get(`/api/orgaccwise/organizeraccountwise/${id}`),
+
+  // CREATE
+  createOrganizerAccountWise: (data) =>
+    organizerApi.post("/api/orgaccwise/organizeraccountwise/org", data),
+
+  // DELETE
+  deleteOrganizerAccountWise: (id) =>
+    organizerApi.delete(`/api/orgaccwise/organizeraccountwise/${id}`),
+
+  // GET BY ACCOUNT ID
+  getOrganizerByAccountId: (accountId) =>
+    organizerApi.get(
+      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}`
+    ),
+
+  // GET ACTIVE BY ACCOUNT ID
+  getActiveOrganizerByAccountId: (accountId, isActive) =>
+    organizerApi.get(
+      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}/${isActive}`
+    ),
+
+  // UPDATE
+  updateOrganizerAccountWise: (id, data) =>
+    organizerApi.patch(
+      `/api/orgaccwise/organizeraccountwise/${id}`,
+      data
+    ),
+
+  // ACTIVE / ARCHIVE
+  updateOrganizerStatus: (id, data) =>
+    organizerApi.patch(
+      `/api/orgaccwise/organizeraccountwise/active-archive/${id}`,
+      data
+    ),
+
+  // COMPLETE & NOTIFY
+  completeAndNotifyOrganizer: (id, data) =>
+    organizerApi.patch(
+      `/api/orgaccwise/organizeraccountwise/completeandnotify/${id}`,
+      data
+    ),
+
+  // UPDATE STATUS (SUBMITTED)
+  updateOrganizerSubmissionStatus: (id, isSubmitted) =>
+    organizerApi.patch(
+      `/api/orgaccwise/organizeraccountwise/organizeraccountwisestatus/${id}/${isSubmitted}`
+    ),
+
+  // GET PENDING
+  getPendingOrganizersByAccountId: (accountId) =>
+    organizerApi.get(`/api/orgaccwise/organizer/pending/${accountId}`),
+
+  // UPDATE FORM ELEMENT ACTIVE STATUS
+  updateFormElementActiveStatus: (organizerId, sectionId, formElementId, data) =>
+    organizerApi.patch(
+      `/api/orgaccwise/${organizerId}/sections/${sectionId}/form-elements/${formElementId}`,
+      data
+    ),
+
+  // AUTO SAVE
+  autoSaveOrganizer: (id, data) =>
+    organizerApi.patch(`/api/orgaccwise/autosave/${id}`, data),
+
+  // RENAME
+  renameOrganizerAccountWise: (id, data) =>
+    organizerApi.patch(`/api/orgaccwise/rename/${id}`, data),
 };
 
 // ================= FOLDER MANAGEMENT APIs =================
@@ -1117,4 +1201,70 @@ export const chatAPI = {
   sendSecureMessage: (data) =>
     chatApi.post("/chats/securemessagechatsend", data),
 
+};
+
+// ================= INVOICE APIs =================
+export const invoiceAPI = {
+  // ================= CREATE =================
+  createInvoice: (data) =>
+    invoiceApi.post("/account/invoicelist/invoice", data),
+
+  // ================= GET =================
+  getInvoices: () =>
+    invoiceApi.get("/account/invoicelist/invoice"),
+
+  getInvoiceById: (id) =>
+    invoiceApi.get(`/account/invoicelist/invoice/${id}`),
+
+  getInvoiceCount: () =>
+    invoiceApi.get("/account/invoicelist/invoicecount"),
+
+  getInvoiceStatusCount: () =>
+    invoiceApi.get("/account/invoicelist/invoicestatuscount"),
+
+  getInvoiceSummary: () =>
+    invoiceApi.get("/account/invoicelist/invoicesummary"),
+
+  getInvoiceList: () =>
+    invoiceApi.get("/account/invoicelist/invoice/invoicelist"),
+
+  getInvoiceListById: (id) =>
+    invoiceApi.get(
+      `/account/invoicelist/invoice/invoicelist/invoicelistbyid/${id}`
+    ),
+
+  getInvoiceListByAccountId: (id) =>
+    invoiceApi.get(
+      `/account/invoicelist/invoice/invoicelistby/accountid/${id}`
+    ),
+
+  getPendingInvoicesByAccountId: (id) =>
+    invoiceApi.get(
+      `/account/invoicelist/invoice/pending/invoicelistby/accountid/${id}`
+    ),
+
+  getInvoiceForPrint: (id) =>
+    invoiceApi.get(
+      `/account/invoicelist/invoice/invoiceforprint/${id}`
+    ),
+
+  getNextInvoiceNumber: () =>
+    invoiceApi.get("/account/invoicelist/next-invoice-number"),
+
+  // ================= UPDATE =================
+  updateInvoice: (id, data) =>
+    invoiceApi.patch(`/account/invoicelist/invoice/${id}`, data),
+
+  updateInvoiceStatus: (invoiceNumber, data) =>
+    invoiceApi.patch(
+      `/account/invoicelist/invoicestatus/${invoiceNumber}`,
+      data
+    ),
+
+  // ================= DELETE =================
+  deleteInvoice: (id) =>
+    invoiceApi.delete(`/account/invoicelist/invoice/${id}`),
+
+  deleteInvoicesByAccountId: (id) =>
+    invoiceApi.delete(`/account/invoicelist/invoices/by-account/${id}`),
 };

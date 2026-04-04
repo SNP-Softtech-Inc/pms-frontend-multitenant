@@ -53,6 +53,10 @@ import Signatures from "./pages/AccountDashboard/Documents/Signatures";
 import Trash from "./pages/AccountDashboard/Documents/Trash";
 import AccountProposalForm from "./pages/AccountDashboard/Proposals/AccountProposalForm";
 import AllProposalList from "./pages/AllProposalList";
+import AccountOrganizer from "./pages/AccountDashboard/Organizer/AccountOrganizer";
+import InvoiceList from "./pages/AccountDashboard/Invoices/InvoiceList";
+import Payment from "./pages/AccountDashboard/Invoices/Payment";
+import AllInvoices from "./pages/AllInvoices";
 function App() {
   return (
     <Routes>
@@ -110,7 +114,12 @@ function App() {
           </Route>
           <Route path="communication/:accountId" element={<Communication />} />
           <Route path="organizers/:accountId" element={<Organizers />} />
-          <Route path="invoices/:accountId" element={<Invoices />} />
+          <Route path="organizers/:accountId/accountorganizer" element={<AccountOrganizer />} />
+          <Route path="invoices/:accountId" element={<Invoices />} >
+          <Route index element={<InvoiceList />} />
+          <Route path="invoices" element={<InvoiceList />} />
+          <Route path="payment" element={<Payment />} />
+          </Route>
           <Route path="email/:accountId" element={<Email />} />
           <Route path="proposals/:accountId" element={<Proposals />} />
           <Route
@@ -126,6 +135,7 @@ function App() {
             <Route path="pendingtasks" element={<Pendingtasks />} />
             <Route path="completetasks" element={<Completedtasks />} />
           </Route>
+         
         </Route>
         <Route
           path="/clients/contacts"
@@ -161,13 +171,18 @@ function App() {
           }
         />
         <Route
+        path="/billing/Invoices"
+        element={<ProtectedRoute>
+          <AllInvoices/>
+        </ProtectedRoute>}/>
+        <Route
           path="/billing/proposalsandels/new"
           element={
             <ProtectedRoute>
               <AccountProposalForm />
             </ProtectedRoute>
           }
-         />
+        />
         {/* ✅ Templates Parent Route */}
         <Route
           path="firmtemp/templates"

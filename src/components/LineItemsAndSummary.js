@@ -144,47 +144,7 @@ const LineItemsAndSummary = ({
                       zIndex: 1,
                     }}
                   >
-                    {/* <CreatableSelect
-                      placeholder={
-                        row.isDiscount
-                          ? "Reason for discount"
-                          : "Product or Service"
-                      }
-                      options={serviceoptions}
-                      value={
-                        row.productName
-                          ? serviceoptions.find(
-                              (option) => option.label === row.productName
-                            ) || {
-                              label: row.productName,
-                              value: row.productName,
-                            }
-                          : null
-                      }
-                      onChange={(selectedOption) =>
-                        onServiceChange && onServiceChange(index, selectedOption)
-                      }
-                      onInputChange={(inputValue, actionMeta) =>
-                        onServiceInputChange &&
-                        onServiceInputChange(inputValue, actionMeta, index)
-                      }
-                      isClearable
-                      styles={{
-                        container: (provided) => ({
-                          ...provided,
-                          width: "180px",
-                        }),
-                        control: (provided) => ({
-                          ...provided,
-                          width: "180px",
-                        }),
-                        menuPortal: (provided) => ({
-                          ...provided,
-                          zIndex: 9999,
-                        }),
-                      }}
-                      menuPortalTarget={document.body}
-                    /> */}
+                    
                     <Autocomplete
   size="small"
   freeSolo

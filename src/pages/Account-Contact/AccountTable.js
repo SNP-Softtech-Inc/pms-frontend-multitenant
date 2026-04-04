@@ -271,27 +271,27 @@ const AccountTable = () => {
     });
     setPage(0);
   };
-const updateAccountCookies = (updatedSelected) => {
-  if (updatedSelected.length > 0) {
-    Cookies.set("selectedAccounts", JSON.stringify(updatedSelected), {
-      path: "/",
-    });
-
-    const latestId = updatedSelected[updatedSelected.length - 1];
-    const latestAccount = accountList.find((acc) => acc._id === latestId);
-
-    if (latestAccount) {
-      Cookies.set("accountId", latestAccount._id, { path: "/" });
-      Cookies.set("accountName", latestAccount.accountName, {
+  const updateAccountCookies = (updatedSelected) => {
+    if (updatedSelected.length > 0) {
+      Cookies.set("selectedAccounts", JSON.stringify(updatedSelected), {
         path: "/",
       });
+
+      const latestId = updatedSelected[updatedSelected.length - 1];
+      const latestAccount = accountList.find((acc) => acc._id === latestId);
+
+      if (latestAccount) {
+        Cookies.set("accountId", latestAccount._id, { path: "/" });
+        Cookies.set("accountName", latestAccount.accountName, {
+          path: "/",
+        });
+      }
+    } else {
+      Cookies.remove("selectedAccounts", { path: "/" });
+      Cookies.remove("accountId", { path: "/" });
+      Cookies.remove("accountName", { path: "/" });
     }
-  } else {
-    Cookies.remove("selectedAccounts", { path: "/" });
-    Cookies.remove("accountId", { path: "/" });
-    Cookies.remove("accountName", { path: "/" });
-  }
-};
+  };
   const renderBulkContent = () => {
     switch (bulkDrawer.type) {
       case "tags":
@@ -745,9 +745,9 @@ const updateAccountCookies = (updatedSelected) => {
                   color="error"
                   // onClick={() => setSelectedAccounts([])}
                   onClick={() => {
-    setSelectedAccounts([]);
-    updateAccountCookies([]); // ✅ remove cookies
-  }}
+                    setSelectedAccounts([]);
+                    updateAccountCookies([]); // ✅ remove cookies
+                  }}
                   startIcon={<ClearIcon />}
                 >
                   Clear
@@ -786,25 +786,27 @@ const updateAccountCookies = (updatedSelected) => {
                       //   }
                       // }}
                       onChange={() => {
-  const pageIds = paginatedList.map((a) => a._id);
+                        const pageIds = paginatedList.map((a) => a._id);
 
-  const allSelected = pageIds.every((id) =>
-    selectedAccounts.includes(id)
-  );
+                        const allSelected = pageIds.every((id) =>
+                          selectedAccounts.includes(id),
+                        );
 
-  let updated;
+                        let updated;
 
-  if (allSelected) {
-    updated = selectedAccounts.filter(
-      (id) => !pageIds.includes(id)
-    );
-  } else {
-    updated = [...new Set([...selectedAccounts, ...pageIds])];
-  }
+                        if (allSelected) {
+                          updated = selectedAccounts.filter(
+                            (id) => !pageIds.includes(id),
+                          );
+                        } else {
+                          updated = [
+                            ...new Set([...selectedAccounts, ...pageIds]),
+                          ];
+                        }
 
-  setSelectedAccounts(updated);
-  updateAccountCookies(updated); // ✅ instant cookie update
-}}
+                        setSelectedAccounts(updated);
+                        updateAccountCookies(updated); // ✅ instant cookie update
+                      }}
                     />
                   </TableCell>
                   <TableCell>Account Code</TableCell>
@@ -864,19 +866,19 @@ const updateAccountCookies = (updatedSelected) => {
                           //   );
                           // }}
                           onChange={() => {
-  let updated;
+                            let updated;
 
-  if (selectedAccounts.includes(account._id)) {
-    updated = selectedAccounts.filter(
-      (id) => id !== account._id
-    );
-  } else {
-    updated = [...selectedAccounts, account._id];
-  }
+                            if (selectedAccounts.includes(account._id)) {
+                              updated = selectedAccounts.filter(
+                                (id) => id !== account._id,
+                              );
+                            } else {
+                              updated = [...selectedAccounts, account._id];
+                            }
 
-  setSelectedAccounts(updated);
-  updateAccountCookies(updated); // ✅ instant cookie update
-}}
+                            setSelectedAccounts(updated);
+                            updateAccountCookies(updated); // ✅ instant cookie update
+                          }}
                         />
                       </TableCell>
                       <TableCell>
