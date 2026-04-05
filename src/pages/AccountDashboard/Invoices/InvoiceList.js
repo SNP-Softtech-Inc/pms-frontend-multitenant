@@ -20,9 +20,11 @@ import { useParams } from "react-router-dom";
 import { invoiceAPI } from "../../../services/api"; // adjust path
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import CreateInvoiceDrawer from "./CreateInvoiceDrawer";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 const InvoiceTable = () => {
   const { accountId } = useParams();
-  const  confirm  = useConfirm();
+  const confirm = useConfirm();
   const [accountInvoicesData, setAccountInvoicesData] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -42,40 +44,69 @@ const InvoiceTable = () => {
 
   //   return today > dueDate && isUnpaid && hasBalanceDue;
   // };
+  // Check if an invoice is overdue
   const isInvoiceOverdue = (invoice, paymentTermDays = 5) => {
-  if (!invoice.invoicedate || invoice.invoiceStatus === "Paid") return false;
+    if (!invoice.invoicedate || invoice.invoiceStatus === "Paid") return false;
 
-  const invoiceDate = new Date(invoice.invoicedate);
-  const dueDate = new Date(invoiceDate);
-  dueDate.setDate(dueDate.getDate() + paymentTermDays);
+    const invoiceDate = new Date(invoice.invoicedate);
+    const today = new Date();
 
-  const today = new Date();
-  
-  // Strip time to only compare dates
-  const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+    // Skip invoices created today
+    if (
+      invoiceDate.getFullYear() === today.getFullYear() &&
+      invoiceDate.getMonth() === today.getMonth() &&
+      invoiceDate.getDate() === today.getDate()
+    ) {
+      return false;
+    }
 
-  const isUnpaid = invoice.invoiceStatus === "Pending";
-  const hasBalanceDue =
-    invoice.balanceDueAmount === null || invoice.balanceDueAmount > 0;
+    const dueDate = new Date(invoiceDate);
+    dueDate.setDate(dueDate.getDate() + paymentTermDays);
 
-  return todayDateOnly > dueDateOnly && isUnpaid && hasBalanceDue;
-};
+    const todayDateOnly = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const dueDateOnly = new Date(
+      dueDate.getFullYear(),
+      dueDate.getMonth(),
+      dueDate.getDate(),
+    );
 
-  // Fetch invoices
+    const isUnpaid = invoice.invoiceStatus === "Pending";
+
+    // Use balanceDueAmount if set, otherwise fallback to total
+    const balance = invoice.balanceDueAmount ?? invoice.summary?.total ?? 0;
+    const hasBalanceDue = balance > 0;
+
+    return todayDateOnly > dueDateOnly && isUnpaid && hasBalanceDue;
+  };
+
+  // Fetch invoices and update overdue status safely
   const fetchInvoices = async () => {
     try {
       const res = await invoiceAPI.getInvoiceListByAccountId(accountId);
       console.log("Fetched invoices:", res.data);
+
       if (res.data?.invoice) {
         const updatedInvoices = await Promise.all(
           res.data.invoice.map(async (invoice) => {
-            if (isInvoiceOverdue(invoice)) {
-              await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
-                invoiceStatus: "Overdue",
-              });
-              return { ...invoice, invoiceStatus: "Overdue" };
+            const overdue = isInvoiceOverdue(invoice);
+
+            // Only update if overdue AND not already overdue
+            if (overdue && invoice.invoiceStatus !== "Overdue") {
+              try {
+                await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
+                  invoiceStatus: "Overdue",
+                });
+                return { ...invoice, invoiceStatus: "Overdue" };
+              } catch (err) {
+                console.error("Failed to update invoice status:", err);
+                return invoice; // fallback to original
+              }
             }
+
             return invoice;
           }),
         );
@@ -136,13 +167,214 @@ const InvoiceTable = () => {
 
       toast.success("Duplicated");
       fetchInvoices();
-      handleMenuClose()
-      
+      handleMenuClose();
     } catch {
       toast.error("Duplicate failed");
     }
   };
+  //print
+  const handlePrint = async (_id) => {
+    try {
+      const res = await invoiceAPI.getInvoiceForPrint(_id);
+      const invoiceData = res.data;
 
+      const accountName =
+        invoiceData.invoice.account.accountName || "Unknown Account";
+
+      const printContent = `
+      <style>
+        body { font-family: Arial; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background: #f2f2f2; }
+      </style>
+
+      <h2>Invoice #${invoiceData.invoice.invoicenumber}</h2>
+      <p>Date: ${new Date(invoiceData.invoice.invoicedate).toLocaleDateString()}</p>
+      <p><strong>${accountName}</strong></p>
+      <p>${invoiceData.invoice.description}</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Rate</th>
+            <th>Qty</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoiceData.invoice.lineItems
+            .map(
+              (item) => `
+            <tr>
+              <td>${item.productorService}</td>
+              <td>$${item.rate}</td>
+              <td>${item.quantity}</td>
+              <td>$${item.amount}</td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+
+      <h3>Total: $${invoiceData.invoice.summary.total}</h3>
+    `;
+
+      const win = window.open("", "_blank");
+      win.document.write(`
+      <html>
+        <body onload="window.print(); window.close();">
+          ${printContent}
+        </body>
+      </html>
+    `);
+      win.document.close();
+
+      handleMenuClose();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to print invoice");
+    }
+  };
+
+  //download
+// const handleDownload = async (_id) => {
+//   try {
+//     const res = await invoiceAPI.getInvoiceForPrint(_id);
+//     const invoiceData = res.data;
+
+//     const doc = new jsPDF();
+
+//     const accountName =
+//       invoiceData.invoice.account.accountName || "Unknown Account";
+
+//     doc.setFontSize(14);
+//     doc.text(`Invoice #${invoiceData.invoice.invoicenumber}`, 10, 10);
+//     doc.text(
+//       `Date: ${new Date(invoiceData.invoice.invoicedate).toLocaleDateString()}`,
+//       10,
+//       20
+//     );
+//     doc.text(`Account: ${accountName}`, 10, 30);
+
+//     // ✅ FIXED HERE
+//     autoTable(doc, {
+//       startY: 40,
+//       head: [["Product", "Rate", "Qty", "Amount"]],
+//       body: invoiceData.invoice.lineItems.map((item) => [
+//         item.productorService,
+//         `$${item.rate}`,
+//         item.quantity,
+//         `$${item.amount}`,
+//       ]),
+//     });
+
+//     const finalY = doc.lastAutoTable.finalY;
+
+//     doc.text(
+//       `Total: $${invoiceData.invoice.summary.total.toFixed(2)}`,
+//       10,
+//       finalY + 10
+//     );
+
+//     doc.save(`Invoice_${invoiceData.invoice.invoicenumber}.pdf`);
+
+//     toast.success("Downloaded successfully");
+//     handleMenuClose();
+//   } catch (error) {
+//     console.error(error);
+//     toast.error("Failed to download invoice");
+//   }
+// };
+
+const handleDownload = async (_id) => {
+  try {
+    // ✅ Fetch data using API
+    const res = await invoiceAPI.getInvoiceForPrint(_id);
+    const invoiceData = res.data;
+
+    const invoice = invoiceData.invoice;
+
+    const accountName =
+      invoice.account?.accountName || "Unknown Account";
+
+    const doc = new jsPDF();
+
+    // ================= HEADER =================
+    doc.setFontSize(16);
+    doc.setFont(undefined, "bold");
+    doc.text(`Invoice #${invoice.invoicenumber}`, 10, 10);
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, "normal");
+    doc.text(
+      `Date: ${new Date(invoice.invoicedate).toLocaleDateString()}`,
+      10,
+      20
+    );
+
+    doc.text(`Account: ${accountName}`, 10, 30);
+    doc.text(`Description: ${invoice.description || "-"}`, 10, 40);
+
+    // ================= TABLE =================
+    autoTable(doc, {
+      startY: 50,
+      head: [["Product/Service", "Rate", "Quantity", "Amount"]],
+      body: invoice.lineItems.map((item) => [
+        item.productorService,
+        `$${item.rate}`,
+        item.quantity,
+        `$${item.amount}`,
+      ]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+      },
+      styles: {
+        fontSize: 11,
+      },
+    });
+
+    // ================= SUMMARY =================
+    const summaryY = doc.lastAutoTable.finalY + 10;
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Subtotal: $${invoice.summary.subtotal.toFixed(2)}`,
+      pageWidth - 70,
+      summaryY
+    );
+
+    doc.text(
+      `Tax: $${invoice.summary.taxTotal.toFixed(2)}`,
+      pageWidth - 70,
+      summaryY + 10
+    );
+
+    doc.setFontSize(14);
+    doc.setFont(undefined, "bold");
+
+    doc.text(
+      `Total: $${invoice.summary.total.toFixed(2)}`,
+      pageWidth - 70,
+      summaryY + 20
+    );
+
+    // ================= DOWNLOAD =================
+    doc.save(`Invoice_${invoice.invoicenumber}.pdf`);
+
+    toast.success("Invoice downloaded successfully");
+    handleMenuClose();
+  } catch (error) {
+    console.error("Error downloading invoice:", error);
+    toast.error("Failed to download invoice");
+  }
+};
   return (
     <Box sx={{ mt: 2 }}>
       <Box mb={2}>
@@ -209,6 +441,13 @@ const InvoiceTable = () => {
                     </MenuItem>
                     <MenuItem onClick={() => handleDuplicate(row._id)}>
                       Duplicate
+                    </MenuItem>
+                    <MenuItem onClick={() => handlePrint(row._id)}>
+                      Print
+                    </MenuItem>
+
+                    <MenuItem onClick={() => handleDownload(row._id)}>
+                      Download
                     </MenuItem>
                   </Menu>
                 </TableCell>

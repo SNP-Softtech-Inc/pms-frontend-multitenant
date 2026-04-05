@@ -53,7 +53,7 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/insights");
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 

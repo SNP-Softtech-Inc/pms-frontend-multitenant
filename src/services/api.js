@@ -10,6 +10,7 @@ const ORGANIZER_URL = process.env.REACT_APP_ORGANIZER;
 const FOLDER_MANAGEMENT_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
 const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
 const INVOICE_URL = process.env.REACT_APP_INVOICE;
+const JOBS_URL = process.env.REACT_APP_JOBS;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -70,6 +71,13 @@ const invoiceApi = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+const jobsApi = axios.create({
+  baseURL: JOBS_URL,
+  headers:{
+    "Content-Type": "application/json",
+  }
+})
 
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
@@ -139,6 +147,7 @@ attachInterceptors(organizerApi);
 attachInterceptors(folderManagementApi);
 attachInterceptors(chatApi);
 attachInterceptors(invoiceApi);
+attachInterceptors(jobsApi)
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -470,6 +479,10 @@ export const templateAPI = {
     templateApi.get(
       `/temp/pipeline/check-name?name=${encodeURIComponent(name)}`,
     ),
+
+    // NEW: GET PIPELINE STAGES (with automations)
+getPipelineStages: (pipelineId) =>
+  templateApi.get(`/temp/pipeline/stages/${pipelineId}`),
 
   // ================= SORT JOBS BY =================
 
@@ -1267,4 +1280,98 @@ export const invoiceAPI = {
 
   deleteInvoicesByAccountId: (id) =>
     invoiceApi.delete(`/account/invoicelist/invoices/by-account/${id}`),
+};
+
+// ================= JOB APIs =================
+export const jobAPI = {
+  // ================= BASIC =================
+
+  // GET ALL JOBS
+  getJobs: () => jobsApi.get("/workflow/jobs/jobs"),
+
+  // GET JOB COUNT
+  getJobsCount: () => jobsApi.get("/workflow/jobs/jobs/count"),
+
+  // ACTIVE / INACTIVE COUNTS
+  getActiveJobCount: () => jobsApi.get("/workflow/jobs/jobs/count/active"),
+  getInactiveJobCount: () => jobsApi.get("/workflow/jobs/jobs/count/inactive"),
+
+  // GET SINGLE JOB
+  getJobById: (id) => jobsApi.get(`/workflow/jobs/jobs/${id}`),
+
+  // CREATE JOB
+  createJob: (data) => jobsApi.post("/workflow/jobs/jobs", data),
+
+  // UPDATE JOB
+  updateJob: (id, data) =>
+    jobsApi.patch(`/workflow/jobs/jobs/${id}`, data),
+
+  // DELETE JOB
+  deleteJob: (id) =>
+    jobsApi.delete(`/workflow/jobs/jobs/${id}`),
+
+  // ================= LISTS =================
+
+  // ACTIVE / INACTIVE LIST
+  getActiveJobList: (isActive = true) =>
+    jobsApi.get(`/workflow/jobs/jobs/list/status/${isActive}`),
+
+  // BY USER
+  getJobsByUser: (userId, isActive = true) =>
+    jobsApi.get(
+      `/workflow/jobs/jobs/list/user/${userId}/${isActive}`
+    ),
+
+  // BY ACCOUNT IDS (GET - comma separated)
+  getJobsByAccountIds: (accountId, isActive = true) =>
+    jobsApi.get(
+      `/workflow/jobs/jobs/list/account/${accountId}/${isActive}`
+    ),
+
+  // POST FILTER (ACCOUNT IDS ARRAY)
+  getJobsByAccountsPost: (data) =>
+    jobsApi.post(`/workflow/jobs/jobs/list/account`, data),
+
+  // ================= DETAIL =================
+
+  // GET FULL JOB DETAIL
+  getJobDetail: (id) =>
+    jobsApi.get(`/workflow/jobs/jobs/details/${id}`),
+
+  // ================= ACCOUNT =================
+
+  // GET JOBS BY ACCOUNT
+  getJobsByAccount: (accountId) =>
+    jobsApi.get(`/workflow/jobs/accounts/${accountId}/jobs`),
+
+  // DELETE JOBS BY ACCOUNT
+  deleteJobsByAccount: (accountId) =>
+    jobsApi.delete(`/workflow/jobs/accounts/${accountId}/jobs`),
+
+  // ================= PIPELINES =================
+
+  // GET PIPELINES FROM JOB LIST
+  getPipelinesFromJobs: (userId, isActive = true) =>
+    jobsApi.get(
+      `/workflow/jobs/jobs/pipelines/${userId}/${isActive}`
+    ),
+
+  // ================= STAGE =================
+
+  // UPDATE STAGE
+  updateJobStage: (id, data) =>
+    jobsApi.patch(`/workflow/jobs/jobs/${id}/stage`, data),
+
+  // RUN STAGE AUTOMATION + MOVE
+  runStageAutomation: (data) =>
+    jobsApi.post(
+      `/workflow/jobs/jobs/stage/automations`,
+      data
+    ),
+
+  // ================= BULK =================
+
+  // CREATE BULK JOB
+  createBulkJob: (data) =>
+    jobsApi.post(`/workflow/jobs/jobs/bulk`, data),
 };

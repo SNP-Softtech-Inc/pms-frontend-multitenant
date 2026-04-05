@@ -57,6 +57,7 @@ import AccountOrganizer from "./pages/AccountDashboard/Organizer/AccountOrganize
 import InvoiceList from "./pages/AccountDashboard/Invoices/InvoiceList";
 import Payment from "./pages/AccountDashboard/Invoices/Payment";
 import AllInvoices from "./pages/AllInvoices";
+import WorkflowPipeline from "./pages/Workflow/Pipeline";
 function App() {
   return (
     <Routes>
@@ -80,7 +81,8 @@ function App() {
         }
       >
         <Route
-          path="/insights"
+          // path="/insights"
+          index
           element={
             <ProtectedRoute>
               <Insights />
@@ -182,6 +184,14 @@ function App() {
               <AccountProposalForm />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+        path="/pipelines"
+        element={
+          <ProtectedRoute> <WorkflowPipeline/></ProtectedRoute>
+         
+        }
         />
         {/* ✅ Templates Parent Route */}
         <Route

@@ -596,7 +596,10 @@ const CreateInvoiceDrawer = ({ open, onClose,fetchInvoices }) => {
     if (res?.data?.message === "Invoice created successfully") {
       toast.success("Invoice created successfully");
       onClose();
-      fetchInvoices();
+      if(fetchInvoices){
+          fetchInvoices();
+      }
+    
       
     } else {
       toast.error(res?.data?.message || "Failed to create invoice");

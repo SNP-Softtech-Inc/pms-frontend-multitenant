@@ -40,7 +40,10 @@ import * as LiaIcons from "react-icons/lia";
 import * as FiIcons from "react-icons/fi";
 import * as RiIcons from "react-icons/ri";
 import * as FaIcons from "react-icons/fa";
+import CreateInvoiceDrawer from "./AccountDashboard/Invoices/CreateInvoiceDrawer";
 
+import NewChatDrawer from "./AccountDashboard/Communication/NewChatDrawer"; // adjust path
+import JobDrawer from "./Workflow/JobDrawer";
 const drawerWidth = 240;
 const collapsedDrawerWidth = 70;
 
@@ -69,11 +72,19 @@ const Dashboard = () => {
     ...FaIcons,
   };
   const [openDrawer, setOpenDrawer] = useState(false);
-const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
+  const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
+  const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
+  const [invoiceDrawer, setInvoiceDrawer] = useState(false);
+  const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
+
+  const handleChatDrawerOpen = () => setChatDrawerOpen(true);
+  const handleChatDrawerClose = () => setChatDrawerOpen(false);
   const handleDrawerOpen = () => setOpenDrawer(true);
   const handleDrawerClose = () => setOpenDrawer(false);
   const handleContactDrawerOpen = () => setContactDrawerOpen(true);
   const handleContactDrawerClose = () => setContactDrawerOpen(false);
+  const handleJobDrawerOpen = () => setJobDrawerOpen(true);
+  const handleJobDrawerClose = () => setJobDrawerOpen(false);
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
     return IconComponent ? <IconComponent size={20} /> : <DashboardIcon />;
@@ -379,8 +390,18 @@ const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
       )}
 
       {/* MAIN */}
-      <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+      {/* <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}> */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh", // important
+          overflow: "hidden", // prevent full page scroll
+        }}
+      >
         {/* HEADER */}
+
         <Box
           sx={{
             height: 70,
@@ -391,6 +412,10 @@ const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
             borderBottom: "1px solid",
             borderColor: "divider",
             bgcolor: "background.paper",
+
+            position: "sticky", // ✅ key
+            top: 0, // stick to top
+            zIndex: 10, // stay above content
           }}
         >
           {/* Left Section */}
@@ -453,13 +478,33 @@ const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
           plusMenuItems.map((item, index) => (
             <MenuItem
               key={index}
-              
+              // onClick={() => {
+              //   // ✅ condition for Account
+              //   if (item.label === "Account") {
+              //     handleDrawerOpen();
+              //   }
+              //   if (item.label === "Contact") {
+              //     handleContactDrawerOpen();
+              //   }
+              //   if (item.label === "Invoice") {
+              //     setInvoiceDrawer(true);
+              //   } else {
+              //     navigate(item.path);
+              //   }
+
+              //   handlePlusClose();
+              // }}
               onClick={() => {
-                // ✅ condition for Account
                 if (item.label === "Account") {
                   handleDrawerOpen();
-                }if (item.label === "Contact") {
+                } else if (item.label === "Contact") {
                   handleContactDrawerOpen();
+                } else if (item.label === "Invoice") {
+                  setInvoiceDrawer(true);
+                } else if (item.label === "Chat") {
+                  handleChatDrawerOpen(); // ✅ ADD THIS
+                } else if (item.label === "Jobs") {
+                  handleJobDrawerOpen();
                 } else {
                   navigate(item.path);
                 }
@@ -487,7 +532,24 @@ const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
       </Menu>
 
       <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
-      <NewContactDrawer open={contactDrawerOpen} onClose={handleContactDrawerClose} />
+      <NewContactDrawer
+        open={contactDrawerOpen}
+        onClose={handleContactDrawerClose}
+      />
+
+      <CreateInvoiceDrawer
+        open={invoiceDrawer}
+        onClose={() => setInvoiceDrawer(false)}
+      />
+      <NewChatDrawer
+        open={chatDrawerOpen}
+        handleClose={handleChatDrawerClose}
+        accountwiseChatlist={() => {}} // pass your function if needed
+        data={null}
+        isActiveTrue={true}
+      />
+      <JobDrawer
+      open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)}/>
     </Box>
   );
 };
