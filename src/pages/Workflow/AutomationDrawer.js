@@ -29,8 +29,8 @@ const AutomationDrawer = ({
   automations,
   selectedAccounts,
   accountData,
-  jobData,
-  onSuccess,
+  // jobData,
+  // onSuccess,
   selectedStage,
   selectedPipeline,
   selectedtemp,
@@ -51,7 +51,7 @@ const AutomationDrawer = ({
   startDate,
   dueDate,
   setDrawerOpen,
-  navigate,
+  jobDrwerClose,resetForm
 }) => {
 
   const [selectedAutomations, setSelectedAutomations] = useState([]);
@@ -336,7 +336,8 @@ const AutomationDrawer = ({
       };
 
       // Call the API to create jobs
-      const response = await jobAPI.runStageAutomation(payload);
+      // const response = await jobAPI.runStageAutomation(payload);
+      const response = await jobAPI.createBulkJob(payload);
 
       if (response.data) {
         toast.success(response.data.message || "Jobs started successfully");
@@ -344,6 +345,8 @@ const AutomationDrawer = ({
         // if (onSuccess) onSuccess();
         if (setDrawerOpen) setDrawerOpen(false);
         onClose();
+        jobDrwerClose();
+        resetForm()
         // if (navigate) navigate("/jobs/activejob");
       }
     } catch (error) {

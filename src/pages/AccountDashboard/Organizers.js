@@ -65,7 +65,7 @@ const confirm = useConfirm();
         isActiveTrue,
       );
       setOrganizerTemplatesData(res.data.organizerAccountWise);
-      console.log(res.data.organizerAccountWise);
+      console.log("organizer list by accountid",res.data.organizerAccountWise);
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch organizers");

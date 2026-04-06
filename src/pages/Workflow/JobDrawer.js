@@ -1238,6 +1238,7 @@ const handleSaveJob = async () => {
   startsInDuration={startsInDuration}
   duein={duein}
   dueinduration={dueinduration}
+  jobDrwerClose={onClose}
   // clientFacingStatus={clientFacingStatus}
   // inputText={inputText}
   // selectedJob={selectedJob}
@@ -1246,6 +1247,7 @@ const handleSaveJob = async () => {
   dueDate={dueDate}
   setDrawerOpen={setAutomationDrawerOpen}
   // navigate={navigate}
+  resetForm={resetForm}
 />
     </LocalizationProvider>
   );
