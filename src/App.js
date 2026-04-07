@@ -58,6 +58,7 @@ import InvoiceList from "./pages/AccountDashboard/Invoices/InvoiceList";
 import Payment from "./pages/AccountDashboard/Invoices/Payment";
 import AllInvoices from "./pages/AllInvoices";
 import WorkflowPipeline from "./pages/Workflow/Pipeline";
+import JobList from "./pages/Workflow/JobList";
 function App() {
   return (
     <Routes>
@@ -193,6 +194,8 @@ function App() {
          
         }
         />
+        <Route
+        path="/jobs/activejob" element={<ProtectedRoute><JobList/></ProtectedRoute>}/>
         {/* ✅ Templates Parent Route */}
         <Route
           path="firmtemp/templates"

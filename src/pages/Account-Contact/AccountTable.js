@@ -56,6 +56,7 @@ import ManageTeams from "../BulkActions/ManageTeams";
 import ManageContactSettings from "../BulkActions/ManageContactSettings";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import JobDrawer from "../../pages/Workflow/JobDrawer"
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
   if (b[orderBy] > a[orderBy]) return 1;
@@ -100,9 +101,12 @@ const AccountTable = () => {
     open: false,
     type: null, // "tags" | "team" | "email" | etc.
   });
+   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [accountsToDelete, setAccountsToDelete] = useState([]);
   const [confirmText, setConfirmText] = useState("");
+   const handleJobDrawerOpen = () => setJobDrawerOpen(true);
+  const handleJobDrawerClose = () => setJobDrawerOpen(false);
   const handleBulkDrawerClose = () => {
     setBulkDrawer({ open: false, type: null });
     setSelectedAccounts([]); // ✅ clear selection
@@ -651,7 +655,8 @@ const AccountTable = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<WorkIcon />}
-                  onClick={() => setBulkDrawer({ open: true, type: "job" })}
+                  onClick={setJobDrawerOpen}
+                  // onClick={() => setBulkDrawer({ open: true, type: "job" })}
                 >
                   Add Job
                 </Button>
@@ -768,23 +773,7 @@ const AccountTable = () => {
                           selectedAccounts.includes(a._id),
                         )
                       }
-                      // onChange={() => {
-                      //   const pageIds = paginatedList.map((a) => a._id);
-
-                      //   const allSelected = pageIds.every((id) =>
-                      //     selectedAccounts.includes(id),
-                      //   );
-
-                      //   if (allSelected) {
-                      //     setSelectedAccounts((prev) =>
-                      //       prev.filter((id) => !pageIds.includes(id)),
-                      //     );
-                      //   } else {
-                      //     setSelectedAccounts((prev) => [
-                      //       ...new Set([...prev, ...pageIds]),
-                      //     ]);
-                      //   }
-                      // }}
+                      
                       onChange={() => {
                         const pageIds = paginatedList.map((a) => a._id);
 
@@ -858,13 +847,7 @@ const AccountTable = () => {
                         <input
                           type="checkbox"
                           checked={selectedAccounts.includes(account._id)}
-                          // onChange={() => {
-                          //   setSelectedAccounts((prev) =>
-                          //     prev.includes(account._id)
-                          //       ? prev.filter((id) => id !== account._id)
-                          //       : [...prev, account._id],
-                          //   );
-                          // }}
+                          
                           onChange={() => {
                             let updated;
 
@@ -1120,7 +1103,11 @@ const AccountTable = () => {
           </Button>
         </DialogActions>
       </Dialog>
+        <JobDrawer
+            open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)}/>
     </Box>
+
+    
   );
 };
 

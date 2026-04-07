@@ -22,15 +22,13 @@ import {
   folderManagementAPI,
   jobAPI,
 } from "../../services/api";
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 const AutomationDrawer = ({
   open,
   onClose,
   automations,
   selectedAccounts,
   accountData,
-  // jobData,
-  // onSuccess,
   selectedStage,
   selectedPipeline,
   selectedtemp,
@@ -53,9 +51,10 @@ const AutomationDrawer = ({
   setDrawerOpen,
   jobDrwerClose,resetForm
 }) => {
-
+const queryClient = useQueryClient();
   const [selectedAutomations, setSelectedAutomations] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
+
+  // const [isProcessing, setIsProcessing] = useState(false);
   const [templateData, setTemplateData] = useState({});
   const [tagData, setTagData] = useState({});
   const [accountsWithTags, setAccountsWithTags] = useState([]);
@@ -279,11 +278,33 @@ const AutomationDrawer = ({
         : [...prevSelected, index]
     );
   };
+const createBulkJobMutation = useMutation({
+  mutationFn: (payload) => jobAPI.createBulkJob(payload),
 
+  onSuccess: (response) => {
+    toast.success(response?.data?.message || "Jobs created successfully");
+
+    // 🔥 refresh job list
+    queryClient.invalidateQueries(["jobs-all"]);
+
+    if (setDrawerOpen) setDrawerOpen(false);
+    onClose();
+    jobDrwerClose();
+    resetForm();
+  },
+
+  onError: (error) => {
+    console.error("Operation failed:", error);
+    toast.error(
+      error.response?.data?.message || error.message || "Something went wrong"
+    );
+  },
+});
+ const isProcessing = createBulkJobMutation.isPending;
   // Main handler for Move button
   const handleMove = async () => {
     if (isProcessing) return;
-    setIsProcessing(true);
+    // setIsProcessing(true);
 
     try {
       const selectedAutos = selectedAutomations
@@ -337,24 +358,11 @@ const AutomationDrawer = ({
 
       // Call the API to create jobs
       // const response = await jobAPI.runStageAutomation(payload);
-      const response = await jobAPI.createBulkJob(payload);
-
-      if (response.data) {
-        toast.success(response.data.message || "Jobs started successfully");
-        
-        // if (onSuccess) onSuccess();
-        if (setDrawerOpen) setDrawerOpen(false);
-        onClose();
-        jobDrwerClose();
-        resetForm()
-        // if (navigate) navigate("/jobs/activejob");
-      }
+     createBulkJobMutation.mutate(payload);
     } catch (error) {
       console.error("Operation failed:", error);
       toast.error(error.response?.data?.message || error.message || "Something went wrong");
-    } finally {
-      setIsProcessing(false);
-    }
+    } 
   };
 
   const clientStatusOptions = clientFacingJobs.map((status) => ({

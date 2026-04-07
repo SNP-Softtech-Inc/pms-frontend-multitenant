@@ -59,6 +59,7 @@ const Pipeline = () => {
       <KanbanBoard
         pipeline={selectedPipeline}
         onBack={() => setSelectedPipeline(null)}
+        isActive={true}
       />
     );
   }

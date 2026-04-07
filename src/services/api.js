@@ -1323,11 +1323,14 @@ export const jobAPI = {
     ),
 
   // BY ACCOUNT IDS (GET - comma separated)
-  getJobsByAccountIds: (accountId, isActive = true) =>
+  getJobsByAccountIds: (accountId, isActive ) =>
     jobsApi.get(
       `/workflow/jobs/jobs/list/account/${accountId}/${isActive}`
     ),
-
+  pipelineJoblist: (accountId, isActive ) =>
+    jobsApi.get(
+      `/workflow/jobs/pipeline-jobs/${isActive}/${accountId}`
+    ),
   // POST FILTER (ACCOUNT IDS ARRAY)
   getJobsByAccountsPost: (data) =>
     jobsApi.post(`/workflow/jobs/jobs/list/account`, data),
