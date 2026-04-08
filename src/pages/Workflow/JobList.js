@@ -1,381 +1,4 @@
-// import React, { useMemo, useState } from "react";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-//   Checkbox,
-//   TablePagination,
-//   Button,Box
-// } from "@mui/material";
-// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import { accountsAPI, jobAPI } from "../../services/api";
-// import { useConfirm } from "../../components/ConfirmDialogContext";
-// import { toast } from "react-toastify";
-// import { GoDotFill } from "react-icons/go";
-// import FilterDropdown from "./JobFilter"; // adjust path
-// const JobList = () => {
-//   const queryClient = useQueryClient();
-//   const confirm = useConfirm();
-// const [filters, setFilters] = useState({});
-//   const [selected, setSelected] = useState([]);
-//   const [page, setPage] = useState(0);
-//   const [rowsPerPage, setRowsPerPage] = useState(25);
 
-//   // =============================
-//   // FETCH DATA
-//   // =============================
-//   const { data = [], isLoading } = useQuery({
-//     queryKey: ["jobs-all"],
-//     queryFn: async () => {
-//       const accRes = await accountsAPI.getAccountsList();
-//       const accounts = accRes.data.accountlist || [];
-
-//       if (accounts.length === 0) return [];
-
-//       const accountIds = accounts.map((acc) => acc._id).join(",");
-//       const jobRes = await jobAPI.getJobsByAccountIds(accountIds, true);
-
-//       return jobRes.data.jobList || [];
-//     },
-//   });
-
-//   // =============================
-//   // FORMAT DATA
-//   // =============================
-//   const tableData = useMemo(() => {
-//     return data.map((job) => ({
-//       id: job.id,
-//       Name: job.Name || "-",
-//       JobAssignee: job.JobAssignee?.join(", ") || "-",
-//       Pipeline: job.Pipeline || "-",
-//       Stage: job.Stage?.join(", ") || "-",
-//       Account: job.Account?.join(", ") || "-",
-//       Priority: job.Priority || "-",
-//       ClientFacingStatus: job.visibilityForClient
-//         ? job.ClientFacingStatus
-//         : null,
-//       StartDate: job.createdAt
-//         ? new Date(job.createdAt).toLocaleDateString()
-//         : "-",
-//       DueDate: job.updatedAt
-//         ? new Date(job.updatedAt).toLocaleDateString()
-//         : "-",
-//       updatedAt: job.updatedAt
-//         ? new Date(job.updatedAt).toLocaleDateString()
-//         : "-",
-//     }));
-//   }, [data]);
-// const filteredData = useMemo(() => {
-//   return tableData.filter((job) => {
-//     // Job Assignees
-//     if (
-//       filters.jobAssignees?.length &&
-//       !filters.jobAssignees.some((a) =>
-//         job.JobAssignee?.includes(a)
-//       )
-//     ) {
-//       return false;
-//     }
-
-//     // Client Status
-//     if (
-//       filters.clientStatus?.length &&
-//       !filters.clientStatus.includes(
-//         job.ClientFacingStatus?.statusName
-//       )
-//     ) {
-//       return false;
-//     }
-
-//     // Account Name
-//     if (
-//       filters.accountName &&
-//       !job.Account?.toLowerCase().includes(
-//         filters.accountName.toLowerCase()
-//       )
-//     ) {
-//       return false;
-//     }
-
-//     // Priority
-//     if (
-//       filters.priority &&
-//       job.Priority !== filters.priority
-//     ) {
-//       return false;
-//     }
-
-//     // Pipeline + Stage
-//     if (filters.pipelineStages) {
-//       const match = Object.entries(filters.pipelineStages).some(
-//         ([pipeline, stages]) =>
-//           job.Pipeline === pipeline &&
-//           stages.includes(job.Stage)
-//       );
-
-//       if (Object.keys(filters.pipelineStages).length && !match) {
-//         return false;
-//       }
-//     }
-
-//     return true;
-//   });
-// }, [tableData, filters]);
-//   // =============================
-//   // PAGINATION
-//   // =============================
-//   // const paginatedData = tableData.slice(
-//   //   page * rowsPerPage,
-//   //   page * rowsPerPage + rowsPerPage
-//   // );
-//   const paginatedData = filteredData.slice(
-//   page * rowsPerPage,
-//   page * rowsPerPage + rowsPerPage
-// );
-
-//   const pageIds = paginatedData.map((row) => row.id);
-
-//   const isPageSelected = pageIds.every((id) => selected.includes(id));
-//   const isPageIndeterminate =
-//     pageIds.some((id) => selected.includes(id)) && !isPageSelected;
-
-//   // =============================
-//   // SELECTION
-//   // =============================
-//   const handleSelect = (id) => {
-//     setSelected((prev) =>
-//       prev.includes(id)
-//         ? prev.filter((item) => item !== id)
-//         : [...prev, id]
-//     );
-//   };
-
-//   const handleSelectPage = (checked) => {
-//     if (checked) {
-//       setSelected((prev) => Array.from(new Set([...prev, ...pageIds])));
-//     } else {
-//       setSelected((prev) => prev.filter((id) => !pageIds.includes(id)));
-//     }
-//   };
-
-//   const handleSelectAll = () => {
-//     setSelected(tableData.map((row) => row.id));
-//   };
-
-//   const handleClearAll = () => setSelected([]);
-
-//   // =============================
-//   // DELETE
-//   // =============================
-//   const deleteMutation = useMutation({
-//     mutationFn: async (ids) => {
-//       await Promise.all(ids.map((id) => jobAPI.deleteJob(id)));
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["jobs-all"]);
-//       toast.success("Jobs deleted successfully");
-//       setSelected([]);
-//     },
-//   });
-
-//   const handleBulkDelete = () => {
-//     if (selected.length === 0) return;
-
-//     confirm({
-//       title: "Delete Jobs",
-//       description: `Are you sure you want to delete ${selected.length} jobs?`,
-//       onConfirm: () => {
-//         deleteMutation.mutate(selected);
-//       },
-//     });
-//   };
-
-//   // =============================
-//   // PAGINATION HANDLERS
-//   // =============================
-//   const handleChangePage = (e, newPage) => setPage(newPage);
-
-//   const handleChangeRowsPerPage = (e) => {
-//     setRowsPerPage(parseInt(e.target.value, 10));
-//     setPage(0);
-//   };
-
-//   // =============================
-//   // UI
-//   // =============================
-//   return (
-//     <div>
-//       <h2>Job List</h2>
-
-//       <div style={{ marginBottom: 10, display: "flex", gap: 10 }}>
-//         <Button variant="contained" onClick={handleSelectAll}>
-//           Select All
-//         </Button>
-//         <Button variant="outlined" onClick={handleClearAll}>
-//           Clear
-//         </Button>
-//         <Button
-//           variant="contained"
-//           color="error"
-//           onClick={handleBulkDelete}
-//           disabled={selected.length === 0}
-//         >
-//           Delete Selected ({selected.length})
-//         </Button>
-//       </div>
-// <Box
-//   sx={{
-//     display: "flex",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     mb: 2,
-//   }}
-// >
-//   <FilterDropdown onFilterChange={setFilters} />
-// </Box>
-//       {/* ✅ TABLE */}
-//       <TableContainer
-//         component={Paper}
-//         sx={{ width: "100%", overflowX: "auto" }}
-//       >
-//         <Table sx={{ tableLayout: "fixed", minWidth: 1200 }}>
-//           <TableHead>
-            // <TableRow>
-            //   <TableCell padding="checkbox" sx={{ width: 50 }} />
-
-            //   <TableCell sx={{ width: 250 }}>Name</TableCell>
-            //   <TableCell sx={{ width: 250 }}>Job Assignee</TableCell>
-            //   <TableCell sx={{ width: 250 }}>Pipeline</TableCell>
-            //   <TableCell sx={{ width: 250 }}>Stage</TableCell>
-            //   <TableCell sx={{ width: 250 }}>Account</TableCell>
-            //   <TableCell sx={{ width: 250 }}>
-            //     Client-Facing Status
-            //   </TableCell>
-            //   <TableCell sx={{ width: 100 }}>Priority</TableCell>
-            //   <TableCell sx={{ width: 120 }}>Start Date</TableCell>
-            //   <TableCell sx={{ width: 120 }}>Due Date</TableCell>
-            //   <TableCell sx={{ width: 140 }}>Last Updated</TableCell>
-            // </TableRow>
-//           </TableHead>
-
-//           <TableBody>
-//             {isLoading ? (
-//               <TableRow>
-//                 <TableCell colSpan={11}>Loading...</TableCell>
-//               </TableRow>
-//             ) : paginatedData.length === 0 ? (
-//               <TableRow>
-//                 <TableCell colSpan={11}>No jobs found</TableCell>
-//               </TableRow>
-//             ) : (
-//               paginatedData.map((row) => {
-//                 const isSelected = selected.includes(row.id);
-
-//                 return (
-//                   <TableRow
-//                     key={row.id}
-//                     hover
-//                     selected={isSelected}
-//                     onClick={() => handleSelect(row.id)}
-//                   >
-//                     <TableCell padding="checkbox">
-//                       <Checkbox
-//                         checked={isSelected}
-//                         onClick={(e) => e.stopPropagation()}
-//                         onChange={() => handleSelect(row.id)}
-//                       />
-//                     </TableCell>
-
-//                     {[
-//                       row.Name,
-//                       row.JobAssignee,
-//                       row.Pipeline,
-//                       row.Stage,
-//                       row.Account,
-//                     ].map((value, index) => (
-//                       <TableCell
-//                         key={index}
-//                         sx={{
-//                           whiteSpace: "nowrap",
-//                           overflow: "hidden",
-//                           textOverflow: "ellipsis",
-//                         }}
-//                       >
-//                         {value}
-//                       </TableCell>
-//                     ))}
-
-//                     <TableCell
-//                       sx={{
-//                         whiteSpace: "nowrap",
-//                         overflow: "hidden",
-//                         textOverflow: "ellipsis",
-//                       }}
-//                     >
-//                       {row.ClientFacingStatus ? (
-//                         <span
-//                           style={{
-//                             display: "flex",
-//                             alignItems: "center",
-//                             gap: "8px",
-//                           }}
-//                         >
-//                           <GoDotFill
-//                             style={{
-//                               color: row.ClientFacingStatus.statusColor,
-//                               fontSize: "18px",
-//                             }}
-//                           />
-//                           {row.ClientFacingStatus.statusName}
-//                         </span>
-//                       ) : (
-//                         <span style={{ color: "#999" }}>—</span>
-//                       )}
-//                     </TableCell>
-
-//                     {[
-//                       row.Priority,
-//                       row.StartDate,
-//                       row.DueDate,
-//                       row.updatedAt,
-//                     ].map((value, index) => (
-//                       <TableCell
-//                         key={index}
-//                         sx={{
-//                           whiteSpace: "nowrap",
-//                           overflow: "hidden",
-//                           textOverflow: "ellipsis",
-//                         }}
-//                       >
-//                         {value}
-//                       </TableCell>
-//                     ))}
-//                   </TableRow>
-//                 );
-//               })
-//             )}
-//           </TableBody>
-//         </Table>
-//       </TableContainer>
-
-//       <TablePagination
-//         rowsPerPageOptions={[25, 50, 100]}
-//         component="div"
-//         count={tableData.length}
-//         rowsPerPage={rowsPerPage}
-//         page={page}
-//         onPageChange={handleChangePage}
-//         onRowsPerPageChange={handleChangeRowsPerPage}
-//       />
-//     </div>
-//   );
-// };
-
-// export default JobList;
 
 import React, { useMemo, useState, useEffect } from "react";
 import {
@@ -399,7 +22,7 @@ import { useConfirm } from "../../components/ConfirmDialogContext";
 import { toast } from "react-toastify";
 import { GoDotFill } from "react-icons/go";
 import FilterDropdown from "./JobFilter";
-
+import EditJobDrawer from "./EditJobDrawer"
 const JobList = () => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
@@ -407,8 +30,9 @@ const JobList = () => {
   const [filters, setFilters] = useState({});
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
+  const [rowsPerPage, setRowsPerPage] = useState(25);
+const [drawerOpen, setDrawerOpen] = useState(false);
+const [editJobId, setEditJobId] = useState(null);
   // ✅ NEW STATE (Active / Archived)
   const [isActive, setIsActive] = useState(true);
 
@@ -575,6 +199,10 @@ console.log("joblist",jobRes)
       onConfirm: () => deleteMutation.mutate(selected),
     });
   };
+const handleEdit = (id) => {
+  setEditJobId(id);
+  setDrawerOpen(true);
+};
 
   // =============================
   // UI
@@ -632,20 +260,7 @@ console.log("joblist",jobRes)
       <TableContainer component={Paper}>
         <Table sx={{ tableLayout: "fixed", minWidth: 1200 }}>
           <TableHead>
-            {/* <TableRow>
-              <TableCell padding="checkbox" />
-
-              <TableCell>Name</TableCell>
-              <TableCell>Job Assignee</TableCell>
-              <TableCell>Pipeline</TableCell>
-              <TableCell>Stage</TableCell>
-              <TableCell>Account</TableCell>
-              <TableCell>Client-Facing Status</TableCell>
-              <TableCell>Priority</TableCell>
-              <TableCell>Start Date</TableCell>
-              <TableCell>Due Date</TableCell>
-              <TableCell>Last Updated</TableCell>
-            </TableRow> */}
+           
                         <TableRow>
               <TableCell padding="checkbox" sx={{ width: 50 }} ><Checkbox onClick={handleSelectPage}/></TableCell>
 
@@ -685,7 +300,14 @@ console.log("joblist",jobRes)
                     onClick={() => handleSelect(row.id)}
                   >
                     <TableCell padding="checkbox">
-                      <Checkbox checked={isSelected} />
+                      <Checkbox
+      checked={isSelected}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleSelect(row.id);
+      }}
+    />
+                      {/* <Checkbox checked={isSelected}  /> */}
                     </TableCell>
 
                     <TableCell>{row.Name}</TableCell>
@@ -714,6 +336,18 @@ console.log("joblist",jobRes)
                     <TableCell>{row.StartDate}</TableCell>
                     <TableCell>{row.DueDate}</TableCell>
                     <TableCell>{row.updatedAt}</TableCell>
+                  <TableCell>
+    <Button
+      size="small"
+      variant="outlined"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleEdit(row.id);
+      }}
+    >
+      Edit
+    </Button>
+  </TableCell>
                   </TableRow>
                 );
               })
@@ -735,6 +369,14 @@ console.log("joblist",jobRes)
           setPage(0);
         }}
       />
+      <EditJobDrawer
+  open={drawerOpen}
+  onClose={() => {
+    setDrawerOpen(false);
+    setEditJobId(null);
+  }}
+  jobId={editJobId}
+/>
     </div>
   );
 };

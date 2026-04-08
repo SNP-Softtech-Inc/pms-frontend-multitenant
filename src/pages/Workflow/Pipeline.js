@@ -55,6 +55,7 @@ const Pipeline = () => {
 
   // 🔁 Show Kanban when selected
   if (selectedPipeline) {
+    console.log("selcted pipeline",selectedPipeline)
     return (
       <KanbanBoard
         pipeline={selectedPipeline}
