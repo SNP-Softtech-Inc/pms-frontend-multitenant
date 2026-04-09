@@ -84,7 +84,7 @@ const Dashboard = () => {
   const handleContactDrawerOpen = () => setContactDrawerOpen(true);
   const handleContactDrawerClose = () => setContactDrawerOpen(false);
   const handleJobDrawerOpen = () => setJobDrawerOpen(true);
-  const handleJobDrawerClose = () => setJobDrawerOpen(false);
+ 
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
     return IconComponent ? <IconComponent size={20} /> : <DashboardIcon />;
@@ -549,7 +549,7 @@ const Dashboard = () => {
         isActiveTrue={true}
       />
       <JobDrawer
-      open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)}/>
+      open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)} selectedPipeline={null}/>
     </Box>
   );
 };

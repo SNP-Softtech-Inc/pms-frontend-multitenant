@@ -26,7 +26,7 @@ import dayjs from "dayjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import AutomationDrawer from "./AutomationDrawer";
 import ShortcodeTextField from "../../components/ShortcodeTextField"
-const JobDrawer = ({ open, onClose, fetchJobData }) => {
+const JobDrawer = ({ open, onClose, fetchJobData,selectedPipeline = null }) => {
   // ✅ ADD fetchJobData prop
   const [selectedaccount, setSelectedaccount] = useState([]);
   const queryClient = useQueryClient();
@@ -35,7 +35,8 @@ const JobDrawer = ({ open, onClose, fetchJobData }) => {
   const [loading, setLoading] = useState(true);
   const [jobTemplate, setjobTemplate] = useState([]);
   const [selctedJobTemp, setSelectedJobTemp] = useState(null);
-  const [selectedPipeline, setSelectedPipeline] = useState(null);
+  // const [selectedPipeline, setSelectedPipeline] = useState(null);
+  const [pipelineValue, setPipelineValue] = useState(null);
   const [jobName, setJobName] = useState("");
   const [selectedUser, setSelectedUser] = useState([]);
   const [combinedValues, setCombinedValues] = useState([]);
@@ -64,7 +65,19 @@ const [inputText, setInputText] = useState("");
   const [filteredShortcuts, setFilteredShortcuts] = useState([]);
   const [selectedOption, setSelectedOption] = useState("contacts");
     const [showDropdown, setShowDropdown] = useState(false);
-  
+//   useEffect(() => {
+//   if (selectedPipeline) {
+//     setPipelineValue(selectedPipeline);
+//   }
+// }, [selectedPipeline]);
+useEffect(() => {
+  if (selectedPipeline) {
+    setPipelineValue(selectedPipeline);
+  } else {
+    setStages([]);
+    setSelectedStage(null);
+  }
+}, [selectedPipeline]);
   // ✅ NEW STATES
   const [stages, setStages] = useState([]);
   const [stagesLoading, setStagesLoading] = useState(false);
@@ -581,7 +594,7 @@ console.log("gets job template details",template)
   // Reset form function
   const resetForm = () => {
     setSelectedaccount([]);
-    setSelectedPipeline(null);
+    setPipelineValue(null);
     setSelectedStage(null);
     setSelectedJobTemp(null);
     setJobName("");
@@ -654,7 +667,7 @@ console.log("gets job template details",template)
 
           {/* PIPELINE */}
           <Box mt={2}>
-            <Autocomplete
+            {/* <Autocomplete
               options={pipelines}
               loading={loading}
               value={selectedPipeline}
@@ -664,7 +677,18 @@ console.log("gets job template details",template)
               renderInput={(params) => (
                 <TextField {...params} label="Select Pipeline" fullWidth />
               )}
-            />
+            /> */}
+            <Autocomplete
+  options={pipelines}
+  loading={loading}
+  value={pipelineValue}
+  onChange={(event, newValue) => setPipelineValue(newValue)}
+  getOptionLabel={(option) => option?.pipelineName || ""}
+  isOptionEqualToValue={(option, value) => option._id === value._id}
+  renderInput={(params) => (
+    <TextField {...params} label="Select Pipeline" fullWidth />
+  )}
+/>
           </Box>
 
           {/* STAGES UI */}

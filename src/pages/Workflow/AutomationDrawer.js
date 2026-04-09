@@ -9,6 +9,7 @@ import {
   Chip,
   Alert,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +23,7 @@ import {
   folderManagementAPI,
   jobAPI,
 } from "../../services/api";
+import CloseIcon from "@mui/icons-material/Close";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 const AutomationDrawer = ({
   open,
@@ -42,10 +44,6 @@ const AutomationDrawer = ({
   startsInDuration,
   duein,
   dueinduration,
-  clientFacingStatus,
-  inputText,
-  selectedJob,
-  clientDescription,
   startDate,
   dueDate,
   setDrawerOpen,
@@ -107,27 +105,7 @@ const queryClient = useQueryClient();
   }, []);
 
   // Fetch tag details for display
-  const fetchTagDetails = async (tagIds) => {
-    if (!tagIds || tagIds.length === 0) return [];
 
-    try {
-      const tagDetails = await Promise.all(
-        tagIds.map(async (tagId) => {
-          try {
-            const response = await templateAPI.getTagById(tagId);
-            return response.data.tag;
-          } catch (error) {
-            console.error(`Error fetching tag ${tagId}:`, error);
-            return null;
-          }
-        })
-      );
-      return tagDetails.filter((tag) => tag !== null);
-    } catch (error) {
-      console.error("Error fetching tag details:", error);
-      return [];
-    }
-  };
 
   // Fetch template data for display
   const fetchTemplateData = async (templateId, templateType) => {
@@ -188,19 +166,26 @@ const queryClient = useQueryClient();
         return { index, templateName: null };
       });
 
-      const tagPromises = automations.map(async (automation, index) => {
-        const selectedTags = await fetchTagDetails(automation.selectedTags || []);
-        const addTags = await fetchTagDetails(automation.addTags || []);
-        const removeTags = await fetchTagDetails(automation.removeTags || []);
+      // const tagPromises = automations.map(async (automation, index) => {
+      //   const selectedTags = await fetchTagDetails(automation.selectedTags || []);
+      //   const addTags = await fetchTagDetails(automation.addTags || []);
+      //   const removeTags = await fetchTagDetails(automation.removeTags || []);
 
-        return {
-          index,
-          selectedTags,
-          addTags,
-          removeTags,
-        };
-      });
-
+      //   return {
+      //     index,
+      //     selectedTags,
+      //     addTags,
+      //     removeTags,
+      //   };
+      // });
+const tagPromises = automations.map((automation, index) => {
+  return {
+    index,
+    selectedTags: automation.selectedTags || [],
+    addTags: automation.addTags || [],
+    removeTags: automation.removeTags || [],
+  };
+});
       const templateResults = await Promise.all(templatePromises);
       const tagResults = await Promise.all(tagPromises);
 
@@ -342,16 +327,6 @@ const createBulkJobMutation = useMutation({
         startsinduration: startsInDuration,
         duein: duein,
         dueinduration: dueinduration,
-        // showinclientportal: clientStatusAutomation
-        //   ? clientStatusAutomation.status
-        //   : clientFacingStatus,
-        // jobnameforclient: inputText,
-        // clientfacingstatus: clientStatusAutomation
-        //   ? clientStatusAutomation.selectedClientStatus
-        //   : selectedJob?.value,
-        // clientfacingDescription: clientStatusAutomation
-        //   ? clientStatusAutomation.clientDescription
-        //   : clientDescription,
         startdate: startDate,
         enddate: dueDate,
       };
@@ -374,6 +349,7 @@ const createBulkJobMutation = useMutation({
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box sx={{ width: 550, p: 2 }}>
+        <Box sx={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <Typography variant="h6" sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           Automations for{" "}
           <Typography variant="h6" ml={1}>
@@ -388,6 +364,10 @@ const createBulkJobMutation = useMutation({
               .join(", ")}
           </Typography>
         </Typography>
+        <IconButton onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+        </Box>
 
         {loading ? (
           <Box display="flex" justifyContent="center" p={3}>
@@ -542,20 +522,16 @@ const createBulkJobMutation = useMutation({
                             mt: 1,
                           }}
                         >
-                          {currentTagData.addTags.map((tag) => (
-                            <Chip
-                              key={tag._id}
-                              label={tag.tagName}
-                              sx={{
-                                backgroundColor: tag.tagColour,
-                                color: "#fff",
-                                fontWeight: "500",
-                                borderRadius: "20px",
-                                border: "2px solid #4caf50",
-                              }}
-                              size="small"
-                            />
-                          ))}
+                         {currentTagData.addTags.map((tag) => (
+  <Chip
+    key={tag._id}
+    label={tag.tagName}
+    sx={{
+      backgroundColor: tag.tagColour,
+      color: "#fff",
+    }}
+  />
+))}
                         </Box>
                       </Box>
                     )}
@@ -580,7 +556,7 @@ const createBulkJobMutation = useMutation({
                             mt: 1,
                           }}
                         >
-                          {currentTagData.removeTags.map((tag) => (
+                          {/* {currentTagData.removeTags.map((tag) => (
                             <Chip
                               key={tag._id}
                               label={tag.tagName}
@@ -594,7 +570,17 @@ const createBulkJobMutation = useMutation({
                               }}
                               size="small"
                             />
-                          ))}
+                          ))} */}
+                          {currentTagData.removeTags.map((tag) => (
+  <Chip
+    key={tag._id}
+    label={tag.tagName}
+    sx={{
+      backgroundColor: tag.tagColour,
+      color: "#fff",
+    }}
+  />
+))}
                         </Box>
                       </Box>
                     )}

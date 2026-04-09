@@ -1344,8 +1344,8 @@ export const jobAPI = {
   // ================= ACCOUNT =================
 
   // GET JOBS BY ACCOUNT
-  getJobsByAccount: (accountId) =>
-    jobsApi.get(`/workflow/jobs/accounts/${accountId}/jobs`),
+  getJobsByAccount: (accountId,isActive) =>
+    jobsApi.get(`/workflow/jobs/accounts/${accountId}/jobs/${isActive}`),
 
   // DELETE JOBS BY ACCOUNT
   deleteJobsByAccount: (accountId) =>
