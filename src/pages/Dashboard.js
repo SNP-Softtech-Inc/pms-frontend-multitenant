@@ -44,6 +44,7 @@ import CreateInvoiceDrawer from "./AccountDashboard/Invoices/CreateInvoiceDrawer
 
 import NewChatDrawer from "./AccountDashboard/Communication/NewChatDrawer"; // adjust path
 import JobDrawer from "./Workflow/JobDrawer";
+import TasksDrawer from "./AccountTasks/TasksDrawer";
 const drawerWidth = 240;
 const collapsedDrawerWidth = 70;
 
@@ -76,7 +77,7 @@ const Dashboard = () => {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
   const [invoiceDrawer, setInvoiceDrawer] = useState(false);
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
-
+const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
   const handleChatDrawerOpen = () => setChatDrawerOpen(true);
   const handleChatDrawerClose = () => setChatDrawerOpen(false);
   const handleDrawerOpen = () => setOpenDrawer(true);
@@ -84,7 +85,8 @@ const Dashboard = () => {
   const handleContactDrawerOpen = () => setContactDrawerOpen(true);
   const handleContactDrawerClose = () => setContactDrawerOpen(false);
   const handleJobDrawerOpen = () => setJobDrawerOpen(true);
- 
+ const handleTasksDrawerOpen =()=> setTasksDrawerOpen(true);
+ const handleTasksDrawerClose =()=> setTasksDrawerOpen(false);
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
     return IconComponent ? <IconComponent size={20} /> : <DashboardIcon />;
@@ -478,22 +480,7 @@ const Dashboard = () => {
           plusMenuItems.map((item, index) => (
             <MenuItem
               key={index}
-              // onClick={() => {
-              //   // ✅ condition for Account
-              //   if (item.label === "Account") {
-              //     handleDrawerOpen();
-              //   }
-              //   if (item.label === "Contact") {
-              //     handleContactDrawerOpen();
-              //   }
-              //   if (item.label === "Invoice") {
-              //     setInvoiceDrawer(true);
-              //   } else {
-              //     navigate(item.path);
-              //   }
-
-              //   handlePlusClose();
-              // }}
+              
               onClick={() => {
                 if (item.label === "Account") {
                   handleDrawerOpen();
@@ -505,6 +492,9 @@ const Dashboard = () => {
                   handleChatDrawerOpen(); // ✅ ADD THIS
                 } else if (item.label === "Jobs") {
                   handleJobDrawerOpen();
+                }
+                else if (item.label === "Task") {
+                  handleTasksDrawerOpen();
                 } else {
                   navigate(item.path);
                 }
@@ -549,7 +539,8 @@ const Dashboard = () => {
         isActiveTrue={true}
       />
       <JobDrawer
-      open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)} selectedPipeline={null}/>
+      open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)} />
+      <TasksDrawer open={tasksDrawerOpen} onClose={()=> setTasksDrawerOpen(false)}/>
     </Box>
   );
 };

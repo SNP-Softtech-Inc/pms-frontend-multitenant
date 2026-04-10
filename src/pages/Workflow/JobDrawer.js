@@ -26,7 +26,7 @@ import dayjs from "dayjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import AutomationDrawer from "./AutomationDrawer";
 import ShortcodeTextField from "../../components/ShortcodeTextField"
-const JobDrawer = ({ open, onClose, fetchJobData,selectedPipeline = null }) => {
+const JobDrawer = ({ open, onClose, fetchJobData,selectedPipeline }) => {
   // ✅ ADD fetchJobData prop
   const [selectedaccount, setSelectedaccount] = useState([]);
   const queryClient = useQueryClient();
@@ -65,19 +65,20 @@ const [inputText, setInputText] = useState("");
   const [filteredShortcuts, setFilteredShortcuts] = useState([]);
   const [selectedOption, setSelectedOption] = useState("contacts");
     const [showDropdown, setShowDropdown] = useState(false);
-//   useEffect(() => {
-//   if (selectedPipeline) {
-//     setPipelineValue(selectedPipeline);
-//   }
-// }, [selectedPipeline]);
-useEffect(() => {
+  useEffect(() => {
   if (selectedPipeline) {
     setPipelineValue(selectedPipeline);
-  } else {
-    setStages([]);
-    setSelectedStage(null);
   }
 }, [selectedPipeline]);
+const activePipeline = selectedPipeline || pipelineValue;
+// useEffect(() => {
+//   if (selectedPipeline) {
+//     setPipelineValue(selectedPipeline);
+//   } else {
+//     setStages([]);
+//     setSelectedStage(null);
+//   }
+// }, [selectedPipeline]);
   // ✅ NEW STATES
   const [stages, setStages] = useState([]);
   const [stagesLoading, setStagesLoading] = useState(false);
@@ -288,7 +289,16 @@ useEffect(() => {
       setLoading(false);
     }
   };
+const handlePipelineChange = (event, newValue) => {
+  setPipelineValue(newValue);
 
+  if (newValue?._id) {
+    fetchStages(newValue._id);
+  } else {
+    setStages([]);
+    setSelectedStage(null);
+  }
+};
   // ================= FETCH STAGES =================
   const fetchStages = async (pipelineId) => {
     setStagesLoading(true);
@@ -313,9 +323,13 @@ useEffect(() => {
 
   // ✅ TRIGGER WHEN PIPELINE CHANGES
   useEffect(() => {
-    if (selectedPipeline?._id) {
-      fetchStages(selectedPipeline._id);
-    } else {
+    // if (selectedPipeline?._id) {
+    //   fetchStages(selectedPipeline._id);
+    // }
+    if (activePipeline?._id) {
+  fetchStages(activePipeline._id);
+}
+     else {
       setStages([]);
       setSelectedStage(null);
     }
@@ -500,10 +514,14 @@ console.log("gets job template details",template)
   // Update handleSaveJob to check for automations
   const handleSaveJob = async () => {
     // Validation
-    if (!selectedPipeline) {
-      toast.error("Please select a pipeline");
-      return;
-    }
+    // if (!selectedPipeline) {
+    //   toast.error("Please select a pipeline");
+    //   return;
+    // }
+    if (!activePipeline) {
+  toast.error("Please select a pipeline");
+  return;
+}
 
     if (!selectedStage) {
       toast.error("Please select a stage");
@@ -531,7 +549,7 @@ console.log("gets job template details",template)
       const jobDataForAutomation = {
         accounts: selectedaccount.map((acc) => acc.value || acc),
         stageid: selectedStage._id,
-        pipeline: selectedPipeline._id,
+        pipeline: activePipeline._id,
         templatename: selctedJobTemp?.value || null,
         jobname: jobName,
         jobassignees: combinedValues,
@@ -563,7 +581,7 @@ console.log("gets job template details",template)
       const jobData = {
         accounts: selectedaccount.map((acc) => acc.value || acc),
         stageid: selectedStage._id,
-        pipeline: selectedPipeline._id,
+        pipeline: activePipeline._id,
         templatename: selctedJobTemp?.value || null,
         jobname: jobName,
         jobassignees: combinedValues,
@@ -682,7 +700,8 @@ console.log("gets job template details",template)
   options={pipelines}
   loading={loading}
   value={pipelineValue}
-  onChange={(event, newValue) => setPipelineValue(newValue)}
+  onChange={handlePipelineChange}
+  // onChange={(event, newValue) => setPipelineValue(newValue)}
   getOptionLabel={(option) => option?.pipelineName || ""}
   isOptionEqualToValue={(option, value) => option._id === value._id}
   renderInput={(params) => (
@@ -1076,7 +1095,8 @@ console.log("gets job template details",template)
         selectedAccounts={selectedaccount.map((acc) => acc.value || acc)}
         accountData={accountData}
         selectedStage={selectedStage}
-        selectedPipeline={selectedPipeline}
+        // selectedPipeline={selectedPipeline}
+        selectedPipeline={activePipeline}
         selectedtemp={selctedJobTemp}
         jobName={jobName}
         description={description}

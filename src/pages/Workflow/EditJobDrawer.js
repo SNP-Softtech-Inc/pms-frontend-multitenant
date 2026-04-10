@@ -336,7 +336,7 @@ if (job?.clientfacingstatus) {
         showinclientportal: clientFacingStatus,
         jobnameforclient: inputText,
         clientfacingDescription: clientDescription,
-        clientfacingstatus:selectedJob.value
+        clientfacingstatus:selectedJob?.value
       };
 
       // 1️⃣ Update Job

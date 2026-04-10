@@ -11,6 +11,7 @@ const FOLDER_MANAGEMENT_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
 const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
 const INVOICE_URL = process.env.REACT_APP_INVOICE;
 const JOBS_URL = process.env.REACT_APP_JOBS;
+const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS_URL;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -75,6 +76,12 @@ const invoiceApi = axios.create({
 const jobsApi = axios.create({
   baseURL: JOBS_URL,
   headers:{
+    "Content-Type": "application/json",
+  }
+});
+const accountTasksApi =  axios.create({
+  baseURL:ACCOUNT_TASKS_URL,
+   headers:{
     "Content-Type": "application/json",
   }
 })
@@ -147,7 +154,8 @@ attachInterceptors(organizerApi);
 attachInterceptors(folderManagementApi);
 attachInterceptors(chatApi);
 attachInterceptors(invoiceApi);
-attachInterceptors(jobsApi)
+attachInterceptors(jobsApi);
+attachInterceptors(accountTasksApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -1331,6 +1339,10 @@ export const jobAPI = {
     jobsApi.get(
       `/workflow/jobs/pipeline-jobs/${isActive}/${accountId}`
     ),
+    pipelineJobsByAccount: (accountId, isActive) =>
+  jobsApi.get(
+    `/workflow/jobs/pipeline-jobs/byaccount/${accountId}/${isActive}`
+  ),
   // POST FILTER (ACCOUNT IDS ARRAY)
   getJobsByAccountsPost: (data) =>
     jobsApi.post(`/workflow/jobs/jobs/list/account`, data),
@@ -1377,4 +1389,51 @@ export const jobAPI = {
   // CREATE BULK JOB
   createBulkJob: (data) =>
     jobsApi.post(`/workflow/jobs/jobs/bulk`, data),
+};
+
+// ================= ACCOUNT TASKS APIs =================
+export const accountTasksAPI = {
+  // GET ALL TASKS
+  getAllTasks: () => accountTasksApi.get("/accounts-tasks/"),
+
+  // CREATE TASK
+  createTask: (data) => accountTasksApi.post("/accounts-tasks/newtask", data),
+
+  // TASK LIST (ACTIVE / INACTIVE)
+  getTaskList: (isActive) =>
+    accountTasksApi.get(`/accounts-tasks/tasklist/${isActive}`),
+
+  // GET TASK BY ID
+  getTaskById: (id) =>
+    accountTasksApi.get(`/accounts-tasks/taskbyid/${id}`),
+
+  // DELETE TASK
+  deleteTask: (id) =>
+    accountTasksApi.delete(`/accounts-tasks/taskdelete/${id}`),
+
+  // UPDATE TASK
+  updateTask: (id, data) =>
+    accountTasksApi.patch(`/accounts-tasks/updatatasks/${id}`, data),
+
+  // GET TASK LIST BY ID
+  getTaskListById: (id) =>
+    accountTasksApi.get(`/accounts-tasks/task/listbyid/${id}`),
+
+  // GET COMPLETED TASK LIST
+  getCompleteTaskList: () =>
+    accountTasksApi.get(`/accounts-tasks/tasks/tasklist/completed`),
+
+  // TASKS BY ACCOUNT
+  getTaskListByAccountId: (accountId) =>
+    accountTasksApi.get(`/accounts-tasks/tasks/taskslist/byaccount/${accountId}`),
+
+  // COMPLETED TASKS BY ACCOUNT
+  getCompleteTaskListByAccount: (accountId) =>
+    accountTasksApi.get(
+      `/accounts-tasks/tasks/tasklist/byaccount/completed/${accountId}`
+    ),
+
+  // BULK STATUS UPDATE
+  bulkUpdateTaskStatus: (data) =>
+    accountTasksApi.post(`/accounts-tasks/tasks/updatestatus`, data),
 };
