@@ -57,6 +57,7 @@ import ManageContactSettings from "../BulkActions/ManageContactSettings";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import JobDrawer from "../../pages/Workflow/JobDrawer"
+import SendOrganizer from "../BulkActions/SendOrganizer";
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
   if (b[orderBy] > a[orderBy]) return 1;
@@ -73,6 +74,7 @@ const AccountTable = () => {
   const queryClient = useQueryClient();
   const manageTagsRef = useRef();
   const manageTeamRef = useRef();
+  const sendOrganizerRef = useRef();
   const manageSettingsRef = useRef();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -105,8 +107,7 @@ const AccountTable = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [accountsToDelete, setAccountsToDelete] = useState([]);
   const [confirmText, setConfirmText] = useState("");
-   const handleJobDrawerOpen = () => setJobDrawerOpen(true);
-  const handleJobDrawerClose = () => setJobDrawerOpen(false);
+
   const handleBulkDrawerClose = () => {
     setBulkDrawer({ open: false, type: null });
     setSelectedAccounts([]); // ✅ clear selection
@@ -308,7 +309,17 @@ const AccountTable = () => {
             fetchData={() => queryClient.invalidateQueries(["accounts"])}
           />
         );
-
+case "organizer":
+        return (
+          // <ManageTags
+          //   ref={manageTagsRef}
+          //   selectedAccounts={selectedAccounts}
+          //   onClose={handleBulkDrawerClose}
+          //   // onClose={() => setBulkDrawer({ open: false, type: null })}
+          //   fetchData={() => queryClient.invalidateQueries(["accounts"])}
+          // />
+          <SendOrganizer ref={sendOrganizerRef} selectedAccounts={selectedAccounts} onClose={handleBulkDrawerClose} fetchData={() => queryClient.invalidateQueries(["accounts"])}/>
+        );
       case "team":
         return (
           <ManageTeams
@@ -646,7 +657,7 @@ const AccountTable = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<SendIcon />}
-                  onClick={() => setBulkDrawer({ open: true, type: "notify" })}
+                  onClick={() => setBulkDrawer({ open: true, type: "organizer" })}
                 >
                   Send Organizer
                 </Button>
@@ -979,6 +990,7 @@ const AccountTable = () => {
               {bulkDrawer.type === "tags" && "Manage Tags"}
               {bulkDrawer.type === "team" && "Manage Team"}
               {bulkDrawer.type === "email" && "Send Email"}
+              {bulkDrawer.type === "organizer" && "Send Organizer"}
               {bulkDrawer.type === "settings" &&
                 "Edit Login, Notify and Email Sync"}
             </Typography>
@@ -1038,6 +1050,9 @@ const AccountTable = () => {
               if (bulkDrawer.type === "settings") {
                 manageSettingsRef.current?.submit();
               }
+               if (bulkDrawer.type === "organizer") {
+      sendOrganizerRef.current?.submit(); // ✅ ADD THIS
+    }
             }}
           >
             Save
@@ -1105,6 +1120,8 @@ const AccountTable = () => {
       </Dialog>
         <JobDrawer
             open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)}/>
+
+            
     </Box>
 
     

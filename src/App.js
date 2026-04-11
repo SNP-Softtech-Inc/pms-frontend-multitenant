@@ -59,6 +59,7 @@ import Payment from "./pages/AccountDashboard/Invoices/Payment";
 import AllInvoices from "./pages/AllInvoices";
 import WorkflowPipeline from "./pages/Workflow/Pipeline";
 import JobList from "./pages/Workflow/JobList";
+import AccountTasksList from "./pages/AccountTasks/AccountTasksList";
 function App() {
   return (
     <Routes>
@@ -117,11 +118,14 @@ function App() {
           </Route>
           <Route path="communication/:accountId" element={<Communication />} />
           <Route path="organizers/:accountId" element={<Organizers />} />
-          <Route path="organizers/:accountId/accountorganizer" element={<AccountOrganizer />} />
-          <Route path="invoices/:accountId" element={<Invoices />} >
-          <Route index element={<InvoiceList />} />
-          <Route path="invoices" element={<InvoiceList />} />
-          <Route path="payment" element={<Payment />} />
+          <Route
+            path="organizers/:accountId/accountorganizer"
+            element={<AccountOrganizer />}
+          />
+          <Route path="invoices/:accountId" element={<Invoices />}>
+            <Route index element={<InvoiceList />} />
+            <Route path="invoices" element={<InvoiceList />} />
+            <Route path="payment" element={<Payment />} />
           </Route>
           <Route path="email/:accountId" element={<Email />} />
           <Route path="proposals/:accountId" element={<Proposals />} />
@@ -138,7 +142,6 @@ function App() {
             <Route path="pendingtasks" element={<Pendingtasks />} />
             <Route path="completetasks" element={<Completedtasks />} />
           </Route>
-         
         </Route>
         <Route
           path="/clients/contacts"
@@ -174,10 +177,13 @@ function App() {
           }
         />
         <Route
-        path="/billing/Invoices"
-        element={<ProtectedRoute>
-          <AllInvoices/>
-        </ProtectedRoute>}/>
+          path="/billing/Invoices"
+          element={
+            <ProtectedRoute>
+              <AllInvoices />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/billing/proposalsandels/new"
           element={
@@ -188,14 +194,24 @@ function App() {
         />
 
         <Route
-        path="/pipelines"
-        element={
-          <ProtectedRoute> <WorkflowPipeline/></ProtectedRoute>
-         
-        }
+          path="/pipelines"
+          element={
+            <ProtectedRoute>
+              {" "}
+              <WorkflowPipeline />
+            </ProtectedRoute>
+          }
         />
         <Route
-        path="/jobs/activejob" element={<ProtectedRoute><JobList/></ProtectedRoute>}/>
+          path="/jobs/activejob"
+          element={
+            <ProtectedRoute>
+              <JobList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+        path="/tasks/pending" element={<ProtectedRoute><AccountTasksList/></ProtectedRoute>}/>
         {/* ✅ Templates Parent Route */}
         <Route
           path="firmtemp/templates"

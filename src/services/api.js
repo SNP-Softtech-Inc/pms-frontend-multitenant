@@ -11,7 +11,7 @@ const FOLDER_MANAGEMENT_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
 const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
 const INVOICE_URL = process.env.REACT_APP_INVOICE;
 const JOBS_URL = process.env.REACT_APP_JOBS;
-const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS_URL;
+const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -1436,4 +1436,23 @@ export const accountTasksAPI = {
   // BULK STATUS UPDATE
   bulkUpdateTaskStatus: (data) =>
     accountTasksApi.post(`/accounts-tasks/tasks/updatestatus`, data),
+   // ✅ ALL PENDING TASKS
+  getPendingTasks: () =>
+    accountTasksApi.get(`/accounts-tasks/pending`),
+
+  // ✅ ALL COMPLETED TASKS
+  getCompletedTasks: () =>
+    accountTasksApi.get(`/accounts-tasks/completed`),
+
+  // ✅ PENDING TASKS BY ACCOUNT
+  getPendingTasksByAccount: (accountId) =>
+    accountTasksApi.get(
+      `/accounts-tasks/pending/account/${accountId}`
+    ),
+
+  // ✅ COMPLETED TASKS BY ACCOUNT
+  getCompletedTasksByAccount: (accountId) =>
+    accountTasksApi.get(
+      `/accounts-tasks/completed/account/${accountId}`
+    ),
 };

@@ -8,9 +8,8 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useParams } from "react-router-dom";
-import { accountTasksAPI } from "../../../services/api";
-import { useConfirm } from "../../../components/ConfirmDialogContext";
+import { accountTasksAPI } from "../../services/api";
+import { useConfirm } from "../../components/ConfirmDialogContext"; // adjust path
 import { toast } from "react-toastify";
 
 // ✅ Status Config
@@ -28,7 +27,6 @@ const TASK_STATUS = [
   { value: "Canceled", label: "Canceled", color: "#EB5406" },
 ];
 
-// ✅ Helpers
 const getStatusConfig = (status) =>
   TASK_STATUS.find((s) => s.value === status) || {
     label: status,
@@ -44,16 +42,15 @@ const isLightColor = (hex) => {
   return r * 0.299 + g * 0.587 + b * 0.114 > 186;
 };
 
-const Pendingtasks = () => {
-  const { accountId } = useParams(); // ✅ get accountId
+const PendingTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const confirm = useConfirm();
+  const confirm = useConfirm(); // ✅ use confirm dialog
 
-  const fetchTasks = async () => {
+  const fetchPendingTasks = async () => {
     try {
-      const res = await accountTasksAPI.getPendingTasksByAccount(accountId);
+      const res = await accountTasksAPI.getPendingTasks();
       setTasks(res.data.list || []);
     } catch (err) {
       console.error(err);
@@ -64,10 +61,10 @@ const Pendingtasks = () => {
   };
 
   useEffect(() => {
-    if (accountId) fetchTasks();
-  }, [accountId]);
+    fetchPendingTasks();
+  }, []);
 
-  // ✅ Delete
+  // ✅ Delete with confirmation
   const handleDelete = (taskId) => {
     confirm({
       title: "Delete Task",
@@ -75,13 +72,15 @@ const Pendingtasks = () => {
       onConfirm: async () => {
         try {
           await accountTasksAPI.deleteTask(taskId);
+
           setTasks((prev) =>
             prev.filter((task) => task.id !== taskId)
           );
-          toast.success("Task deleted");
+
+          toast.success("Task deleted successfully");
         } catch (err) {
           console.error(err);
-          toast.error("Delete failed");
+          toast.error("Failed to delete task");
         }
       },
     });
@@ -92,11 +91,11 @@ const Pendingtasks = () => {
   return (
     <Box>
       <Typography variant="h6" mb={2}>
-        Pending Tasks (Account) ({tasks.length})
+        Pending Tasks ({tasks.length})
       </Typography>
 
       {tasks.length === 0 ? (
-        <Typography>No Tasks Found</Typography>
+        <Typography>No Pending Tasks</Typography>
       ) : (
         tasks.map((task) => {
           const statusObj = getStatusConfig(task.Status);
@@ -104,7 +103,7 @@ const Pendingtasks = () => {
           return (
             <Paper key={task.id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
               
-              {/* Header */}
+              {/* 🔹 Header */}
               <Box display="flex" justifyContent="space-between">
                 <Typography fontWeight="bold">{task.Name}</Typography>
 
@@ -128,7 +127,7 @@ const Pendingtasks = () => {
                 Subtasks: {task.CompletedSubtasks} / {task.SubtasksCount}
               </Typography>
 
-              {/* Status Chip */}
+              {/* 🎨 Status Chip */}
               <Chip
                 label={statusObj.label}
                 size="small"
@@ -136,6 +135,7 @@ const Pendingtasks = () => {
                   mt: 1,
                   backgroundColor: statusObj.color,
                   color: isLightColor(statusObj.color) ? "#000" : "#fff",
+                  fontWeight: 500,
                 }}
               />
             </Paper>
@@ -146,4 +146,4 @@ const Pendingtasks = () => {
   );
 };
 
-export default Pendingtasks;
+export default PendingTasks;
