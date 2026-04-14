@@ -706,14 +706,14 @@ const [sending, setSending] = useState(false);
         alert("Cancel request failed");
       }
     };
-
+const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
     // Handle request approval
     const handleRequestApproval = async () => {
       if (!selectedItem) return;
 
       try {
         setSending(true);
-        const fileUrl = `https://snptaxes.com/uploads/accounts/${selectedItem.path}`;
+        const fileUrl = `${FILE_URL}/uploads/accounts/${selectedItem.path}`;
 
         const payload = {
           filePath: selectedItem.path,

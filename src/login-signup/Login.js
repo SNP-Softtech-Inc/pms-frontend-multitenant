@@ -17,7 +17,7 @@ import {
   Select,
   MenuItem,
   TextField,
-  CircularProgress,
+  CircularProgress,Autocomplete
 } from "@mui/material";
 import { Grid } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
@@ -44,7 +44,14 @@ const Login = () => {
     password: "",
     expiryTime: "",
   });
-
+const expiryOptions = [
+  { label: "Select time", value: "" },
+  { label: "1 min", value: "1min" },
+  { label: "5 min", value: "5min" },
+  { label: "30 min", value: "30min" },
+  { label: "4 hours", value: "4hours" },
+  { label: "8 hours", value: "8hours" },
+];
   const [userList, setUserList] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -232,7 +239,31 @@ const Login = () => {
 <Typography mt={1} textAlign="right">
   <Link to="/forgot-password">Forgot Password?</Link>
 </Typography>
-          <FormControl fullWidth sx={{ mt: 2 }}>
+
+<FormControl fullWidth sx={{ mt: 2 }}>
+  <Autocomplete
+    options={expiryOptions}
+    value={
+      expiryOptions.find((opt) => opt.value === inpval.expiryTime) || null
+    }
+    onChange={(event, newValue) => {
+      setVal({
+        target: {
+          name: "expiryTime",
+          value: newValue ? newValue.value : "",
+        },
+      });
+    }}
+    getOptionLabel={(option) => option.label}
+    renderInput={(params) => (
+      <TextField {...params} label="Select time" />
+    )}
+    isOptionEqualToValue={(option, value) =>
+      option.value === value.value
+    }
+  />
+</FormControl>
+          {/* <FormControl fullWidth sx={{ mt: 2 }}>
             <Select
               name="expiryTime"
               value={inpval.expiryTime}
@@ -245,7 +276,7 @@ const Login = () => {
               <MenuItem value="4hours">4 hours</MenuItem>
               <MenuItem value="8hours">8 hours</MenuItem>
             </Select>
-          </FormControl>
+          </FormControl> */}
 
           <Box mt={2}>
             <Checkbox

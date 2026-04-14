@@ -60,6 +60,9 @@ import AllInvoices from "./pages/AllInvoices";
 import WorkflowPipeline from "./pages/Workflow/Pipeline";
 import JobList from "./pages/Workflow/JobList";
 import AccountTasksList from "./pages/AccountTasks/AccountTasksList";
+import ContactImport from "./pages/Import/ContactImport";
+import AccountImport from "./pages/Import/AccountImport";
+import UploadFolderToAccount from "./pages/Import/UploadFolderToAccount"
 function App() {
   return (
     <Routes>
@@ -152,6 +155,18 @@ function App() {
           }
         />
         <Route
+          path="/import/contacts"
+          element={
+            <ProtectedRoute>
+              <ContactImport />
+            </ProtectedRoute>
+          }
+        />
+         
+        
+          <Route path="/import/accounts" element={<AccountImport />} />
+          <Route path="/upload-docs" element={<ProtectedRoute><UploadFolderToAccount/></ProtectedRoute>}/>
+        <Route
           path="/settings/myaccount"
           element={
             <ProtectedRoute>
@@ -211,7 +226,13 @@ function App() {
           }
         />
         <Route
-        path="/tasks/pending" element={<ProtectedRoute><AccountTasksList/></ProtectedRoute>}/>
+          path="/tasks/pending"
+          element={
+            <ProtectedRoute>
+              <AccountTasksList />
+            </ProtectedRoute>
+          }
+        />
         {/* ✅ Templates Parent Route */}
         <Route
           path="firmtemp/templates"

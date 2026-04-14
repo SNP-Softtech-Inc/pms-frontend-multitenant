@@ -137,8 +137,8 @@ const GeneralStep = ({
         };
 
         updateFormData("general", {
-          // account: [selectedAccount],
-          account: selectedAccount
+          account: [selectedAccount],
+          // account: selectedAccount
         });
 
         if (stepErrors.account) {
@@ -739,12 +739,12 @@ const handleAccountChange = (selectedAccount) => {
         {/* Account Selection */}
         <FormControl fullWidth error={!!stepErrors.account} sx={{ mb: 3 }}>
           <Autocomplete
-            // multiple
+            multiple
             options={accountOptions}
-            // value={formData.general.account || []}
-            value={formData.general.account || null}
-            onChange={(event, value) => handleAccountChange(value)}
+            value={formData.general.account || []}
+            // value={formData.general.account || null}
             // onChange={(event, value) => handleAccountChange(value)}
+            onChange={(event, value) => handleAccountChange(value)}
             isOptionEqualToValue={(option, value) =>
               option?.value === value?.value
             }

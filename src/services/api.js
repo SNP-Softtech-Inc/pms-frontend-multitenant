@@ -294,7 +294,10 @@ export const templateAPI = {
     templateApi.get(`/temp/tags/find?name=${encodeURIComponent(name)}`),
   getAccountCountOfTag: () =>
     templateApi.get("/temp/tags/accountcountoftag/account"),
-
+// ✅ NEW: Get default tags (Incomplete Data & Imported Account)
+getDefaultTags: () =>
+  templateApi.get("/temp/tags/default-tags"),
+  
   // ================= TASKS =================
   // CREATE
   createTaskTemplate: (data) => templateApi.post("/temp/tasks/", data),
@@ -567,7 +570,8 @@ getAccountNamesByStatus: (active = true) =>
 
   getAccountsWithImportedAndIncompleteTags: () =>
     accountcontactApi.get("/api/accounts/imported-incomplete"),
-
+  getAccountsWithOnlyImportedTag: (active=true  ) =>
+    accountcontactApi.get(`/api/accounts/only-imported?active=${active}`),
   // ================= DELETE =================
   deleteMultipleAccounts: (data) =>
     accountcontactApi.delete("/api/accounts/accounts/deleteMultipleAccounts", {

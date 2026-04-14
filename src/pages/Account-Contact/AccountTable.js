@@ -56,8 +56,9 @@ import ManageTeams from "../BulkActions/ManageTeams";
 import ManageContactSettings from "../BulkActions/ManageContactSettings";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import JobDrawer from "../../pages/Workflow/JobDrawer"
+import JobDrawer from "../../pages/Workflow/JobDrawer";
 import SendOrganizer from "../BulkActions/SendOrganizer";
+import SendEmail from "../BulkActions/SendEmail";
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
   if (b[orderBy] > a[orderBy]) return 1;
@@ -75,6 +76,7 @@ const AccountTable = () => {
   const manageTagsRef = useRef();
   const manageTeamRef = useRef();
   const sendOrganizerRef = useRef();
+  const sendEmailRef = useRef();
   const manageSettingsRef = useRef();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -103,7 +105,7 @@ const AccountTable = () => {
     open: false,
     type: null, // "tags" | "team" | "email" | etc.
   });
-   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
+  const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [accountsToDelete, setAccountsToDelete] = useState([]);
   const [confirmText, setConfirmText] = useState("");
@@ -309,16 +311,14 @@ const AccountTable = () => {
             fetchData={() => queryClient.invalidateQueries(["accounts"])}
           />
         );
-case "organizer":
+      case "organizer":
         return (
-          // <ManageTags
-          //   ref={manageTagsRef}
-          //   selectedAccounts={selectedAccounts}
-          //   onClose={handleBulkDrawerClose}
-          //   // onClose={() => setBulkDrawer({ open: false, type: null })}
-          //   fetchData={() => queryClient.invalidateQueries(["accounts"])}
-          // />
-          <SendOrganizer ref={sendOrganizerRef} selectedAccounts={selectedAccounts} onClose={handleBulkDrawerClose} fetchData={() => queryClient.invalidateQueries(["accounts"])}/>
+          <SendOrganizer
+            ref={sendOrganizerRef}
+            selectedAccounts={selectedAccounts}
+            onClose={handleBulkDrawerClose}
+            fetchData={() => queryClient.invalidateQueries(["accounts"])}
+          />
         );
       case "team":
         return (
@@ -331,7 +331,14 @@ case "organizer":
         );
 
       case "email":
-        return <Typography sx={{ p: 2 }}>Email content goes here</Typography>;
+        return (
+          <SendEmail
+            ref={sendEmailRef}
+            selectedAccounts={selectedAccounts}
+            onClose={handleBulkDrawerClose}
+            fetchData={() => queryClient.invalidateQueries(["accounts"])}
+          />
+        );
       case "settings":
         return (
           <ManageContactSettings
@@ -657,7 +664,9 @@ case "organizer":
                   size="small"
                   variant="outlined"
                   startIcon={<SendIcon />}
-                  onClick={() => setBulkDrawer({ open: true, type: "organizer" })}
+                  onClick={() =>
+                    setBulkDrawer({ open: true, type: "organizer" })
+                  }
                 >
                   Send Organizer
                 </Button>
@@ -784,7 +793,6 @@ case "organizer":
                           selectedAccounts.includes(a._id),
                         )
                       }
-                      
                       onChange={() => {
                         const pageIds = paginatedList.map((a) => a._id);
 
@@ -858,7 +866,6 @@ case "organizer":
                         <input
                           type="checkbox"
                           checked={selectedAccounts.includes(account._id)}
-                          
                           onChange={() => {
                             let updated;
 
@@ -1050,9 +1057,12 @@ case "organizer":
               if (bulkDrawer.type === "settings") {
                 manageSettingsRef.current?.submit();
               }
-               if (bulkDrawer.type === "organizer") {
-      sendOrganizerRef.current?.submit(); // ✅ ADD THIS
-    }
+              if (bulkDrawer.type === "organizer") {
+                sendOrganizerRef.current?.submit(); // ✅ ADD THIS
+              }
+              if (bulkDrawer.type === "email") {
+                sendEmailRef.current?.submit(); // ✅ ADD THIS
+              }
             }}
           >
             Save
@@ -1118,13 +1128,8 @@ case "organizer":
           </Button>
         </DialogActions>
       </Dialog>
-        <JobDrawer
-            open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)}/>
-
-            
+      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
     </Box>
-
-    
   );
 };
 
