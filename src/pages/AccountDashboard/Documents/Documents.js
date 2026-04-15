@@ -68,11 +68,14 @@ import {
 import { AiFillFileUnknown } from "react-icons/ai";
 import * as XLSX from "xlsx";
 
-import {  accountDocsAPI,
+import {
+  accountDocsAPI,
   folderManagementAPI,
   accountsAPI,
   docAPI,
+  invoiceAPI,
 } from "../../../services/api";
+
 const DocsFolderTree = () => {
   const { accountId } = useParams();
   console.log("account id for the documentation", accountId);
@@ -81,7 +84,7 @@ const DocsFolderTree = () => {
   console.log("selected template", selectedTemplate);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-const [sending, setSending] = useState(false);
+  const [sending, setSending] = useState(false);
   // Fetch templates list - Using folderManagementAPI
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -101,30 +104,30 @@ const [sending, setSending] = useState(false);
   }, []);
 
   const applyTemplateToAccount = () => {
-  console.log("ghjh");
+    console.log("ghjh");
 
-  const payload = {
-    accountId: accountId,
-    templateId: selectedTemplate || null,
+    const payload = {
+      accountId: accountId,
+      templateId: selectedTemplate || null,
+    };
+
+    console.log("applyTemplateToAccount payload:", payload);
+
+    docAPI
+      .applyTemplateToAccount(payload)
+      .then((res) => {
+        console.log("API response:", res.data);
+
+        // alert("Folder Template Assign Successfully");
+        toast.success("Folder Template Assign Successfully");
+        setSelectedTemplate("");
+      })
+      .catch((error) => {
+        console.error("Error applying template:", error);
+        toast.error("Failed to Assign Folder Template");
+        alert("Failed to Assign Folder Template");
+      });
   };
-
-  console.log("applyTemplateToAccount payload:", payload);
-
-  docAPI
-    .applyTemplateToAccount(payload)
-    .then((res) => {
-      console.log("API response:", res.data);
-
-      // alert("Folder Template Assign Successfully");
-      toast.success("Folder Template Assign Successfully");
-      setSelectedTemplate("");
-    })
-    .catch((error) => {
-      console.error("Error applying template:", error);
-      toast.error("Failed to Assign Folder Template");
-      alert("Failed to Assign Folder Template");
-    });
-};
 
   const FolderTreeView = ({ accountId }) => {
     const [clientEmail, setClientEmail] = useState("");
@@ -236,11 +239,11 @@ const [sending, setSending] = useState(false);
     // Fetch invoices - Using API call (if you have an invoice API, use that)
     const fetchInvoices = async () => {
       try {
-        const response = await fetch(
-          `https://www.snptaxes.com/workflow/invoices/invoice/pending/invoicelistby/accountid/${accountId}`
-        );
-        const data = await response.json();
-        setInvoiceList(data.invoice || []);
+        const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
+
+        const invoices = res.data?.invoice || [];
+
+        setInvoiceList(invoices);
       } catch (err) {
         console.error("Error fetching invoices", err);
       }
@@ -298,7 +301,7 @@ const [sending, setSending] = useState(false);
     const isFolderPartiallySelected = (item) => {
       const allChildPaths = getAllChildrenPaths(item);
       const selectedCount = allChildPaths.filter((path) =>
-        selectedItems.has(path)
+        selectedItems.has(path),
       ).length;
       return selectedCount > 0 && selectedCount < allChildPaths.length;
     };
@@ -340,7 +343,13 @@ const [sending, setSending] = useState(false);
     };
 
     // Update status - Using accountDocsAPI
-    const updateStatus = async (item, statusType, newValue, approvalId = null, esignRequestId = null) => {
+    const updateStatus = async (
+      item,
+      statusType,
+      newValue,
+      approvalId = null,
+      esignRequestId = null,
+    ) => {
       try {
         if (!item?.path) return alert("Invalid item selected");
 
@@ -377,9 +386,10 @@ const [sending, setSending] = useState(false);
             ? { folderPath: item.path, readOnly: newStatus }
             : { filePath: item.path, readOnly: newStatus };
 
-        const res = item.type === "folder"
-          ? await accountDocsAPI.setFolderReadOnly(body)
-          : await accountDocsAPI.setFileReadOnly(body);
+        const res =
+          item.type === "folder"
+            ? await accountDocsAPI.setFolderReadOnly(body)
+            : await accountDocsAPI.setFileReadOnly(body);
 
         if (res.status === 200 || res.status === 201) {
           fetchFolderTree();
@@ -405,7 +415,7 @@ const [sending, setSending] = useState(false);
     const trashItem = async (item) => {
       if (!item?.path) return alert("Invalid path");
       const confirmTrash = window.confirm(
-        `Are you sure you want to move "${item.name}" to Trash?`
+        `Are you sure you want to move "${item.name}" to Trash?`,
       );
       if (!confirmTrash) return;
 
@@ -434,12 +444,14 @@ const [sending, setSending] = useState(false);
     const deleteItem = async (item) => {
       if (!item?.path) return alert("Invalid path");
       const confirmDelete = window.confirm(
-        `Are you sure you want to delete "${item.name}"? This cannot be undone!`
+        `Are you sure you want to delete "${item.name}"? This cannot be undone!`,
       );
       if (!confirmDelete) return;
 
       try {
-        const response = await accountDocsAPI.deleteItem({ targetPath: item.path });
+        const response = await accountDocsAPI.deleteItem({
+          targetPath: item.path,
+        });
 
         if (response.data?.success) {
           toast.success(response.data.message);
@@ -464,7 +476,7 @@ const [sending, setSending] = useState(false);
       }
 
       const confirmTrash = window.confirm(
-        `Are you sure you want to move ${selectedItems.size} item(s) to trash?`
+        `Are you sure you want to move ${selectedItems.size} item(s) to trash?`,
       );
       if (!confirmTrash) return;
 
@@ -478,7 +490,7 @@ const [sending, setSending] = useState(false);
 
         if (response.data?.success) {
           toast.success(
-            `${response.data.trashedItems?.length || selectedItems.size} item(s) moved to trash successfully`
+            `${response.data.trashedItems?.length || selectedItems.size} item(s) moved to trash successfully`,
           );
           if (response.data.failedItems?.length > 0) {
             toast.warning(`${response.data.failedItems.length} item(s) failed`);
@@ -504,7 +516,7 @@ const [sending, setSending] = useState(false);
       }
 
       const confirmDelete = window.confirm(
-        `Are you sure you want to delete ${selectedItems.size} item(s)? This cannot be undone!`
+        `Are you sure you want to delete ${selectedItems.size} item(s)? This cannot be undone!`,
       );
       if (!confirmDelete) return;
 
@@ -515,10 +527,12 @@ const [sending, setSending] = useState(false);
 
         if (response.data?.success) {
           toast.success(
-            `${response.data.summary?.success || selectedItems.size} item(s) deleted successfully`
+            `${response.data.summary?.success || selectedItems.size} item(s) deleted successfully`,
           );
           if (response.data.errors?.length > 0) {
-            toast.warning(`${response.data.errors.length} item(s) failed to delete`);
+            toast.warning(
+              `${response.data.errors.length} item(s) failed to delete`,
+            );
           }
           setSelectedItems(new Set());
           fetchFolderTree();
@@ -550,13 +564,15 @@ const [sending, setSending] = useState(false);
 
         if (response.data?.success) {
           toast.success(
-            `${response.data.summary?.success || selectedItems.size} item(s) ${lockStatus === "lock" ? "locked" : "unlocked"} successfully`
+            `${response.data.summary?.success || selectedItems.size} item(s) ${lockStatus === "lock" ? "locked" : "unlocked"} successfully`,
           );
           setSelectedItems(new Set());
           fetchFolderTree();
           setBulkLockDialogOpen(false);
         } else {
-          toast.error(response.data?.message || `Failed to ${lockStatus} items`);
+          toast.error(
+            response.data?.message || `Failed to ${lockStatus} items`,
+          );
         }
       } catch (err) {
         console.error("Bulk lock error:", err);
@@ -606,12 +622,14 @@ const [sending, setSending] = useState(false);
         }
 
         // Remove "New" tag if present
-        if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
+        if (
+          meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")
+        ) {
           await accountDocsAPI.removeNewTag({ filePath: fullPath });
           await fetchFolderTree();
         }
 
-        const fileUrl = `https://www.snptaxes.com/uploads/accounts/${fullPath}`;
+        const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
         const extension = fileName.split(".").pop().toLowerCase();
 
         if (extension === "xls" || extension === "xlsx") {
@@ -648,10 +666,10 @@ const [sending, setSending] = useState(false);
     // Toggle sign status
     const toggleSignStatus = async (item) => {
       try {
-        const fileUrl = `https://snptaxes.com/uploads/accounts/${item.path}`;
+        const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
         const fileName = item.name;
         const res = await fetch(
-          `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`
+          `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
         );
         const data = await res.json();
         console.log("token data", data);
@@ -666,12 +684,15 @@ const [sending, setSending] = useState(false);
     // Cancel signature
     const cancelSignature = async (item) => {
       try {
-        await axios.delete(`${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`, {
-          data: {
-            folder: item.meta.folder,
-            name: item.meta.name,
+        await axios.delete(
+          `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
+          {
+            data: {
+              folder: item.meta.folder,
+              name: item.meta.name,
+            },
           },
-        });
+        );
         alert("Signature request cancelled.");
         fetchFolderTree();
       } catch (err) {
@@ -706,7 +727,7 @@ const [sending, setSending] = useState(false);
         alert("Cancel request failed");
       }
     };
-const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
+    const FILE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
     // Handle request approval
     const handleRequestApproval = async () => {
       if (!selectedItem) return;
@@ -769,11 +790,9 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
       }
 
       try {
-        const res = await fetch(
-          `https://www.snptaxes.com/workflow/invoices/invoice/pending/invoicelistby/accountid/${accountId}`
-        );
-        const data = await res.json();
-        const pendingInvoices = data.invoice || [];
+        const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
+
+        const pendingInvoices = res.data?.invoice || [];
 
         if (pendingInvoices.length === 0) {
           toast.info("No pending invoices available");
@@ -821,7 +840,9 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
 
     const handleDownload = async (item) => {
       try {
-        const response = await accountDocsAPI.downloadItems({ paths: item.path });
+        const response = await accountDocsAPI.downloadItems({
+          paths: item.path,
+        });
         const blob = response.data;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -862,7 +883,10 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
 
     const formatUploadedAt = (dateValue) => {
       if (!dateValue) return "";
-      if (typeof dateValue === "string" && /^[A-Z]{3}-\d{2} \d{4}$/.test(dateValue)) {
+      if (
+        typeof dateValue === "string" &&
+        /^[A-Z]{3}-\d{2} \d{4}$/.test(dateValue)
+      ) {
         return dateValue;
       }
       const date = new Date(dateValue);
@@ -893,7 +917,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
             size="small"
             variant="outlined"
             color={color}
-          />
+          />,
         );
       }
 
@@ -905,7 +929,11 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
 
         if (meta.authStatus === "canceledApproval" && meta.cancelReason) {
           chips.push(
-            <Tooltip key="approvalCanceledChip" title={meta.cancelReason} placement="top-end">
+            <Tooltip
+              key="approvalCanceledChip"
+              title={meta.cancelReason}
+              placement="top-end"
+            >
               <Chip
                 label="Approval Canceled"
                 size="small"
@@ -913,7 +941,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
                 color="error"
                 sx={{ cursor: "pointer" }}
               />
-            </Tooltip>
+            </Tooltip>,
           );
         } else {
           chips.push(
@@ -923,7 +951,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
               size="small"
               variant="outlined"
               color={color}
-            />
+            />,
           );
         }
       }
@@ -939,7 +967,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
             size="small"
             variant="outlined"
             color={color}
-          />
+          />,
         );
       }
 
@@ -968,7 +996,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
 
     const findNewSystemTag = (item) => {
       const newTag = item.meta?.tags?.find(
-        (tag) => tag.isSystemTag && tag.tagName === "New"
+        (tag) => tag.isSystemTag && tag.tagName === "New",
       );
       if (newTag) return newTag;
 
@@ -996,7 +1024,9 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
           ? getFolderCounts(item)
           : { folderCount: 0, fileCount: 0 };
         const isSelected = selectedItems.has(fullPath);
-        const isPartiallySelected = isFolder ? isFolderPartiallySelected(item) : false;
+        const isPartiallySelected = isFolder
+          ? isFolderPartiallySelected(item)
+          : false;
         const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
 
         const handleSafeFileClick = () => {
@@ -1093,7 +1123,9 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
                           variant="body2"
                           sx={{
                             color: meta.readOnly ? "#999" : "#1976d2",
-                            textDecoration: meta.readOnly ? "none" : "underline",
+                            textDecoration: meta.readOnly
+                              ? "none"
+                              : "underline",
                             cursor: meta.readOnly ? "not-allowed" : "pointer",
                           }}
                           onClick={handleSafeFileClick}
@@ -1166,7 +1198,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
       });
     };
 
-   return (
+    return (
       <Box sx={{ margin: "auto", p: 3 }}>
         {/* Action Buttons */}
         <Box sx={{ p: 3, maxWidth: "1000px", mx: "auto" }}>
@@ -1286,7 +1318,6 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
             </Paper>
           )}
 
-
           {/* Drawers */}
           <FileUploadDrawer
             isOpen={fileUploadDrawerOpen}
@@ -1354,7 +1385,7 @@ const FILE_URL =process.env.REACT_APP_FOLDER_MANAGEMENT
 
         {/* Folder Explorer */}
 
-      <Paper elevation={3} sx={{ p: 2, mt: 3 }}>
+        <Paper elevation={3} sx={{ p: 2, mt: 3 }}>
           <Typography variant="h6" gutterBottom>
             📜 Folder Explorer
           </Typography>
