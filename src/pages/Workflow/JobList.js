@@ -147,9 +147,6 @@ console.log("joblist",jobRes)
 
   const pageIds = paginatedData.map((row) => row.id);
 
-  const isPageSelected = pageIds.every((id) => selected.includes(id));
-  const isPageIndeterminate =
-    pageIds.some((id) => selected.includes(id)) && !isPageSelected;
 
   // =============================
   // SELECTION

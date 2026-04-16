@@ -9,9 +9,10 @@ import {
   Autocomplete,
   Grid,
   Switch,
-  FormControlLabel,Chip
+  FormControlLabel,
+  Chip,
 } from "@mui/material";
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import AccountMultiSelectDropdown from "../../components/AccountMultiSelectDropdown";
@@ -25,8 +26,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import AutomationDrawer from "./AutomationDrawer";
-import ShortcodeTextField from "../../components/ShortcodeTextField"
-const JobDrawer = ({ open, onClose, fetchJobData,selectedPipeline }) => {
+import ShortcodeTextField from "../../components/ShortcodeTextField";
+const JobDrawer = ({ open, onClose, fetchJobData, selectedPipeline }) => {
   // ✅ ADD fetchJobData prop
   const [selectedaccount, setSelectedaccount] = useState([]);
   const queryClient = useQueryClient();
@@ -51,39 +52,41 @@ const JobDrawer = ({ open, onClose, fetchJobData,selectedPipeline }) => {
   const [startDate, setStartDate] = useState(null);
   const [isSaving, setIsSaving] = useState(false); // ✅ ADD loading state
   const [clientFacingStatus, setClientFacingStatus] = useState(false);
-const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState("");
   const [charCount, setCharCount] = useState(0);
+ console.log(charCount)
   const [clientDescription, setClientDescription] = useState("");
   const [clientFacingJobs, setClientFacingJobs] = useState([]);
-    const [cursorPosition, setCursorPosition] = useState(0);
-      const [selectedJob, setSelectedJob] = useState(null);
-      const [anchorElClientJob, setAnchorElClientJob] = useState(null);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [anchorElClientJob, setAnchorElClientJob] = useState(null);
   const [anchorElDescription, setAnchorElDecription] = useState(null);
-        const [showDropdownClientJob, setShowDropdownClientJob] = useState(false);
-        const [showDropdownDescription, setShowDropdownDescription] = useState(false);
-     const [shortcuts, setShortcuts] = useState([]);
+  const [showDropdownClientJob, setShowDropdownClientJob] = useState(false);
+  const [showDropdownDescription, setShowDropdownDescription] = useState(false);
+  // const [shortcuts, setShortcuts] = useState([]);
   const [filteredShortcuts, setFilteredShortcuts] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("contacts");
-    const [showDropdown, setShowDropdown] = useState(false);
+  const selectedOption = "contacts";
+  // const [selectedOption, setSelectedOption] = useState("contacts");
+  // const [showDropdown, setShowDropdown] = useState(false);
+  // useEffect(() => {
+  //   if (selectedPipeline) {
+  //     setPipelineValue(selectedPipeline);
+  //   }
+  // }, [selectedPipeline]);
+  const activePipeline = selectedPipeline || pipelineValue;
   useEffect(() => {
-  if (selectedPipeline) {
-    setPipelineValue(selectedPipeline);
+  if (activePipeline?._id) {
+    fetchStages(activePipeline._id);
+  } else {
+    setStages([]);
+    setSelectedStage(null);
   }
-}, [selectedPipeline]);
-const activePipeline = selectedPipeline || pipelineValue;
-// useEffect(() => {
-//   if (selectedPipeline) {
-//     setPipelineValue(selectedPipeline);
-//   } else {
-//     setStages([]);
-//     setSelectedStage(null);
-//   }
-// }, [selectedPipeline]);
+}, [activePipeline?._id]); // ✅ FIX
   // ✅ NEW STATES
   const [stages, setStages] = useState([]);
   const [stagesLoading, setStagesLoading] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
-// Refs
+  // Refs
   const descriptionFieldRef = useRef(null);
   const textFieldRef = useRef(null);
   // Add state for automation drawer
@@ -92,74 +95,74 @@ const activePipeline = selectedPipeline || pipelineValue;
   const [accountData, setAccountData] = useState([]);
 
   // Update shortcuts based on selected option
-    useEffect(() => {
-      if (selectedOption === "contacts" || selectedOption === "account") {
-        const accountShortcuts = [
-          { title: "Account Shortcodes", isBold: true },
-          { title: "Account Name", isBold: false, value: "ACCOUNT_NAME" },
-          { title: "Date Shortcodes", isBold: true },
-          {
-            title: "Current day full date",
-            isBold: false,
-            value: "CURRENT_DAY_FULL_DATE",
-          },
-          {
-            title: "Current day number",
-            isBold: false,
-            value: "CURRENT_DAY_NUMBER",
-          },
-          { title: "Current day name", isBold: false, value: "CURRENT_DAY_NAME" },
-          { title: "Current week", isBold: false, value: "CURRENT_WEEK" },
-          {
-            title: "Current month number",
-            isBold: false,
-            value: "CURRENT_MONTH_NUMBER",
-          },
-          {
-            title: "Current month name",
-            isBold: false,
-            value: "CURRENT_MONTH_NAME",
-          },
-          { title: "Current quarter", isBold: false, value: "CURRENT_QUARTER" },
-          { title: "Current year", isBold: false, value: "CURRENT_YEAR" },
-          {
-            title: "Last day full date",
-            isBold: false,
-            value: "LAST_DAY_FULL_DATE",
-          },
-          { title: "Last day number", isBold: false, value: "LAST_DAY_NUMBER" },
-          { title: "Last day name", isBold: false, value: "LAST_DAY_NAME" },
-          { title: "Last week", isBold: false, value: "LAST_WEEK" },
-          {
-            title: "Last month number",
-            isBold: false,
-            value: "LAST_MONTH_NUMBER",
-          },
-          { title: "Last month name", isBold: false, value: "LAST_MONTH_NAME" },
-          { title: "Last quarter", isBold: false, value: "LAST_QUARTER" },
-          { title: "Last_year", isBold: false, value: "LAST_YEAR" },
-          {
-            title: "Next day full date",
-            isBold: false,
-            value: "NEXT_DAY_FULL_DATE",
-          },
-          { title: "Next day number", isBold: false, value: "NEXT_DAY_NUMBER" },
-          { title: "Next day name", isBold: false, value: "NEXT_DAY_NAME" },
-          { title: "Next week", isBold: false, value: "NEXT_WEEK" },
-          {
-            title: "Next month number",
-            isBold: false,
-            value: "NEXT_MONTH_NUMBER",
-          },
-          { title: "Next month name", isBold: false, value: "NEXT_MONTH_NAME" },
-          { title: "Next quarter", isBold: false, value: "NEXT_QUARTER" },
-          { title: "Next year", isBold: false, value: "NEXT_YEAR" },
-        ];
-        setShortcuts(accountShortcuts);
-        setFilteredShortcuts(accountShortcuts);
-      }
-    }, [selectedOption]);
-   const handleDescriptionAddShortcut = (shortcut) => {
+  useEffect(() => {
+    if (selectedOption === "contacts" || selectedOption === "account") {
+      const accountShortcuts = [
+        { title: "Account Shortcodes", isBold: true },
+        { title: "Account Name", isBold: false, value: "ACCOUNT_NAME" },
+        { title: "Date Shortcodes", isBold: true },
+        {
+          title: "Current day full date",
+          isBold: false,
+          value: "CURRENT_DAY_FULL_DATE",
+        },
+        {
+          title: "Current day number",
+          isBold: false,
+          value: "CURRENT_DAY_NUMBER",
+        },
+        { title: "Current day name", isBold: false, value: "CURRENT_DAY_NAME" },
+        { title: "Current week", isBold: false, value: "CURRENT_WEEK" },
+        {
+          title: "Current month number",
+          isBold: false,
+          value: "CURRENT_MONTH_NUMBER",
+        },
+        {
+          title: "Current month name",
+          isBold: false,
+          value: "CURRENT_MONTH_NAME",
+        },
+        { title: "Current quarter", isBold: false, value: "CURRENT_QUARTER" },
+        { title: "Current year", isBold: false, value: "CURRENT_YEAR" },
+        {
+          title: "Last day full date",
+          isBold: false,
+          value: "LAST_DAY_FULL_DATE",
+        },
+        { title: "Last day number", isBold: false, value: "LAST_DAY_NUMBER" },
+        { title: "Last day name", isBold: false, value: "LAST_DAY_NAME" },
+        { title: "Last week", isBold: false, value: "LAST_WEEK" },
+        {
+          title: "Last month number",
+          isBold: false,
+          value: "LAST_MONTH_NUMBER",
+        },
+        { title: "Last month name", isBold: false, value: "LAST_MONTH_NAME" },
+        { title: "Last quarter", isBold: false, value: "LAST_QUARTER" },
+        { title: "Last_year", isBold: false, value: "LAST_YEAR" },
+        {
+          title: "Next day full date",
+          isBold: false,
+          value: "NEXT_DAY_FULL_DATE",
+        },
+        { title: "Next day number", isBold: false, value: "NEXT_DAY_NUMBER" },
+        { title: "Next day name", isBold: false, value: "NEXT_DAY_NAME" },
+        { title: "Next week", isBold: false, value: "NEXT_WEEK" },
+        {
+          title: "Next month number",
+          isBold: false,
+          value: "NEXT_MONTH_NUMBER",
+        },
+        { title: "Next month name", isBold: false, value: "NEXT_MONTH_NAME" },
+        { title: "Next quarter", isBold: false, value: "NEXT_QUARTER" },
+        { title: "Next year", isBold: false, value: "NEXT_YEAR" },
+      ];
+      // setShortcuts(accountShortcuts);
+      setFilteredShortcuts(accountShortcuts);
+    }
+  }, [selectedOption]);
+  const handleDescriptionAddShortcut = (shortcut) => {
     setClientDescription((prevText) => {
       const newText =
         prevText.slice(0, cursorPosition) +
@@ -180,7 +183,7 @@ const activePipeline = selectedPipeline || pipelineValue;
 
     setShowDropdownDescription(false);
   };
-   const handleJobAddShortcut = (shortcut) => {
+  const handleJobAddShortcut = (shortcut) => {
     setInputText((prevText) => {
       const newText =
         prevText.slice(0, cursorPosition) +
@@ -201,20 +204,20 @@ const activePipeline = selectedPipeline || pipelineValue;
 
     setShowDropdownClientJob(false);
   };
-   const handleJobChange = async (event, newValue) => {
-      setSelectedJob(newValue);
-  
-      if (newValue && newValue.value) {
-        try {
-          const response = await templateAPI.getJobStatusById(newValue.value);
-          setClientDescription(
-            response.data.clientfacingjobstatuses.clientfacingdescription,
-          );
-        } catch (error) {
-          console.error("Error fetching job status:", error);
-        }
+  const handleJobChange = async (event, newValue) => {
+    setSelectedJob(newValue);
+
+    if (newValue && newValue.value) {
+      try {
+        const response = await templateAPI.getJobStatusById(newValue.value);
+        setClientDescription(
+          response.data.clientfacingjobstatuses.clientfacingdescription,
+        );
+      } catch (error) {
+        console.error("Error fetching job status:", error);
       }
-    };
+    }
+  };
   const toggleShortcodeDropdown = (event) => {
     setAnchorElClientJob(event.currentTarget);
     setShowDropdownClientJob(!showDropdownClientJob);
@@ -224,8 +227,8 @@ const activePipeline = selectedPipeline || pipelineValue;
     setAnchorElDecription(event.currentTarget);
     setShowDropdownDescription(!showDropdownDescription);
   };
-   const handleCloseDropdown = () => {
-    setShowDropdown(false);
+  const handleCloseDropdown = () => {
+    // setShowDropdown(false);
     setShowDropdownClientJob(false);
     setShowDropdownDescription(false);
     // setAnchorEl(null);
@@ -235,19 +238,18 @@ const activePipeline = selectedPipeline || pipelineValue;
   const handleClientFacing = (checked) => {
     setClientFacingStatus(checked);
   };
-    const fetchClientFacingJobsData = async () => {
-      try {
-        const response = await templateAPI.getAllJobStatus();
-        setClientFacingJobs(response.data.clientFacingJobStatues || []);
-      } catch (error) {
-        console.error("Error fetching client facing jobs:", error);
-        toast.error("Failed to fetch client facing jobs");
-      }
-    };
-     useEffect(() => {
-        fetchClientFacingJobsData();
-       
-      }, []);
+  const fetchClientFacingJobsData = async () => {
+    try {
+      const response = await templateAPI.getAllJobStatus();
+      setClientFacingJobs(response.data.clientFacingJobStatues || []);
+    } catch (error) {
+      console.error("Error fetching client facing jobs:", error);
+      toast.error("Failed to fetch client facing jobs");
+    }
+  };
+  useEffect(() => {
+    fetchClientFacingJobsData();
+  }, []);
   const optionstatus = clientFacingJobs.map((status) => ({
     value: status._id,
     label: status.clientfacingName,
@@ -289,16 +291,16 @@ const activePipeline = selectedPipeline || pipelineValue;
       setLoading(false);
     }
   };
-const handlePipelineChange = (event, newValue) => {
-  setPipelineValue(newValue);
+  const handlePipelineChange = (event, newValue) => {
+    setPipelineValue(newValue);
 
-  if (newValue?._id) {
-    fetchStages(newValue._id);
-  } else {
-    setStages([]);
-    setSelectedStage(null);
-  }
-};
+    if (newValue?._id) {
+      fetchStages(newValue._id);
+    } else {
+      setStages([]);
+      setSelectedStage(null);
+    }
+  };
   // ================= FETCH STAGES =================
   const fetchStages = async (pipelineId) => {
     setStagesLoading(true);
@@ -327,9 +329,8 @@ const handlePipelineChange = (event, newValue) => {
     //   fetchStages(selectedPipeline._id);
     // }
     if (activePipeline?._id) {
-  fetchStages(activePipeline._id);
-}
-     else {
+      fetchStages(activePipeline._id);
+    } else {
       setStages([]);
       setSelectedStage(null);
     }
@@ -353,104 +354,65 @@ const handlePipelineChange = (event, newValue) => {
     label: temp.templatename,
   }));
 
-  // const handleJobtemp = async (selectedOption) => {
-  //   setSelectedJobTemp(selectedOption);
+  const handleJobtemp = async (selectedOption) => {
+    setSelectedJobTemp(selectedOption);
 
-  //   if (!selectedOption?.value) return;
+    if (!selectedOption?.value) return;
 
-  //   try {
-  //     const res = await templateAPI.getJobTemplateById(selectedOption.value);
-  //     const template = res.data?.jobTemplate || res.data;
+    try {
+      const res = await templateAPI.getJobTemplateById(selectedOption.value);
+      const template = res.data?.jobTemplate || res.data;
+      console.log("gets job template details", template);
+      setJobName(template.jobname || "");
+      setDescription(template.description || "");
+      setPriority(template.priority || "Medium");
 
-  //     setJobName(template.jobname || "");
-  //     setDescription(template.description || "");
-  //     setPriority(template.priority || "Medium");
+      // ✅ ADD THIS BLOCK
+      setClientFacingStatus(template.showinclientportal || false);
 
-  //     if (template.jobassignees?.length > 0) {
-  //       const mappedUsers = template.jobassignees.map((user) => ({
-  //         label: user.username,
-  //         value: user._id,
-  //       }));
+      setInputText(template.jobnameforclient || template.jobname || "");
+      setClientDescription(template.clientfacingDescription || "");
 
-  //       setSelectedUser(mappedUsers);
-  //       setCombinedValues(mappedUsers.map((u) => u.value));
-  //     }
+      if (template.clientfacingstatus && clientFacingJobs.length > 0) {
+        const matchedStatus = clientFacingJobs.find(
+          (status) => status._id === template.clientfacingstatus,
+        );
 
-  //     if (template.absolutedates) {
-  //       setAbsoluteDates(true);
-  //       setStartDate(template.startdate ? dayjs(template.startdate) : null);
-  //       setDueDate(template.enddate ? dayjs(template.enddate) : null);
-  //     } else {
-  //       setAbsoluteDates(false);
-  //       setstartsin(template.startsin || 0);
-  //       setduein(template.duein || 0);
-  //       setStartsInDuration(template.startsinduration || "Days");
-  //       setdueinduration(template.dueinduration || "Days");
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error("Failed to load job template details");
-  //   }
-  // };
-const handleJobtemp = async (selectedOption) => {
-  setSelectedJobTemp(selectedOption);
+        if (matchedStatus) {
+          setSelectedJob({
+            value: matchedStatus._id,
+            label: matchedStatus.clientfacingName,
+            clientfacingColour: matchedStatus.clientfacingColour,
+          });
+        }
+      }
 
-  if (!selectedOption?.value) return;
+      if (template.jobassignees?.length > 0) {
+        const mappedUsers = template.jobassignees.map((user) => ({
+          label: user.username,
+          value: user._id,
+        }));
 
-  try {
-    const res = await templateAPI.getJobTemplateById(selectedOption.value);
-    const template = res.data?.jobTemplate || res.data;
-console.log("gets job template details",template)
-    setJobName(template.jobname || "");
-    setDescription(template.description || "");
-    setPriority(template.priority || "Medium");
+        setSelectedUser(mappedUsers);
+        setCombinedValues(mappedUsers.map((u) => u.value));
+      }
 
-    // ✅ ADD THIS BLOCK
-    setClientFacingStatus(template.showinclientportal || false);
-
-    setInputText(template.jobnameforclient || template.jobname || "");
-    setClientDescription(template.clientfacingDescription || "");
-
-    if (template.clientfacingstatus && clientFacingJobs.length > 0) {
-  const matchedStatus = clientFacingJobs.find(
-    (status) => status._id === template.clientfacingstatus
-  );
-
-  if (matchedStatus) {
-    setSelectedJob({
-      value: matchedStatus._id,
-      label: matchedStatus.clientfacingName,
-      clientfacingColour: matchedStatus.clientfacingColour,
-    });
-  }
-}
-
-    if (template.jobassignees?.length > 0) {
-      const mappedUsers = template.jobassignees.map((user) => ({
-        label: user.username,
-        value: user._id,
-      }));
-
-      setSelectedUser(mappedUsers);
-      setCombinedValues(mappedUsers.map((u) => u.value));
+      if (template.absolutedates) {
+        setAbsoluteDates(true);
+        setStartDate(template.startdate ? dayjs(template.startdate) : null);
+        setDueDate(template.enddate ? dayjs(template.enddate) : null);
+      } else {
+        setAbsoluteDates(false);
+        setstartsin(template.startsin || 0);
+        setduein(template.duein || 0);
+        setStartsInDuration(template.startsinduration || "Days");
+        setdueinduration(template.dueinduration || "Days");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load job template details");
     }
-
-    if (template.absolutedates) {
-      setAbsoluteDates(true);
-      setStartDate(template.startdate ? dayjs(template.startdate) : null);
-      setDueDate(template.enddate ? dayjs(template.enddate) : null);
-    } else {
-      setAbsoluteDates(false);
-      setstartsin(template.startsin || 0);
-      setduein(template.duein || 0);
-      setStartsInDuration(template.startsinduration || "Days");
-      setdueinduration(template.dueinduration || "Days");
-    }
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to load job template details");
-  }
-};
+  };
   const handleUserChange = (users) => {
     setSelectedUser(users);
     setCombinedValues(users.map((u) => u.value));
@@ -513,15 +475,10 @@ console.log("gets job template details",template)
   });
   // Update handleSaveJob to check for automations
   const handleSaveJob = async () => {
-    // Validation
-    // if (!selectedPipeline) {
-    //   toast.error("Please select a pipeline");
-    //   return;
-    // }
     if (!activePipeline) {
-  toast.error("Please select a pipeline");
-  return;
-}
+      toast.error("Please select a pipeline");
+      return;
+    }
 
     if (!selectedStage) {
       toast.error("Please select a stage");
@@ -592,7 +549,7 @@ console.log("gets job template details",template)
         startsinduration: startsInDuration,
         duein: duein,
         dueinduration: dueinduration,
-       showinclientportal: clientFacingStatus,
+        showinclientportal: clientFacingStatus,
         jobnameforclient: jobName,
         clientfacingstatus: selectedJob.value,
         clientfacingDescription: clientDescription,
@@ -697,17 +654,17 @@ console.log("gets job template details",template)
               )}
             /> */}
             <Autocomplete
-  options={pipelines}
-  loading={loading}
-  value={pipelineValue}
-  onChange={handlePipelineChange}
-  // onChange={(event, newValue) => setPipelineValue(newValue)}
-  getOptionLabel={(option) => option?.pipelineName || ""}
-  isOptionEqualToValue={(option, value) => option._id === value._id}
-  renderInput={(params) => (
-    <TextField {...params} label="Select Pipeline" fullWidth />
-  )}
-/>
+              options={pipelines}
+              loading={loading}
+              value={pipelineValue}
+              onChange={handlePipelineChange}
+              // onChange={(event, newValue) => setPipelineValue(newValue)}
+              getOptionLabel={(option) => option?.pipelineName || ""}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Pipeline" fullWidth />
+              )}
+            />
           </Box>
 
           {/* STAGES UI */}
@@ -943,122 +900,119 @@ console.log("gets job template details",template)
                 label="Show in Client portal"
               />
             </Box>
-             <Box mb={2}>
-                                {clientFacingStatus && (
-                                  <>
-                                    <ShortcodeTextField
-                                      label="Job name for client"
-                                      value={inputText}
-                                      onChange={(e) => {
-                                        const { value, selectionStart } = e.target;
-                                        setInputText(value);
-                                        setCursorPosition(selectionStart);
-                                      }}
-                                      placeholder="Job name for client"
-                                      inputRef={textFieldRef}
-                                      onClick={(e) =>
-                                        setCursorPosition(e.target.selectionStart)
-                                      }
-                                      // shortcuts
-                                      shortcuts={filteredShortcuts}
-                                      showShortcutDropdown={showDropdownClientJob}
-                                      anchorElShortcut={anchorElClientJob}
-                                      onToggleShortcutDropdown={toggleShortcodeDropdown}
-                                      onCloseShortcutDropdown={handleCloseDropdown}
-                                      onAddShortcut={handleJobAddShortcut}
-                                    />
-                                    <Box mt={2}>
-                                      <Typography variant="subtitle1" mb={1}>
-                                        Status
-                                      </Typography>
-                                      <Autocomplete
-                                        options={optionstatus}
-                                        size="small"
-                                        sx={{ mt: 1 }}
-                                        value={selectedJob}
-                                        onChange={handleJobChange}
-                                        getOptionLabel={(option) => option.label}
-                                        isOptionEqualToValue={(option, value) =>
-                                          option.value === value.value
-                                        }
-                                        renderOption={(props, option) => (
-                                          <Box component="li" {...props}>
-                                            <Chip
-                                              size="small"
-                                              style={{
-                                                backgroundColor: option.clientfacingColour,
-                                                marginRight: 8,
-                                                marginLeft: 8,
-                                                borderRadius: "50%",
-                                                height: "15px",
-                                              }}
-                                            />
-                                            {option.label}
-                                          </Box>
-                                        )}
-                                        renderInput={(params) => (
-                                          <TextField
-                                            {...params}
-                                            placeholder="Select Client Facing Job"
-                                            InputProps={{
-                                              ...params.InputProps,
-                                              startAdornment:
-                                                params.inputProps.value &&
-                                                clientFacingJobs.length > 0 ? (
-                                                  <Chip
-                                                    size="small"
-                                                    style={{
-                                                      backgroundColor:
-                                                        clientFacingJobs.find(
-                                                          (job) =>
-                                                            job.clientfacingName ===
-                                                            params.inputProps.value,
-                                                        )?.clientfacingColour,
-                                                      marginRight: 8,
-                                                      marginLeft: 2,
-                                                      borderRadius: "50%",
-                                                      height: "15px",
-                                                    }}
-                                                  />
-                                                ) : null,
-                                            }}
-                                          />
-                                        )}
-                                      />
-                                    </Box>
-            
-                                    <Box mt={2}>
-                                      <ShortcodeTextField
-                                        label="Description"
-                                        value={clientDescription}
-                                        onChange={(e) => {
-                                          const value = e.target.value;
-                                          if (value.length <= 4000) {
-                                            setClientDescription(value);
-                                            setCharCount(value.length);
-                                          }
-                                        }}
-                                        placeholder="Description"
-                                        multiline
-                                        rows={4}
-                                        maxLength={4000}
-                                        inputRef={descriptionFieldRef}
-                                        onClick={(e) =>
-                                          setCursorPosition(e.target.selectionStart)
-                                        }
-                                        helperText={`${clientDescription.length}/4000 characters`}
-                                        // shortcuts
-                                        shortcuts={filteredShortcuts}
-                                        showShortcutDropdown={showDropdownDescription}
-                                        anchorElShortcut={anchorElDescription}
-                                        onToggleShortcutDropdown={toggleDescriptionDropdown}
-                                        onCloseShortcutDropdown={handleCloseDropdown}
-                                        onAddShortcut={handleDescriptionAddShortcut}
-                                      />
-                                    </Box>
-                                  </>
-                                )}
-                              </Box>
+            <Box mb={2}>
+              {clientFacingStatus && (
+                <>
+                  <ShortcodeTextField
+                    label="Job name for client"
+                    value={inputText}
+                    onChange={(e) => {
+                      const { value, selectionStart } = e.target;
+                      setInputText(value);
+                      setCursorPosition(selectionStart);
+                    }}
+                    placeholder="Job name for client"
+                    inputRef={textFieldRef}
+                    onClick={(e) => setCursorPosition(e.target.selectionStart)}
+                    // shortcuts
+                    shortcuts={filteredShortcuts}
+                    showShortcutDropdown={showDropdownClientJob}
+                    anchorElShortcut={anchorElClientJob}
+                    onToggleShortcutDropdown={toggleShortcodeDropdown}
+                    onCloseShortcutDropdown={handleCloseDropdown}
+                    onAddShortcut={handleJobAddShortcut}
+                  />
+                  <Box mt={2}>
+                    <Typography variant="subtitle1" mb={1}>
+                      Status
+                    </Typography>
+                    <Autocomplete
+                      options={optionstatus}
+                      size="small"
+                      sx={{ mt: 1 }}
+                      value={selectedJob}
+                      onChange={handleJobChange}
+                      getOptionLabel={(option) => option.label}
+                      isOptionEqualToValue={(option, value) =>
+                        option.value === value.value
+                      }
+                      renderOption={(props, option) => (
+                        <Box component="li" {...props}>
+                          <Chip
+                            size="small"
+                            style={{
+                              backgroundColor: option.clientfacingColour,
+                              marginRight: 8,
+                              marginLeft: 8,
+                              borderRadius: "50%",
+                              height: "15px",
+                            }}
+                          />
+                          {option.label}
+                        </Box>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Select Client Facing Job"
+                          InputProps={{
+                            ...params.InputProps,
+                            startAdornment:
+                              params.inputProps.value &&
+                              clientFacingJobs.length > 0 ? (
+                                <Chip
+                                  size="small"
+                                  style={{
+                                    backgroundColor: clientFacingJobs.find(
+                                      (job) =>
+                                        job.clientfacingName ===
+                                        params.inputProps.value,
+                                    )?.clientfacingColour,
+                                    marginRight: 8,
+                                    marginLeft: 2,
+                                    borderRadius: "50%",
+                                    height: "15px",
+                                  }}
+                                />
+                              ) : null,
+                          }}
+                        />
+                      )}
+                    />
+                  </Box>
+
+                  <Box mt={2}>
+                    <ShortcodeTextField
+                      label="Description"
+                      value={clientDescription}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.length <= 4000) {
+                          setClientDescription(value);
+                          setCharCount(value.length);
+                        }
+                      }}
+                      placeholder="Description"
+                      multiline
+                      rows={4}
+                      maxLength={4000}
+                      inputRef={descriptionFieldRef}
+                      onClick={(e) =>
+                        setCursorPosition(e.target.selectionStart)
+                      }
+                      helperText={`${clientDescription.length}/4000 characters`}
+                      // shortcuts
+                      shortcuts={filteredShortcuts}
+                      showShortcutDropdown={showDropdownDescription}
+                      anchorElShortcut={anchorElDescription}
+                      onToggleShortcutDropdown={toggleDescriptionDropdown}
+                      onCloseShortcutDropdown={handleCloseDropdown}
+                      onAddShortcut={handleDescriptionAddShortcut}
+                    />
+                  </Box>
+                </>
+              )}
+            </Box>
           </Box>
         </Box>
 
@@ -1113,10 +1067,10 @@ console.log("gets job template details",template)
         dueDate={dueDate}
         setDrawerOpen={setAutomationDrawerOpen}
         resetForm={resetForm}
-         clientFacingStatus={clientFacingStatus}
-  jobnameforclient={inputText}
-  clientfacingstatus={selectedJob?.value || null}
-  clientfacingDescription={clientDescription}
+        clientFacingStatus={clientFacingStatus}
+        jobnameforclient={inputText}
+        clientfacingstatus={selectedJob?.value || null}
+        clientfacingDescription={clientDescription}
       />
     </LocalizationProvider>
   );

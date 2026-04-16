@@ -1,6 +1,7 @@
 {
   "name": "new-pms-frontend",
   "version": "0.1.0",
+  "homepage": "/admin",
   "private": true,
   "dependencies": {
     "@docuseal/react": "^1.0.71",
