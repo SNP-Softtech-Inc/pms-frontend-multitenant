@@ -357,7 +357,9 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
 
                               {/* CONTENT */}
                               <Typography fontWeight="bold">
-                                {job.Name}
+                                {/* {job.Name}
+                                 */}
+                                  {truncateText(job.Name, 20)}
                               </Typography>
 
                               <Typography variant="body2">
@@ -369,7 +371,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
                               </Typography>
 
                               <Typography variant="caption" display="block">
-                                {truncateText(job.Description, 50)}
+                                {truncateText(job.Description, 20)}
                               </Typography>
 
                               {/* ✅ Priority Chip */}

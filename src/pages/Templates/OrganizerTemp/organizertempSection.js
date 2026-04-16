@@ -776,7 +776,7 @@ const Section = ({
               <TextField
                 {...commonTextFieldProps}
                 placeholder="Number"
-                type="number"
+                // type="number"
                 
               />
               {actionButtons}
@@ -792,7 +792,7 @@ const Section = ({
               <TextField
                 {...commonTextFieldProps}
                 placeholder="Date"
-                type="date"
+                // type="date"
                 InputLabelProps={{ shrink: true }}
                 
               />

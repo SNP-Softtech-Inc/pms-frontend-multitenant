@@ -221,6 +221,7 @@ const DocsFolderTree = () => {
         setFolderTree(res?.data?.contents || []);
       } catch (err) {
         console.error(err);
+        console.log("error list",err)
         setError("Error fetching folder tree");
       }
     };

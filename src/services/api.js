@@ -520,67 +520,67 @@ getPipelineStages: (pipelineId) =>
 
 export const accountsAPI = {
   // ================= CREATE =================
-  createAccount: (data) => accountcontactApi.post("/api/accounts/", data),
+  createAccount: (data) => accountcontactApi.post("/api/clientaccounts/", data),
 
   createAccountFromCSV: (data) =>
-    accountcontactApi.post("/api/accounts/csv-import", data),
+    accountcontactApi.post("/api/clientaccounts/csv-import", data),
 
   // ================= UPDATE =================
   updateAccount: (id, data) =>
-    accountcontactApi.put(`/api/accounts/${id}`, data),
+    accountcontactApi.put(`/api/clientaccounts/${id}`, data),
 
   updateAccountTags: (id, data) =>
     accountcontactApi.patch(
-      `/api/accounts/accountdetails/updateaccounttags/${id}`,
+      `/api/clientaccounts/accountdetails/updateaccounttags/${id}`,
       data,
     ),
 
   updateAccountActiveStatus: (data) =>
-    accountcontactApi.patch(`/api/accounts/update-active`, data),
+    accountcontactApi.patch(`/api/clientaccounts/update-active`, data),
 
   // ================= GET =================
-  getAccounts: () => accountcontactApi.get("/api/accounts/"),
+  getAccounts: () => accountcontactApi.get("/api/clientaccounts/"),
 
   // getAccountsList: () =>
   //   accountcontactApi.get("/accounts/list"),
   getAccountsList: (active = true) =>
-    accountcontactApi.get(`/api/accounts/list?active=${active}`),
+    accountcontactApi.get(`/api/clientaccounts/list?active=${active}`),
 
-  getAccountById: (id) => accountcontactApi.get(`/api/accounts/${id}`),
+  getAccountById: (id) => accountcontactApi.get(`/api/clientaccounts/${id}`),
 
   getMultipleAccountsByIds: (data) =>
-    accountcontactApi.post("/api/accounts/multiple", data),
+    accountcontactApi.post("/api/clientaccounts/multiple", data),
 
-  getAccountsByTeamMember: () => accountcontactApi.get("/api/accounts/byTeam"),
+  getAccountsByTeamMember: () => accountcontactApi.get("/api/clientaccounts/byTeam"),
 
   getAccountNames: () =>
-    accountcontactApi.get("/api/accounts/accountlist/names"),
+    accountcontactApi.get("/api/clientaccounts/accountlist/names"),
 
   // getAccountNamesByStatus: () =>
   //   accountcontactApi.get("/api/accounts/accountlist/names-by-status"),
 getAccountNamesByStatus: (active = true) =>
   accountcontactApi.get(
-    `/api/accounts/accountlist/names-by-status?active=${active}`
+    `/api/clientaccounts/accountlist/names-by-status?active=${active}`
   ),
   getAccountNamesWithEmails: () =>
-    accountcontactApi.get("/api/accounts/accounts-by-status-with-emails"),
+    accountcontactApi.get("/api/clientaccounts/accounts-by-status-with-emails"),
 
   getAccountContactEmails: (id) =>
-    accountcontactApi.get(`/api/accounts/contacts-emails/${id}`),
+    accountcontactApi.get(`/api/clientaccounts/contacts-emails/${id}`),
 
   getAccountsWithImportedAndIncompleteTags: () =>
-    accountcontactApi.get("/api/accounts/imported-incomplete"),
+    accountcontactApi.get("/api/clientaccounts/imported-incomplete"),
   getAccountsWithOnlyImportedTag: (active=true  ) =>
-    accountcontactApi.get(`/api/accounts/only-imported?active=${active}`),
+    accountcontactApi.get(`/api/clientaccounts/only-imported?active=${active}`),
   // ================= DELETE =================
   deleteMultipleAccounts: (data) =>
-    accountcontactApi.delete("/api/accounts/accounts/deleteMultipleAccounts", {
+    accountcontactApi.delete("/api/clientaccounts/accounts/deleteMultipleAccounts", {
       data,
     }),
 
   // ================= PROFILE =================
   uploadProfilePicture: (id, data) =>
-    accountcontactApi.patch(`/api/accounts/${id}/profile-picture`, data, {
+    accountcontactApi.patch(`/api/clientaccounts/${id}/profile-picture`, data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -588,49 +588,49 @@ getAccountNamesByStatus: (active = true) =>
 
   // ================= CONTACTS =================
   getAccountContacts: (accountId) =>
-    accountcontactApi.get(`/api/accounts/${accountId}/contacts`),
+    accountcontactApi.get(`/api/clientaccounts/${accountId}/contacts`),
 
   addContactsToAccount: (accountId, data) =>
-    accountcontactApi.post(`/api/accounts/${accountId}/contacts`, data),
+    accountcontactApi.post(`/api/clientaccounts/${accountId}/contacts`, data),
 
   removeContactFromAccount: (accountId, contactId) =>
-    accountcontactApi.delete(`/api/accounts/${accountId}/contact/${contactId}`),
+    accountcontactApi.delete(`/api/clientaccounts/${accountId}/contact/${contactId}`),
 
   toggleContactLogin: (accountId, contactId, data) =>
     accountcontactApi.patch(
-      `/api/accounts/${accountId}/contact/${contactId}`,
+      `/api/clientaccounts/${accountId}/contact/${contactId}`,
       data,
     ),
 
   // ================= BULK TAGS =================
   assignBulkTags: (data) =>
     accountcontactApi.post(
-      "/api/accounts/assignbulktags/tomultipleaccount",
+      "/api/clientaccounts/assignbulktags/tomultipleaccount",
       data,
     ),
 
   removeBulkTags: (data) =>
-    accountcontactApi.post("/api/accounts/assignbulktags/removetags", data),
+    accountcontactApi.post("/api/clientaccounts/assignbulktags/removetags", data),
 
   // ================= TEAM MEMBERS =================
   assignTeamMembers: (data) =>
     accountcontactApi.post(
-      "/api/accounts/manageteammember/teamMembertomultipleaccount",
+      "/api/clientaccounts/manageteammember/teamMembertomultipleaccount",
       data,
     ),
 
   removeTeamMembers: (data) =>
     accountcontactApi.post(
-      "/api/accounts/manageteammember/removeteammember",
+      "/api/clientaccounts/manageteammember/removeteammember",
       data,
     ),
 
   // ================= EMAIL =================
   sendBulkEmails: (data) =>
-    accountcontactApi.post("/api/accounts/sendBulkEmails", data),
+    accountcontactApi.post("/api/clientaccounts/sendBulkEmails", data),
 
   sendComposeEmail: (data) =>
-    accountcontactApi.post("/api/accounts/sendComposeEmail", data),
+    accountcontactApi.post("/api/clientaccounts/sendComposeEmail", data),
 };
 
 // ================= CONTACT APIs =================

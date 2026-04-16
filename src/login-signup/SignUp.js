@@ -225,6 +225,7 @@ const MyForm = () => {
       toast.success("OTP sent to your email");
     } catch (error) {
       console.error("Send OTP error:", error);
+      console.log("failed to send otp",error)
       setApiError(error.response?.data?.message || "Failed to send OTP");
       toast.error(error.response?.data?.message || "Failed to send OTP");
     } finally {
