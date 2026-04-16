@@ -6,7 +6,7 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
+  
   Chip,
 } from "@mui/material";
 
@@ -36,7 +36,7 @@ const Priority = ({ onPriorityChange, selectedPriority }) => {
 
   return (
     <Box>
-      {/* <InputLabel sx={{ color: "black", mb: 2 }}>Priority</InputLabel> */}
+      
       <FormControl fullWidth>
         <Select
           size="small"

@@ -17,7 +17,7 @@ import { AiOutlinePlusCircle } from "react-icons/ai";
 import { CiDiscount1 } from "react-icons/ci";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { RiCloseLine } from "react-icons/ri";
-import CreatableSelect from "react-select/creatable";
+
 import { Autocomplete, TextField } from "@mui/material";
 const LineItemsAndSummary = ({
   // Line items props
@@ -81,12 +81,7 @@ const LineItemsAndSummary = ({
     setSelectedRow(null);
   };
 
-  const handleSubtotalChange = (event) => {
-    const value = parseFloat(event.target.value) || 0;
-    if (onSubtotalChange) {
-      onSubtotalChange(value);
-    }
-  };
+ 
 
   const handleTaxRateChange = (event) => {
     const value = parseFloat(event.target.value) || 0;
@@ -421,11 +416,7 @@ const LineItemsAndSummary = ({
                 <TableCell>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
                     ${subtotal}
-                    {/* <TextField
-                      value={subtotal}
-                      onChange={handleSubtotalChange}
-                       sx={{ width: 100 }}
-                    /> */}
+                    
                   </Box>
                 </TableCell>
                 <TableCell>

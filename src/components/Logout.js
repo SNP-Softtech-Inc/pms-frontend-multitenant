@@ -96,7 +96,7 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-toastify';
+
 
 const Logout = ({ open, onClose, logoutAll = false }) => {
   const { logout } = useAuth();
