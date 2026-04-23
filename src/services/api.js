@@ -12,6 +12,7 @@ const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
 const INVOICE_URL = process.env.REACT_APP_INVOICE;
 const JOBS_URL = process.env.REACT_APP_JOBS;
 const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
+const INTERNAL_CHAT_URL = process.env.REACT_APP_TEAMMATES_CHAT;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -75,16 +76,22 @@ const invoiceApi = axios.create({
 
 const jobsApi = axios.create({
   baseURL: JOBS_URL,
-  headers:{
+  headers: {
     "Content-Type": "application/json",
-  }
+  },
 });
-const accountTasksApi =  axios.create({
-  baseURL:ACCOUNT_TASKS_URL,
-   headers:{
+const accountTasksApi = axios.create({
+  baseURL: ACCOUNT_TASKS_URL,
+  headers: {
     "Content-Type": "application/json",
-  }
-})
+  },
+});
+const internalChatApi = axios.create({
+  baseURL: INTERNAL_CHAT_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
@@ -156,6 +163,7 @@ attachInterceptors(chatApi);
 attachInterceptors(invoiceApi);
 attachInterceptors(jobsApi);
 attachInterceptors(accountTasksApi);
+attachInterceptors(internalChatApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -244,9 +252,7 @@ export const authAPI = {
   createNotification: (data) => authUserApi.post("/api/notifications/", data),
 
   // // Update a notification
-  // updateNotification: (id, data) =>
-  //   authUserApi.put(`/api/notifications/${id}`, data),
-  // New: use notification _id
+
   updateNotification: (notificationDocId, notificationId, data) =>
     authUserApi.put(
       `/api/notifications/${notificationDocId}/${notificationId}`,
@@ -254,6 +260,35 @@ export const authAPI = {
     ),
   // Delete a notification
   deleteNotification: (id) => authUserApi.delete(`/api/notifications/${id}`),
+
+  // ======================= GROUP APIs ===============================
+
+  // Create group
+  createGroup: (data) => authUserApi.post("/api/groups/", data),
+
+  // Get all groups
+  getGroups: () => authUserApi.get("/api/groups/"),
+
+  // Add members to group
+  addMembersToGroup: (groupId, memberIds) =>
+    authUserApi.post(`/api/groups/${groupId}/add-members`, {
+      memberIds,
+    }),
+
+  // Remove members from group
+  removeMembersFromGroup: (groupId, memberIds) =>
+    authUserApi.post(`/api/groups/${groupId}/remove-members`, {
+      memberIds,
+    }),
+
+  // Change group leader
+  changeGroupLeader: (groupId, newLeaderId) =>
+    authUserApi.put(`/api/groups/${groupId}/change-leader`, {
+      newLeaderId,
+    }),
+  updateGroup: (groupId, data) =>
+    authUserApi.put(`/api/groups/${groupId}`, data),
+  deleteGroup: (groupId) => authUserApi.delete(`/api/groups/${groupId}`),
 };
 
 // ================= SIDEBAR APIs =================
@@ -294,10 +329,9 @@ export const templateAPI = {
     templateApi.get(`/temp/tags/find?name=${encodeURIComponent(name)}`),
   getAccountCountOfTag: () =>
     templateApi.get("/temp/tags/accountcountoftag/account"),
-// ✅ NEW: Get default tags (Incomplete Data & Imported Account)
-getDefaultTags: () =>
-  templateApi.get("/temp/tags/default-tags"),
-  
+  // ✅ NEW: Get default tags (Incomplete Data & Imported Account)
+  getDefaultTags: () => templateApi.get("/temp/tags/default-tags"),
+
   // ================= TASKS =================
   // CREATE
   createTaskTemplate: (data) => templateApi.post("/temp/tasks/", data),
@@ -491,9 +525,9 @@ getDefaultTags: () =>
       `/temp/pipeline/check-name?name=${encodeURIComponent(name)}`,
     ),
 
-    // NEW: GET PIPELINE STAGES (with automations)
-getPipelineStages: (pipelineId) =>
-  templateApi.get(`/temp/pipeline/stages/${pipelineId}`),
+  // NEW: GET PIPELINE STAGES (with automations)
+  getPipelineStages: (pipelineId) =>
+    templateApi.get(`/temp/pipeline/stages/${pipelineId}`),
 
   // ================= SORT JOBS BY =================
 
@@ -551,17 +585,18 @@ export const accountsAPI = {
   getMultipleAccountsByIds: (data) =>
     accountcontactApi.post("/api/clientaccounts/multiple", data),
 
-  getAccountsByTeamMember: () => accountcontactApi.get("/api/clientaccounts/byTeam"),
+  getAccountsByTeamMember: () =>
+    accountcontactApi.get("/api/clientaccounts/byTeam"),
 
   getAccountNames: () =>
     accountcontactApi.get("/api/clientaccounts/accountlist/names"),
 
   // getAccountNamesByStatus: () =>
   //   accountcontactApi.get("/api/accounts/accountlist/names-by-status"),
-getAccountNamesByStatus: (active = true) =>
-  accountcontactApi.get(
-    `/api/clientaccounts/accountlist/names-by-status?active=${active}`
-  ),
+  getAccountNamesByStatus: (active = true) =>
+    accountcontactApi.get(
+      `/api/clientaccounts/accountlist/names-by-status?active=${active}`,
+    ),
   getAccountNamesWithEmails: () =>
     accountcontactApi.get("/api/clientaccounts/accounts-by-status-with-emails"),
 
@@ -570,13 +605,16 @@ getAccountNamesByStatus: (active = true) =>
 
   getAccountsWithImportedAndIncompleteTags: () =>
     accountcontactApi.get("/api/clientaccounts/imported-incomplete"),
-  getAccountsWithOnlyImportedTag: (active=true  ) =>
+  getAccountsWithOnlyImportedTag: (active = true) =>
     accountcontactApi.get(`/api/clientaccounts/only-imported?active=${active}`),
   // ================= DELETE =================
   deleteMultipleAccounts: (data) =>
-    accountcontactApi.delete("/api/clientaccounts/accounts/deleteMultipleAccounts", {
-      data,
-    }),
+    accountcontactApi.delete(
+      "/api/clientaccounts/accounts/deleteMultipleAccounts",
+      {
+        data,
+      },
+    ),
 
   // ================= PROFILE =================
   uploadProfilePicture: (id, data) =>
@@ -594,7 +632,9 @@ getAccountNamesByStatus: (active = true) =>
     accountcontactApi.post(`/api/clientaccounts/${accountId}/contacts`, data),
 
   removeContactFromAccount: (accountId, contactId) =>
-    accountcontactApi.delete(`/api/clientaccounts/${accountId}/contact/${contactId}`),
+    accountcontactApi.delete(
+      `/api/clientaccounts/${accountId}/contact/${contactId}`,
+    ),
 
   toggleContactLogin: (accountId, contactId, data) =>
     accountcontactApi.patch(
@@ -610,7 +650,10 @@ getAccountNamesByStatus: (active = true) =>
     ),
 
   removeBulkTags: (data) =>
-    accountcontactApi.post("/api/clientaccounts/assignbulktags/removetags", data),
+    accountcontactApi.post(
+      "/api/clientaccounts/assignbulktags/removetags",
+      data,
+    ),
 
   // ================= TEAM MEMBERS =================
   assignTeamMembers: (data) =>
@@ -699,20 +742,17 @@ export const proposalAPI = {
     proposalApi.post("/account/proposals/", data),
 
   // GET ALL
-  getAllAccountProposals: () =>
-    proposalApi.get("/account/proposals/"),
+  getAllAccountProposals: () => proposalApi.get("/account/proposals/"),
 
   // GET SINGLE
-  getAccountProposalById: (id) =>
-    proposalApi.get(`/account/proposals/${id}`),
+  getAccountProposalById: (id) => proposalApi.get(`/account/proposals/${id}`),
 
   // UPDATE
   updateAccountProposal: (id, data) =>
     proposalApi.put(`/account/proposals/${id}`, data),
 
   // DELETE SINGLE
-  deleteAccountProposal: (id) =>
-    proposalApi.delete(`/account/proposals/${id}`),
+  deleteAccountProposal: (id) => proposalApi.delete(`/account/proposals/${id}`),
 
   // ===== FILTERS =====
 
@@ -722,9 +762,7 @@ export const proposalAPI = {
 
   // GET BY ACCOUNT (MULTIPLE IDS SUPPORT)
   getAccountProposalsByAccountIds: (accountIds) =>
-    proposalApi.get(
-      `/account/proposals/byaccount/${accountIds.join(",")}`
-    ),
+    proposalApi.get(`/account/proposals/byaccount/${accountIds.join(",")}`),
 
   // ===== BULK =====
 
@@ -776,7 +814,6 @@ export const organizerAPI = {
   duplicateOrganizerTemplate: (id) =>
     organizerApi.post(`/api/organizertemp/organizertemplate/duplicate/${id}`),
 
-
   // ================= ACCOUNT-WISE ORGANIZER APIs =================
 
   // GET ALL
@@ -798,40 +835,37 @@ export const organizerAPI = {
   // GET BY ACCOUNT ID
   getOrganizerByAccountId: (accountId) =>
     organizerApi.get(
-      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}`
+      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}`,
     ),
 
   // GET ACTIVE BY ACCOUNT ID
   getActiveOrganizerByAccountId: (accountId, isActive) =>
     organizerApi.get(
-      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}/${isActive}`
+      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}/${isActive}`,
     ),
 
   // UPDATE
   updateOrganizerAccountWise: (id, data) =>
-    organizerApi.patch(
-      `/api/orgaccwise/organizeraccountwise/${id}`,
-      data
-    ),
+    organizerApi.patch(`/api/orgaccwise/organizeraccountwise/${id}`, data),
 
   // ACTIVE / ARCHIVE
   updateOrganizerStatus: (id, data) =>
     organizerApi.patch(
       `/api/orgaccwise/organizeraccountwise/active-archive/${id}`,
-      data
+      data,
     ),
 
   // COMPLETE & NOTIFY
   completeAndNotifyOrganizer: (id, data) =>
     organizerApi.patch(
       `/api/orgaccwise/organizeraccountwise/completeandnotify/${id}`,
-      data
+      data,
     ),
 
   // UPDATE STATUS (SUBMITTED)
   updateOrganizerSubmissionStatus: (id, isSubmitted) =>
     organizerApi.patch(
-      `/api/orgaccwise/organizeraccountwise/organizeraccountwisestatus/${id}/${isSubmitted}`
+      `/api/orgaccwise/organizeraccountwise/organizeraccountwisestatus/${id}/${isSubmitted}`,
     ),
 
   // GET PENDING
@@ -839,10 +873,15 @@ export const organizerAPI = {
     organizerApi.get(`/api/orgaccwise/organizer/pending/${accountId}`),
 
   // UPDATE FORM ELEMENT ACTIVE STATUS
-  updateFormElementActiveStatus: (organizerId, sectionId, formElementId, data) =>
+  updateFormElementActiveStatus: (
+    organizerId,
+    sectionId,
+    formElementId,
+    data,
+  ) =>
     organizerApi.patch(
       `/api/orgaccwise/${organizerId}/sections/${sectionId}/form-elements/${formElementId}`,
-      data
+      data,
     ),
 
   // AUTO SAVE
@@ -854,26 +893,27 @@ export const organizerAPI = {
     organizerApi.patch(`/api/orgaccwise/rename/${id}`, data),
 };
 
-// ================= FOLDER MANAGEMENT APIs =================
+// ================= FOLDER MANAGEMENT APIs =================gfvF
 export const folderManagementAPI = {
   // CREATE
   createFolderTemplate: (data) =>
-    folderManagementApi.post("/temp/foldertemp/folder-template", data),
+    folderManagementApi.post("/tempfolder/foldertemp/folder-template", data),
 
   // GET ALL
-  getFolderTemplates: () => folderManagementApi.get("/temp/foldertemp/templatelist"),
+  getFolderTemplates: () =>
+    folderManagementApi.get("/tempfolder/foldertemp/templatelist"),
 
   // GET SINGLE
   getFolderTemplateById: (id) =>
-    folderManagementApi.get(`/temp/foldertemp/${id}`),
+    folderManagementApi.get(`/tempfolder/foldertemp/${id}`),
 
   // RENAME
   renameFolderTemplate: (id, data) =>
-    folderManagementApi.patch(`/temp/foldertemp/rename/${id}`, data),
+    folderManagementApi.patch(`/tempfolder/foldertemp/rename/${id}`, data),
 
   // DELETE
   deleteFolderTemplate: (id) =>
-    folderManagementApi.delete(`/temp/foldertemp/delete/${id}`),
+    folderManagementApi.delete(`/tempfolder/foldertemp/delete/${id}`),
 };
 
 // ================= DOC MANAGEMENT APIs =================
@@ -881,75 +921,88 @@ export const docAPI = {
   // ================= FOLDER =================
 
   // Create folder
-  createFolder: (data) => folderManagementApi.post("/temp/docManagement/folder", data),
+  createFolder: (data) =>
+    folderManagementApi.post("/tempfolder/docManagement/folder", data),
 
   // Lock / Unlock folder
   setFolderReadOnly: (data) =>
-    folderManagementApi.post("/temp/docManagement/folder/readonly", data),
+    folderManagementApi.post("/tempfolder/docManagement/folder/readonly", data),
 
   // Upload folder (multiple files structure)
   uploadFolderStructure: (data) =>
-    folderManagementApi.post("/temp/docManagement/folder/upload", data),
+    folderManagementApi.post("/tempfolder/docManagement/folder/upload", data),
 
   // Upload ZIP folder
   uploadFolderZip: (formData) =>
-    folderManagementApi.post("/temp/docManagement/upload-folder", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
+    folderManagementApi.post(
+      "/tempfolder/docManagement/upload-folder",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    }),
+    ),
 
   // ================= FILE =================
 
   // Upload single file
-uploadFile: (formData, folderPath) =>
-  folderManagementApi.post(
-    `/temp/docManagement/file/upload?folderPath=${encodeURIComponent(folderPath)}`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
+  uploadFile: (formData, folderPath) =>
+    folderManagementApi.post(
+      `/tempfolder/docManagement/file/upload?folderPath=${encodeURIComponent(folderPath)}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    }
-  ),
+    ),
 
   // Lock / Unlock file
   setFileReadOnly: (data) =>
-    folderManagementApi.post("/temp/docManagement/file/readonly", data),
+    folderManagementApi.post("/tempfolder/docManagement/file/readonly", data),
 
   // ================= COMMON =================
 
   // Delete file or folder
-  deleteItem: (data) => folderManagementApi.post("/temp/docManagement/delete", data),
+  deleteItem: (data) =>
+    folderManagementApi.post("/tempfolder/docManagement/delete", data),
 
   // Move file or folder
-  moveItem: (data) => folderManagementApi.post("/temp/docManagement/move", data),
+  moveItem: (data) =>
+    folderManagementApi.post("/tempfolder/docManagement/move", data),
 
   // Rename file or folder
-  renameItem: (data) => folderManagementApi.post("/temp/docManagement/rename", data),
+  renameItem: (data) =>
+    folderManagementApi.post("/tempfolder/docManagement/rename", data),
 
   // Update metadata
-  updateMeta: (data) => folderManagementApi.post("/temp/docManagement/meta", data),
+  updateMeta: (data) =>
+    folderManagementApi.post("/tempfolder/docManagement/meta", data),
 
   // Update status
   updateStatus: (data) =>
-    folderManagementApi.post("/temp/docManagement/updateStatus", data),
+    folderManagementApi.post("/tempfolder/docManagement/updateStatus", data),
 
   // ================= LISTING =================
 
   // List folder content
   listFolderContent: (folderPath) =>
-    folderManagementApi.get(`/temp/docManagement/list?folderPath=${folderPath}`),
+    folderManagementApi.get(
+      `/tempfolder/docManagement/list?folderPath=${folderPath}`,
+    ),
 
   // List full tree (folders + files)
   listFoldersAndFiles: (folderPath) =>
-    folderManagementApi.get(`/temp/docManagement/files/list?folderPath=${folderPath}`),
+    folderManagementApi.get(
+      `/tempfolder/docManagement/files/list?folderPath=${folderPath}`,
+    ),
 
   // ================= TEMPLATE =================
 
   // Apply template to account
   applyTemplateToAccount: (data) =>
-    folderManagementApi.post("/temp/docManagement/apply-template", data),
+    folderManagementApi.post("/tempfolder/docManagement/apply-template", data),
 };
 
 export const accountDocsAPI = {
@@ -994,7 +1047,7 @@ export const accountDocsAPI = {
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
-      }
+      },
     ),
 
   // Lock / Unlock file
@@ -1012,12 +1065,10 @@ export const accountDocsAPI = {
   // ================= COMMON =================
 
   // Delete file/folder
-  deleteItem: (data) =>
-    folderManagementApi.post("/accounts/docs/delete", data),
+  deleteItem: (data) => folderManagementApi.post("/accounts/docs/delete", data),
 
   // Move to trash
-  trashItem: (data) =>
-    folderManagementApi.patch("/accounts/docs/trash", data),
+  trashItem: (data) => folderManagementApi.patch("/accounts/docs/trash", data),
 
   bulkTrashItems: (data) =>
     folderManagementApi.post("/accounts/docs/bulktrash", data),
@@ -1027,16 +1078,13 @@ export const accountDocsAPI = {
     folderManagementApi.patch("/accounts/docs/restore", data),
 
   // Move item
-  moveItem: (data) =>
-    folderManagementApi.post("/accounts/docs/move", data),
+  moveItem: (data) => folderManagementApi.post("/accounts/docs/move", data),
 
   // Rename item
-  renameItem: (data) =>
-    folderManagementApi.post("/accounts/docs/rename", data),
+  renameItem: (data) => folderManagementApi.post("/accounts/docs/rename", data),
 
   // Update metadata
-  updateMeta: (data) =>
-    folderManagementApi.post("/accounts/docs/meta", data),
+  updateMeta: (data) => folderManagementApi.post("/accounts/docs/meta", data),
 
   // Update status
   updateStatus: (data) =>
@@ -1046,31 +1094,31 @@ export const accountDocsAPI = {
   // downloadItems: (data) =>
   //   folderManagementApi.post("/accounts/docs/download", data),
   // Download
-downloadItems: (data) =>
-  folderManagementApi.post("/accounts/docs/download", data, {
-    responseType: "blob", // ✅ THIS FIXES YOUR ERROR
-  }),
+  downloadItems: (data) =>
+    folderManagementApi.post("/accounts/docs/download", data, {
+      responseType: "blob", // ✅ THIS FIXES YOUR ERROR
+    }),
 
   // ================= LISTING =================
 
   // List folder content
   listFolderContent: (folderPath) =>
     folderManagementApi.get(
-      `/accounts/docs/list?folderPath=${encodeURIComponent(folderPath)}`
+      `/accounts/docs/list?folderPath=${encodeURIComponent(folderPath)}`,
     ),
 
   // List full tree
   listFoldersAndFiles: (folderPath) =>
     folderManagementApi.get(
-      `/accounts/docs/files/list?folderPath=${encodeURIComponent(folderPath)}`
+      `/accounts/docs/files/list?folderPath=${encodeURIComponent(folderPath)}`,
     ),
 
   // Client view
   clientListFoldersAndFiles: (folderPath) =>
     folderManagementApi.get(
       `/accounts/docs/files/list/clientView?folderPath=${encodeURIComponent(
-        folderPath
-      )}`
+        folderPath,
+      )}`,
     ),
 
   // Trashed items
@@ -1085,24 +1133,17 @@ downloadItems: (data) =>
 
   // Pending approvals
   getPendingApprovals: () =>
-    folderManagementApi.get(
-      "/accounts/docs/documents/pending-approvals"
-    ),
+    folderManagementApi.get("/accounts/docs/documents/pending-approvals"),
 
   // Pending signatures
   getPendingSignatures: () =>
-    folderManagementApi.get(
-      "/accounts/docs/documents/pending-signature"
-    ),
+    folderManagementApi.get("/accounts/docs/documents/pending-signature"),
 
   // ================= INVOICE =================
 
   // Lock / Unlock invoice
   lockUnlockInvoice: (data) =>
-    folderManagementApi.post(
-      "/accounts/docs/invoice/lock-unlock",
-      data
-    ),
+    folderManagementApi.post("/accounts/docs/invoice/lock-unlock", data),
 
   // ================= BULK =================
 
@@ -1115,37 +1156,35 @@ downloadItems: (data) =>
   bulkMoveItems: (data) =>
     folderManagementApi.post("/accounts/docs/bulk-move", data),
 
-// ================= APPROVALS =================
+  // ================= APPROVALS =================
 
-// Request approval
-requestApproval: (data) =>
-  folderManagementApi.post("/approvals/request-approval", data),
+  // Request approval
+  requestApproval: (data) =>
+    folderManagementApi.post("/approvals/request-approval", data),
 
-// Get approvals by client email
-getClientApprovals: (email) =>
-  folderManagementApi.get(`/approvals/client-approvals/${email}`),
+  // Get approvals by client email
+  getClientApprovals: (email) =>
+    folderManagementApi.get(`/approvals/client-approvals/${email}`),
 
-// Get approval by ID
-getApprovalById: (id) =>
-  folderManagementApi.get(`/approvals/approvals/${id}`),
+  // Get approval by ID
+  getApprovalById: (id) =>
+    folderManagementApi.get(`/approvals/approvals/${id}`),
 
-// Update approval status (approve/reject)
-updateApprovalStatus: (id, data) =>
-  folderManagementApi.patch(`/approvals/client-approvals/${id}`, data),
+  // Update approval status (approve/reject)
+  updateApprovalStatus: (id, data) =>
+    folderManagementApi.patch(`/approvals/client-approvals/${id}`, data),
 
-// Get approvals by accountId
-getApprovalsByAccount: (accountId) =>
-  folderManagementApi.get(`/approvals/approvalList/byaccountid/${accountId}`),
+  // Get approvals by accountId
+  getApprovalsByAccount: (accountId) =>
+    folderManagementApi.get(`/approvals/approvalList/byaccountid/${accountId}`),
 
-// Get pending approvals by accountId
-getPendingApprovalsByAccount: (accountId) =>
-  folderManagementApi.get(`/approvals/approvalList/${accountId}/pending`),
+  // Get pending approvals by accountId
+  getPendingApprovalsByAccount: (accountId) =>
+    folderManagementApi.get(`/approvals/approvalList/${accountId}/pending`),
 
-// Delete approval
-deleteApproval: (id) =>
-  folderManagementApi.delete(`/approvals/${id}`),
+  // Delete approval
+  deleteApproval: (id) => folderManagementApi.delete(`/approvals/${id}`),
 };
-
 
 export const chatAPI = {
   // ================= CHAT =================
@@ -1158,9 +1197,9 @@ export const chatAPI = {
     chatApi.get(`/chats/chatsaccountwise/chatlistbyaccount/${accountId}`),
 
   getChatsByAccountAndStatus: (accountId, isactive) =>
-  chatApi.get(
-    `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}`
-  ),
+    chatApi.get(
+      `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}`,
+    ),
   createChat: (data) => chatApi.post("/chats/chatsaccountwise", data),
 
   createChatAdmin: (data) =>
@@ -1174,7 +1213,10 @@ export const chatAPI = {
   // ================= MESSAGES =================
 
   updateMessage: (data) =>
-    chatApi.patch(`/chats/chatsaccountwise/chatmessage/bymessageid/update`, data),
+    chatApi.patch(
+      `/chats/chatsaccountwise/chatmessage/bymessageid/update`,
+      data,
+    ),
 
   deleteMessage: (data) =>
     chatApi.delete(`/chats/chatsaccountwise/chatmessage/bymessageid/delete`, {
@@ -1199,8 +1241,7 @@ export const chatAPI = {
 
   getUnreadChats: () => chatApi.get(`/chats/unreadmessages`),
 
-  getUnreadByAccount: (accountId) =>
-    chatApi.get(`/chats/unread/${accountId}`),
+  getUnreadByAccount: (accountId) => chatApi.get(`/chats/unread/${accountId}`),
 
   getUnreadMessages: (accountId, fromwhome) =>
     chatApi.get(`/chats/unread/${accountId}/${fromwhome}`),
@@ -1210,7 +1251,7 @@ export const chatAPI = {
 
   markAllAsRead: (chatId, accountId, fromwhome) =>
     chatApi.patch(
-      `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`
+      `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`,
     ),
 
   // ================= STATUS =================
@@ -1218,14 +1259,12 @@ export const chatAPI = {
   updateChatStatus: (id, data) =>
     chatApi.post(`/chats/accountchat/updatestatus/${id}`, data),
 
- // For chatsend
-  sendSecureChat: (data) =>
-    chatApi.post("/chats/securechatsend", data),
+  // For chatsend
+  sendSecureChat: (data) => chatApi.post("/chats/securechatsend", data),
 
   // For chat message send
   sendSecureMessage: (data) =>
     chatApi.post("/chats/securemessagechatsend", data),
-
 };
 
 // ================= INVOICE APIs =================
@@ -1235,14 +1274,11 @@ export const invoiceAPI = {
     invoiceApi.post("/account/invoicelist/invoice", data),
 
   // ================= GET =================
-  getInvoices: () =>
-    invoiceApi.get("/account/invoicelist/invoice"),
+  getInvoices: () => invoiceApi.get("/account/invoicelist/invoice"),
 
-  getInvoiceById: (id) =>
-    invoiceApi.get(`/account/invoicelist/invoice/${id}`),
+  getInvoiceById: (id) => invoiceApi.get(`/account/invoicelist/invoice/${id}`),
 
-  getInvoiceCount: () =>
-    invoiceApi.get("/account/invoicelist/invoicecount"),
+  getInvoiceCount: () => invoiceApi.get("/account/invoicelist/invoicecount"),
 
   getInvoiceStatusCount: () =>
     invoiceApi.get("/account/invoicelist/invoicestatuscount"),
@@ -1255,23 +1291,21 @@ export const invoiceAPI = {
 
   getInvoiceListById: (id) =>
     invoiceApi.get(
-      `/account/invoicelist/invoice/invoicelist/invoicelistbyid/${id}`
+      `/account/invoicelist/invoice/invoicelist/invoicelistbyid/${id}`,
     ),
 
   getInvoiceListByAccountId: (id) =>
     invoiceApi.get(
-      `/account/invoicelist/invoice/invoicelistby/accountid/${id}`
+      `/account/invoicelist/invoice/invoicelistby/accountid/${id}`,
     ),
 
   getPendingInvoicesByAccountId: (id) =>
     invoiceApi.get(
-      `/account/invoicelist/invoice/pending/invoicelistby/accountid/${id}`
+      `/account/invoicelist/invoice/pending/invoicelistby/accountid/${id}`,
     ),
 
   getInvoiceForPrint: (id) =>
-    invoiceApi.get(
-      `/account/invoicelist/invoice/invoiceforprint/${id}`
-    ),
+    invoiceApi.get(`/account/invoicelist/invoice/invoiceforprint/${id}`),
 
   getNextInvoiceNumber: () =>
     invoiceApi.get("/account/invoicelist/next-invoice-number"),
@@ -1283,7 +1317,7 @@ export const invoiceAPI = {
   updateInvoiceStatus: (invoiceNumber, data) =>
     invoiceApi.patch(
       `/account/invoicelist/invoicestatus/${invoiceNumber}`,
-      data
+      data,
     ),
 
   // ================= DELETE =================
@@ -1315,12 +1349,10 @@ export const jobAPI = {
   createJob: (data) => jobsApi.post("/workflow/jobs/jobs", data),
 
   // UPDATE JOB
-  updateJob: (id, data) =>
-    jobsApi.patch(`/workflow/jobs/jobs/${id}`, data),
+  updateJob: (id, data) => jobsApi.patch(`/workflow/jobs/jobs/${id}`, data),
 
   // DELETE JOB
-  deleteJob: (id) =>
-    jobsApi.delete(`/workflow/jobs/jobs/${id}`),
+  deleteJob: (id) => jobsApi.delete(`/workflow/jobs/jobs/${id}`),
 
   // ================= LISTS =================
 
@@ -1330,23 +1362,17 @@ export const jobAPI = {
 
   // BY USER
   getJobsByUser: (userId, isActive = true) =>
-    jobsApi.get(
-      `/workflow/jobs/jobs/list/user/${userId}/${isActive}`
-    ),
+    jobsApi.get(`/workflow/jobs/jobs/list/user/${userId}/${isActive}`),
 
   // BY ACCOUNT IDS (GET - comma separated)
-  getJobsByAccountIds: (accountId, isActive ) =>
+  getJobsByAccountIds: (accountId, isActive) =>
+    jobsApi.get(`/workflow/jobs/jobs/list/account/${accountId}/${isActive}`),
+  pipelineJoblist: (accountId, isActive) =>
+    jobsApi.get(`/workflow/jobs/pipeline-jobs/${isActive}/${accountId}`),
+  pipelineJobsByAccount: (accountId, isActive) =>
     jobsApi.get(
-      `/workflow/jobs/jobs/list/account/${accountId}/${isActive}`
+      `/workflow/jobs/pipeline-jobs/byaccount/${accountId}/${isActive}`,
     ),
-  pipelineJoblist: (accountId, isActive ) =>
-    jobsApi.get(
-      `/workflow/jobs/pipeline-jobs/${isActive}/${accountId}`
-    ),
-    pipelineJobsByAccount: (accountId, isActive) =>
-  jobsApi.get(
-    `/workflow/jobs/pipeline-jobs/byaccount/${accountId}/${isActive}`
-  ),
   // POST FILTER (ACCOUNT IDS ARRAY)
   getJobsByAccountsPost: (data) =>
     jobsApi.post(`/workflow/jobs/jobs/list/account`, data),
@@ -1354,13 +1380,12 @@ export const jobAPI = {
   // ================= DETAIL =================
 
   // GET FULL JOB DETAIL
-  getJobDetail: (id) =>
-    jobsApi.get(`/workflow/jobs/jobs/details/${id}`),
+  getJobDetail: (id) => jobsApi.get(`/workflow/jobs/jobs/details/${id}`),
 
   // ================= ACCOUNT =================
 
   // GET JOBS BY ACCOUNT
-  getJobsByAccount: (accountId,isActive) =>
+  getJobsByAccount: (accountId, isActive) =>
     jobsApi.get(`/workflow/jobs/accounts/${accountId}/jobs/${isActive}`),
 
   // DELETE JOBS BY ACCOUNT
@@ -1371,9 +1396,7 @@ export const jobAPI = {
 
   // GET PIPELINES FROM JOB LIST
   getPipelinesFromJobs: (userId, isActive = true) =>
-    jobsApi.get(
-      `/workflow/jobs/jobs/pipelines/${userId}/${isActive}`
-    ),
+    jobsApi.get(`/workflow/jobs/jobs/pipelines/${userId}/${isActive}`),
 
   // ================= STAGE =================
 
@@ -1383,16 +1406,12 @@ export const jobAPI = {
 
   // RUN STAGE AUTOMATION + MOVE
   runStageAutomation: (data) =>
-    jobsApi.post(
-      `/workflow/jobs/jobs/stage/automations`,
-      data
-    ),
+    jobsApi.post(`/workflow/jobs/jobs/stage/automations`, data),
 
   // ================= BULK =================
 
   // CREATE BULK JOB
-  createBulkJob: (data) =>
-    jobsApi.post(`/workflow/jobs/jobs/bulk`, data),
+  createBulkJob: (data) => jobsApi.post(`/workflow/jobs/jobs/bulk`, data),
 };
 
 // ================= ACCOUNT TASKS APIs =================
@@ -1408,8 +1427,7 @@ export const accountTasksAPI = {
     accountTasksApi.get(`/accounts-tasks/tasklist/${isActive}`),
 
   // GET TASK BY ID
-  getTaskById: (id) =>
-    accountTasksApi.get(`/accounts-tasks/taskbyid/${id}`),
+  getTaskById: (id) => accountTasksApi.get(`/accounts-tasks/taskbyid/${id}`),
 
   // DELETE TASK
   deleteTask: (id) =>
@@ -1429,34 +1447,84 @@ export const accountTasksAPI = {
 
   // TASKS BY ACCOUNT
   getTaskListByAccountId: (accountId) =>
-    accountTasksApi.get(`/accounts-tasks/tasks/taskslist/byaccount/${accountId}`),
+    accountTasksApi.get(
+      `/accounts-tasks/tasks/taskslist/byaccount/${accountId}`,
+    ),
 
   // COMPLETED TASKS BY ACCOUNT
   getCompleteTaskListByAccount: (accountId) =>
     accountTasksApi.get(
-      `/accounts-tasks/tasks/tasklist/byaccount/completed/${accountId}`
+      `/accounts-tasks/tasks/tasklist/byaccount/completed/${accountId}`,
     ),
 
   // BULK STATUS UPDATE
   bulkUpdateTaskStatus: (data) =>
     accountTasksApi.post(`/accounts-tasks/tasks/updatestatus`, data),
-   // ✅ ALL PENDING TASKS
-  getPendingTasks: () =>
-    accountTasksApi.get(`/accounts-tasks/pending`),
+  // ✅ ALL PENDING TASKS
+  getPendingTasks: () => accountTasksApi.get(`/accounts-tasks/pending`),
 
   // ✅ ALL COMPLETED TASKS
-  getCompletedTasks: () =>
-    accountTasksApi.get(`/accounts-tasks/completed`),
+  getCompletedTasks: () => accountTasksApi.get(`/accounts-tasks/completed`),
 
   // ✅ PENDING TASKS BY ACCOUNT
   getPendingTasksByAccount: (accountId) =>
-    accountTasksApi.get(
-      `/accounts-tasks/pending/account/${accountId}`
-    ),
+    accountTasksApi.get(`/accounts-tasks/pending/account/${accountId}`),
 
   // ✅ COMPLETED TASKS BY ACCOUNT
   getCompletedTasksByAccount: (accountId) =>
-    accountTasksApi.get(
-      `/accounts-tasks/completed/account/${accountId}`
+    accountTasksApi.get(`/accounts-tasks/completed/account/${accountId}`),
+};
+// ================= INTERNAL CHAT APIs =================
+
+export const internalChatAPI = {
+  // ================= CHAT =================
+
+  // Send message (create chat or add message)
+  sendMessage: (data) => internalChatApi.post("/api/internalchat/send", data),
+
+  // Get all chats
+  getAllChats: () => internalChatApi.get("/api/internalchat/"),
+
+  // Get chat by ID
+  getChatById: (chatId) => internalChatApi.get(`/api/internalchat/${chatId}`),
+
+  // Get chat by participants
+  getChatByParticipants: (params) =>
+    internalChatApi.get("/api/internalchat/by-participants", { params }),
+
+  // Get chats by user ID
+  getChatsByUserId: (userId) =>
+    internalChatApi.get(`/api/internalchat/user/${userId}`),
+
+  // ================= MESSAGES =================
+
+  // Add message to existing chat
+  addMessageToChat: (chatId, data) =>
+    internalChatApi.patch(`/api/internalchat/${chatId}/message`, data),
+
+  // Mark single message as read
+  markMessageAsRead: (chatId, messageId) =>
+    internalChatApi.patch(`/api/internalchat/${chatId}/read/${messageId}`),
+
+  // Mark all messages as read
+  markAllMessagesAsRead: (chatId) =>
+    internalChatApi.patch(`/api/internalchat/${chatId}/markAllRead`),
+
+  // Delete specific message
+  deleteMessage: (chatId, data) =>
+    internalChatApi.delete(
+      `/api/internalchat/${chatId}/message/bymessageid/delete`,
+      { data },
     ),
+
+  // ================= CHAT DELETE =================
+
+  // Delete full chat
+  deleteChat: (chatId) => internalChatApi.delete(`/api/internalchat/${chatId}`),
+
+  // ================= (OPTIONAL BUT NEEDED) =================
+
+  // ✅ UPDATE MESSAGE (you MUST add backend for this if not exists)
+  updateMessage: (chatId, data) =>
+    internalChatApi.patch(`/api/internalchat/${chatId}/message/update`, data),
 };

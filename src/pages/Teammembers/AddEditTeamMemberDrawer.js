@@ -11,7 +11,8 @@ import {
   Alert,
   Divider,
   Switch,
-  Button,Paper
+  Button,
+  Paper,
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { authAPI } from "../../services/api";
@@ -221,7 +222,9 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
         {/* Permissions */}
         {formData.role === "employee" && (
           <Box mt={3}>
-            <Typography sx={{ fontWeight: 500 }} variant="h6">Access Rights</Typography>
+            <Typography sx={{ fontWeight: 500 }} variant="h6">
+              Access Rights
+            </Typography>
 
             <Grid
               container
@@ -232,16 +235,17 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
               {permissionList.map((key) => (
                 <Grid size={{ xs: 12, sm: 6, md: 6 }} key={key}>
                   {/* <Box display="flex" justifyContent="space-between"> */}
-                    <Paper
-        elevation={2}
-        sx={{
-          p: 2,
-          borderRadius: 2,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      ><Typography sx={{ fontWeight: 500 }}>{key}</Typography>
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 500 }}>{key}</Typography>
                     <Switch
                       checked={permissions[key]}
                       onChange={() => handlePermissionChange(key)}

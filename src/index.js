@@ -31,7 +31,7 @@ root.render(
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <BrowserRouter>
+        <BrowserRouter basename="/admin">
           <AuthProvider>
              <ConfirmProvider>
             <App />

@@ -65,6 +65,7 @@ const [templateId, setTemplateId] = useState("");
     await fetchFolderTree(templateId);
   } catch (err) {
     console.error(err);
+    console.log("template creation error",err)
     setError("Failed to create folder template");
     toast.error("Failed to create folder template");
   } finally {

@@ -62,7 +62,8 @@ import JobList from "./pages/Workflow/JobList";
 import AccountTasksList from "./pages/AccountTasks/AccountTasksList";
 import ContactImport from "./pages/Import/ContactImport";
 import AccountImport from "./pages/Import/AccountImport";
-import UploadFolderToAccount from "./pages/Import/UploadFolderToAccount"
+import UploadFolderToAccount from "./pages/Import/UploadFolderToAccount";
+import InternalCommunication from "./pages/Internal-communication/internalCommunication";
 function App() {
   return (
     <Routes>
@@ -162,10 +163,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-         
-        
-          <Route path="/import/accounts" element={<AccountImport />} />
-          <Route path="/upload-docs" element={<ProtectedRoute><UploadFolderToAccount/></ProtectedRoute>}/>
+
+        <Route path="/import/accounts" element={<AccountImport />} />
+        <Route
+          path="/upload-docs"
+          element={
+            <ProtectedRoute>
+              <UploadFolderToAccount />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/settings/myaccount"
           element={
@@ -274,6 +281,15 @@ function App() {
         <Route path="firmtemp/teammember" element={<TeamMember />} />
         <Route path="firmtemp/tags" element={<Tags />} />
         <Route path="firmtemp/service" element={<Service />} />
+
+        <Route
+          path="/internal-communation"
+          element={
+            <ProtectedRoute>
+              <InternalCommunication />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* Fallback */}
