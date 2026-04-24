@@ -44,9 +44,9 @@ const NewChatDrawer = ({
 
   const [subtasks, setSubtasks] = useState([]);
 const { user } = useAuth();
-
+console.log("Logged in user:", user);
 const loginUserId = user?.id;     // or user?.id depending on backend
-const username = user?.username;   // or user?.name
+const username = user?.group?.name || user?.username;   // or user?.name
   // ================= USER =================
  
 

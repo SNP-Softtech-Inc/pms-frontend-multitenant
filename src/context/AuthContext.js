@@ -150,7 +150,6 @@ export const AuthProvider = ({ children }) => {
   // ================= LOGIN =================
   const login = async (email, password, expiryTime) => {
     setLoading(true);
-console.log("email, password, expiryTime",email, password, expiryTime)
     try {
       const response = await authAPI.login(email, password, expiryTime);
 
@@ -220,7 +219,8 @@ console.log("email, password, expiryTime",email, password, expiryTime)
       setLoading(false);
 
       setTimeout(() => {
-        navigationRef.current("/login", { replace: true });
+        // navigationRef.current("/admin/login", { replace: true });
+        navigate("/admin/login");
       }, 100);
     }
   }, [clearAuthData]);

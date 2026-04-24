@@ -321,9 +321,10 @@ useEffect(() => {
                         const clean =
                           latest.message?.replace(/<[^>]+>/g, "") || "";
                         const sender =
-                          latest.fromwhome === "Admin"
-                            ? "You"
-                            : latest.senderid || "";
+                          // latest.fromwhome === "Admin"
+                          //   ? "You"
+                          //   : latest.senderid || "";
+                          latest.fromwhome === "Admin" && latest.senderid;
 
                         return `${sender}: ${
                           clean.length > 35 ? clean.slice(0, 35) + "..." : clean

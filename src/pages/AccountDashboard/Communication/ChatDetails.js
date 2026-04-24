@@ -70,7 +70,7 @@ const ChatDetails = ({
       const id = user.id;
       setLoginUserId(id);
       setSenderEmail(user.email);
-      setSenderName(user.username || user.name);
+      setSenderName(user?.group?.name ||user.username || user.name);
     }
     if (chat.clienttasks) {
       setTasks(chat.clienttasks.flat());
@@ -208,26 +208,22 @@ const ChatDetails = ({
   };
 
   const securemessagechatsend = async (chatId) => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_CHAT_API}/chatmsg/securemessagechatsend`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accountid: data,
-          chattemplateid: chatTemplate,
-          username: senderName,
-          viewchatlink: "/login",
-          chatId: chatId,
-        }),
-      });
-      const result = await response.json();
-      console.log(result);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  try {
+    const payload = {
+      accountid: data,
+      chattemplateid: chatTemplate,
+      username: senderName,
+      viewchatlink: "/login",
+      chatId: chatId,
+    };
+
+    const response = await sendSecureMessage(payload);
+
+    console.log(response.data); // axios style response
+  } catch (error) {
+    console.error("Secure message error:", error?.response?.data || error.message);
+  }
+};
 
   const updatechatStatus = async (chatId) => {
     try {
@@ -646,7 +642,8 @@ const MessageItem = ({
   if (isClient && desc.senderid) {
     senderDisplayName = desc.senderid;
   } else if (isAdmin && desc.senderid) {
-    senderDisplayName = "You";
+    // senderDisplayName = "You";
+    senderDisplayName = desc.senderid;
   }
 
   return (

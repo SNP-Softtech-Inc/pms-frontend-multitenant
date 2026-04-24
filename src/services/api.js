@@ -1264,7 +1264,7 @@ export const chatAPI = {
 
   // For chat message send
   sendSecureMessage: (data) =>
-    chatApi.post("/chats/securemessagechatsend", data),
+    chatApi.post("/chatsend/securemessagechatsend", data),
 };
 
 // ================= INVOICE APIs =================
