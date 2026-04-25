@@ -5,6 +5,7 @@ import {
   IconButton,
   Chip,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -52,7 +53,7 @@ const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
   // ================= DELETE =================
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this group?")) return;
-
+console.log("Deleting group with id:", id); // Debug log
     try {
       await authAPI.deleteGroup(id); // 👈 add this API if not exists
       fetchGroups();
@@ -157,14 +158,19 @@ const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
       {loading ? (
         <CircularProgress />
       ) : (
-        <DataGrid
+        <>
+        <Typography variant="h6" gutterBottom>
+          Active Groups
+        </Typography>
+         <DataGrid
           rows={rows}
           columns={columns}
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           pagination
           disableSelectionOnClick
-        />
+        /></>
+       
       )}
 
       <CreateGroupDrawer

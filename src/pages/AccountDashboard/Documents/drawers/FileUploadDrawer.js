@@ -37,7 +37,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 
 import { toast } from "react-toastify";
 import { useAuth } from "../../../../context/AuthContext";
-import { accountDocsAPI } from "../../../../services/api";
+import { accountDocsAPI,invoiceAPI  } from "../../../../services/api";
 
 const FileUploadDrawer = ({
   isOpen,
@@ -72,21 +72,8 @@ const FileUploadDrawer = ({
   }, [isOpen, selectedFolderForMenu]);
 
   // Fetch invoices
-  const fetchInvoices = async () => {
-    try {
-      const res = await fetch(
-        `https://www.snptaxes.com/workflow/invoices/invoice/pending/invoicelistby/accountid/${accountId}`
-      );
-      const data = await res.json();
-      setInvoiceList(data.invoice || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
-  useEffect(() => {
-    if (invoiceDialogOpen) fetchInvoices();
-  }, [invoiceDialogOpen]);
+
 
   // File validation
   const handleFileChange = (e) => {
@@ -108,32 +95,65 @@ const FileUploadDrawer = ({
     setFiles(validFiles);
   };
 
+  // const handleUpload = async () => {
+  //   if (!files.length || !selectedFolder) {
+  //     setMessage("Please select files and folder");
+  //     return;
+  //   }
+
+  //   if (selectedFolder.includes("Firm Documents Shared with Client")) {
+  //     try {
+  //       const res = await fetch(
+  //         `https://www.snptaxes.com/workflow/invoices/invoice/pending/invoicelistby/accountid/${accountId}`
+  //       );
+  //       const data = await res.json();
+
+  //       if (!data.invoice?.length) {
+  //         performUpload();
+  //       } else {
+  //         setInvoiceConfirmOpen(true);
+  //       }
+  //     } catch {
+  //       performUpload();
+  //     }
+  //   } else {
+  //     performUpload();
+  //   }
+  // };
+
   const handleUpload = async () => {
-    if (!files.length || !selectedFolder) {
-      setMessage("Please select files and folder");
-      return;
-    }
+  if (!files.length || !selectedFolder) {
+    setMessage("Please select files and folder");
+    return;
+  }
 
-    if (selectedFolder.includes("Firm Documents Shared with Client")) {
-      try {
-        const res = await fetch(
-          `https://www.snptaxes.com/workflow/invoices/invoice/pending/invoicelistby/accountid/${accountId}`
-        );
-        const data = await res.json();
+  // 🚨 Only check for this folder
+  if (selectedFolder.includes("Firm docs shared with client")) {
+    try {
+      const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
+      const invoices = res.data?.invoice || [];
 
-        if (!data.invoice?.length) {
-          performUpload();
-        } else {
-          setInvoiceConfirmOpen(true);
-        }
-      } catch {
+      console.log("Fetched invoices:", invoices);
+
+      setInvoiceList(invoices);
+
+      if (invoices.length > 0) {
+        // 🔥 Show confirm dialog if invoices exist
+        setInvoiceConfirmOpen(true);
+      } else {
+        // ✅ No invoices → upload directly
         performUpload();
       }
-    } else {
+    } catch (err) {
+      console.error("Error fetching invoices", err);
+
+      // fallback → allow upload
       performUpload();
     }
-  };
-
+  } else {
+    performUpload();
+  }
+};
   const performUpload = async () => {
     try {
       const formData = new FormData();

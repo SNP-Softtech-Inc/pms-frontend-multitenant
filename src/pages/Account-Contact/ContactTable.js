@@ -59,19 +59,19 @@ const ContactsTable = () => {
   const [mode, setMode] = useState("create");
 
   // ================= PERMISSIONS =================
-  useEffect(() => {
-    const storedUserRole = localStorage.getItem("userRole");
-    setUserRole(storedUserRole);
+  // useEffect(() => {
+  //   const storedUserRole = localStorage.getItem("userRole");
+  //   setUserRole(storedUserRole);
 
-    const storedData = JSON.parse(localStorage.getItem("teamMemberData"));
-    const manage = storedData?.teammember?.manageContacts;
+  //   const storedData = JSON.parse(localStorage.getItem("teamMemberData"));
+  //   const manage = storedData?.teammember?.manageContacts;
 
-    if (storedUserRole === "TeamMember") {
-      setCanManageContacts(Boolean(manage));
-    } else {
-      setCanManageContacts(true);
-    }
-  }, []);
+  //   if (storedUserRole === "TeamMember") {
+  //     setCanManageContacts(Boolean(manage));
+  //   } else {
+  //     setCanManageContacts(true);
+  //   }
+  // }, []);
 
   // ================= FETCH CONTACTS =================
   const {

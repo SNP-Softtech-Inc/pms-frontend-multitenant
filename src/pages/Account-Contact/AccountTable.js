@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
   Table,
@@ -39,7 +39,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 import TeamMemberMultiSelectDropDown from "../../components/MultiSelectDropdown";
-import { accountsAPI } from "../../services/api"; // Adjust path to your api.js file
+import { accountsAPI, authAPI } from "../../services/api"; // Adjust path to your api.js file
 import AccountContactDrawer from "../Account-Contact/AccountContactDrawer";
 import EmailIcon from "@mui/icons-material/Email";
 import SendIcon from "@mui/icons-material/Send";
@@ -59,6 +59,7 @@ import Cookies from "js-cookie";
 import JobDrawer from "../../pages/Workflow/JobDrawer";
 import SendOrganizer from "../BulkActions/SendOrganizer";
 import SendEmail from "../BulkActions/SendEmail";
+import { useAuth } from "../../context/AuthContext";
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
   if (b[orderBy] > a[orderBy]) return 1;
@@ -72,6 +73,8 @@ function getComparator(order, orderBy) {
 }
 
 const AccountTable = () => {
+  const { user } = useAuth();
+  console.log("Current user in AccountTable:", user);
   const queryClient = useQueryClient();
   const manageTagsRef = useRef();
   const manageTeamRef = useRef();
@@ -109,20 +112,70 @@ const AccountTable = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [accountsToDelete, setAccountsToDelete] = useState([]);
   const [confirmText, setConfirmText] = useState("");
+  const [permissions, setPermissions] = useState({});
+  useEffect(() => {
+    const fetchUserPermissions = async () => {
+      try {
+        if (user?.role === "team_member") {
+          const res = await authAPI.getSingleUser(user.id);
 
+          const userData = res.data;
+
+          // ✅ SET PERMISSIONS HERE
+          setPermissions(userData.user.permissions);
+          console.log("Fetched user permissions:", userData.user.permissions);
+        } else {
+          // If not a team member, assume full permissions (or handle as needed)
+          setPermissions({
+            manageAccounts: true,
+            manageTags: true,
+            manageOrganizers: true,
+            managePipelines: true,
+            assignTeamMates: true,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user permissions:", error);
+      }
+    };
+
+    fetchUserPermissions();
+  }, [user]);
   const handleBulkDrawerClose = () => {
     setBulkDrawer({ open: false, type: null });
     setSelectedAccounts([]); // ✅ clear selection
   };
   const [anchorEl, setAnchorEl] = useState(null);
+  // const { data, isLoading } = useQuery({
+  //   queryKey: ["accounts", filterStatus],
+  //   queryFn: async () => {
+  //     const isActive = filterStatus === "active";
+  //     const res = await accountsAPI.getAccountsList(isActive);
+  //     return res.data.accountlist || [];
+  //   },
+  // });
   const { data, isLoading } = useQuery({
-    queryKey: ["accounts", filterStatus],
-    queryFn: async () => {
-      const isActive = filterStatus === "active";
-      const res = await accountsAPI.getAccountsList(isActive);
-      return res.data.accountlist || [];
-    },
-  });
+  queryKey: ["accounts", filterStatus, user?.role],
+  queryFn: async () => {
+    const isActive = filterStatus === "active";
+
+    let res;
+
+    if (user?.role === "team_member") {
+      // ✅ call team member API
+      res = await accountsAPI.getAccountsByTeamMember(
+      
+        isActive
+      );
+    } else {
+      // ✅ call normal API
+      res = await accountsAPI.getAccountsList(isActive);
+    }
+console.log("accounts list",res)
+    return res.data.accountlist || [];
+  },
+  enabled: !!user, // ensures user is loaded
+});
   const accountList = data || [];
   const uniqueTags = [
     ...new Map(
@@ -667,6 +720,7 @@ const AccountTable = () => {
                   onClick={() =>
                     setBulkDrawer({ open: true, type: "organizer" })
                   }
+                  disabled={!permissions?.manageOrganizers}
                 >
                   Send Organizer
                 </Button>
@@ -675,7 +729,9 @@ const AccountTable = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<WorkIcon />}
-                  onClick={setJobDrawerOpen}
+                  // onClick={setJobDrawerOpen}
+                  onClick={() => setJobDrawerOpen(true)}
+                  disabled={!permissions?.managePipelines}
                   // onClick={() => setBulkDrawer({ open: true, type: "job" })}
                 >
                   Add Job
@@ -685,6 +741,7 @@ const AccountTable = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<GroupIcon />}
+                  disabled={!permissions?.assignTeamMates}
                   onClick={() => setBulkDrawer({ open: true, type: "team" })}
                 >
                   Manage Team
@@ -694,6 +751,7 @@ const AccountTable = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<LocalOfferIcon />}
+                  disabled={!permissions?.manageTags}
                   onClick={() => setBulkDrawer({ open: true, type: "tags" })}
                 >
                   Manage Tags
@@ -726,6 +784,7 @@ const AccountTable = () => {
 
                       setBulkAnchorEl(null);
                     }}
+                    disabled={!permissions?.manageAccounts}
                   >
                     {filterStatus === "active" ? (
                       <>
@@ -742,7 +801,10 @@ const AccountTable = () => {
                   {filterStatus === "archived" && (
                     <MenuItem
                       onClick={handleDeleteClick}
-                      disabled={selectedAccounts.length === 0}
+                      disabled={
+                        selectedAccounts.length === 0 ||
+                        !permissions?.manageAccounts
+                      }
                       sx={{ color: "error.main" }}
                     >
                       <DeleteIcon sx={{ mr: 1 }} /> Delete Account

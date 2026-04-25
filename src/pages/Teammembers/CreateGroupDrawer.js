@@ -1,133 +1,4 @@
-// import React, { useEffect, useState } from "react";
-// import {
-//   Drawer,
-//   Box,
-//   Typography,
-//   TextField,
-//   Button,
-//   Autocomplete,
-// } from "@mui/material";
-// import { authAPI } from "../../services/api";
-// import { toast } from "react-toastify";
 
-// const CreateGroupDrawer = ({ open, onClose, onSuccess }) => {
-//   const [name, setName] = useState("");
-//   const [members, setMembers] = useState([]);
-//   const [leader, setLeader] = useState(null);
-//   const [allUsers, setAllUsers] = useState([]);
-
-//   // ✅ Fetch USERS (only team_member)
-//   useEffect(() => {
-//     if (open) {
-//       authAPI.getAllUsers().then((res) => {
-//         console.log("Users API:", res.data);
-
-//         // ✅ correct response path
-//         const users = res.data?.users || [];
-
-//         // ✅ filter only team_member role
-//         const teamMembersOnly = users.filter(
-//           (u) => u.role === "team_member"
-//         );
-
-//         setAllUsers(teamMembersOnly);
-//       });
-//     }
-//   }, [open]);
-
-//   // ✅ Remove leader from members if already selected
-//   useEffect(() => {
-//     if (leader) {
-//       setMembers((prev) =>
-//         prev.filter((m) => m._id !== leader._id)
-//       );
-//     }
-//   }, [leader]);
-
-//   const handleSubmit = async () => {
-//     try {
-//       if (!name || !leader) {
-//         return toast.error("Group name and leader required");
-//       }
-
-//       await authAPI.createGroup({
-//         name,
-//         leaderId: leader._id, // ✅ USER ID
-//         memberIds: members.map((m) => m._id), // ✅ USER IDs
-//       });
-
-//       toast.success("Group created");
-
-//       // reset
-//       setName("");
-//       setLeader(null);
-//       setMembers([]);
-
-//       onSuccess();
-//       onClose();
-//     } catch (err) {
-//       toast.error(err.response?.data?.message || "Error");
-//     }
-//   };
-
-//   return (
-//     <Drawer anchor="right" open={open} onClose={onClose}>
-//       <Box sx={{ width: 400, p: 2 }}>
-//         <Typography variant="h6">Create Group</Typography>
-
-//         {/* Group Name */}
-//         <TextField
-//           fullWidth
-//           label="Group Name"
-//           value={name}
-//           onChange={(e) => setName(e.target.value)}
-//           sx={{ my: 2 }}
-//         />
-
-//         {/* Leader */}
-//         <Autocomplete
-//           options={allUsers || []}
-//           getOptionLabel={(opt) => opt?.username || ""}
-//           value={leader}
-//           onChange={(e, val) => setLeader(val)}
-//           isOptionEqualToValue={(opt, val) => opt._id === val._id}
-//           renderInput={(params) => (
-//             <TextField {...params} label="Select Leader" />
-//           )}
-//         />
-
-//         {/* Members */}
-//         <Autocomplete
-//           multiple
-//           options={
-//             (allUsers || []).filter(
-//               (user) => user._id !== leader?._id // ❌ exclude leader
-//             )
-//           }
-//           getOptionLabel={(opt) => opt?.username || ""}
-//           value={members}
-//           onChange={(e, val) => setMembers(val)}
-//           isOptionEqualToValue={(opt, val) => opt._id === val._id}
-//           renderInput={(params) => (
-//             <TextField {...params} label="Select Members" />
-//           )}
-//         />
-
-//         {/* Submit */}
-//         <Button
-//           variant="contained"
-//           fullWidth
-//           sx={{ mt: 3 }}
-//           onClick={handleSubmit}
-//         >
-//           Create Group
-//         </Button>
-//       </Box>
-//     </Drawer>
-//   );
-// };
-
-// export default CreateGroupDrawer;
 
 
 
@@ -150,20 +21,34 @@ const CreateGroupDrawer = ({ open, onClose, onSuccess, editData }) => {
   const [allUsers, setAllUsers] = useState([]);
 
   // ================= FETCH USERS =================
-  useEffect(() => {
-    if (open) {
-      authAPI.getAllUsers().then((res) => {
-        const users = res.data?.users || [];
+  // useEffect(() => {
+  //   if (open) {
+  //     authAPI.getAllUsers().then((res) => {
+  //       const users = res.data?.users || [];
 
-        const teamMembersOnly = users.filter(
-          (u) => u.role === "team_member"
-        );
+  //       const teamMembersOnly = users.filter(
+  //         (u) => u.role === "team_member"
+  //       );
 
-        setAllUsers(teamMembersOnly);
-      });
-    }
-  }, [open]);
+  //       setAllUsers(teamMembersOnly);
+  //     });
+  //   }
+  // }, [open]);
+useEffect(() => {
+  if (open) {
+    authAPI.getAllUsers().then((res) => {
+      const users = res.data?.users || [];
 
+      const teamMembersOnly = users.filter(
+        (u) =>
+          u.role === "team_member" &&
+          (!u.group || u.group === null) // ✅ exclude users already in group
+      );
+console.log("Fetched users for group drawer:", teamMembersOnly); // Debug log
+      setAllUsers(teamMembersOnly);
+    });
+  }
+}, [open]);
   // ================= PREFILL (EDIT MODE) =================
   useEffect(() => {
     if (editData && open) {

@@ -5,6 +5,7 @@ import {
   IconButton,
   Chip,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -118,6 +119,10 @@ const ActiveTeammembers = ({ refresh,onEdit  }) => {
       {loading ? (
         <CircularProgress />
       ) : (
+        <>
+        <Typography variant="h6" gutterBottom>
+          Active Team Members
+        </Typography>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -125,7 +130,8 @@ const ActiveTeammembers = ({ refresh,onEdit  }) => {
           rowsPerPageOptions={[5, 10, 20]}
           pagination
           disableSelectionOnClick
-        />
+        /></>
+        
       )}
     </Box>
   );

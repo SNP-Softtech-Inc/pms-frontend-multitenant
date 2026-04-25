@@ -41,14 +41,18 @@ import * as FiIcons from "react-icons/fi";
 import * as RiIcons from "react-icons/ri";
 import * as FaIcons from "react-icons/fa";
 import CreateInvoiceDrawer from "./AccountDashboard/Invoices/CreateInvoiceDrawer";
-
+import { authAPI } from "../services/api";
 import NewChatDrawer from "./AccountDashboard/Communication/NewChatDrawer"; // adjust path
 import JobDrawer from "./Workflow/JobDrawer";
 import TasksDrawer from "./AccountTasks/TasksDrawer";
+import { useAuth } from "../context/AuthContext";
 const drawerWidth = 240;
 const collapsedDrawerWidth = 70;
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const [permissions, setPermissions] = useState(null);
+
   const theme = useTheme();
   const isSmUp = useMediaQuery(theme.breakpoints.up("sm"));
 
@@ -77,7 +81,7 @@ const Dashboard = () => {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
   const [invoiceDrawer, setInvoiceDrawer] = useState(false);
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
-const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
+  const [tasksDrawerOpen, setTasksDrawerOpen] = useState(false);
   const handleChatDrawerOpen = () => setChatDrawerOpen(true);
   const handleChatDrawerClose = () => setChatDrawerOpen(false);
   const handleDrawerOpen = () => setOpenDrawer(true);
@@ -85,13 +89,51 @@ const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
   const handleContactDrawerOpen = () => setContactDrawerOpen(true);
   const handleContactDrawerClose = () => setContactDrawerOpen(false);
   const handleJobDrawerOpen = () => setJobDrawerOpen(true);
- const handleTasksDrawerOpen =()=> setTasksDrawerOpen(true);
- const handleTasksDrawerClose =()=> setTasksDrawerOpen(false);
+  const handleTasksDrawerOpen = () => setTasksDrawerOpen(true);
+  const handleTasksDrawerClose = () => setTasksDrawerOpen(false);
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
     return IconComponent ? <IconComponent size={20} /> : <DashboardIcon />;
   };
 
+  useEffect(() => {
+    const fetchUserPermissions = async () => {
+      try {
+        if (user?.role === "team_member") {
+          const res = await authAPI.getSingleUser(user.id);
+
+          const userData = res.data;
+
+          console.log("Fetched user data:", userData);
+
+          // ✅ SET PERMISSIONS HERE
+          setPermissions(userData.user.permissions);
+        }
+      } catch (error) {
+        console.error("Error fetching user permissions:", error);
+      }
+    };
+
+    fetchUserPermissions();
+  }, [user]);
+  useEffect(() => {
+    const fetchUserPermissions = async () => {
+      try {
+        if (user?.role === "team_member") {
+          const res = await authAPI.getSingleUser(user.id);
+
+          const userData = res.data;
+          console.log("Fetched user data for permissions:", userData);
+
+          console.log("Team Member Permissions:", userData.user.permissions);
+        }
+      } catch (error) {
+        console.error("Error fetching user permissions:", error);
+      }
+    };
+
+    fetchUserPermissions();
+  }, [user]);
   // ✅ ACTIVE CHECK (main + submenu)
 
   const isActive = (path, submenu = []) => {
@@ -114,30 +156,164 @@ const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
   };
 
   // Fetch sidebar items
+  // useEffect(() => {
+  //   const fetchSidebar = async () => {
+  //     try {
+  //       const res = await sidebarAPI.getSidebar();
+  //       setSidebarItems(res.data || []);
+  //     } catch (error) {
+  //       console.error("Sidebar fetch error:", error);
+  //     }
+  //   };
+  //   fetchSidebar();
+  // }, []);
+
   useEffect(() => {
     const fetchSidebar = async () => {
       try {
         const res = await sidebarAPI.getSidebar();
-        setSidebarItems(res.data || []);
+        let data = res.data || [];
+
+        // ✅ If NOT team_member → show all
+        if (user?.role !== "team_member") {
+          setSidebarItems(data);
+          return;
+        }
+
+        // ⛔ Wait until permissions loaded
+        if (!permissions) return;
+
+        // ✅ APPLY FILTERING
+        const updatedSidebar = data
+          .map((item) => {
+            let newItem = { ...item };
+
+            // =========================
+            // ✅ ROLE BASED FILTER
+            // =========================
+            if (newItem.submenu?.length > 0) {
+              newItem.submenu = newItem.submenu.filter((subItem) => {
+                // Hide Teams & Plans
+                if (subItem.label === "Teams & Plans") return false;
+
+                // Hide Firm Settings inside Settings
+                if (
+                  newItem.label === "Settings" &&
+                  subItem.label === "Firm Settings"
+                )
+                  return false;
+
+                return true;
+              });
+            }
+
+            // =========================
+            // ✅ PERMISSION BASED FILTER
+            // =========================
+            if (newItem.submenu?.length > 0) {
+              newItem.submenu = newItem.submenu.filter((sub) => {
+                if (sub.label === "Tags" && !permissions.manageTags)
+                  return false;
+                if (sub.label === "Services" && !permissions.manageServices)
+                  return false;
+                if (
+                  sub.label === "Pipeline Templates" &&
+                  !permissions.managePipelines
+                )
+                  return false;
+                if (
+                  sub.label === "Firm Templates" &&
+                  !permissions.manageTemplates
+                )
+                  return false;
+                if (sub.label === "Contacts" && !permissions.viewAllContacts)
+                  return false;
+                if (
+                  sub.label === "Proposal&Els" &&
+                  !permissions.manageProposals
+                )
+                  return false;
+                if (sub.label === "Invoices" && !permissions.viewallAccounts)
+                  return false;
+                if (sub.label === "Accounts" && !permissions.viewallAccounts)
+                  return false;
+                return true;
+              });
+            }
+
+            // =========================
+            // ✅ REMOVE EMPTY MENUS
+            // =========================
+            // if (newItem.submenu && newItem.submenu.length === 0) {
+            //   return null;
+            // }
+
+            // =========================
+            // ✅ REMOVE PARENT ITEMS
+            // =========================
+            if (
+              (newItem.label === "Tags" && permissions.manageTags) ||
+              (newItem.label === "Services" && permissions.manageServices) ||
+              (newItem.label === "Contacts" && permissions.viewAllContacts)
+            ) {
+              return null;
+            }
+
+            return newItem;
+          })
+          .filter(Boolean);
+
+        setSidebarItems(updatedSidebar);
       } catch (error) {
         console.error("Sidebar fetch error:", error);
       }
     };
-    fetchSidebar();
-  }, []);
 
+    fetchSidebar();
+  }, [user, permissions]);
   useEffect(() => {
     const fetchPlusMenu = async () => {
       try {
         const res = await leftSidebarAPI.getLeftSidebar();
-        setPlusMenuItems(res.data || []);
+        let data = res.data || [];
+
+        if (user?.role === "team_member" && permissions) {
+          data = data.filter((item) => {
+            if (item.label === "Account" && !permissions.manageAccounts)
+              return false;
+            if (item.label === "Contact" && !permissions.manageContacts)
+              return false;
+            if (item.label === "Jobs" && !permissions.managePipelines)
+              return false;
+            if (item.label === "Organizer" && !permissions.manageOrganizers)
+              return false;
+            if (item.label === "Invoice" && !permissions.manageInvoices)
+              return false;
+
+            return true;
+          });
+        }
+
+        setPlusMenuItems(data);
       } catch (err) {
         console.error("Plus menu fetch error:", err);
       }
     };
 
     fetchPlusMenu();
-  }, []);
+  }, [user, permissions]);
+  // useEffect(() => {
+  //   const fetchPlusMenu = async () => {
+  //     try {
+  //       const res = await leftSidebarAPI.getLeftSidebar();
+  //       setPlusMenuItems(res.data || []);
+  //     } catch (err) {
+  //       console.error("Plus menu fetch error:", err);
+  //     }
+  //   };
+
+  //   fetchPlusMenu();
+  // }, []);
 
   // Auto open submenu
   useEffect(() => {
@@ -480,7 +656,6 @@ const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
           plusMenuItems.map((item, index) => (
             <MenuItem
               key={index}
-              
               onClick={() => {
                 if (item.label === "Account") {
                   handleDrawerOpen();
@@ -492,8 +667,7 @@ const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
                   handleChatDrawerOpen(); // ✅ ADD THIS
                 } else if (item.label === "Jobs") {
                   handleJobDrawerOpen();
-                }
-                else if (item.label === "Task") {
+                } else if (item.label === "Task") {
                   handleTasksDrawerOpen();
                 } else {
                   navigate(item.path);
@@ -538,9 +712,11 @@ const [tasksDrawerOpen, setTasksDrawerOpen]=useState(false);
         data={null}
         isActiveTrue={true}
       />
-      <JobDrawer
-      open={jobDrawerOpen} onClose={()=> setJobDrawerOpen(false)} />
-      <TasksDrawer open={tasksDrawerOpen} onClose={()=> setTasksDrawerOpen(false)}/>
+      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
+      <TasksDrawer
+        open={tasksDrawerOpen}
+        onClose={() => setTasksDrawerOpen(false)}
+      />
     </Box>
   );
 };

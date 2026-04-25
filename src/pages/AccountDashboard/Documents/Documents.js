@@ -670,7 +670,7 @@ const DocsFolderTree = () => {
         const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
         const fileName = item.name;
         const res = await fetch(
-          `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
+          `${SIGNATURE_API}api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
         );
         const data = await res.json();
         console.log("token data", data);
@@ -686,7 +686,7 @@ const DocsFolderTree = () => {
     const cancelSignature = async (item) => {
       try {
         await axios.delete(
-          `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
+          `${SIGNATURE_API}signature/cancel/${item.meta.esignRequestId}`,
           {
             data: {
               folder: item.meta.folder,

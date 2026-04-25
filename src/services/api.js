@@ -288,7 +288,7 @@ export const authAPI = {
     }),
   updateGroup: (groupId, data) =>
     authUserApi.put(`/api/groups/${groupId}`, data),
-  deleteGroup: (groupId) => authUserApi.delete(`/api/groups/${groupId}`),
+  deleteGroup: (groupId) => authUserApi.delete(`/api/groups/groups/${groupId}`),
 };
 
 // ================= SIDEBAR APIs =================
@@ -585,8 +585,8 @@ export const accountsAPI = {
   getMultipleAccountsByIds: (data) =>
     accountcontactApi.post("/api/clientaccounts/multiple", data),
 
-  getAccountsByTeamMember: () =>
-    accountcontactApi.get("/api/clientaccounts/byTeam"),
+getAccountsByTeamMember: (active) =>
+  accountcontactApi.get(`/api/clientaccounts/byTeam?active=${active}`),
 
   getAccountNames: () =>
     accountcontactApi.get("/api/clientaccounts/accountlist/names"),
@@ -692,7 +692,7 @@ export const contactsAPI = {
     accountcontactApi.put(`/api/contacts/contact/${id}`, data),
 
   // ================= GET =================
-  getContacts: () => accountcontactApi.get("/api/contacts"),
+  getContacts: () => accountcontactApi.get("/api/contacts/"),
 
   getContactById: (id) => accountcontactApi.get(`/api/contacts/contact/${id}`),
 

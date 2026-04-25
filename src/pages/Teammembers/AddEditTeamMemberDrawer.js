@@ -49,6 +49,27 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
     manageIRSTranscripts: false,
     viewReporting: false,
   };
+  const disabledPermissions = [
+    "managePayments",
+    "manageTimeEntries",
+    "chargeFirmBalance",
+    "manageSites",
+    "viewReporting",
+  
+    "managefirmBalance",
+    "managesites",
+    "manageMarketPlace",
+    "managePublicFilterTemplates",
+    "manageJobRecurrence",
+    "manageRatesinTimeEntries",
+    "manageCustomFields",
+    "manageTeamMates",
+    "manageEmails",
+    "editOrganizersAnswers",
+    "manageDocuments",
+    "manageIRSTranscripts",
+    "viewReporting",
+  ];
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -149,7 +170,7 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
       </Box>
 
       {/* Form */}
-      <Box sx={{ p: 2, height: "70vh", overflowY: "auto" }}>
+      <Box sx={{ p: 2, height: "90vh", overflowY: "auto" }}>
         <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid size={{ xs: 12, md: 4 }}>
             {/* <InputLabel>First Name</InputLabel> */}
@@ -246,9 +267,14 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
                     }}
                   >
                     <Typography sx={{ fontWeight: 500 }}>{key}</Typography>
+                    {/* <Switch
+                      checked={permissions[key]}
+                      onChange={() => handlePermissionChange(key)}
+                    /> */}
                     <Switch
                       checked={permissions[key]}
                       onChange={() => handlePermissionChange(key)}
+                      disabled={disabledPermissions.includes(key)}
                     />
                   </Paper>
                 </Grid>
