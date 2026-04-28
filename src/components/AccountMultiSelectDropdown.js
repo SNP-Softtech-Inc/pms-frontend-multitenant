@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { FaCaretUp, FaCaretDown } from "react-icons/fa";
 import { accountsAPI } from "../services/api"; // ✅ ONLY THIS API
-
+import { useAuth } from "../context/AuthContext";
 const MultiSelectDropdown = ({
   value = [],
   onChange,
@@ -21,7 +21,7 @@ const MultiSelectDropdown = ({
   width = "100%",
 }) => {
   const containerRef = useRef(null);
-
+const { user } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuWidth, setMenuWidth] = useState(null);
@@ -32,13 +32,63 @@ const MultiSelectDropdown = ({
   const options = propOptions || internalOptions;
 
   // ✅ FETCH ONLY ALL ACCOUNTS
+  // useEffect(() => {
+  //   if (!propOptions && !initialized) {
+  //     const fetchAccounts = async () => {
+  //       try {
+  //         setLoading(true);
+
+  //         const res = await accountsAPI.getAccountsList();
+
+  //         const list = res.data.accountlist || [];
+
+  //         const formatted = list.map((acc) => ({
+  //           value: acc._id,
+  //           label: acc.accountName,
+  //         }));
+
+  //         setInternalOptions(formatted);
+
+  //         // ✅ AUTO SELECT FROM COOKIE (optional)
+  //         if (value.length === 0) {
+  //           const accountIdFromCookie = Cookies.get("accountId");
+
+  //           if (accountIdFromCookie) {
+  //             const matched = formatted.find(
+  //               (acc) => acc.value === accountIdFromCookie
+  //             );
+
+  //             if (matched && onChange) {
+  //               onChange([matched]);
+  //             }
+  //           }
+  //         }
+
+  //         setInitialized(true);
+  //       } catch (error) {
+  //         console.error("Error fetching accounts:", error);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
+
+  //     fetchAccounts();
+  //   }
+  // }, [propOptions, initialized, onChange, value]);
   useEffect(() => {
-    if (!propOptions && !initialized) {
+    if (!propOptions && !initialized && user) {
       const fetchAccounts = async () => {
         try {
           setLoading(true);
 
-          const res = await accountsAPI.getAccountsList();
+          let res;
+
+          // ✅ ROLE BASED API
+          if (user?.role === "team_member") {
+            res = await accountsAPI.getAccountsByTeamMember(true); // pass isActive if needed
+          } else {
+            res = await accountsAPI.getAccountsList(true);
+          }
 
           const list = res.data.accountlist || [];
 
@@ -49,7 +99,7 @@ const MultiSelectDropdown = ({
 
           setInternalOptions(formatted);
 
-          // ✅ AUTO SELECT FROM COOKIE (optional)
+          // ✅ AUTO SELECT FROM COOKIE
           if (value.length === 0) {
             const accountIdFromCookie = Cookies.get("accountId");
 
@@ -74,7 +124,7 @@ const MultiSelectDropdown = ({
 
       fetchAccounts();
     }
-  }, [propOptions, initialized, onChange, value]);
+  }, [propOptions, initialized, onChange, value, user]);
 
   // ================= HANDLERS =================
 

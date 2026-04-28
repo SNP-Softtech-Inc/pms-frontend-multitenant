@@ -46,6 +46,7 @@ import NewChatDrawer from "./AccountDashboard/Communication/NewChatDrawer"; // a
 import JobDrawer from "./Workflow/JobDrawer";
 import TasksDrawer from "./AccountTasks/TasksDrawer";
 import { useAuth } from "../context/AuthContext";
+import SearchComponent from "../components/SearchComponent";
 const drawerWidth = 240;
 const collapsedDrawerWidth = 70;
 
@@ -155,19 +156,6 @@ const Dashboard = () => {
     return location.pathname.startsWith(path);
   };
 
-  // Fetch sidebar items
-  // useEffect(() => {
-  //   const fetchSidebar = async () => {
-  //     try {
-  //       const res = await sidebarAPI.getSidebar();
-  //       setSidebarItems(res.data || []);
-  //     } catch (error) {
-  //       console.error("Sidebar fetch error:", error);
-  //     }
-  //   };
-  //   fetchSidebar();
-  // }, []);
-
   useEffect(() => {
     const fetchSidebar = async () => {
       try {
@@ -241,12 +229,6 @@ const Dashboard = () => {
               });
             }
 
-            // =========================
-            // ✅ REMOVE EMPTY MENUS
-            // =========================
-            // if (newItem.submenu && newItem.submenu.length === 0) {
-            //   return null;
-            // }
 
             // =========================
             // ✅ REMOVE PARENT ITEMS
@@ -302,18 +284,7 @@ const Dashboard = () => {
 
     fetchPlusMenu();
   }, [user, permissions]);
-  // useEffect(() => {
-  //   const fetchPlusMenu = async () => {
-  //     try {
-  //       const res = await leftSidebarAPI.getLeftSidebar();
-  //       setPlusMenuItems(res.data || []);
-  //     } catch (err) {
-  //       console.error("Plus menu fetch error:", err);
-  //     }
-  //   };
-
-  //   fetchPlusMenu();
-  // }, []);
+ 
 
   // Auto open submenu
   useEffect(() => {
@@ -616,6 +587,10 @@ const Dashboard = () => {
             >
               <AddIcon fontSize="small" />
             </IconButton>
+
+            <Box>
+              <SearchComponent />
+            </Box>
           </Box>
 
           {/* Right Section */}

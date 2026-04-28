@@ -363,49 +363,100 @@ const CreateInvoiceDrawer = ({ open, onClose,fetchInvoices }) => {
     setReminders(event.target.checked);
   };
   // 🔹 Fetch Accounts
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        setLoading(true);
-        const res = await accountsAPI.getAccountNamesByStatus(true);
+  // useEffect(() => {
+  //   const fetchAccounts = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const res = await accountsAPI.getAccountNamesByStatus(true);
 
-        const formatted = res.data.accountlist.map((acc) => ({
-          label: acc.accountName,
-          value: acc._id,
-        }));
+  //       const formatted = res.data.accountlist.map((acc) => ({
+  //         label: acc.accountName,
+  //         value: acc._id,
+  //       }));
 
-        setAccountOptions(formatted);
+  //       setAccountOptions(formatted);
 
-        // ✅ Get from cookies
-        const cookieAccountId = Cookies.get("accountId");
-        const cookieAccountName = Cookies.get("accountName");
+  //       // ✅ Get from cookies
+  //       const cookieAccountId = Cookies.get("accountId");
+  //       const cookieAccountName = Cookies.get("accountName");
 
-        if (cookieAccountId && cookieAccountName) {
-          // Try to find in fetched list
-          const matched = formatted.find(
-            (acc) => acc.value === cookieAccountId,
-          );
+  //       if (cookieAccountId && cookieAccountName) {
+  //         // Try to find in fetched list
+  //         const matched = formatted.find(
+  //           (acc) => acc.value === cookieAccountId,
+  //         );
 
-          if (matched) {
-            setSelectedAccount(matched);
-          } else {
-            // fallback (if not in list)
-            setSelectedAccount({
-              label: cookieAccountName,
-              value: cookieAccountId,
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch accounts", err);
-      } finally {
-        setLoading(false);
+  //         if (matched) {
+  //           setSelectedAccount(matched);
+  //         } else {
+  //           // fallback (if not in list)
+  //           setSelectedAccount({
+  //             label: cookieAccountName,
+  //             value: cookieAccountId,
+  //           });
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Failed to fetch accounts", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (open) fetchAccounts();
+  // }, [open]);
+useEffect(() => {
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+
+      let res;
+
+      // ✅ ROLE-BASED API CALL
+      if (user?.role === "team_member") {
+        res = await accountsAPI.getAccountsByTeamMember(true);
+      } else {
+        res = await accountsAPI.getAccountNamesByStatus(true);
       }
-    };
 
-    if (open) fetchAccounts();
-  }, [open]);
+      const list = res?.data?.accountlist || [];
 
+      const formatted = list.map((acc) => ({
+        label: acc.accountName,
+        value: acc._id,
+      }));
+
+      setAccountOptions(formatted);
+
+      // ✅ COOKIE HANDLING
+      const cookieAccountId = Cookies.get("accountId");
+      const cookieAccountName = Cookies.get("accountName");
+
+      if (cookieAccountId && cookieAccountName) {
+        const matched = formatted.find(
+          (acc) => acc.value === cookieAccountId
+        );
+
+        if (matched) {
+          setSelectedAccount(matched);
+        } else {
+          // fallback
+          setSelectedAccount({
+            label: cookieAccountName,
+            value: cookieAccountId,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch accounts", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ ensure user exists before calling
+  if (open && user) fetchAccounts();
+}, [open, user]);
   const fetchInvoiceTemplates = async () => {
     try {
       const res = await templateAPI.getAllInvoiceTemplates();

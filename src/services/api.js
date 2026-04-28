@@ -593,10 +593,15 @@ getAccountsByTeamMember: (active) =>
 
   // getAccountNamesByStatus: () =>
   //   accountcontactApi.get("/api/accounts/accountlist/names-by-status"),
-  getAccountNamesByStatus: (active = true) =>
-    accountcontactApi.get(
-      `/api/clientaccounts/accountlist/names-by-status?active=${active}`,
-    ),
+  // getAccountNamesByStatus: (active = true) =>
+  //   accountcontactApi.get(
+  //     `/api/clientaccounts/accountlist/names-by-status?active=${active}`,
+  //   ),
+  getAccountNamesByStatus: (params) =>
+  accountcontactApi.get(
+    `/api/clientaccounts/accountlist/names-by-status`,
+    { params } // ✅ THIS is the correct way
+  ),
   getAccountNamesWithEmails: () =>
     accountcontactApi.get("/api/clientaccounts/accounts-by-status-with-emails"),
 
@@ -696,8 +701,15 @@ export const contactsAPI = {
 
   getContactById: (id) => accountcontactApi.get(`/api/contacts/contact/${id}`),
 
-  getContactNames: () => accountcontactApi.get("/api/contacts/contact-names"),
+  // getContactNames: () => accountcontactApi.get("/api/contacts/contact-names"),
+  getContactNames: (params) =>
+  accountcontactApi.get("/api/contacts/contact-names", { params }),
 
+   // ✅ NEW: Get contacts by email
+  getContactsByEmail: (email) =>
+    accountcontactApi.get(`/api/contacts/by-email`, {
+      params: { email },
+    }),
   // ================= DELETE =================
   deleteContacts: (data) =>
     accountcontactApi.delete("/api/contacts/delete-multiple", {

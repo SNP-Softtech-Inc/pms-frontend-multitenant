@@ -124,82 +124,157 @@ const GeneralStep = ({
     fetchTeamMembers();
   }, []);
 
-  const fetchAccounts = async () => {
-    try {
-      // Check if account info is in cookies
-      const accountIdCookie = Cookies.get("accountId");
-      const accountName = Cookies.get("accountName");
+//   const fetchAccounts = async () => {
+//     try {
+//       // Check if account info is in cookies
+//       const accountIdCookie = Cookies.get("accountId");
+//       const accountName = Cookies.get("accountName");
 
-      if (accountIdCookie && accountName) {
-        const selectedAccount = {
-          label: accountName,
-          value: accountIdCookie,
-        };
+//       if (accountIdCookie && accountName) {
+//         const selectedAccount = {
+//           label: accountName,
+//           value: accountIdCookie,
+//         };
 
-        updateFormData("general", {
-          account: [selectedAccount],
-          // account: selectedAccount
+//         updateFormData("general", {
+//           account: [selectedAccount],
+//           // account: selectedAccount
+//         });
+
+//         if (stepErrors.account) {
+//           setStepErrors((prev) => {
+//             const newErrors = { ...prev };
+//             delete newErrors.account;
+//             return newErrors;
+//           });
+//         }
+
+//         console.log("Account set from cookies:", selectedAccount);
+//         return;
+//       }
+
+//       // ✅ ONLY ADMIN API CALL
+//       // const response = await accountsAPI.getAccountNamesByStatus();
+// const response = await accountsAPI.getAccountNamesByStatus(true);
+//       const result = response.data;
+//       console.log("Accounts API response:", result);
+//       const accountList = Array.isArray(result.accountlist)
+//         ? result.accountlist
+//         : [];
+
+//       if (!Array.isArray(accountList)) {
+//         console.error("Account list is not an array:", accountList);
+//         return;
+//       }
+
+//       setAccounts(accountList);
+//       console.log("Fetched accounts:", accountList);
+
+//       // Auto-select account if useParams provides accountId
+//       const selectedAccountData = accountList.find(
+//         (account) => account._id === accountId,
+//       );
+
+//       if (selectedAccountData) {
+//         const selectedAccount = {
+//           label: selectedAccountData.accountName,
+//           value: selectedAccountData._id,
+//         };
+
+//         updateFormData("general", {
+//           account: [selectedAccount],
+//         });
+
+//         if (stepErrors.account) {
+//           setStepErrors((prev) => {
+//             const newErrors = { ...prev };
+//             delete newErrors.account;
+//             return newErrors;
+//           });
+//         }
+
+//         console.log("Auto-selected account:", selectedAccount);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching accounts:", error);
+//     }
+//   };
+
+
+const fetchAccounts = async () => {
+  try {
+    // 🔹 1. CHECK COOKIES FIRST (no API call needed)
+    const accountIdCookie = Cookies.get("accountId");
+    const accountName = Cookies.get("accountName");
+
+    if (accountIdCookie && accountName) {
+      const selectedAccount = {
+        label: accountName,
+        value: accountIdCookie,
+      };
+
+      updateFormData("general", {
+        account: [selectedAccount],
+      });
+
+      if (stepErrors.account) {
+        setStepErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.account;
+          return newErrors;
         });
-
-        if (stepErrors.account) {
-          setStepErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors.account;
-            return newErrors;
-          });
-        }
-
-        console.log("Account set from cookies:", selectedAccount);
-        return;
       }
 
-      // ✅ ONLY ADMIN API CALL
-      // const response = await accountsAPI.getAccountNamesByStatus();
-const response = await accountsAPI.getAccountNamesByStatus(true);
-      const result = response.data;
-      console.log("Accounts API response:", result);
-      const accountList = Array.isArray(result.accountlist)
-        ? result.accountlist
-        : [];
-
-      if (!Array.isArray(accountList)) {
-        console.error("Account list is not an array:", accountList);
-        return;
-      }
-
-      setAccounts(accountList);
-      console.log("Fetched accounts:", accountList);
-
-      // Auto-select account if useParams provides accountId
-      const selectedAccountData = accountList.find(
-        (account) => account._id === accountId,
-      );
-
-      if (selectedAccountData) {
-        const selectedAccount = {
-          label: selectedAccountData.accountName,
-          value: selectedAccountData._id,
-        };
-
-        updateFormData("general", {
-          account: [selectedAccount],
-        });
-
-        if (stepErrors.account) {
-          setStepErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors.account;
-            return newErrors;
-          });
-        }
-
-        console.log("Auto-selected account:", selectedAccount);
-      }
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
+      console.log("Account set from cookies:", selectedAccount);
+      return; // ✅ STOP HERE (no API call)
     }
-  };
 
+    // 🔹 2. ROLE-BASED API CALL
+    let response;
+
+    if (user?.role === "team_member") {
+      response = await accountsAPI.getAccountsByTeamMember(true);
+    } else {
+      response = await accountsAPI.getAccountNamesByStatus(true);
+    }
+
+    const result = response?.data || {};
+    const accountList = Array.isArray(result.accountlist)
+      ? result.accountlist
+      : [];
+
+    setAccounts(accountList);
+    console.log("Fetched accounts:", accountList);
+
+    // 🔹 3. AUTO-SELECT FROM PARAMS (if exists)
+    const selectedAccountData = accountList.find(
+      (account) => account._id === accountId
+    );
+
+    if (selectedAccountData) {
+      const selectedAccount = {
+        label: selectedAccountData.accountName,
+        value: selectedAccountData._id,
+      };
+
+      updateFormData("general", {
+        account: [selectedAccount],
+      });
+
+      if (stepErrors.account) {
+        setStepErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.account;
+          return newErrors;
+        });
+      }
+
+      console.log("Auto-selected account:", selectedAccount);
+    }
+  } catch (error) {
+    console.error("Error fetching accounts:", error);
+  }
+};
   const fetchTemplates = async () => {
     try {
       setLoading(true);

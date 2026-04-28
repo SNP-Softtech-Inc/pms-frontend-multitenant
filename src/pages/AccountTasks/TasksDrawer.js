@@ -26,7 +26,9 @@ import Priority from "../../components/Priority";
 import Editor from "../../components/Editor";
 import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 import MultiSelectDropdown from "../../components/MultiSelectDropdown";
+import { useAuth } from "../../context/AuthContext";
 const TasksDrawer = ({ open, onClose }) => {
+  const {user} = useAuth();
   const [selectedaccount, setSelectedaccount] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
   const [accountOptions, setAccountOptions] = useState([]);
@@ -50,48 +52,101 @@ const TasksDrawer = ({ open, onClose }) => {
   const [checkedSubtasks, setCheckedSubtasks] = useState([]);
   const [saving, setSaving] = useState(false);
   // 🔹 Fetch Accounts
+  // useEffect(() => {
+  //   const fetchAccounts = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const res = await accountsAPI.getAccountNamesByStatus(true);
+
+  //       const formatted = res.data.accountlist.map((acc) => ({
+  //         label: acc.accountName,
+  //         value: acc._id,
+  //       }));
+
+  //       setAccountOptions(formatted);
+
+  //       // ✅ Get from cookies
+  //       const cookieAccountId = Cookies.get("accountId");
+  //       const cookieAccountName = Cookies.get("accountName");
+
+  //       if (cookieAccountId && cookieAccountName) {
+  //         // Try to find in fetched list
+  //         const matched = formatted.find(
+  //           (acc) => acc.value === cookieAccountId,
+  //         );
+
+  //         if (matched) {
+  //           setSelectedaccount(matched);
+  //         } else {
+  //           // fallback (if not in list)
+  //           setSelectedaccount({
+  //             label: cookieAccountName,
+  //             value: cookieAccountId,
+  //           });
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Failed to fetch accounts", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (open) fetchAccounts();
+  // }, [open]);
+
+
   useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        setLoading(true);
-        const res = await accountsAPI.getAccountNamesByStatus(true);
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
 
-        const formatted = res.data.accountlist.map((acc) => ({
-          label: acc.accountName,
-          value: acc._id,
-        }));
+      let res;
 
-        setAccountOptions(formatted);
-
-        // ✅ Get from cookies
-        const cookieAccountId = Cookies.get("accountId");
-        const cookieAccountName = Cookies.get("accountName");
-
-        if (cookieAccountId && cookieAccountName) {
-          // Try to find in fetched list
-          const matched = formatted.find(
-            (acc) => acc.value === cookieAccountId,
-          );
-
-          if (matched) {
-            setSelectedaccount(matched);
-          } else {
-            // fallback (if not in list)
-            setSelectedaccount({
-              label: cookieAccountName,
-              value: cookieAccountId,
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch accounts", err);
-      } finally {
-        setLoading(false);
+      // ✅ ROLE BASED API
+      if (user?.role === "team_member") {
+        res = await accountsAPI.getAccountsByTeamMember(true);
+      } else {
+        res = await accountsAPI.getAccountNamesByStatus(true);
       }
-    };
 
-    if (open) fetchAccounts();
-  }, [open]);
+      const list = res.data.accountlist || [];
+
+      const formatted = list.map((acc) => ({
+        label: acc.accountName,
+        value: acc._id,
+      }));
+
+      setAccountOptions(formatted);
+
+      // ✅ COOKIE HANDLING
+      const cookieAccountId = Cookies.get("accountId");
+      const cookieAccountName = Cookies.get("accountName");
+
+      if (cookieAccountId && cookieAccountName) {
+        const matched = formatted.find(
+          (acc) => acc.value === cookieAccountId
+        );
+
+        if (matched) {
+          setSelectedaccount(matched);
+        } else {
+          // fallback if not in list
+          setSelectedaccount({
+            label: cookieAccountName,
+            value: cookieAccountId,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch accounts", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (open && user) fetchAccounts();
+}, [open, user]);
   const handleAccountChange = (value) => {
     setSelectedaccount(value);
   };
