@@ -31,7 +31,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,Paper,Stack
+  DialogActions,
+  Paper,
+  Stack,
 } from "@mui/material";
 import countryList from "react-select-country-list";
 import { AddCircle, RemoveCircle } from "@mui/icons-material";
@@ -296,7 +298,6 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
     dispatch(updateSelectedContactField({ index, field, value }));
   };
 
-
   const [tags, setTags] = useState([]);
 
   useEffect(() => {
@@ -324,13 +325,9 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
 
   return (
     <Box>
-     <Typography
-  variant="h5"
-  fontWeight={600}
-  sx={{ mb: 2 }}
->
-  Contact Form
-</Typography>
+      <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
+        Contact Form
+      </Typography>
       <Button
         variant="outlined"
         startIcon={<AddCircle />}
@@ -350,39 +347,50 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
         onUpdateField={handleUpdateSelectedContactField}
         isEditing={isEditing}
       />
-      <Typography
-  variant="subtitle1"
-  sx={{ color: "text.secondary", mb: 3 }}
->
-  Add New Contacts
-</Typography>
-      {/* {showContactForm && (
+      <Typography variant="subtitle1" sx={{ color: "text.secondary", mb: 3 }}>
+        Add New Contacts
+      </Typography>
+
+      {showContactForm && (
         <>
           {contacts.map((contact, contactIndex) => (
-            <Box
+            <Paper
               key={contactIndex}
+              elevation={2}
               sx={{
-                border: "1px solid #ccc",
-                borderRadius: 2,
-                p: 2,
+                borderRadius: 3,
+                p: 3,
                 mb: 3,
               }}
             >
-              <Typography variant="subtitle1" gutterBottom>
-                Contact #{contactIndex + 1}
+              {/* HEADER */}
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={2}
+              >
+                <Typography variant="h6" fontWeight={600}>
+                  Contact #{contactIndex + 1}
+                </Typography>
+
                 {newFormContacts.includes(contactIndex) && (
-                  <Chip
-                    label="New"
-                    size="small"
-                    color="primary"
-                    sx={{ ml: 1 }}
-                  />
+                  <Chip label="New" size="small" color="primary" />
                 )}
-              </Typography>
-              <Grid container spacing={2} mt={2}>
-                <Grid item xs={3.7} ml={2}>
+              </Box>
+
+              <Divider sx={{ mb: 2 }} />
+
+              {/* NAME FIELDS */}
+              <Grid
+                container
+                rowSpacing={3}
+                columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+              >
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     fullWidth
+                    size="small"
                     label="First Name"
                     name="firstName"
                     value={contact.firstName || ""}
@@ -392,18 +400,22 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                     required
                   />
                 </Grid>
-                <Grid item xs={3.7} ml={1}>
+
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     fullWidth
+                    size="small"
                     label="Middle Name"
                     name="middleName"
                     value={contact.middleName || ""}
                     onChange={(e) => handleChange(contactIndex, e)}
                   />
                 </Grid>
-                <Grid item xs={3.9} ml={1}>
+
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     fullWidth
+                    size="small"
                     label="Last Name"
                     name="lastName"
                     value={contact.lastName || ""}
@@ -414,60 +426,67 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                   />
                 </Grid>
               </Grid>
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Contact Name"
-                value={contact.contactName || ""}
-                disabled
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Company Name"
-                name="companyName"
-                value={contact.companyName || ""}
-                onChange={(e) => handleChange(contactIndex, e)}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Note"
-                name="note"
-                multiline
-                value={contact.note || ""}
-                onChange={(e) => handleChange(contactIndex, e)}
-              />
 
-              <TextField
-                fullWidth
-                margin="normal"
-                label="SSN"
-                name="ssn"
-                value={contact.ssn || ""}
-                onChange={(e) => handleSSNChange(contactIndex, e)}
-                inputProps={{
-                  maxLength: 11,
-                  inputMode: "numeric",
-                  pattern: "[0-9]*",
-                }}
-                helperText={
-                  contact.ssnError ? contact.ssnError : "Format: 123-45-6789"
-                }
-                error={!!contact.ssnError}
-              />
+              <Stack spacing={2} mt={2}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Contact Name"
+                  value={contact.contactName || ""}
+                  disabled
+                />
 
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Email"
-                name="email"
-                value={contact.email || ""}
-                onChange={(e) => handleChange(contactIndex, e)}
-                error={!!contactErrors[contactIndex]?.email}
-                helperText={contactErrors[contactIndex]?.email}
-                required
-              />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Company Name"
+                  name="companyName"
+                  value={contact.companyName || ""}
+                  onChange={(e) => handleChange(contactIndex, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Note"
+                  name="note"
+                  multiline
+                  value={contact.note || ""}
+                  onChange={(e) => handleChange(contactIndex, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="SSN"
+                  name="ssn"
+                  value={contact.ssn || ""}
+                  onChange={(e) => handleSSNChange(contactIndex, e)}
+                  inputProps={{
+                    maxLength: 11,
+                    inputMode: "numeric",
+                    pattern: "[0-9]*",
+                  }}
+                  helperText={
+                    contact.ssnError ? contact.ssnError : "Format: 123-45-6789"
+                  }
+                  error={!!contact.ssnError}
+                />
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Email"
+                  name="email"
+                  value={contact.email || ""}
+                  onChange={(e) => handleChange(contactIndex, e)}
+                  error={!!contactErrors[contactIndex]?.email}
+                  helperText={contactErrors[contactIndex]?.email}
+                  required
+                />
+              </Stack>
+
+              {/* CHECKBOXES */}
               <FormGroup row sx={{ mt: 2 }}>
                 <FormControlLabel
                   control={
@@ -487,6 +506,7 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                   }
                   label="Login"
                 />
+
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -505,12 +525,12 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                   }
                   label="Notify"
                 />
+
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={contact.emailSync || false}
-                      //  checked={true}
-                      disabled
+                      // disabled
                       onChange={(e) =>
                         dispatch(
                           updateContactField({
@@ -525,6 +545,8 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                   label="Email Sync"
                 />
               </FormGroup>
+
+              {/* TAGS */}
               <Autocomplete
                 multiple
                 options={tags}
@@ -546,8 +568,6 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                         backgroundColor: option.colour,
                         color: "#fff",
                         fontWeight: 500,
-                        cursor: "pointer",
-                        fontSize: "12px",
                       }}
                     />
                   ))
@@ -559,550 +579,180 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
                     sx={{
                       backgroundColor: option.colour,
                       color: "#fff",
-                      borderRadius: "15px",
+                      borderRadius: 2,
                       px: 1,
                       py: 0.5,
                       my: 0.5,
                       width: "fit-content",
-                      fontSize: "10px",
-                      cursor: "pointer",
+                      fontSize: 12,
                     }}
                   >
                     {option.label}
                   </Box>
                 )}
                 renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    margin="normal"
-                    label="Select Tags"
-                    size="small"
-                  />
+                  <TextField {...params} label="Select Tags" size="small" />
                 )}
+                sx={{ mt: 2 }}
               />
-              <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                Phone Numbers
-              </Typography>
-              {contact.phoneNumbers &&
-                contact.phoneNumbers.map((phone, phoneIndex) => (
-                  <Box
-                    key={phoneIndex}
-                    sx={{ display: "flex", alignItems: "center", mt: 1 }}
-                  >
-                    <PhoneInput
-                      country={"us"}
-                      value={phone}
-                      onChange={(value) =>
-                        dispatch(
-                          updatePhoneNumber({
-                            contactIndex,
-                            phoneIndex,
-                            value,
-                          }),
-                        )
-                      }
-                      inputStyle={{ width: "100%" }}
-                    />
-                    <IconButton
-                      color="error"
-                      onClick={() =>
-                        dispatch(
-                          removePhoneNumber({ contactIndex, phoneIndex }),
-                        )
-                      }
-                      disabled={contact.phoneNumbers.length === 1}
+
+              {/* PHONE NUMBERS */}
+              <Box mt={3}>
+                <Typography fontWeight={600} mb={1}>
+                  Phone Numbers
+                </Typography>
+
+                {contact.phoneNumbers &&
+                  contact.phoneNumbers.map((phone, phoneIndex) => (
+                    <Box
+                      key={phoneIndex}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mb: 1,
+                      }}
                     >
-                      <RemoveCircle />
-                    </IconButton>
-                    {phoneIndex === contact.phoneNumbers.length - 1 && (
+                      <Box sx={{ flex: 1 }}>
+                        <PhoneInput
+                          country={"us"}
+                          value={phone}
+                          onChange={(value) =>
+                            dispatch(
+                              updatePhoneNumber({
+                                contactIndex,
+                                phoneIndex,
+                                value,
+                              }),
+                            )
+                          }
+                          inputStyle={{ width: "100%" }}
+                        />
+                      </Box>
+
                       <IconButton
-                        color="primary"
-                        onClick={() => dispatch(addPhoneNumber(contactIndex))}
+                        color="error"
+                        onClick={() =>
+                          dispatch(
+                            removePhoneNumber({ contactIndex, phoneIndex }),
+                          )
+                        }
+                        disabled={contact.phoneNumbers.length === 1}
                       >
-                        <AddCircle />
+                        <RemoveCircle />
                       </IconButton>
-                    )}
-                  </Box>
-                ))}
 
-              <Box>
-                <FormLabel
-                  component="legend"
-                  sx={{ color: "black", fontSize: "20px" }}
-                >
-                  Address
-                </FormLabel>
-
-               
-                <Autocomplete
-                  options={options}
-                  getOptionLabel={(option) => option.label}
-                  value={contact.country || null}
-                  onChange={(e, newValue) =>
-                    dispatch(
-                      setContactCountry({
-                        index: contactIndex,
-                        country: newValue,
-                      }),
-                    )
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      margin="normal"
-                      label="Select Country"
-                    />
-                  )}
-                />
-
-                
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  size="small"
-                  label="Street Address"
-                  name="streetAdd"
-                  value={contact.streetAdd || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
-
-               
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  size="small"
-                  label="City"
-                  name="city"
-                  value={contact.city || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
-
-               
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  size="small"
-                  label="State"
-                  name="state"
-                  value={contact.state || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
-
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  size="small"
-                  label="Zip Code"
-                  name="zipCode"
-                  value={contact.zipCode || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
+                      {phoneIndex === contact.phoneNumbers.length - 1 && (
+                        <IconButton
+                          color="primary"
+                          onClick={() => dispatch(addPhoneNumber(contactIndex))}
+                        >
+                          <AddCircle />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ))}
               </Box>
-             
-             
-            </Box>
-          ))}
-        </>
-      )} */}
 
-      {showContactForm && (
-  <>
-    {contacts.map((contact, contactIndex) => (
-      <Paper
-        key={contactIndex}
-        elevation={2}
-        sx={{
-          borderRadius: 3,
-          p: 3,
-          mb: 3,
-        }}
-      >
-        {/* HEADER */}
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <Typography variant="h6" fontWeight={600}>
-            Contact #{contactIndex + 1}
-          </Typography>
+              {/* ADDRESS */}
+              <Box mt={3}>
+                <Divider sx={{ mb: 2 }} />
 
-          {newFormContacts.includes(contactIndex) && (
-            <Chip label="New" size="small" color="primary" />
-          )}
-        </Box>
+                <Typography variant="h6" fontWeight={600} mb={2}>
+                  Address
+                </Typography>
 
-        <Divider sx={{ mb: 2 }} />
-
-        {/* NAME FIELDS */}
-        <Grid container
-                rowSpacing={3}
-                columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="First Name"
-              name="firstName"
-              value={contact.firstName || ""}
-              onChange={(e) => handleChange(contactIndex, e)}
-              error={!!contactErrors[contactIndex]?.firstName}
-              helperText={contactErrors[contactIndex]?.firstName}
-              required
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 4 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Middle Name"
-              name="middleName"
-              value={contact.middleName || ""}
-              onChange={(e) => handleChange(contactIndex, e)}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 4 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Last Name"
-              name="lastName"
-              value={contact.lastName || ""}
-              onChange={(e) => handleChange(contactIndex, e)}
-              error={!!contactErrors[contactIndex]?.lastName}
-              helperText={contactErrors[contactIndex]?.lastName}
-              required
-            />
-          </Grid>
-        </Grid>
-
-        <Stack spacing={2} mt={2}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Contact Name"
-            value={contact.contactName || ""}
-            disabled
-          />
-
-          <TextField
-            fullWidth
-            size="small"
-            label="Company Name"
-            name="companyName"
-            value={contact.companyName || ""}
-            onChange={(e) => handleChange(contactIndex, e)}
-          />
-
-          <TextField
-            fullWidth
-            size="small"
-            label="Note"
-            name="note"
-            multiline
-            value={contact.note || ""}
-            onChange={(e) => handleChange(contactIndex, e)}
-          />
-
-          <TextField
-            fullWidth
-            size="small"
-            label="SSN"
-            name="ssn"
-            value={contact.ssn || ""}
-            onChange={(e) => handleSSNChange(contactIndex, e)}
-            inputProps={{
-              maxLength: 11,
-              inputMode: "numeric",
-              pattern: "[0-9]*",
-            }}
-            helperText={
-              contact.ssnError
-                ? contact.ssnError
-                : "Format: 123-45-6789"
-            }
-            error={!!contact.ssnError}
-          />
-
-          <TextField
-            fullWidth
-            size="small"
-            label="Email"
-            name="email"
-            value={contact.email || ""}
-            onChange={(e) => handleChange(contactIndex, e)}
-            error={!!contactErrors[contactIndex]?.email}
-            helperText={contactErrors[contactIndex]?.email}
-            required
-          />
-        </Stack>
-
-        {/* CHECKBOXES */}
-        <FormGroup row sx={{ mt: 2 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={contact.login || false}
-                disabled
-                onChange={(e) =>
-                  dispatch(
-                    updateContactField({
-                      index: contactIndex,
-                      field: "login",
-                      value: e.target.checked,
-                    })
-                  )
-                }
-              />
-            }
-            label="Login"
-          />
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={contact.notify || false}
-                disabled
-                onChange={(e) =>
-                  dispatch(
-                    updateContactField({
-                      index: contactIndex,
-                      field: "notify",
-                      value: e.target.checked,
-                    })
-                  )
-                }
-              />
-            }
-            label="Notify"
-          />
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={contact.emailSync || false}
-                // disabled
-                onChange={(e) =>
-                  dispatch(
-                    updateContactField({
-                      index: contactIndex,
-                      field: "emailSync",
-                      value: e.target.checked,
-                    })
-                  )
-                }
-              />
-            }
-            label="Email Sync"
-          />
-        </FormGroup>
-
-        {/* TAGS */}
-        <Autocomplete
-          multiple
-          options={tags}
-          getOptionLabel={(option) => option.label}
-          value={contact.tags || []}
-          onChange={(e, newValue) =>
-            dispatch(
-              setContactTags({ index: contactIndex, tags: newValue })
-            )
-          }
-          filterSelectedOptions
-          renderTags={(selected, getTagProps) =>
-            selected.map((option, index) => (
-              <Chip
-                {...getTagProps({ index })}
-                key={option.value}
-                label={option.label}
-                sx={{
-                  backgroundColor: option.colour,
-                  color: "#fff",
-                  fontWeight: 500,
-                }}
-              />
-            ))
-          }
-          renderOption={(props, option) => (
-            <Box
-              component="li"
-              {...props}
-              sx={{
-                backgroundColor: option.colour,
-                color: "#fff",
-                borderRadius: 2,
-                px: 1,
-                py: 0.5,
-                my: 0.5,
-                width: "fit-content",
-                fontSize: 12,
-              }}
-            >
-              {option.label}
-            </Box>
-          )}
-          renderInput={(params) => (
-            <TextField {...params} label="Select Tags" size="small" />
-          )}
-          sx={{ mt: 2 }}
-        />
-
-        {/* PHONE NUMBERS */}
-        <Box mt={3}>
-          <Typography fontWeight={600} mb={1}>
-            Phone Numbers
-          </Typography>
-
-          {contact.phoneNumbers &&
-            contact.phoneNumbers.map((phone, phoneIndex) => (
-              <Box
-                key={phoneIndex}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  mb: 1,
-                }}
-              >
-                <Box sx={{ flex: 1 }}>
-                  <PhoneInput
-                    country={"us"}
-                    value={phone}
-                    onChange={(value) =>
+                <Stack spacing={2}>
+                  <Autocomplete
+                    options={options}
+                    getOptionLabel={(option) => option.label}
+                    value={contact.country || null}
+                    onChange={(e, newValue) =>
                       dispatch(
-                        updatePhoneNumber({
-                          contactIndex,
-                          phoneIndex,
-                          value,
-                        })
+                        setContactCountry({
+                          index: contactIndex,
+                          country: newValue,
+                        }),
                       )
                     }
-                    inputStyle={{ width: "100%" }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Select Country"
+                        size="small"
+                      />
+                    )}
                   />
-                </Box>
 
-                <IconButton
-                  color="error"
-                  onClick={() =>
-                    dispatch(
-                      removePhoneNumber({ contactIndex, phoneIndex })
-                    )
-                  }
-                  disabled={contact.phoneNumbers.length === 1}
-                >
-                  <RemoveCircle />
-                </IconButton>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Street Address"
+                    name="streetAdd"
+                    value={contact.streetAdd || ""}
+                    onChange={(e) => handleChange(contactIndex, e)}
+                  />
 
-                {phoneIndex === contact.phoneNumbers.length - 1 && (
-                  <IconButton
-                    color="primary"
-                    onClick={() =>
-                      dispatch(addPhoneNumber(contactIndex))
-                    }
+                  <Grid
+                    container
+                    rowSpacing={3}
+                    columnSpacing={{ xs: 1, sm: 2, md: 3 }}
                   >
-                    <AddCircle />
-                  </IconButton>
-                )}
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="City"
+                        name="city"
+                        value={contact.city || ""}
+                        onChange={(e) => handleChange(contactIndex, e)}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="State"
+                        name="state"
+                        value={contact.state || ""}
+                        onChange={(e) => handleChange(contactIndex, e)}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Zip Code"
+                        name="zipCode"
+                        value={contact.zipCode || ""}
+                        onChange={(e) => handleChange(contactIndex, e)}
+                      />
+                    </Grid>
+                  </Grid>
+                </Stack>
               </Box>
-            ))}
-        </Box>
 
-        {/* ADDRESS */}
-        <Box mt={3}>
-          <Divider sx={{ mb: 2 }} />
-
-          <Typography variant="h6" fontWeight={600} mb={2}>
-            Address
-          </Typography>
-
-          <Stack spacing={2}>
-            <Autocomplete
-              options={options}
-              getOptionLabel={(option) => option.label}
-              value={contact.country || null}
-              onChange={(e, newValue) =>
-                dispatch(
-                  setContactCountry({
-                    index: contactIndex,
-                    country: newValue,
-                  })
-                )
-              }
-              renderInput={(params) => (
-                <TextField {...params} label="Select Country" size="small" />
-              )}
-            />
-
-            <TextField
-              fullWidth
-              size="small"
-              label="Street Address"
-              name="streetAdd"
-              value={contact.streetAdd || ""}
-              onChange={(e) => handleChange(contactIndex, e)}
-            />
-
-            <Grid container
-                rowSpacing={3}
-                columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="City"
-                  name="city"
-                  value={contact.city || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="State"
-                  name="state"
-                  value={contact.state || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Zip Code"
-                  name="zipCode"
-                  value={contact.zipCode || ""}
-                  onChange={(e) => handleChange(contactIndex, e)}
-                />
-              </Grid>
-            </Grid>
-          </Stack>
-        </Box>
-
-        {/* REMOVE BUTTON */}
-        <Box mt={3} display="flex" justifyContent="flex-end">
-          <Button
-            color="error"
-            variant="outlined"
-            onClick={() => handleRemoveContact(contactIndex)}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 500,
-            }}
-          >
-            Remove Contact
-          </Button>
-        </Box>
-      </Paper>
-    ))}
-  </>
-)}
+              {/* REMOVE BUTTON */}
+              <Box mt={3} display="flex" justifyContent="flex-end">
+                <Button
+                  color="error"
+                  variant="outlined"
+                  onClick={() => handleRemoveContact(contactIndex)}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 500,
+                  }}
+                >
+                  Remove Contact
+                </Button>
+              </Box>
+            </Paper>
+          ))}
+        </>
+      )}
       <Button
         variant="outlined"
         startIcon={<AddCircle />}
@@ -1116,9 +766,7 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
         <Button variant="outlined" onClick={onBack}>
           Back
         </Button>
-        {/* <Button variant="contained" onClick={handleSubmitWithPersonalization}>
-          Submit
-        </Button> */}
+       
         <Button
           variant="contained"
           onClick={handleSubmitWithPersonalization}

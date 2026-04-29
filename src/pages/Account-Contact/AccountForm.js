@@ -5,7 +5,7 @@ import {
   Autocomplete,
   FormLabel,
   Box,
-  Button,
+  // Button,
   TextField,
   Typography,
   FormControl,
@@ -17,6 +17,16 @@ import {
   Paper,
   Divider,
 } from "@mui/material";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
+// import { Label, Input } from "../../components/ui/form";
+import {
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "../../components/ui/sheet";
 import countryList from "react-select-country-list";
 import { templateAPI } from "../../services/api";
 import MultiSelectDropdown from "../../components/MultiSelectDropdown";
@@ -180,210 +190,435 @@ export default function AccountForm({ onContinue, isEditing = false }) {
   };
 
   const options = useMemo(() => countryList().getData(), []);
+ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring";
+  // return (
+  //   <Box
+  //     sx={{
+  //       maxWidth: 750,
+  //       mx: "auto",
+  //       p: 3,
+  //     }}
+  //   >
+  //     {/* CLIENT TYPE */}
+  //     <FormControl component="fieldset" fullWidth sx={{ mb: 4 }}>
+  //       <Typography variant="h6" fontWeight={600} mb={1}>
+  //         Client Type
+  //       </Typography>
+
+  //       <RadioGroup
+  //         row
+  //         name="clientType"
+  //         value={accountData.clientType || ""}
+  //         onChange={handleChange}
+  //       >
+  //         <FormControlLabel
+  //           value="Individual"
+  //           control={<Radio />}
+  //           label="Individual"
+  //         />
+  //         <FormControlLabel
+  //           value="Company"
+  //           control={<Radio />}
+  //           label="Company"
+  //         />
+  //       </RadioGroup>
+  //     </FormControl>
+
+  //     {/* ACCOUNT INFO */}
+  //     <Box mb={4}>
+  //       <Typography variant="h6" fontWeight={600} mb={2}>
+  //         Account Info
+  //       </Typography>
+
+  //       <Stack spacing={2}>
+  //         <TextField
+  //           size="small"
+  //           fullWidth
+  //           label="Account Name"
+  //           name="accountName"
+  //           value={accountData.accountName || ""}
+  //           onChange={handleChange}
+  //           error={!!errors.accountName}
+  //           helperText={errors.accountName}
+  //           required
+  //         />
+
+  //         {accountData.clientType === "Company" && (
+  //           <TextField
+  //             fullWidth
+  //             size="small"
+  //             label="Company Name"
+  //             name="companyName"
+  //             value={accountData.companyName || ""}
+  //             onChange={handleChange}
+  //             error={!!errors.companyName}
+  //             helperText={errors.companyName}
+  //             required
+  //           />
+  //         )}
+
+  //         <MultiSelectDropdown
+  //           value={accountData.teamMembers || []}
+  //           options={teamMembers}
+  //           onChange={(newValue) =>
+  //             dispatch(setAccountData({ teamMembers: newValue }))
+  //           }
+  //           placeholder="Select Team Members"
+  //           width="100%"
+  //         />
+
+  //         <TagsMultiSelectDropDown
+  //           value={accountData.tags || []}
+  //            options={tags}
+  //           onChange={(newValue) =>
+  //             dispatch(setAccountData({ tags: newValue }))
+  //           }
+  //           placeholder="Select tags"
+  //         />
+  //         <Box mt={1}>
+  //           {" "}
+  //           <Autocomplete
+  //             options={folderTemp}
+  //             getOptionLabel={(option) => option?.label || ""}
+  //             value={accountData.folderTemp || null}
+  //             onChange={(e, newValue) =>
+  //               handleAutocompleteChange("folderTemp", newValue)
+  //             }
+  //             renderInput={(params) => (
+  //               <TextField
+  //                 {...params}
+  //                 margin="normal"
+  //                 label="Select Folder Template"
+  //                 size="small"
+  //                 required
+  //               />
+  //             )}
+  //           />
+  //         </Box>
+  //       </Stack>
+  //     </Box>
+
+  //     {/* ADDRESS SECTION */}
+  //     {accountData.clientType === "Company" && (
+  //       <Box>
+  //         <Divider sx={{ mb: 3 }} />
+
+  //         <Typography variant="h6" fontWeight={600} mb={2}>
+  //           Address
+  //         </Typography>
+
+  //         <Stack spacing={2}>
+  //           <Autocomplete
+  //             fullWidth
+  //             options={options}
+  //             getOptionLabel={(option) => option.label}
+  //             value={
+  //               options.find(
+  //                 (opt) => opt.label === accountData?.country?.label,
+  //               ) || null
+  //             }
+  //             onChange={(event, newValue) =>
+  //               dispatch(setAccountData({ country: newValue }))
+  //             }
+  //             isOptionEqualToValue={(option, value) =>
+  //               option.label === value?.label
+  //             }
+  //             renderInput={(params) => (
+  //               <TextField {...params} label="Select Country" size="small" />
+  //             )}
+  //           />
+
+  //           <TextField
+  //             fullWidth
+  //             size="small"
+  //             label="Street Address"
+  //             name="streetAddress"
+  //             value={accountData.streetAddress || ""}
+  //             onChange={handleChange}
+  //           />
+
+  //           <Grid
+  //             container
+  //             rowSpacing={3}
+  //             columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+  //           >
+  //             <Grid size={{ xs: 12, md: 4 }}>
+  //               <TextField
+  //                 fullWidth
+  //                 size="small"
+  //                 label="City"
+  //                 name="city"
+  //                 value={accountData.city || ""}
+  //                 onChange={handleChange}
+  //               />
+  //             </Grid>
+
+  //             <Grid size={{ xs: 12, md: 4 }}>
+  //               <TextField
+  //                 fullWidth
+  //                 size="small"
+  //                 label="State"
+  //                 name="state"
+  //                 value={accountData.state || ""}
+  //                 onChange={handleChange}
+  //               />
+  //             </Grid>
+  //             <Grid size={{ xs: 12, md: 4 }}>
+  //               <TextField
+  //                 fullWidth
+  //                 size="small"
+  //                 label="Zip Code"
+  //                 name="postalCode"
+  //                 value={accountData.postalCode || ""}
+  //                 onChange={handleChange}
+  //               />
+  //             </Grid>
+  //           </Grid>
+  //         </Stack>
+  //       </Box>
+  //     )}
+
+  //     {/* ACTION BUTTON */}
+  //     <Box mt={4} display="flex" justifyContent="flex-end">
+  //       <Button
+  //         variant="contained"
+  //         onClick={onContinue}
+  //         sx={{
+  //           px: 4,
+  //           py: 1,
+  //           borderRadius: 2,
+  //           textTransform: "none",
+  //           fontWeight: 600,
+  //         }}
+  //       >
+  //         Continue
+  //       </Button>
+  //     </Box>
+  //   </Box>
+  // );
+
 
   return (
-    <Box
-      sx={{
-        maxWidth: 750,
-        mx: "auto",
-        p: 3,
-      }}
-    >
-      {/* CLIENT TYPE */}
-      <FormControl component="fieldset" fullWidth sx={{ mb: 4 }}>
-        <Typography variant="h6" fontWeight={600} mb={1}>
-          Client Type
-        </Typography>
+  <div className="flex flex-col h-full">
+    {/* Scrollable content */}
+    <div className="flex-1 overflow-y-auto space-y-6 pb-2 px-4">
 
-        <RadioGroup
-          row
-          name="clientType"
-          value={accountData.clientType || ""}
-          onChange={handleChange}
-        >
-          <FormControlLabel
-            value="Individual"
-            control={<Radio />}
-            label="Individual"
-          />
-          <FormControlLabel
-            value="Company"
-            control={<Radio />}
-            label="Company"
-          />
-        </RadioGroup>
-      </FormControl>
+      {/* Client Type */}
+      <div className="space-y-3">
+        <SheetHeader className="px-0 py-0 space-y-0.5">
+          <SheetTitle className="text-sm font-semibold">Client Type</SheetTitle>
+          <SheetDescription className="text-xs">
+            Select whether this is an individual or company account.
+          </SheetDescription>
+        </SheetHeader>
 
-      {/* ACCOUNT INFO */}
-      <Box mb={4}>
-        <Typography variant="h6" fontWeight={600} mb={2}>
-          Account Info
-        </Typography>
+        <div className="flex items-center gap-6">
+          {["Individual", "Company"].map((type) => (
+            <label key={type} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="clientType"
+                value={type}
+                checked={(accountData.clientType || "") === type}
+                onChange={handleChange}
+                className="h-4 w-4 accent-primary"
+              />
+              <span className="text-sm text-foreground">{type}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
-        <Stack spacing={2}>
-          <TextField
-            size="small"
-            fullWidth
-            label="Account Name"
-            name="accountName"
-            value={accountData.accountName || ""}
-            onChange={handleChange}
-            error={!!errors.accountName}
-            helperText={errors.accountName}
-            required
-          />
+      {/* Account Info */}
+      <div className="space-y-3">
+        <SheetHeader className="px-0 py-0 space-y-0.5">
+          <SheetTitle className="text-sm font-semibold">Account Info</SheetTitle>
+          <SheetDescription className="text-xs">
+            Enter the primary account details.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>
+              Account Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              name="accountName"
+              value={accountData.accountName || ""}
+              placeholder="Account Name"
+              className={errors.accountName ? "border-destructive" : ""}
+              onChange={handleChange}
+            />
+            {errors.accountName && (
+              <p className="text-xs text-destructive">{errors.accountName}</p>
+            )}
+          </div>
 
           {accountData.clientType === "Company" && (
-            <TextField
-              fullWidth
-              size="small"
-              label="Company Name"
-              name="companyName"
-              value={accountData.companyName || ""}
-              onChange={handleChange}
-              error={!!errors.companyName}
-              helperText={errors.companyName}
-              required
-            />
+            <div className="space-y-1.5">
+              <Label>
+                Company Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                name="companyName"
+                value={accountData.companyName || ""}
+                placeholder="Company Name"
+                className={errors.companyName ? "border-destructive" : ""}
+                onChange={handleChange}
+              />
+              {errors.companyName && (
+                <p className="text-xs text-destructive">
+                  {errors.companyName}
+                </p>
+              )}
+            </div>
           )}
+        </div>
+      </div>
 
+      {/* Assignment */}
+      <div className="space-y-3">
+        <SheetHeader className="px-0 py-0 space-y-0.5">
+          <SheetTitle className="text-sm font-semibold">Assignment</SheetTitle>
+          <SheetDescription className="text-xs">
+            Assign team members, tags and a folder template.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="space-y-3">
           <MultiSelectDropdown
             value={accountData.teamMembers || []}
-            options={teamMembers}
             onChange={(newValue) =>
               dispatch(setAccountData({ teamMembers: newValue }))
             }
+            options={teamMembers}
             placeholder="Select Team Members"
             width="100%"
           />
 
           <TagsMultiSelectDropDown
             value={accountData.tags || []}
-             options={tags}
             onChange={(newValue) =>
               dispatch(setAccountData({ tags: newValue }))
             }
+            options={tags}
             placeholder="Select tags"
           />
-          <Box mt={1}>
-            {" "}
-            <Autocomplete
-              options={folderTemp}
-              getOptionLabel={(option) => option?.label || ""}
-              value={accountData.folderTemp || null}
-              onChange={(e, newValue) =>
-                handleAutocompleteChange("folderTemp", newValue)
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  margin="normal"
-                  label="Select Folder Template"
-                  size="small"
-                  required
-                />
-              )}
-            />
-          </Box>
-        </Stack>
-      </Box>
 
-      {/* ADDRESS SECTION */}
-      {accountData.clientType === "Company" && (
-        <Box>
-          <Divider sx={{ mb: 3 }} />
-
-          <Typography variant="h6" fontWeight={600} mb={2}>
-            Address
-          </Typography>
-
-          <Stack spacing={2}>
-            <Autocomplete
-              fullWidth
-              options={options}
-              getOptionLabel={(option) => option.label}
-              value={
-                options.find(
-                  (opt) => opt.label === accountData?.country?.label,
-                ) || null
-              }
-              onChange={(event, newValue) =>
-                dispatch(setAccountData({ country: newValue }))
-              }
-              isOptionEqualToValue={(option, value) =>
-                option.label === value?.label
-              }
-              renderInput={(params) => (
-                <TextField {...params} label="Select Country" size="small" />
-              )}
-            />
-
-            <TextField
-              fullWidth
-              size="small"
-              label="Street Address"
-              name="streetAddress"
-              value={accountData.streetAddress || ""}
-              onChange={handleChange}
-            />
-
-            <Grid
-              container
-              rowSpacing={3}
-              columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+          <div className="space-y-1.5">
+            <Label>
+              Folder Template <span className="text-destructive">*</span>
+            </Label>
+            <select
+              value={accountData.folderTemp?.value || ""}
+              onChange={(e) => {
+                const opt =
+                  folderTemp.find((f) => f.value === e.target.value) || null;
+                handleAutocompleteChange("folderTemp", opt);
+              }}
+              className={selectCls}
             >
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="City"
+              <option value="">Select Folder Template</option>
+              {folderTemp.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Address */}
+      {accountData.clientType === "Company" && (
+        <div className="space-y-3">
+          <SheetHeader className="px-0 py-0 space-y-0.5">
+            <SheetTitle className="text-sm font-semibold">Address</SheetTitle>
+            <SheetDescription className="text-xs">
+              Company billing or mailing address.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Country</Label>
+              <select
+                value={
+                  options.find(
+                    (o) => o.label === accountData?.country?.label
+                  )?.value || ""
+                }
+                onChange={(e) => {
+                  const found =
+                    options.find((o) => o.value === e.target.value) || null;
+                  dispatch(setAccountData({ country: found }));
+                }}
+                className={selectCls}
+              >
+                <option value="">Select Country</option>
+                {options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Street Address</Label>
+              <Input
+                name="streetAddress"
+                value={accountData.streetAddress || ""}
+                placeholder="Street address"
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label>City</Label>
+                <Input
                   name="city"
                   value={accountData.city || ""}
+                  placeholder="City"
                   onChange={handleChange}
                 />
-              </Grid>
+              </div>
 
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="State"
+              <div className="space-y-1.5">
+                <Label>State</Label>
+                <Input
                   name="state"
                   value={accountData.state || ""}
+                  placeholder="State"
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Zip Code"
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>ZIP Code</Label>
+                <Input
                   name="postalCode"
                   value={accountData.postalCode || ""}
+                  placeholder="ZIP Code"
                   onChange={handleChange}
                 />
-              </Grid>
-            </Grid>
-          </Stack>
-        </Box>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
+    </div>
 
-      {/* ACTION BUTTON */}
-      <Box mt={4} display="flex" justifyContent="flex-end">
-        <Button
-          variant="contained"
-          onClick={onContinue}
-          sx={{
-            px: 4,
-            py: 1,
-            borderRadius: 2,
-            textTransform: "none",
-            fontWeight: 600,
-          }}
-        >
+    {/* Footer */}
+    <SheetFooter className="border-t border-border/40 pt-3 pb-1">
+      <div className="flex justify-end w-full">
+        <Button size="sm" onClick={onContinue} className="gap-1.5">
           Continue
         </Button>
-      </Box>
-    </Box>
-  );
+      </div>
+    </SheetFooter>
+  </div>
+);
 }
