@@ -1,10 +1,7 @@
 
 import React, { useState, useRef } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Box,
+ 
   List,
   ListItemButton,
   Typography,
@@ -13,6 +10,11 @@ import {
   AccordionSummary,
   AccordionDetails,TextField,Button,ButtonGroup,FormControlLabel,Checkbox
 } from "@mui/material";
+
+import {  Dialog,
+  DialogTitle,
+  DialogContent,
+  Box, } from "../../../components/ui/dialog";
 import SignatureCanvas from "react-signature-canvas";
 import axios from "axios";
 import CloseIcon from "@mui/icons-material/Close";
@@ -95,7 +97,7 @@ const ProposalPreviewDialog = ({ open, handleClose, proposal }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} fullScreen>
-      <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>
+      <sx={{ display: "flex", justifyContent: "space-between" }}>
         {proposal?.general?.proposalName || "Proposal"}
         <CloseIcon sx={{ cursor: "pointer" }} onClick={handleClose} />
       </DialogTitle>

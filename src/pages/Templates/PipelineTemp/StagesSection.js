@@ -28,7 +28,7 @@ import {
   templateAPI,
   authAPI,
   organizerAPI,
-  proposalAPI,
+  proposalAPI,folderManagementAPI
 } from "../../../services/api";
 const StagesSection = ({
   stages,
@@ -156,18 +156,13 @@ const StagesSection = ({
   };
 
   const fetchFolderTemplates = async () => {
-    try {
-      // If folder templates are part of another API, adjust accordingly
-      // For now, using a direct fetch since it's not in the API file
-      const response = await fetch(
-        `https://www.snptaxes.com/api/foldertemp/templatelist`,
-      );
-      const data = await response.json();
-      setFolderTemplates(data.folderTemplates);
-    } catch (error) {
-      console.error("Error fetching folder templates:", error);
-    }
-  };
+  try {
+    const res = await folderManagementAPI.getFolderTemplates();
+    setFolderTemplates(res.data.folderTemplates || []);
+  } catch (error) {
+    console.error("Error fetching folder templates:", error);
+  }
+};
 
   const fetchClientFacingJobsData = async () => {
     try {

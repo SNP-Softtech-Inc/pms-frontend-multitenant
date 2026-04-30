@@ -323,24 +323,50 @@ const PipelineForm = () => {
           name: stage.name.trim(),
           order: stage.order || index + 1,
           conditions: stage.conditions || [],
-          automations:
-            stage.automations?.map((auto) => ({
-              ...auto,
-              selectedtemp:
-                auto.selectedtemp?.value || auto.selectedtemp || null,
-            })) || [],
+          // automations:
+          //   stage.automations?.map((auto) => ({
+          //     ...auto,
+          //     selectedtemp:
+          //       auto.selectedtemp?.value || auto.selectedtemp || null,
+          //   })) || [],
+          automations: stage.automations?.map((auto, i) => ({
+  type: auto.type,
+  index: auto.index || i + 1,
+
+  selectedtemp:
+    auto.selectedtemp?.value || auto.selectedtemp || null,
+
+  selectedTags: auto.selectedTags || [],
+  reminderChecked: auto.reminderChecked || false,
+  daysuntilNextReminder: auto.daysuntilNextReminder || "",
+  noOfReminder: auto.noOfReminder || "",
+
+  addTags: auto.addTags || [],
+  removeTags: auto.removeTags || [],
+
+  selectedAssignees: auto.selectedAssignees || [],
+  assigneesToRemove: auto.assigneesToRemove || [],
+
+  status: auto.status || null,
+  selectedClientStatus: auto.selectedClientStatus || null,
+  clientDescription: auto.clientDescription || "",
+
+  refModel: auto.refModel || null,
+  templateRefModel: auto.templateRefModel || null,
+})) || [],
           autoMove: stage.autoMove || false,
         })),
         active: true,
       };
 
       let result;
-
+console.log("Pipeline data to save:", pipelineData);
       if (isEditMode || pipelineId) {
         const { data } = await templateAPI.updatePipeline(
           pipelineId,
           pipelineData,
         );
+        console.log("Update response:", data);
         result = data;
       } else {
         const { data } = await templateAPI.createPipeline(pipelineData);

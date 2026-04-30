@@ -4,24 +4,33 @@ import { contactsAPI } from "../../services/api";
 import countryList from "react-select-country-list";
 import PhoneInput from "react-phone-input-2";
 import {
-  Grid,
-  Drawer,
-  Box,
-  Typography,
-  IconButton,
-  Button,
-  Stack,
-  TextField,
-  Autocomplete,
-  InputLabel,
-  Chip,
-  Alert,
-} from "@mui/material";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "../../components/ui/sheet";
+
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
+
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../components/ui/command";
 import { AiOutlinePlusCircle, AiOutlineDelete } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
-import CloseIcon from "@mui/icons-material/Close";
+
 const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
   const [phoneNumbers, setPhoneNumbers] = useState([]);
   const queryClient = useQueryClient();
@@ -68,7 +77,7 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
 
   useEffect(() => {
     if (mode === "edit" && selectedContact) {
-      console.log(selectedContact);
+      console.log("selected contact edited", selectedContact);
       setFirstName(selectedContact.firstName || "");
       setMiddleName(selectedContact.middleName || "");
       setLastName(selectedContact.lastName || "");
@@ -82,9 +91,11 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
       setCity(selectedContact.city || "");
       setState(selectedContact.state || "");
       setPostalCode(selectedContact.postalCode || "");
-  if (selectedContact.country) {
+      if (selectedContact.country) {
         const countryOption = options.find(
-          (opt) => opt.value === selectedContact.country.code || opt.label === selectedContact.country.name
+          (opt) =>
+            opt.value === selectedContact.country.code ||
+            opt.label === selectedContact.country.name,
         );
         setSelectedCountry(countryOption || null);
       }
@@ -100,21 +111,20 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
 
       // tags
       // ✅ FIX TAGS
-    if (selectedContact.tags && selectedContact.tags.length > 0) {
-      const formattedTags = selectedContact.tags.map((tag) => ({
-        label: tag.tagName,
-        value: tag._id,
-        color: tag.tagColour,
-      }));
+      if (selectedContact.tags && selectedContact.tags.length > 0) {
+        const formattedTags = selectedContact.tags.map((tag) => ({
+          label: tag.tagName,
+          value: tag._id,
+          colour: tag.tagColour,
+        }));
 
-      setSelectedTags(formattedTags); // 👈 IMPORTANT (for UI)
-      setCombinedValues(formattedTags.map((t) => t.value)); // 👈 for API
-    } else {
-      setSelectedTags([]);
-      setCombinedValues([]);
+        setSelectedTags(formattedTags); // 👈 IMPORTANT (for UI)
+        setCombinedValues(formattedTags.map((t) => t.value)); // 👈 for API
+      } else {
+        setSelectedTags([]);
+        setCombinedValues([]);
+      }
     }
-  }
-    
 
     if (mode === "create") {
       resetForm();
@@ -272,53 +282,6 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
       toast.error("Something went wrong");
     }
   };
-  //   const sendingData = async (e) => {
-  //     e.preventDefault();
-
-  //     if (!validateForm()) return;
-
-  //     const formattedPhoneNumbers = phoneNumbers.map((item) => item.phone);
-
-  // const countryPayload = selectedCountry
-  //   ? { name: selectedCountry.label, code: selectedCountry.value }
-  //   : null;
-
-  //     const payload = {
-  //       firstName,
-  //       middleName,
-  //       lastName,
-  //       contactName,
-  //       companyName,
-  //       note,
-  //       ssn,
-  //       email,
-  //       tags: combinedValues,
-  //       country: countryPayload,
-  //       streetAddress,
-  //       city,
-  //       state,
-  //       postalCode,
-  //       phoneNumbers: formattedPhoneNumbers,
-  //     };
-
-  //     try {
-  //       const res = await contactsAPI.createContact(payload);
-  //       toast.success("Contact created successfully!");
-  //       onClose();
-  //         // 🔥 THIS refreshes table automatically
-  //       queryClient.invalidateQueries({ queryKey: ["contacts"] });
-  //       // navigate("/clients/contacts");
-  //     } catch (error) {
-  //       const errMsg = error?.response?.data?.error || "Failed to create contact";
-  //       // If email conflict
-  //       if (error?.response?.status === 409) {
-  //         setEmaileError(errMsg);
-  //         toast.warning("Entered email is already used");
-  //         return;
-  //       }
-  //       toast.error(errMsg);
-  //     }
-  //   };
 
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -331,385 +294,610 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
     console.log(selectedValues);
   };
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      PaperProps={{ sx: { width: 700, maxWidth: "100vw" } }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: 3,
-          py: 2,
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          bgcolor: "background.paper",
-        }}
-      >
-        <Typography variant="h6">
-          {mode === "edit" ? "Edit Contact" : "New Contact"}
-        </Typography>
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent className="!w-[700px] !max-w-none overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>
+            {mode === "edit" ? "Edit Contact" : "New Contact"}
+          </SheetTitle>
+        </SheetHeader>
 
-        <IconButton
-          onClick={onClose}
-          sx={{
-            borderRadius: 2,
-            "&:hover": {
-              bgcolor: "grey.100",
-            },
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
-      <Box>
-        <Box
-          component="form"
-          sx={{
-            px: "3%",
-            height: "90vh",
-            overflowY: "auto",
-          }}
-        >
-          {/* Name Fields */}
-          <Box m={2}>
-            <Grid
-              container
-              rowSpacing={3}
-              columnSpacing={{ xs: 1, sm: 2, md: 3 }}
-            >
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  name="firstName"
-                  value={firstName}
-                  label="First Name *"
-                  placeholder="First Name *"
-                  size="small"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFirstName(value);
-                    if (value.trim() !== "") setFirstNameError("");
-                  }}
-                  error={!!firstNameError}
-                />
+        <div className="space-y-4 mt-4">
+          {/* Name */}
+          <div className="grid grid-cols-3 gap-3">
+            <Input
+              placeholder="First Name *"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <Input
+              placeholder="Middle Name"
+              value={middleName}
+              onChange={(e) => setMiddleName(e.target.value)}
+            />
+            <Input
+              placeholder="Last Name *"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
 
-                {firstNameError && (
-                  <Alert
-                    variant="filled"
-                    severity="error"
-                    sx={{
-                      mt: 0.5,
-                      fontSize: "11px",
-                      borderRadius: "10px",
-                      height: "23px",
-                      display: "flex",
-                      alignItems: "center",
-                      "& .MuiAlert-icon": { fontSize: "16px", mr: 1 },
-                    }}
-                  >
-                    {firstNameError}
-                  </Alert>
-                )}
-              </Grid>
+          {/* Contact */}
+          <Input
+            value={contactName}
+            placeholder="Contact Name"
+            onChange={(e) => setContactName(e.target.value)}
+          />
+          <Input
+            value={companyName}
+            placeholder="Company Name"
+            onChange={(e) => setCompanyName(e.target.value)}
+          />
 
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  name="middleName"
-                  value={middleName}
-                  label="Middle Name"
-                  placeholder="Middle Name"
-                  size="small"
-                  onChange={(e) => setMiddleName(e.target.value)}
-                />
-              </Grid>
+          {/* Email */}
+          <Input
+            value={email}
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  name="lastName"
-                  value={lastName}
-                  label="Last Name *"
-                  placeholder="Last Name *"
-                  size="small"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setLastName(value);
-                    if (value.trim() !== "") setLastNameError("");
-                  }}
-                  error={!!lastNameError}
-                />
-                {lastNameError && (
-                  <Alert
-                    variant="filled"
-                    severity="error"
-                    sx={{
-                      mt: 0.5,
-                      fontSize: "11px",
-                      borderRadius: "10px",
-                      height: "23px",
-                      display: "flex",
-                      alignItems: "center",
-                      "& .MuiAlert-icon": { fontSize: "16px", mr: 1 },
-                    }}
-                  >
-                    {lastNameError}
-                  </Alert>
-                )}
-              </Grid>
-            </Grid>
-          </Box>
-          {/* Contact & Company */}
-          <Stack spacing={2} m={2}>
-            <Box>
-              <TextField
-                fullWidth
-                name="contactName"
-                label="Contact Name"
-                value={contactName}
-                placeholder="Contact Name"
-                size="small"
-                onChange={(e) => setContactName(e.target.value)}
-              />
-            </Box>
+          {/* Tags */}
+          <TagsMultiSelectDropDown
+            value={selectedTags}
+            onChange={handleTagChange}
+            placeholder="Tags"
+          />
 
-            <Box>
-              <TextField
-                fullWidth
-                name="companyName"
-                label="Company Name"
-                value={companyName}
-                placeholder="Company Name"
-                size="small"
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </Box>
+          {/* Note */}
+          <Textarea
+            value={note}
+            placeholder="Note"
+            onChange={(e) => setNote(e.target.value)}
+          />
 
-            {/* Email */}
-            <Box>
-              <TextField
-                fullWidth
-                name="email"
-                value={email}
-                placeholder="Email *"
-                label="Email *"
-                size="small"
-                onChange={(e) => setEmail(e.target.value)}
-                error={!!emailError}
-              />
-              {emailError && (
-                <Alert
-                  variant="filled"
-                  severity="error"
-                  sx={{
-                    mt: 0.5,
-                    fontSize: "11px",
-                    borderRadius: "10px",
-                    height: "23px",
-                    display: "flex",
-                    alignItems: "center",
-                    "& .MuiAlert-icon": { fontSize: "16px", mr: 1 },
-                  }}
-                >
-                  {emailError}
-                </Alert>
-              )}
-            </Box>
-          </Stack>
+          {/* SSN */}
+          <Input value={ssn} placeholder="SSN" onChange={handleSSNChange} />
 
-          {/* Tags & Note */}
-          <Stack spacing={2} m={2}>
-            <Box>
-              <TagsMultiSelectDropDown
-                value={selectedTags}
-                onChange={handleTagChange}
-                placeholder="Tags"
-              />
-            </Box>
+          {/* Phones */}
+          {/* <div>
+            <div className="font-semibold">Phone Numbers</div>
 
-            <Box>
-              <TextField
-                fullWidth
-                name="note"
-                multiline
-                size="small"
-                placeholder="Note"
-                label="Note"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </Box>
-
-            {/* SSN */}
-            <Box>
-              <TextField
-                fullWidth
-                name="ssn"
-                value={ssn}
-                placeholder="123-45-6789"
-                size="small"
-                label="SSN"
-                onChange={handleSSNChange}
-                error={!!ssnError}
-                helperText={ssnError || "Format: 123-45-6789"}
-                inputProps={{
-                  maxLength: 11,
-                  inputMode: "numeric",
-                  pattern: "[0-9]*",
-                }}
-              />
-            </Box>
-          </Stack>
-
-          {/* Phone Numbers */}
-          <Typography variant="h6" mt={3} m={2} fontWeight="bold">
-            Phone Numbers
-          </Typography>
-          <Stack spacing={2} m={2}>
             {phoneNumbers.map((phone) => (
-              <Box key={phone.id} sx={{ position: "relative" }}>
-                {phone.isPrimary && (
-                  <Chip
-                    label="Primary phone"
-                    color="primary"
-                    size="small"
-                    sx={{ position: "absolute", top: -20, left: 0 }}
-                  />
-                )}
-                <Box display="flex" alignItems="center" gap={2}>
+              <div key={phone.id} className="flex gap-2 items-center mt-2">
+                <PhoneInput
+                  country="us"
+                  value={phone.phone}
+                  onChange={(val) =>
+                    setPhoneNumbers((prev) =>
+                      prev.map((p) =>
+                        p.id === phone.id ? { ...p, phone: val } : p
+                      )
+                    )
+                  }
+                />
+                <AiOutlineDelete onClick={()=>handleDeletePhoneNumber(phone.id)} />
+              </div>
+            ))}
+
+            <div
+              className="flex items-center gap-2 text-blue-600 cursor-pointer mt-2"
+              onClick={handleAddPhoneNumber}
+            >
+              <AiOutlinePlusCircle /> Add phone
+            </div>
+          </div> */}
+          <div className="space-y-2">
+            <div className="font-semibold text-xs">Phone Numbers</div>
+
+            {phoneNumbers.map((phone) => (
+              <div key={phone.id} className="flex items-center gap-2">
+                {/* IMPORTANT: constrain width */}
+                <div className="flex-1 min-w-0">
                   <PhoneInput
                     country="us"
                     value={phone.phone}
-                    onChange={(value, country) =>
-                      handlePhoneNumberChange(value, country, phone.id)
+                    onChange={(val) =>
+                      setPhoneNumbers((prev) =>
+                        prev.map((p) =>
+                          p.id === phone.id ? { ...p, phone: val } : p,
+                        ),
+                      )
                     }
-                    inputStyle={{ width: "100%" }}
-                    buttonStyle={{
-                      borderTopLeftRadius: 8,
-                      borderBottomLeftRadius: 8,
+                    inputStyle={{
+                      width: "100%",
+                      height: "36px",
+                      fontSize: "14px",
                     }}
-                    containerStyle={{ display: "flex", flex: 1 }}
+                    containerStyle={{
+                      width: "100%",
+                    }}
                   />
-                  <AiOutlineDelete
-                    style={{ cursor: "pointer", color: "red" }}
-                    onClick={() => handleDeletePhoneNumber(phone.id)}
-                  />
-                </Box>
-              </Box>
+                </div>
+
+                {/* tighter icon button like shadcn */}
+                <button
+                  type="button"
+                  onClick={() => handleDeletePhoneNumber(phone.id)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md 
+                   text-muted-foreground hover:text-destructive 
+                   hover:bg-destructive/10 transition-colors shrink-0"
+                >
+                  <AiOutlineDelete className="h-4 w-4" />
+                </button>
+              </div>
             ))}
 
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: "blue",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
+            <div
+              className="flex items-center gap-2 text-blue-600 cursor-pointer mt-2"
               onClick={handleAddPhoneNumber}
             >
-              <AiOutlinePlusCircle />
-              <Typography>Add phone number</Typography>
-            </Box>
-          </Stack>
+              <AiOutlinePlusCircle /> Add phone
+            </div>
+          </div>
+          {/* Country */}
+          {/* <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline">
+                {selectedCountry?.label || "Select Country"}
+              </Button>
+            </PopoverTrigger>
 
+            <PopoverContent>
+              <Command>
+                <CommandInput placeholder="Search..." />
+                <CommandList>
+                  {options.map((opt) => (
+                    <CommandItem
+                      key={opt.value}
+                      onSelect={() => setSelectedCountry(opt)}
+                    >
+                      {opt.label}
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover> */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                {selectedCountry?.label || "Select Country"}
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+              <Command className="w-full">
+                <CommandInput placeholder="Search..." />
+                <CommandList>
+                  {options.map((opt) => (
+                    <CommandItem
+                      key={opt.value}
+                      onSelect={() => setSelectedCountry(opt)}
+                    >
+                      {opt.label}
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           {/* Address */}
-          <Typography variant="h6" m={2} fontWeight="bold">
-            Address
-          </Typography>
-          <Stack spacing={2} m={2}>
-            <Autocomplete
-              options={options}
-              getOptionLabel={(option) => option.label}
-              value={selectedCountry}
-              onChange={(e, newVal) => setSelectedCountry(newVal)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select Country"
-                  size="small"
-                />
-              )}
+          <Input
+            placeholder="Street"
+            value={streetAddress}
+            onChange={(e) => setStreetAddress(e.target.value)}
+          />
+
+          <div className="grid grid-cols-3 gap-3">
+            <Input
+              placeholder="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
             />
-            <TextField
-              fullWidth
-              name="streetAddress"
-              value={streetAddress}
-              onChange={(e) => setStreetAddress(e.target.value)}
-              placeholder="Street address"
-              size="small"
-              label="Street Address"
+            <Input
+              placeholder="State"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
             />
-          </Stack>
-          <Box m={2}>
-            <Grid
-              container
-              rowSpacing={3}
-              columnSpacing={{ xs: 1, sm: 2, md: 3 }}
-            >
-              <Grid size={{ xs: 12, md: 4 }}>
-                {" "}
-                <TextField
-                  fullWidth
-                  name="city"
-                  value={city}
-                  placeholder="City"
-                  label="City"
-                  size="small"
-                  onChange={(e) => setCity(e.target.value)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  name="state"
-                  value={state}
-                  label="State/Province"
-                  placeholder="State/Province"
-                  size="small"
-                  onChange={(e) => setState(e.target.value)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  name="postalCode"
-                  value={postalCode}
-                  placeholder="ZIP/Postal Code"
-                  label="ZIP/Postal Code"
-                  size="small"
-                  onChange={(e) => setPostalCode(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-          </Box>
+            <Input
+              placeholder="Postal Code"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+            />
+          </div>
+
           {/* Buttons */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 2,
-              mt: 4,
-              mb: 2,
-            }}
-          >
-            <Button variant="contained" onClick={sendingData}>
-              {/* Create */}
-               {mode === "edit" ? "Edit Contact" : "Create Contact"}
+          <div className="flex justify-end gap-2 mt-4">
+            <Button onClick={sendingData}>
+              {mode === "edit" ? "Edit Contact" : "Create Contact"}
             </Button>
-            <Button variant="outlined" onClick={onClose}>
+            <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-          </Box>
-        </Box>
-      </Box>
-    </Drawer>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
 export default NewContactDrawer;
+
+// <Drawer
+//   anchor="right"
+//   open={open}
+//   onClose={onClose}
+//   PaperProps={{ sx: { width: 700, maxWidth: "100vw" } }}
+// >
+//   <Box
+//     sx={{
+//       display: "flex",
+//       alignItems: "center",
+//       justifyContent: "space-between",
+//       px: 3,
+//       py: 2,
+//       borderBottom: "1px solid",
+//       borderColor: "divider",
+//       bgcolor: "background.paper",
+//     }}
+//   >
+//     <Typography variant="h6">
+//       {mode === "edit" ? "Edit Contact" : "New Contact"}
+//     </Typography>
+
+//     <IconButton
+//       onClick={onClose}
+//       sx={{
+//         borderRadius: 2,
+//         "&:hover": {
+//           bgcolor: "grey.100",
+//         },
+//       }}
+//     >
+//       <CloseIcon />
+//     </IconButton>
+//   </Box>
+//   <Box>
+//     <Box
+//       component="form"
+//       sx={{
+//         px: "3%",
+//         height: "90vh",
+//         overflowY: "auto",
+//       }}
+//     >
+//       {/* Name Fields */}
+//       <Box m={2}>
+//         <Grid
+//           container
+//           rowSpacing={3}
+//           columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+//         >
+//           <Grid size={{ xs: 12, md: 4 }}>
+//             <TextField
+//               fullWidth
+//               name="firstName"
+//               value={firstName}
+//               label="First Name *"
+//               placeholder="First Name *"
+//               size="small"
+//               onChange={(e) => {
+//                 const value = e.target.value;
+//                 setFirstName(value);
+//                 if (value.trim() !== "") setFirstNameError("");
+//               }}
+//               error={!!firstNameError}
+//             />
+
+//             {firstNameError && (
+//               <Alert
+//                 variant="filled"
+//                 severity="error"
+//                 sx={{
+//                   mt: 0.5,
+//                   fontSize: "11px",
+//                   borderRadius: "10px",
+//                   height: "23px",
+//                   display: "flex",
+//                   alignItems: "center",
+//                   "& .MuiAlert-icon": { fontSize: "16px", mr: 1 },
+//                 }}
+//               >
+//                 {firstNameError}
+//               </Alert>
+//             )}
+//           </Grid>
+
+//           <Grid size={{ xs: 12, md: 4 }}>
+//             <TextField
+//               fullWidth
+//               name="middleName"
+//               value={middleName}
+//               label="Middle Name"
+//               placeholder="Middle Name"
+//               size="small"
+//               onChange={(e) => setMiddleName(e.target.value)}
+//             />
+//           </Grid>
+
+//           <Grid size={{ xs: 12, md: 4 }}>
+//             <TextField
+//               fullWidth
+//               name="lastName"
+//               value={lastName}
+//               label="Last Name *"
+//               placeholder="Last Name *"
+//               size="small"
+//               onChange={(e) => {
+//                 const value = e.target.value;
+//                 setLastName(value);
+//                 if (value.trim() !== "") setLastNameError("");
+//               }}
+//               error={!!lastNameError}
+//             />
+//             {lastNameError && (
+//               <Alert
+//                 variant="filled"
+//                 severity="error"
+//                 sx={{
+//                   mt: 0.5,
+//                   fontSize: "11px",
+//                   borderRadius: "10px",
+//                   height: "23px",
+//                   display: "flex",
+//                   alignItems: "center",
+//                   "& .MuiAlert-icon": { fontSize: "16px", mr: 1 },
+//                 }}
+//               >
+//                 {lastNameError}
+//               </Alert>
+//             )}
+//           </Grid>
+//         </Grid>
+//       </Box>
+//       {/* Contact & Company */}
+//       <Stack spacing={2} m={2}>
+//         <Box>
+//           <TextField
+//             fullWidth
+//             name="contactName"
+//             label="Contact Name"
+//             value={contactName}
+//             placeholder="Contact Name"
+//             size="small"
+//             onChange={(e) => setContactName(e.target.value)}
+//           />
+//         </Box>
+
+//         <Box>
+//           <TextField
+//             fullWidth
+//             name="companyName"
+//             label="Company Name"
+//             value={companyName}
+//             placeholder="Company Name"
+//             size="small"
+//             onChange={(e) => setCompanyName(e.target.value)}
+//           />
+//         </Box>
+
+//         {/* Email */}
+//         <Box>
+//           <TextField
+//             fullWidth
+//             name="email"
+//             value={email}
+//             placeholder="Email *"
+//             label="Email *"
+//             size="small"
+//             onChange={(e) => setEmail(e.target.value)}
+//             error={!!emailError}
+//           />
+//           {emailError && (
+//             <Alert
+//               variant="filled"
+//               severity="error"
+//               sx={{
+//                 mt: 0.5,
+//                 fontSize: "11px",
+//                 borderRadius: "10px",
+//                 height: "23px",
+//                 display: "flex",
+//                 alignItems: "center",
+//                 "& .MuiAlert-icon": { fontSize: "16px", mr: 1 },
+//               }}
+//             >
+//               {emailError}
+//             </Alert>
+//           )}
+//         </Box>
+//       </Stack>
+
+//       {/* Tags & Note */}
+//       <Stack spacing={2} m={2}>
+//         <Box>
+// <TagsMultiSelectDropDown
+//   value={selectedTags}
+//   onChange={handleTagChange}
+//   placeholder="Tags"
+// />
+//         </Box>
+
+//         <Box>
+//           <TextField
+//             fullWidth
+//             name="note"
+//             multiline
+//             size="small"
+//             placeholder="Note"
+//             label="Note"
+//             value={note}
+//             onChange={(e) => setNote(e.target.value)}
+//           />
+//         </Box>
+
+//         {/* SSN */}
+//         <Box>
+//           <TextField
+//             fullWidth
+//             name="ssn"
+//             value={ssn}
+//             placeholder="123-45-6789"
+//             size="small"
+//             label="SSN"
+//             onChange={handleSSNChange}
+//             error={!!ssnError}
+//             helperText={ssnError || "Format: 123-45-6789"}
+//             inputProps={{
+//               maxLength: 11,
+//               inputMode: "numeric",
+//               pattern: "[0-9]*",
+//             }}
+//           />
+//         </Box>
+//       </Stack>
+
+//       {/* Phone Numbers */}
+//       <Typography variant="h6" mt={3} m={2} fontWeight="bold">
+//         Phone Numbers
+//       </Typography>
+//       <Stack spacing={2} m={2}>
+//         {phoneNumbers.map((phone) => (
+//           <Box key={phone.id} sx={{ position: "relative" }}>
+//             {phone.isPrimary && (
+//               <Chip
+//                 label="Primary phone"
+//                 color="primary"
+//                 size="small"
+//                 sx={{ position: "absolute", top: -20, left: 0 }}
+//               />
+//             )}
+//             <Box display="flex" alignItems="center" gap={2}>
+//               <PhoneInput
+//                 country="us"
+//                 value={phone.phone}
+//                 onChange={(value, country) =>
+//                   handlePhoneNumberChange(value, country, phone.id)
+//                 }
+//                 inputStyle={{ width: "100%" }}
+//                 buttonStyle={{
+//                   borderTopLeftRadius: 8,
+//                   borderBottomLeftRadius: 8,
+//                 }}
+//                 containerStyle={{ display: "flex", flex: 1 }}
+//               />
+//               <AiOutlineDelete
+//                 style={{ cursor: "pointer", color: "red" }}
+//                 onClick={() => handleDeletePhoneNumber(phone.id)}
+//               />
+//             </Box>
+//           </Box>
+//         ))}
+
+//         <Box
+//           sx={{
+//             display: "flex",
+//             alignItems: "center",
+//             gap: 1,
+//             color: "blue",
+//             fontWeight: 600,
+//             cursor: "pointer",
+//           }}
+//           onClick={handleAddPhoneNumber}
+//         >
+//           <AiOutlinePlusCircle />
+//           <Typography>Add phone number</Typography>
+//         </Box>
+//       </Stack>
+
+//       {/* Address */}
+//       <Typography variant="h6" m={2} fontWeight="bold">
+//         Address
+//       </Typography>
+//       <Stack spacing={2} m={2}>
+//         <Autocomplete
+//           options={options}
+//           getOptionLabel={(option) => option.label}
+//           value={selectedCountry}
+//           onChange={(e, newVal) => setSelectedCountry(newVal)}
+//           renderInput={(params) => (
+//             <TextField
+//               {...params}
+//               placeholder="Select Country"
+//               size="small"
+//             />
+//           )}
+//         />
+//         <TextField
+//           fullWidth
+//           name="streetAddress"
+//           value={streetAddress}
+//           onChange={(e) => setStreetAddress(e.target.value)}
+//           placeholder="Street address"
+//           size="small"
+//           label="Street Address"
+//         />
+//       </Stack>
+//       <Box m={2}>
+//         <Grid
+//           container
+//           rowSpacing={3}
+//           columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+//         >
+//           <Grid size={{ xs: 12, md: 4 }}>
+//             {" "}
+//             <TextField
+//               fullWidth
+//               name="city"
+//               value={city}
+//               placeholder="City"
+//               label="City"
+//               size="small"
+//               onChange={(e) => setCity(e.target.value)}
+//             />
+//           </Grid>
+//           <Grid size={{ xs: 12, md: 4 }}>
+//             <TextField
+//               fullWidth
+//               name="state"
+//               value={state}
+//               label="State/Province"
+//               placeholder="State/Province"
+//               size="small"
+//               onChange={(e) => setState(e.target.value)}
+//             />
+//           </Grid>
+//           <Grid size={{ xs: 12, md: 4 }}>
+//             <TextField
+//               fullWidth
+//               name="postalCode"
+//               value={postalCode}
+//               placeholder="ZIP/Postal Code"
+//               label="ZIP/Postal Code"
+//               size="small"
+//               onChange={(e) => setPostalCode(e.target.value)}
+//             />
+//           </Grid>
+//         </Grid>
+//       </Box>
+//       {/* Buttons */}
+//       <Box
+//         sx={{
+//           display: "flex",
+//           justifyContent: "flex-end",
+//           gap: 2,
+//           mt: 4,
+//           mb: 2,
+//         }}
+//       >
+//         <Button variant="contained" onClick={sendingData}>
+//           {/* Create */}
+//            {mode === "edit" ? "Edit Contact" : "Create Contact"}
+//         </Button>
+//         <Button variant="outlined" onClick={onClose}>
+//           Cancel
+//         </Button>
+//       </Box>
+//     </Box>
+//   </Box>
+// </Drawer>

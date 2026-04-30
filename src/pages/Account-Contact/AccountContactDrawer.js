@@ -110,6 +110,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetOverlay
 } from "../../components/ui/sheet";
 import { Button } from "../../components/ui/button";
 import { X } from "lucide-react";
@@ -163,37 +164,57 @@ export default function AccountContactDrawer({
   }, [open, accountId, dispatch, onClose]);
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent
-  side="right"
-  className="!w-[700px] !max-w-none p-0 flex flex-col"
->
-        {/* Header */}
-        <SheetHeader className="flex flex-row items-center justify-between border-b px-6 py-4">
-          <SheetTitle className="text-lg font-semibold">
-            {accountId ? "Update Account" : "Create Account"}
-          </SheetTitle>
+//     <Sheet open={open} onOpenChange={onClose}>
+      
+//       <SheetContent
+//   side="right"
+//   className="!w-[700px] !max-w-none p-0 flex flex-col"
+// >
+//         {/* Header */}
+//         <SheetHeader className="flex flex-row items-center justify-between border-b px-6 py-4">
+//           <SheetTitle className="text-lg font-semibold">
+//             {accountId ? "Update Account" : "Create Account"}
+//           </SheetTitle>
 
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="rounded-md hover:bg-muted"
-          >
-            <X className="h-5 w-5" />
-          </Button> */}
-        </SheetHeader>
+         
+//         </SheetHeader>
 
-        {/* Body */}
-        <div className="p-6 overflow-y-auto flex-1">
-          <AccountContactForm
-            isEditing={!!accountId}
-            accountId={accountId}
-            onCloseDrawer={onClose}
-            handleDrawerClose={handleDrawerClose}
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
+//         {/* Body */}
+//         <div className="p-6 overflow-y-auto flex-1">
+//           <AccountContactForm
+//             isEditing={!!accountId}
+//             accountId={accountId}
+//             onCloseDrawer={onClose}
+//             handleDrawerClose={handleDrawerClose}
+//           />
+//         </div>
+//       </SheetContent>
+//     </Sheet>
+<Sheet open={open} onOpenChange={onClose}>
+  {/* 👇 Use your exact styling */}
+  <SheetOverlay className="bg-foreground/20 backdrop-blur-sm" />
+
+  <SheetContent
+    side="right"
+    className="!w-[700px] !max-w-none p-0 flex flex-col"
+  >
+    {/* Header */}
+    <SheetHeader className="flex flex-row items-center justify-between border-b px-6 py-4">
+      <SheetTitle className="text-lg font-semibold">
+        {accountId ? "Update Account" : "Create Account"}
+      </SheetTitle>
+    </SheetHeader>
+
+    {/* Body */}
+    <div className="p-6 overflow-y-auto flex-1">
+      <AccountContactForm
+        isEditing={!!accountId}
+        accountId={accountId}
+        onCloseDrawer={onClose}
+        handleDrawerClose={handleDrawerClose}
+      />
+    </div>
+  </SheetContent>
+</Sheet>
   );
 }

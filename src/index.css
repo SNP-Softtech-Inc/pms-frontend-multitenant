@@ -199,3 +199,14 @@ code {
   color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
 }
+/* Add to your global CSS */
+.backdrop-blur-fix {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Ensure proper stacking context */
+#root, 
+.app-container {
+  isolation: isolate;
+}
