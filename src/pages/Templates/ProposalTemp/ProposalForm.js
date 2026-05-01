@@ -1,32 +1,805 @@
 
 
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Stepper,
-  Step,
-  StepLabel,
-  Button,
-  Typography,
-  CircularProgress,
-  Alert,
-  Paper,
-  Container,
-  AppBar,
-  Toolbar,
-  IconButton
-} from '@mui/material';
-import { ArrowBack, NavigateNext, NavigateBefore } from '@mui/icons-material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+// import React, { useState, useEffect } from 'react';
+// import {
+//   Box,
+//   Stepper,
+//   Step,
+//   StepLabel,
+//   Button,
+//   Typography,
+//   CircularProgress,
+//   Alert,
+//   Paper,
+//   Container,
+//   AppBar,
+//   Toolbar,
+//   IconButton
+// } from '@mui/material';
+// import { ArrowBack, NavigateNext, NavigateBefore } from '@mui/icons-material';
+// import { useNavigate, useSearchParams } from 'react-router-dom';
 
-// Import your step components (make sure they're also converted to MUI)
+// // Import your step components (make sure they're also converted to MUI)
+// import GeneralStep from './Steps/GeneralStep';
+// import IntroductionStep from './Steps/IntroductionStep';
+// import TermsStep from './Steps/TermsStep';
+// import ServicesInvoicesStep from './Steps/ServicesInvoicesStep';
+// import PaymentStep from './Steps/PaymentStep';
+// import { toast } from 'react-toastify';
+// import { proposalAPI,authAPI } from "../../../services/api"; // adjust path
+// const ProposalForm = () => {
+//   const [currentStep, setCurrentStep] = useState(0);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState('');
+//   const [stepErrors, setStepErrors] = useState({});
+//   const [formData, setFormData] = useState({
+//     general: {
+//       skipStepper: false,
+//       introductionEnabled: true,
+//       termsEnabled: true,
+//       servicesEnabled: true,
+//       paymentsEnabled: false,
+//       templateName: '',
+//       proposalName: '',
+//       teamMembers:[]
+//     },
+//     introduction: {
+//       title: '',
+//       description: '',
+//     },
+//     terms: {
+//       title: '',
+//       description: '',
+//     },
+//     services: {
+//       option: "",
+//       invoices: [],
+//       itemizedData: {
+//         price: 0,
+//         name: '',
+//         rows: [getEmptyRow()],
+//         subtotal: '0.00',
+//         taxRate: '0',
+//         taxTotal: '0.00',
+//         totalAmount: '0.00'
+//       },
+//     },
+//     payments: {
+//       method: '',
+//       amount: 0,
+//     },
+//   });
+
+//   const navigate = useNavigate();
+//   const [searchParams] = useSearchParams();
+//   const proposalId = searchParams.get('edit');
+//   const LOGIN_API = process.env.REACT_APP_USER_LOGIN || 'https://www.snptaxes.com';
+
+//   // Helper function for empty row
+//   function getEmptyRow() {
+//     return {
+//       productName: '',
+//       description: '',
+//       rate: '0.00',
+//       qty: '1',
+//       amount: '0.00',
+//       tax: false,
+//       isDiscount: false,
+//     };
+//   }
+
+//   function getEmptyInvoice() {
+//     return {
+//       invoiceTemplate: null,
+//       teamMembers: [], // Changed to teamMembers array
+//       issueInvoice: 'immediately',
+//       specificDate: null,
+//       selectedTime: null,
+//       description: '',
+//       charCount: 0,
+//       charLimit: 1000,
+//       rows: [getEmptyRow()],
+//       subtotal: '0.00',
+//       taxRate: '0',
+//       taxTotal: '0.00',
+//       totalAmount: '0.00',
+//       clientNote: '',
+//     };
+//   }
+
+//   // Fetch proposal data if editing
+//   useEffect(() => {
+//     if (proposalId) {
+//       fetchProposalData();
+//     }
+//   }, [proposalId]);
+
+//   // Fetch team members for transformation
+// const fetchTeamMembers = async () => {
+//   try {
+//     const res = await authAPI.getAllUsers({
+//       page: 1,
+//       limit: 50,
+//       status: "active",
+//     });
+
+//     const users = res?.data?.users || [];
+
+//     return users.map((user) => ({
+//       value: user._id,
+//       label: user.username,
+//     }));
+//   } catch (error) {
+//     console.error("Error fetching team members:", error);
+//     return [];
+//   }
+// };
+
+//  const fetchProposalData = async () => {
+//   try {
+//     setLoading(true);
+//     setError('');
+
+//     const res = await proposalAPI.getProposalById(proposalId);
+//     const data = res.data;
+
+//     const teamMemberOptions = await fetchTeamMembers();
+
+//     const transformedData = transformDataForForm(data, teamMemberOptions);
+//     setFormData(transformedData);
+//   } catch (error) {
+//     console.error('Error fetching proposal:', error);
+//     setError('Error loading proposal: ' + (error.message || "Something went wrong"));
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+//   // Transform API data back to form structure
+//  const transformDataForForm = (apiData, teamMemberOptions = []) => {
+//   return {
+//     general: {
+//       skipStepper: apiData.general?.skipStepper || false,
+//       introductionEnabled: apiData.general?.introductionEnabled ?? true,
+//       termsEnabled: apiData.general?.termsEnabled ?? true,
+//       servicesEnabled: apiData.general?.servicesEnabled ?? true,
+//       paymentsEnabled: apiData.general?.paymentsEnabled ?? false,
+//       templateName: apiData.general?.templateName || '',
+//       proposalName: apiData.general?.proposalName || '',
+
+//       // ✅ FIX HERE
+//       teamMembers: transformTeamMembersForForm(
+//         apiData.general?.teamMembers,
+//         teamMemberOptions
+//       ),
+//     },
+
+//     introduction: {
+//       title: apiData.introduction?.title || '',
+//       description: apiData.introduction?.description || '',
+//     },
+
+//     terms: {
+//       title: apiData.terms?.title || '',
+//       description: apiData.terms?.description || '',
+//     },
+
+//     services: {
+//       option: apiData.services?.option || "",
+//       invoices: transformInvoicesForForm(
+//         apiData.services?.invoices || [],
+//         teamMemberOptions
+//       ),
+//       itemizedData:
+//         transformItemizedDataForForm(apiData.services?.itemizedData) || {},
+//     },
+
+//     payments: {
+//       method: apiData.payments?.method || '',
+//       amount: apiData.payments?.amount || 0,
+//     },
+//   };
+// };
+
+//   // Transform team member IDs to objects for form
+//   const transformTeamMembersForForm = (teamMemberIds, teamMemberOptions) => {
+//     if (!teamMemberIds || teamMemberIds.length === 0) {
+//       return [];
+//     }
+    
+//     return teamMemberIds.map(userId => {
+//       const user = teamMemberOptions.find(opt => opt.value === userId);
+//       return user || { value: userId, label: `User ${userId}` };
+//     });
+//   };
+
+//   // Transform line items to rows format
+//   const transformLineItemsToRows = (lineItems) => {
+//     if (!lineItems || lineItems.length === 0) {
+//       return [getEmptyRow()];
+//     }
+//     console.log("Transforming line items to rows:", lineItems);
+    
+//     return lineItems.map(item => ({
+//       productorService: item.productorService || '',
+//       description: item.description || '',
+//       rate: item.rate?.toString() || '0.00',
+//       quantity: item.quantity?.toString() || '1',
+//       amount: item.amount?.toString() || '0.00',
+//       tax: item.tax || false,
+//       isDiscount: false,
+//     }));
+//   };
+
+//   // Update the transformInvoicesForForm to handle teamMembers properly
+//   const transformInvoicesForForm = (invoices, teamMemberOptions = []) => {
+//     if (!invoices || invoices.length === 0) {
+//       return [{ id: 1, ...getEmptyInvoice() }];
+//     }
+
+//     console.log("Transforming invoices:", invoices);
+
+//     return invoices.map((invoice, index) => {
+//       return {
+//         id: index + 1,
+//         invoiceTemplate: invoice.invoiceTemplate ? {
+//           value: invoice.invoiceTemplate,
+//           label: 'Template' // You might want to fetch template names here too
+//         } : null,
+//         teamMembers: transformTeamMembersForForm(invoice.teamMembers || [], teamMemberOptions),
+//         issueInvoice: invoice.issueInvoice || 'immediately',
+//         specificDate: invoice.specificDate || null,
+//         selectedTime: invoice.selectedTime || null,
+//         description: invoice.description || '',
+//         charCount: invoice.description?.length || 0,
+//         charLimit: 1000,
+//         rows: transformLineItemsToRows(invoice.lineItems || []),
+//         subtotal: invoice.subtotal?.toString() || '0.00',
+//         taxRate: invoice.taxRate?.toString() || '0',
+//         taxTotal: invoice.taxTotal?.toString() || '0.00',
+//         totalAmount: invoice.totalAmount?.toString() || '0.00',
+//         clientNote: invoice.clientNote || '',
+//       };
+//     });
+//   };
+
+//   // Transform itemized data for form
+//   const transformItemizedDataForForm = (itemizedData) => {
+//     console.log("Itemized data from API:", itemizedData);
+    
+//     if (!itemizedData) {
+//       return {
+//         price: 0,
+//         name: '',
+//         rows: [getEmptyRow()],
+//         subtotal: '0.00',
+//         taxRate: '0',
+//         taxTotal: '0.00',
+//         totalAmount: '0.00'
+//       };
+//     }
+
+//     return {
+//       ...itemizedData,
+//       price: itemizedData.price || 0,
+//       name: itemizedData.name || '',
+//       rows: transformLineItemsToRows(itemizedData.lineItems),
+//       subtotal: itemizedData.subtotal?.toString() || '0.00',
+//       taxRate: itemizedData.taxRate?.toString() || '0',
+//       taxTotal: itemizedData.taxTotal?.toString() || '0.00',
+//       totalAmount: itemizedData.totalAmount?.toString() || '0.00'
+//     };
+//   };
+
+//   // Get available steps based on visibility settings and service option
+//   const getAvailableSteps = () => {
+//     const steps = [
+//       { name: 'General', component: GeneralStep, key: 'general', alwaysVisible: true }
+//     ];
+
+//     if (formData.general.introductionEnabled) {
+//       steps.push({ name: 'Introduction', component: IntroductionStep, key: 'introduction' });
+//     }
+
+//     if (formData.general.termsEnabled) {
+//       steps.push({ name: 'Terms', component: TermsStep, key: 'terms' });
+//     }
+
+//     if (formData.general.servicesEnabled) {
+//       steps.push({ name: 'Services & Invoices', component: ServicesInvoicesStep, key: 'services' });
+//     }
+
+//     if (formData.general.paymentsEnabled && formData.services.option === 'invoice') {
+//       steps.push({ name: 'Payment', component: PaymentStep, key: 'payments' });
+//     }
+
+//     return steps;
+//   };
+
+//   const availableSteps = getAvailableSteps();
+
+//   const updateFormData = (section, newData) => {
+//     setFormData(prev => ({
+//       ...prev,
+//       [section]: { ...prev[section], ...newData }
+//     }));
+//   };
+
+//   // Validation functions for each step
+//   const validateStep = (stepIndex) => {
+//     const stepKey = availableSteps[stepIndex]?.key;
+//     let isValid = true;
+//     const newErrors = {};
+
+//     switch (stepKey) {
+//       case 'general':
+//         if (!formData.general.proposalName?.trim()) {
+//           newErrors.proposalName = 'Proposal name is required';
+//           isValid = false;
+//         }
+//         if (!formData.general.templateName?.trim()) {
+//           newErrors.templateName = 'Template name is required';
+//           isValid = false;
+//         }
+//         break;
+
+//       case 'introduction':
+//         if (!formData.introduction?.title?.trim()) {
+//           newErrors.title = 'Introduction title is required';
+//           isValid = false;
+//         }
+//         if (!formData.introduction?.description?.trim() || 
+//             formData.introduction.description.replace(/<[^>]*>/g, '').trim() === '') {
+//           newErrors.description = 'Introduction description is required';
+//           isValid = false;
+//         }
+//         break;
+
+//       case 'terms':
+//         if (!formData.terms?.title?.trim()) {
+//           newErrors.title = 'Terms title is required';
+//           isValid = false;
+//         }
+//         if (!formData.terms?.description?.trim() || 
+//             formData.terms.description.replace(/<[^>]*>/g, '').trim() === '') {
+//           newErrors.description = 'Terms and conditions are required';
+//           isValid = false;
+//         }
+//         break;
+
+//       case 'services':
+//         if (!formData.services.option) {
+//           newErrors.option = 'Please select an option';
+//           isValid = false;
+//         } 
+//         break;
+//     }
+
+//     setStepErrors(prev => ({
+//       ...prev,
+//       [stepKey]: newErrors
+//     }));
+
+//     return isValid;
+//   };
+
+//   const nextStep = () => {
+//     if (validateStep(currentStep)) {
+//       if (currentStep < availableSteps.length - 1) {
+//         setCurrentStep(currentStep + 1);
+//       } else {
+//         handleSubmit();
+//       }
+//     } else {
+//       // Scroll to top to show error messages
+//       window.scrollTo({ top: 0, behavior: 'smooth' });
+//     }
+//   };
+
+//   // Check if a step has errors for the stepper
+//   const hasStepError = (stepKey) => {
+//     return stepErrors[stepKey] && Object.keys(stepErrors[stepKey]).length > 0;
+//   };
+
+//   const prevStep = () => {
+//     if (currentStep > 0) {
+//       setCurrentStep(currentStep - 1);
+//     }
+//   };
+
+//   const goToStep = (stepIndex) => {
+//     if (stepIndex >= 0 && stepIndex < availableSteps.length) {
+//       setCurrentStep(stepIndex);
+//     }
+//   };
+
+//   const handleBackToList = () => {
+//     navigate('/firmtemp/templates/proposals');
+//   };
+
+//   const isLastStep = currentStep === availableSteps.length - 1;
+
+//   // Transform team members for submission (extract only IDs)
+//   const transformTeamMembersForSubmission = (teamMembers) => {
+//     return teamMembers.map(user => user.value);
+//   };
+
+//   // Transform invoice data before sending
+//   const transformInvoiceData = (invoices) => {
+//     return invoices.map(invoice => ({
+//       ...invoice,
+//       invoiceTemplate: invoice.invoiceTemplate?.value || invoice.invoiceTemplate,
+//       teamMembers: transformTeamMembersForSubmission(invoice.teamMembers || []),
+//       lineItems: invoice.rows?.map(row => ({
+//         productorService: String(row.productorService),
+//         description: row.description,
+//         rate: parseFloat(row.rate) || 0,
+//         quantity: parseFloat(row.quantity) || 0,
+//         amount: parseFloat(row.amount) || 0,
+//         tax: Boolean(row.tax)
+//       })) || []
+//     }));
+//   };
+
+//   // Transform itemized data for submission
+//   const transformItemizedData = (itemizedData) => {
+//     if (!itemizedData) return null;
+    
+//     return {
+//       ...itemizedData,
+//       price: parseFloat(itemizedData.price) || 0,
+//       lineItems: itemizedData.rows?.map(row => ({
+//         productorService: String(row.productorService),
+//         description: row.description,
+//         rate: parseFloat(row.rate) || 0,
+//         quantity: parseFloat(row.quantity) || 0,
+//         amount: parseFloat(row.amount) || 0,
+//         tax: Boolean(row.tax)
+//       })) || [],
+//       subtotal: parseFloat(itemizedData.subtotal) || 0,
+//       taxRate: parseFloat(itemizedData.taxRate) || 0,
+//       taxTotal: parseFloat(itemizedData.taxTotal) || 0,
+//       totalAmount: parseFloat(itemizedData.totalAmount) || 0
+//     };
+//   };
+
+  
+// const handleSubmit = async () => {
+//   try {
+//     console.log("Submitting proposal...");
+//     setError('');
+
+//     const validationErrors = validateAllSteps();
+
+//     if (Object.keys(validationErrors).length > 0) {
+//       setStepErrors(validationErrors);
+
+//       const firstErrorStep = findFirstErrorStep(validationErrors);
+//       if (firstErrorStep !== -1) {
+//         setCurrentStep(firstErrorStep);
+//       }
+
+//       window.scrollTo({ top: 0, behavior: 'smooth' });
+//       return;
+//     }
+
+//     // const submissionData = {
+//     //   ...formData,
+//     //   services: {
+//     //     ...formData.services,
+//     //     invoices:
+//     //       formData.services.option === 'invoice'
+//     //         ? transformInvoiceData(formData.services.invoices)
+//     //         : [],
+//     //     itemizedData:
+//     //       formData.services.option === 'services'
+//     //         ? transformItemizedData(formData.services.itemizedData)
+//     //         : {},
+//     //   },
+//     // };
+// const submissionData = {
+//   ...formData,
+
+//   // ✅ FIX HERE
+//   general: {
+//     ...formData.general,
+//     teamMembers: transformTeamMembersForSubmission(
+//       formData.general.teamMembers || []
+//     ),
+//   },
+
+//   services: {
+//     ...formData.services,
+//     invoices:
+//       formData.services.option === 'invoice'
+//         ? transformInvoiceData(formData.services.invoices)
+//         : [],
+//     itemizedData:
+//       formData.services.option === 'services'
+//         ? transformItemizedData(formData.services.itemizedData)
+//         : {},
+//   },
+// };
+//     console.log("Submitting data:", submissionData);
+
+//     // ✅ API CALL
+//     if (proposalId) {
+//       await proposalAPI.updateProposal(proposalId, submissionData);
+//       toast.success("Proposal updated successfully!");
+//     } else {
+//       await proposalAPI.createProposal(submissionData);
+//       toast.success("Proposal submitted successfully!");
+//     }
+
+//     navigate('/firmtemp/templates/proposals');
+//   } catch (error) {
+//     console.error("Error:", error);
+//     setError("Error submitting proposal: " + (error.message || "Something went wrong"));
+//     toast.error("Something went wrong!");
+//   }
+// };
+
+// // Comprehensive validation for all steps
+// const validateAllSteps = () => {
+//   const errors = {};
+//   const availableSteps = getAvailableSteps();
+
+//   availableSteps.forEach((step, index) => {
+//     const stepKey = step.key;
+//     const stepErrors = validateStepData(stepKey, formData);
+    
+//     if (Object.keys(stepErrors).length > 0) {
+//       errors[stepKey] = stepErrors;
+//     }
+//   });
+
+//   return errors;
+// };
+
+// // Validate data for a specific step
+// const validateStepData = (stepKey, formData) => {
+//   const stepErrors = {};
+
+//   switch (stepKey) {
+//     case 'general':
+//       if (!formData.general.proposalName?.trim()) {
+//         stepErrors.proposalName = 'Proposal name is required';
+//       }
+//       if (!formData.general.templateName?.trim()) {
+//         stepErrors.templateName = 'Template name is required';
+//       }
+//       if (!formData.general.teamMembers || formData.general.teamMembers.length === 0) {
+//         stepErrors.teamMembers = 'At least one team member is required';
+//       }
+//       break;
+
+//     case 'introduction':
+//       if (!formData.introduction?.title?.trim()) {
+//         stepErrors.title = 'Introduction title is required';
+//       }
+//       if (!formData.introduction?.description?.trim() || 
+//           formData.introduction.description.replace(/<[^>]*>/g, '').trim() === '') {
+//         stepErrors.description = 'Introduction description is required';
+//       }
+//       break;
+
+//     case 'terms':
+//       if (!formData.terms?.title?.trim()) {
+//         stepErrors.title = 'Terms title is required';
+//       }
+//       if (!formData.terms?.description?.trim() || 
+//           formData.terms.description.replace(/<[^>]*>/g, '').trim() === '') {
+//         stepErrors.description = 'Terms and conditions are required';
+//       }
+//       break;
+
+//     case 'services':
+//       if (!formData.services.option) {
+//         stepErrors.option = 'Please select an option';
+//       } else {
+//         // Additional validation based on selected option
+//         if (formData.services.option === 'invoice') {
+//           // Validate invoices
+//           if (!formData.services.invoices || formData.services.invoices.length === 0) {
+//             stepErrors.invoices = 'At least one invoice is required';
+//           } else {
+//             // Validate each invoice
+//             formData.services.invoices.forEach((invoice, index) => {
+//               if (!invoice.invoiceTemplate) {
+//                 stepErrors[`invoice_${index}_template`] = `Invoice ${index + 1}: Template is required`;
+//               }
+//               if (!invoice.teamMembers || invoice.teamMembers.length === 0) {
+//                 stepErrors[`invoice_${index}_teamMembers`] = `Invoice ${index + 1}: At least one team member is required`;
+//               }
+//               if (!invoice.description?.trim()) {
+//                 stepErrors[`invoice_${index}_description`] = `Invoice ${index + 1}: Description is required`;
+//               }
+              
+//               // Validate line items
+//               if (!invoice.rows || invoice.rows.length === 0) {
+//                 stepErrors[`invoice_${index}_rows`] = `Invoice ${index + 1}: At least one line item is required`;
+//               } else {
+//                 invoice.rows.forEach((row, rowIndex) => {
+//                   if (!row.productorService?.trim()) {
+//                     stepErrors[`invoice_${index}_row_${rowIndex}_product`] = `Invoice ${index + 1}, Row ${rowIndex + 1}: Product/Service name is required`;
+//                   }
+//                   if (parseFloat(row.rate) <= 0) {
+//                     stepErrors[`invoice_${index}_row_${rowIndex}_rate`] = `Invoice ${index + 1}, Row ${rowIndex + 1}: Rate must be greater than 0`;
+//                   }
+//                 });
+//               }
+//             });
+//           }
+//         } else if (formData.services.option === 'services') {
+//           // Validate itemized data
+//           const itemized = formData.services.itemizedData;
+          
+//           if (!itemized?.rows || itemized.rows.length === 0) {
+//             stepErrors.itemizedRows = 'At least one line item is required';
+//           } 
+//           else {
+//             itemized.rows.forEach((row, index) => {
+//               if (!row.productorService?.trim()) {
+//                 stepErrors[`itemized_row_${index}_product`] = `Row ${index + 1}: Product/Service name is required`;
+//               }
+             
+//             });
+//           }
+//         }
+//       }
+//       break;
+
+//     case 'payments':
+//       if (!formData.payments?.method?.trim()) {
+//         stepErrors.method = 'Payment method is required';
+//       }
+//       if (parseFloat(formData.payments?.amount) <= 0) {
+//         stepErrors.amount = 'Payment amount must be greater than 0';
+//       }
+//       break;
+//   }
+
+//   return stepErrors;
+// };
+
+// // Find the first step that has errors
+// const findFirstErrorStep = (validationErrors) => {
+//   const availableSteps = getAvailableSteps();
+  
+//   for (let i = 0; i < availableSteps.length; i++) {
+//     const stepKey = availableSteps[i].key;
+//     if (validationErrors[stepKey] && Object.keys(validationErrors[stepKey]).length > 0) {
+//       return i;
+//     }
+//   }
+  
+//   return -1;
+// };
+
+
+//   const CurrentStepComponent = availableSteps[currentStep]?.component;
+//   const currentStepKey = availableSteps[currentStep]?.key;
+
+//   if (loading) {
+//     return (
+//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+//         <CircularProgress />
+//         <Typography variant="h6" sx={{ ml: 2 }}>
+//           Loading proposal data...
+//         </Typography>
+//       </Box>
+//     );
+//   }
+
+//   if (!CurrentStepComponent) {
+//     const recalculatedSteps = getAvailableSteps();
+//     if (currentStep >= recalculatedSteps.length) {
+//       setCurrentStep(0);
+//     }
+//     return (
+//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+//         <Typography>Loading...</Typography>
+//       </Box>
+//     );
+//   }
+
+//   return (
+//     <Box sx={{ flexGrow: 1 }}>
+//       <AppBar position="static" elevation={0} sx={{ backgroundColor: 'white', color: 'text.primary' }}>
+//         <Toolbar>
+//           <IconButton
+//             edge="start"
+//             color="inherit"
+//             onClick={handleBackToList}
+//             sx={{ mr: 2 }}
+//           >
+//             <ArrowBack />
+//           </IconButton>
+//           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+//             {proposalId ? `Edit Proposal: ${formData.general.proposalName}` : 'Create New Proposal'}
+//           </Typography>
+//         </Toolbar>
+//       </AppBar>
+
+//       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+//         {error && (
+//           <Alert severity="error" sx={{ mb: 3 }}>
+//             {error}
+//           </Alert>
+//         )}
+
+//         <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
+//           <Stepper activeStep={currentStep} >
+//             {availableSteps.map((step, index) => (
+//               <Step key={step.key}>
+//                 <StepLabel 
+//                   onClick={() => goToStep(index)}
+//                   sx={{ cursor: 'pointer' }}
+//                    error={hasStepError(step.key)}
+//                 >
+//                   {step.name}
+//                 </StepLabel>
+//               </Step>
+//             ))}
+//           </Stepper>
+//         </Paper>
+
+//         <Paper elevation={1} sx={{ p: 4 }}>
+//           <CurrentStepComponent
+//             formData={formData}
+//             updateFormData={updateFormData}
+//             nextStep={nextStep}
+//             prevStep={prevStep}
+//             currentStep={currentStep}
+//             totalSteps={availableSteps.length}
+//             currentStepKey={currentStepKey}
+//             handleSubmit={handleSubmit}
+//             isLastStep={isLastStep}
+//             isEditing={!!proposalId}
+//             stepErrors={stepErrors[currentStepKey] || {}}
+//             setStepErrors={(errors) => setStepErrors(prev => ({ ...prev, [currentStepKey]: errors }))}
+//           />
+//         </Paper>
+
+//         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+//           <Button
+//             startIcon={<NavigateBefore />}
+//             onClick={prevStep}
+//             disabled={currentStep === 0}
+//             variant="outlined"
+//           >
+//             Previous
+//           </Button>
+          
+//           <Button
+//             endIcon={isLastStep ? null : <NavigateNext />}
+//             onClick={nextStep}
+//             variant="contained"
+//             color="primary"
+//           >
+//             {isLastStep ? (proposalId ? 'Update Proposal' : 'Submit Proposal') : 'Next'}
+//           </Button>
+//         </Box>
+//       </Container>
+//     </Box>
+//   );
+// };
+// export default ProposalForm;
+
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, ChevronRight, ChevronLeft, Check, AlertCircle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '../../../components/ui/button';
+import { toast } from 'react-toastify';
+import { proposalAPI, authAPI } from "../../../services/api";
+
+// Import your step components (make sure they're also converted to shadcn/ui)
 import GeneralStep from './Steps/GeneralStep';
 import IntroductionStep from './Steps/IntroductionStep';
 import TermsStep from './Steps/TermsStep';
 import ServicesInvoicesStep from './Steps/ServicesInvoicesStep';
 import PaymentStep from './Steps/PaymentStep';
-import { toast } from 'react-toastify';
-import { proposalAPI,authAPI } from "../../../services/api"; // adjust path
+
 const ProposalForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -41,7 +814,7 @@ const ProposalForm = () => {
       paymentsEnabled: false,
       templateName: '',
       proposalName: '',
-      teamMembers:[]
+      teamMembers: []
     },
     introduction: {
       title: '',
@@ -91,7 +864,7 @@ const ProposalForm = () => {
   function getEmptyInvoice() {
     return {
       invoiceTemplate: null,
-      teamMembers: [], // Changed to teamMembers array
+      teamMembers: [],
       issueInvoice: 'immediately',
       specificDate: null,
       selectedTime: null,
@@ -115,91 +888,84 @@ const ProposalForm = () => {
   }, [proposalId]);
 
   // Fetch team members for transformation
-const fetchTeamMembers = async () => {
-  try {
-    const res = await authAPI.getAllUsers({
-      page: 1,
-      limit: 50,
-      status: "active",
-    });
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await authAPI.getAllUsers({
+        page: 1,
+        limit: 50,
+        status: "active",
+      });
 
-    const users = res?.data?.users || [];
+      const users = res?.data?.users || [];
 
-    return users.map((user) => ({
-      value: user._id,
-      label: user.username,
-    }));
-  } catch (error) {
-    console.error("Error fetching team members:", error);
-    return [];
-  }
-};
+      return users.map((user) => ({
+        value: user._id,
+        label: user.username,
+      }));
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      return [];
+    }
+  };
 
- const fetchProposalData = async () => {
-  try {
-    setLoading(true);
-    setError('');
+  const fetchProposalData = async () => {
+    try {
+      setLoading(true);
+      setError('');
 
-    const res = await proposalAPI.getProposalById(proposalId);
-    const data = res.data;
+      const res = await proposalAPI.getProposalById(proposalId);
+      const data = res.data;
 
-    const teamMemberOptions = await fetchTeamMembers();
+      const teamMemberOptions = await fetchTeamMembers();
 
-    const transformedData = transformDataForForm(data, teamMemberOptions);
-    setFormData(transformedData);
-  } catch (error) {
-    console.error('Error fetching proposal:', error);
-    setError('Error loading proposal: ' + (error.message || "Something went wrong"));
-  } finally {
-    setLoading(false);
-  }
-};
+      const transformedData = transformDataForForm(data, teamMemberOptions);
+      setFormData(transformedData);
+    } catch (error) {
+      console.error('Error fetching proposal:', error);
+      setError('Error loading proposal: ' + (error.message || "Something went wrong"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Transform API data back to form structure
- const transformDataForForm = (apiData, teamMemberOptions = []) => {
-  return {
-    general: {
-      skipStepper: apiData.general?.skipStepper || false,
-      introductionEnabled: apiData.general?.introductionEnabled ?? true,
-      termsEnabled: apiData.general?.termsEnabled ?? true,
-      servicesEnabled: apiData.general?.servicesEnabled ?? true,
-      paymentsEnabled: apiData.general?.paymentsEnabled ?? false,
-      templateName: apiData.general?.templateName || '',
-      proposalName: apiData.general?.proposalName || '',
-
-      // ✅ FIX HERE
-      teamMembers: transformTeamMembersForForm(
-        apiData.general?.teamMembers,
-        teamMemberOptions
-      ),
-    },
-
-    introduction: {
-      title: apiData.introduction?.title || '',
-      description: apiData.introduction?.description || '',
-    },
-
-    terms: {
-      title: apiData.terms?.title || '',
-      description: apiData.terms?.description || '',
-    },
-
-    services: {
-      option: apiData.services?.option || "",
-      invoices: transformInvoicesForForm(
-        apiData.services?.invoices || [],
-        teamMemberOptions
-      ),
-      itemizedData:
-        transformItemizedDataForForm(apiData.services?.itemizedData) || {},
-    },
-
-    payments: {
-      method: apiData.payments?.method || '',
-      amount: apiData.payments?.amount || 0,
-    },
+  const transformDataForForm = (apiData, teamMemberOptions = []) => {
+    return {
+      general: {
+        skipStepper: apiData.general?.skipStepper || false,
+        introductionEnabled: apiData.general?.introductionEnabled ?? true,
+        termsEnabled: apiData.general?.termsEnabled ?? true,
+        servicesEnabled: apiData.general?.servicesEnabled ?? true,
+        paymentsEnabled: apiData.general?.paymentsEnabled ?? false,
+        templateName: apiData.general?.templateName || '',
+        proposalName: apiData.general?.proposalName || '',
+        teamMembers: transformTeamMembersForForm(
+          apiData.general?.teamMembers,
+          teamMemberOptions
+        ),
+      },
+      introduction: {
+        title: apiData.introduction?.title || '',
+        description: apiData.introduction?.description || '',
+      },
+      terms: {
+        title: apiData.terms?.title || '',
+        description: apiData.terms?.description || '',
+      },
+      services: {
+        option: apiData.services?.option || "",
+        invoices: transformInvoicesForForm(
+          apiData.services?.invoices || [],
+          teamMemberOptions
+        ),
+        itemizedData: transformItemizedDataForForm(apiData.services?.itemizedData) || {},
+      },
+      payments: {
+        method: apiData.payments?.method || '',
+        amount: apiData.payments?.amount || 0,
+      },
+    };
   };
-};
 
   // Transform team member IDs to objects for form
   const transformTeamMembersForForm = (teamMemberIds, teamMemberOptions) => {
@@ -244,7 +1010,7 @@ const fetchTeamMembers = async () => {
         id: index + 1,
         invoiceTemplate: invoice.invoiceTemplate ? {
           value: invoice.invoiceTemplate,
-          label: 'Template' // You might want to fetch template names here too
+          label: 'Template'
         } : null,
         teamMembers: transformTeamMembersForForm(invoice.teamMembers || [], teamMemberOptions),
         issueInvoice: invoice.issueInvoice || 'immediately',
@@ -463,231 +1229,208 @@ const fetchTeamMembers = async () => {
     };
   };
 
-  
-const handleSubmit = async () => {
-  try {
-    console.log("Submitting proposal...");
-    setError('');
+  const handleSubmit = async () => {
+    try {
+      console.log("Submitting proposal...");
+      setError('');
 
-    const validationErrors = validateAllSteps();
+      const validationErrors = validateAllSteps();
 
-    if (Object.keys(validationErrors).length > 0) {
-      setStepErrors(validationErrors);
+      if (Object.keys(validationErrors).length > 0) {
+        setStepErrors(validationErrors);
 
-      const firstErrorStep = findFirstErrorStep(validationErrors);
-      if (firstErrorStep !== -1) {
-        setCurrentStep(firstErrorStep);
+        const firstErrorStep = findFirstErrorStep(validationErrors);
+        if (firstErrorStep !== -1) {
+          setCurrentStep(firstErrorStep);
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
+      const submissionData = {
+        ...formData,
+        general: {
+          ...formData.general,
+          teamMembers: transformTeamMembersForSubmission(
+            formData.general.teamMembers || []
+          ),
+        },
+        services: {
+          ...formData.services,
+          invoices:
+            formData.services.option === 'invoice'
+              ? transformInvoiceData(formData.services.invoices)
+              : [],
+          itemizedData:
+            formData.services.option === 'services'
+              ? transformItemizedData(formData.services.itemizedData)
+              : {},
+        },
+      };
+      console.log("Submitting data:", submissionData);
 
-    // const submissionData = {
-    //   ...formData,
-    //   services: {
-    //     ...formData.services,
-    //     invoices:
-    //       formData.services.option === 'invoice'
-    //         ? transformInvoiceData(formData.services.invoices)
-    //         : [],
-    //     itemizedData:
-    //       formData.services.option === 'services'
-    //         ? transformItemizedData(formData.services.itemizedData)
-    //         : {},
-    //   },
-    // };
-const submissionData = {
-  ...formData,
-
-  // ✅ FIX HERE
-  general: {
-    ...formData.general,
-    teamMembers: transformTeamMembersForSubmission(
-      formData.general.teamMembers || []
-    ),
-  },
-
-  services: {
-    ...formData.services,
-    invoices:
-      formData.services.option === 'invoice'
-        ? transformInvoiceData(formData.services.invoices)
-        : [],
-    itemizedData:
-      formData.services.option === 'services'
-        ? transformItemizedData(formData.services.itemizedData)
-        : {},
-  },
-};
-    console.log("Submitting data:", submissionData);
-
-    // ✅ API CALL
-    if (proposalId) {
-      await proposalAPI.updateProposal(proposalId, submissionData);
-      toast.success("Proposal updated successfully!");
-    } else {
-      await proposalAPI.createProposal(submissionData);
-      toast.success("Proposal submitted successfully!");
-    }
-
-    navigate('/firmtemp/templates/proposals');
-  } catch (error) {
-    console.error("Error:", error);
-    setError("Error submitting proposal: " + (error.message || "Something went wrong"));
-    toast.error("Something went wrong!");
-  }
-};
-
-// Comprehensive validation for all steps
-const validateAllSteps = () => {
-  const errors = {};
-  const availableSteps = getAvailableSteps();
-
-  availableSteps.forEach((step, index) => {
-    const stepKey = step.key;
-    const stepErrors = validateStepData(stepKey, formData);
-    
-    if (Object.keys(stepErrors).length > 0) {
-      errors[stepKey] = stepErrors;
-    }
-  });
-
-  return errors;
-};
-
-// Validate data for a specific step
-const validateStepData = (stepKey, formData) => {
-  const stepErrors = {};
-
-  switch (stepKey) {
-    case 'general':
-      if (!formData.general.proposalName?.trim()) {
-        stepErrors.proposalName = 'Proposal name is required';
-      }
-      if (!formData.general.templateName?.trim()) {
-        stepErrors.templateName = 'Template name is required';
-      }
-      if (!formData.general.teamMembers || formData.general.teamMembers.length === 0) {
-        stepErrors.teamMembers = 'At least one team member is required';
-      }
-      break;
-
-    case 'introduction':
-      if (!formData.introduction?.title?.trim()) {
-        stepErrors.title = 'Introduction title is required';
-      }
-      if (!formData.introduction?.description?.trim() || 
-          formData.introduction.description.replace(/<[^>]*>/g, '').trim() === '') {
-        stepErrors.description = 'Introduction description is required';
-      }
-      break;
-
-    case 'terms':
-      if (!formData.terms?.title?.trim()) {
-        stepErrors.title = 'Terms title is required';
-      }
-      if (!formData.terms?.description?.trim() || 
-          formData.terms.description.replace(/<[^>]*>/g, '').trim() === '') {
-        stepErrors.description = 'Terms and conditions are required';
-      }
-      break;
-
-    case 'services':
-      if (!formData.services.option) {
-        stepErrors.option = 'Please select an option';
+      if (proposalId) {
+        await proposalAPI.updateProposal(proposalId, submissionData);
+        toast.success("Proposal updated successfully!");
       } else {
-        // Additional validation based on selected option
-        if (formData.services.option === 'invoice') {
-          // Validate invoices
-          if (!formData.services.invoices || formData.services.invoices.length === 0) {
-            stepErrors.invoices = 'At least one invoice is required';
-          } else {
-            // Validate each invoice
-            formData.services.invoices.forEach((invoice, index) => {
-              if (!invoice.invoiceTemplate) {
-                stepErrors[`invoice_${index}_template`] = `Invoice ${index + 1}: Template is required`;
-              }
-              if (!invoice.teamMembers || invoice.teamMembers.length === 0) {
-                stepErrors[`invoice_${index}_teamMembers`] = `Invoice ${index + 1}: At least one team member is required`;
-              }
-              if (!invoice.description?.trim()) {
-                stepErrors[`invoice_${index}_description`] = `Invoice ${index + 1}: Description is required`;
-              }
-              
-              // Validate line items
-              if (!invoice.rows || invoice.rows.length === 0) {
-                stepErrors[`invoice_${index}_rows`] = `Invoice ${index + 1}: At least one line item is required`;
-              } else {
-                invoice.rows.forEach((row, rowIndex) => {
-                  if (!row.productorService?.trim()) {
-                    stepErrors[`invoice_${index}_row_${rowIndex}_product`] = `Invoice ${index + 1}, Row ${rowIndex + 1}: Product/Service name is required`;
-                  }
-                  if (parseFloat(row.rate) <= 0) {
-                    stepErrors[`invoice_${index}_row_${rowIndex}_rate`] = `Invoice ${index + 1}, Row ${rowIndex + 1}: Rate must be greater than 0`;
-                  }
-                });
-              }
-            });
-          }
-        } else if (formData.services.option === 'services') {
-          // Validate itemized data
-          const itemized = formData.services.itemizedData;
-          
-          if (!itemized?.rows || itemized.rows.length === 0) {
-            stepErrors.itemizedRows = 'At least one line item is required';
-          } 
-          else {
-            itemized.rows.forEach((row, index) => {
-              if (!row.productorService?.trim()) {
-                stepErrors[`itemized_row_${index}_product`] = `Row ${index + 1}: Product/Service name is required`;
-              }
-             
-            });
+        await proposalAPI.createProposal(submissionData);
+        toast.success("Proposal submitted successfully!");
+      }
+
+      navigate('/firmtemp/templates/proposals');
+    } catch (error) {
+      console.error("Error:", error);
+      setError("Error submitting proposal: " + (error.message || "Something went wrong"));
+      toast.error("Something went wrong!");
+    }
+  };
+
+  // Comprehensive validation for all steps
+  const validateAllSteps = () => {
+    const errors = {};
+    const availableSteps = getAvailableSteps();
+
+    availableSteps.forEach((step, index) => {
+      const stepKey = step.key;
+      const stepErrors = validateStepData(stepKey, formData);
+      
+      if (Object.keys(stepErrors).length > 0) {
+        errors[stepKey] = stepErrors;
+      }
+    });
+
+    return errors;
+  };
+
+  // Validate data for a specific step
+  const validateStepData = (stepKey, formData) => {
+    const stepErrors = {};
+
+    switch (stepKey) {
+      case 'general':
+        if (!formData.general.proposalName?.trim()) {
+          stepErrors.proposalName = 'Proposal name is required';
+        }
+        if (!formData.general.templateName?.trim()) {
+          stepErrors.templateName = 'Template name is required';
+        }
+        if (!formData.general.teamMembers || formData.general.teamMembers.length === 0) {
+          stepErrors.teamMembers = 'At least one team member is required';
+        }
+        break;
+
+      case 'introduction':
+        if (!formData.introduction?.title?.trim()) {
+          stepErrors.title = 'Introduction title is required';
+        }
+        if (!formData.introduction?.description?.trim() || 
+            formData.introduction.description.replace(/<[^>]*>/g, '').trim() === '') {
+          stepErrors.description = 'Introduction description is required';
+        }
+        break;
+
+      case 'terms':
+        if (!formData.terms?.title?.trim()) {
+          stepErrors.title = 'Terms title is required';
+        }
+        if (!formData.terms?.description?.trim() || 
+            formData.terms.description.replace(/<[^>]*>/g, '').trim() === '') {
+          stepErrors.description = 'Terms and conditions are required';
+        }
+        break;
+
+      case 'services':
+        if (!formData.services.option) {
+          stepErrors.option = 'Please select an option';
+        } else {
+          // Additional validation based on selected option
+          if (formData.services.option === 'invoice') {
+            // Validate invoices
+            if (!formData.services.invoices || formData.services.invoices.length === 0) {
+              stepErrors.invoices = 'At least one invoice is required';
+            } else {
+              // Validate each invoice
+              formData.services.invoices.forEach((invoice, index) => {
+                if (!invoice.invoiceTemplate) {
+                  stepErrors[`invoice_${index}_template`] = `Invoice ${index + 1}: Template is required`;
+                }
+                if (!invoice.teamMembers || invoice.teamMembers.length === 0) {
+                  stepErrors[`invoice_${index}_teamMembers`] = `Invoice ${index + 1}: At least one team member is required`;
+                }
+                if (!invoice.description?.trim()) {
+                  stepErrors[`invoice_${index}_description`] = `Invoice ${index + 1}: Description is required`;
+                }
+                
+                // Validate line items
+                if (!invoice.rows || invoice.rows.length === 0) {
+                  stepErrors[`invoice_${index}_rows`] = `Invoice ${index + 1}: At least one line item is required`;
+                } else {
+                  invoice.rows.forEach((row, rowIndex) => {
+                    if (!row.productorService?.trim()) {
+                      stepErrors[`invoice_${index}_row_${rowIndex}_product`] = `Invoice ${index + 1}, Row ${rowIndex + 1}: Product/Service name is required`;
+                    }
+                    if (parseFloat(row.rate) <= 0) {
+                      stepErrors[`invoice_${index}_row_${rowIndex}_rate`] = `Invoice ${index + 1}, Row ${rowIndex + 1}: Rate must be greater than 0`;
+                    }
+                  });
+                }
+              });
+            }
+          } else if (formData.services.option === 'services') {
+            // Validate itemized data
+            const itemized = formData.services.itemizedData;
+            
+            if (!itemized?.rows || itemized.rows.length === 0) {
+              stepErrors.itemizedRows = 'At least one line item is required';
+            } 
+            else {
+              itemized.rows.forEach((row, index) => {
+                if (!row.productorService?.trim()) {
+                  stepErrors[`itemized_row_${index}_product`] = `Row ${index + 1}: Product/Service name is required`;
+                }
+              });
+            }
           }
         }
-      }
-      break;
+        break;
 
-    case 'payments':
-      if (!formData.payments?.method?.trim()) {
-        stepErrors.method = 'Payment method is required';
-      }
-      if (parseFloat(formData.payments?.amount) <= 0) {
-        stepErrors.amount = 'Payment amount must be greater than 0';
-      }
-      break;
-  }
-
-  return stepErrors;
-};
-
-// Find the first step that has errors
-const findFirstErrorStep = (validationErrors) => {
-  const availableSteps = getAvailableSteps();
-  
-  for (let i = 0; i < availableSteps.length; i++) {
-    const stepKey = availableSteps[i].key;
-    if (validationErrors[stepKey] && Object.keys(validationErrors[stepKey]).length > 0) {
-      return i;
+      case 'payments':
+        if (!formData.payments?.method?.trim()) {
+          stepErrors.method = 'Payment method is required';
+        }
+        if (parseFloat(formData.payments?.amount) <= 0) {
+          stepErrors.amount = 'Payment amount must be greater than 0';
+        }
+        break;
     }
-  }
-  
-  return -1;
-};
 
+    return stepErrors;
+  };
+
+  // Find the first step that has errors
+  const findFirstErrorStep = (validationErrors) => {
+    const availableSteps = getAvailableSteps();
+    
+    for (let i = 0; i < availableSteps.length; i++) {
+      const stepKey = availableSteps[i].key;
+      if (validationErrors[stepKey] && Object.keys(validationErrors[stepKey]).length > 0) {
+        return i;
+      }
+    }
+    
+    return -1;
+  };
 
   const CurrentStepComponent = availableSteps[currentStep]?.component;
   const currentStepKey = availableSteps[currentStep]?.key;
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>
-          Loading proposal data...
-        </Typography>
-      </Box>
+      <div className="flex justify-center items-center min-h-screen gap-3">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <span className="text-base font-medium text-muted-foreground">Loading proposal data...</span>
+      </div>
     );
   }
 
@@ -697,54 +1440,81 @@ const findFirstErrorStep = (validationErrors) => {
       setCurrentStep(0);
     }
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <Typography>Loading...</Typography>
-      </Box>
+      <div className="flex justify-center items-center min-h-screen">
+        <span className="text-sm text-muted-foreground">Loading...</span>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" elevation={0} sx={{ backgroundColor: 'white', color: 'text.primary' }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={handleBackToList}
-            sx={{ mr: 2 }}
-          >
-            <ArrowBack />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+    <div className="min-h-screen bg-background">
+      {/* Top Header Bar */}
+      <div className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+          <Button variant="ghost" size="icon" onClick={handleBackToList} className="shrink-0">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-base font-semibold text-foreground truncate">
             {proposalId ? `Edit Proposal: ${formData.general.proposalName}` : 'Create New Proposal'}
-          </Typography>
-        </Toolbar>
-      </AppBar>
+          </h1>
+        </div>
+      </div>
 
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
+          <div className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3">
+            <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+            <span className="text-sm text-destructive">{error}</span>
+          </div>
         )}
 
-        <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
-          <Stepper activeStep={currentStep} >
-            {availableSteps.map((step, index) => (
-              <Step key={step.key}>
-                <StepLabel 
-                  onClick={() => goToStep(index)}
-                  sx={{ cursor: 'pointer' }}
-                   error={hasStepError(step.key)}
-                >
-                  {step.name}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </Paper>
+        {/* Stepper */}
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm">
+          <nav aria-label="Progress">
+            <ol className="flex items-center flex-wrap gap-y-2">
+              {availableSteps.map((step, index) => {
+                const isActive = index === currentStep;
+                const isCompleted = index < currentStep;
+                const hasError = hasStepError(step.key);
+                return (
+                  <li key={step.key} className="flex items-center">
+                    <button
+                      onClick={() => goToStep(index)}
+                      className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : isCompleted
+                          ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                          : hasError
+                          ? 'bg-destructive/10 text-destructive hover:bg-destructive/20'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                      }`}
+                    >
+                      <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                        isActive
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : isCompleted
+                          ? 'bg-primary text-primary-foreground'
+                          : hasError
+                          ? 'bg-destructive text-destructive-foreground'
+                          : 'bg-muted-foreground/30 text-muted-foreground'
+                      }`}>
+                        {isCompleted ? <Check className="h-3 w-3" /> : hasError ? <AlertCircle className="h-3 w-3" /> : index + 1}
+                      </span>
+                      <span className="hidden sm:inline">{step.name}</span>
+                    </button>
+                    {index < availableSteps.length - 1 && (
+                      <ChevronRight className="mx-1 h-4 w-4 text-border shrink-0" />
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </div>
 
-        <Paper elevation={1} sx={{ p: 4 }}>
+        {/* Step Content */}
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-8 shadow-sm">
           <CurrentStepComponent
             formData={formData}
             updateFormData={updateFormData}
@@ -759,29 +1529,29 @@ const findFirstErrorStep = (validationErrors) => {
             stepErrors={stepErrors[currentStepKey] || {}}
             setStepErrors={(errors) => setStepErrors(prev => ({ ...prev, [currentStepKey]: errors }))}
           />
-        </Paper>
+        </div>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between">
           <Button
-            startIcon={<NavigateBefore />}
+            variant="outline"
             onClick={prevStep}
             disabled={currentStep === 0}
-            variant="outlined"
+            className="rounded-full px-5 gap-2"
           >
-            Previous
+            <ChevronLeft className="h-4 w-4" /> Previous
           </Button>
-          
           <Button
-            endIcon={isLastStep ? null : <NavigateNext />}
             onClick={nextStep}
-            variant="contained"
-            color="primary"
+            className="rounded-full px-6 gap-2"
           >
             {isLastStep ? (proposalId ? 'Update Proposal' : 'Submit Proposal') : 'Next'}
+            {!isLastStep && <ChevronRight className="h-4 w-4" />}
           </Button>
-        </Box>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 };
+
 export default ProposalForm;

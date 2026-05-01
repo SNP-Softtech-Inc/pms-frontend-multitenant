@@ -1212,7 +1212,7 @@ const EmailTemp = () => {
     try {
       const res = await templateAPI.getEmailTemplateById(id);
       const data = res.data.emailTemplate;
-      
+      console.log("template edit", data);
       setEditingId(id);
       setShowForm(true);
       setEmailBody(data.emailbody || "");
@@ -1489,7 +1489,7 @@ const EmailTemp = () => {
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
-                        {/* <FormLabel>Subject <span className="text-destructive">*</span></FormLabel> */}
+                      
                         <FormControl>
                           <ShortcodeTextField
                             label="Subject"

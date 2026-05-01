@@ -72,41 +72,7 @@ const [templateId, setTemplateId] = useState("");
     setLoading(false);
   }
 };
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setError('');
-  //   setMessage('');
-  //   try {
-  //     const response = await fetch('https://www.snptaxes.com/api/foldertemp/folder-template', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ templatename }),
-  //     });
-  //     const data = await response.json();
-  //     if (response.ok) {
-  //       setMessage(`Success! Folder template created: ${data.templatePath}`);
-  //       setTemplateName('');
-
-  //       // Fetch folder tree for the created template ID (extracted from templatePath)
-  //       const templateId = data.templatePath.split('/')[0];
-  //       console.log("te,plateid",templateId)
-  //       setTemplateId(templateId)
-  //       toast.success("Folder Template created successfuuly")
-  //       await fetchFolderTree(templateId);
-  //     } 
-  //     else {
-  //       setError(data.error || 'Failed to create folder template');
-  //       toast.error("Failed to create folder template")
-  //     }
-  //   } catch (err) {
-  //     setError('Network error or server not reachable');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-
+ 
   // API call to fetch folder tree for a given template ID
   const fetchFolderTree = async (templateId) => {
   try {

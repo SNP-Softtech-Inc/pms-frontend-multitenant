@@ -1,25 +1,31 @@
 
 
+// import React, { useState, useEffect, useMemo } from 'react';
+// import {
+//   Box,
+//   Typography,
+//   Button,
+//   Paper,
+//   Alert,
+//   FormControl,
+//   FormLabel,
+//   RadioGroup,
+//   FormControlLabel,
+//   Radio,
+//   FormHelperText
+// } from '@mui/material';
+
+// import { templateAPI, authAPI } from "../../../../services/api";
+// import InvoiceComponent from './InvoiceComponent';
+// import ServicesComponent from './ServicesComponent';
+
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Alert,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  FormHelperText
-} from '@mui/material';
-import { NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { templateAPI, authAPI } from "../../../../services/api";
 import InvoiceComponent from './InvoiceComponent';
 import ServicesComponent from './ServicesComponent';
-
-
+import { RadioGroup, RadioGroupItem } from '../../../../components/ui/radio-group';
+import { Label } from '../../../../components/ui/label';
+import { Alert, AlertDescription } from '../../../../components/ui/alert';
 
 const ServicesInvoicesStep = ({ 
   formData, 
@@ -281,93 +287,192 @@ console.log("servicesinvoices",invoices)
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom color="primary" fontWeight="600" sx={{ mb: 4 }}>
-        Services & Invoices
-      </Typography>
+  //   <Box>
+  //     <Typography variant="h4" gutterBottom color="primary" fontWeight="600" sx={{ mb: 4 }}>
+  //       Services & Invoices
+  //     </Typography>
 
    
 
-      <Paper elevation={0} sx={{ p: 3, mb: 3, }}>
-        <FormControl 
-          component="fieldset" 
-          error={!!stepErrors.option} 
-          fullWidth
-          onBlur={handleOptionBlur}
-        >
-          <FormLabel component="legend" sx={{ mb: 2, fontWeight: 600 }}>
+  //     <Paper elevation={0} sx={{ p: 3, mb: 3, }}>
+  //       <FormControl 
+  //         component="fieldset" 
+  //         error={!!stepErrors.option} 
+  //         fullWidth
+  //         onBlur={handleOptionBlur}
+  //       >
+  //         <FormLabel component="legend" sx={{ mb: 2, fontWeight: 600 }}>
+  //           Select Option *
+  //         </FormLabel>
+  //         <RadioGroup
+  //           value={formData.services.option || ''}
+  //           onChange={(e) => handleServiceTypeChange(e.target.value)}
+  //           sx={{ gap: 2 }}
+  //         >
+  //           <Paper 
+  //             variant="outlined" 
+  //             sx={{ 
+  //               p: 2, 
+  //               borderColor: formData.services.option === 'invoice' ? 'primary.main' : 'grey.300',
+  //               backgroundColor: formData.services.option === 'invoice' ? 'primary.50' : 'background.paper',
+  //               borderWidth: formData.services.option === 'invoice' ? 2 : 1,
+  //               ...(stepErrors.option && formData.services.option !== 'invoice' ? {
+  //                 borderColor: 'error.main',
+  //                 backgroundColor: 'error.light'
+  //               } : {})
+  //             }}
+  //           >
+  //             <FormControlLabel
+  //               value="invoice"
+  //               control={<Radio />}
+  //               label={
+  //                 <Box>
+  //                   <Typography variant="subtitle1" fontWeight="600">
+  //                     Add Invoice
+  //                   </Typography>
+  //                   <Typography variant="body2" color="text.secondary">
+  //                    Create one-time or recurring invoice, or ask for deposit to sign
+  //                   </Typography>
+  //                 </Box>
+  //               }
+  //               sx={{ width: '100%', m: 0 }}
+  //             />
+  //           </Paper>
+            
+  //           <Paper 
+  //             variant="outlined" 
+  //             sx={{ 
+  //               p: 2,
+  //               borderColor: formData.services.option === 'services' ? 'primary.main' : 'grey.300',
+  //               backgroundColor: formData.services.option === 'services' ? 'primary.50' : 'background.paper',
+  //               borderWidth: formData.services.option === 'services' ? 2 : 1,
+  //               ...(stepErrors.option && formData.services.option !== 'services' ? {
+  //                 borderColor: 'error.main',
+  //                 backgroundColor: 'error.light'
+  //               } : {})
+  //             }}
+  //           >
+  //             <FormControlLabel
+  //               value="services"
+  //               control={<Radio />}
+  //               label={
+  //                 <Box>
+  //                   <Typography variant="subtitle1" fontWeight="600">
+  //                     Itemized Services
+  //                   </Typography>
+  //                   <Typography variant="body2" color="text.secondary">
+  //                     No invoice or deposit request will be created
+  //                   </Typography>
+  //                 </Box>
+  //               }
+  //               sx={{ width: '100%', m: 0 }}
+  //             />
+  //           </Paper>
+  //         </RadioGroup>
+  //         {stepErrors.option && (
+  //           <FormHelperText error>{stepErrors.option}</FormHelperText>
+  //         )}
+  //       </FormControl>
+  //     </Paper>
+
+  //     {formData.services.option === 'invoice' && (
+  //       <InvoiceComponent
+  //         invoices={invoices}
+  //         setInvoices={setInvoices}
+  //         invoiceTemplates={invoiceTemplates}
+  //         teammemberoption={teammemberoption}
+  //         serviceoptions={serviceoptions}
+  //         formData={formData}
+  //         updateFormData={updateFormData}
+  //         stepErrors={stepErrors}
+  //         setStepErrors={setStepErrors}
+  //       />
+  //     )}
+
+  //     {formData.services.option === 'services' && (
+  //       <ServicesComponent
+  //         formData={formData}
+  //         updateFormData={updateFormData}
+  //         stepErrors={stepErrors}
+  //         setStepErrors={setStepErrors}
+  //         serviceoptions={serviceoptions}
+  //       />
+  //     )}
+  //   </Box>
+  // );
+<div className="space-y-6">
+      <h2 className="text-3xl font-bold text-primary mb-4">Services & Invoices</h2>
+
+      <div className="rounded-lg border border-border bg-card p-6 mb-6">
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-foreground mb-2 block">
             Select Option *
-          </FormLabel>
+          </label>
+          
           <RadioGroup
             value={formData.services.option || ''}
-            onChange={(e) => handleServiceTypeChange(e.target.value)}
-            sx={{ gap: 2 }}
+            onValueChange={handleServiceTypeChange}
+            onBlur={handleOptionBlur}
+            className="space-y-3"
           >
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 2, 
-                borderColor: formData.services.option === 'invoice' ? 'primary.main' : 'grey.300',
-                backgroundColor: formData.services.option === 'invoice' ? 'primary.50' : 'background.paper',
-                borderWidth: formData.services.option === 'invoice' ? 2 : 1,
-                ...(stepErrors.option && formData.services.option !== 'invoice' ? {
-                  borderColor: 'error.main',
-                  backgroundColor: 'error.light'
-                } : {})
-              }}
+            {/* Add Invoice Option */}
+            <div 
+              className={`relative rounded-lg border p-4 transition-all cursor-pointer ${
+                formData.services.option === 'invoice' 
+                  ? 'border-primary border-2 bg-primary/5' 
+                  : stepErrors.option && formData.services.option !== 'invoice'
+                    ? 'border-destructive bg-destructive/5'
+                    : 'border-border bg-card hover:border-primary/50'
+              }`}
+              onClick={() => handleServiceTypeChange('invoice')}
             >
-              <FormControlLabel
-                value="invoice"
-                control={<Radio />}
-                label={
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight="600">
+              <div className="flex items-start space-x-3">
+                <RadioGroupItem value="invoice" id="invoice" className="mt-1" />
+                <Label htmlFor="invoice" className="flex-1 cursor-pointer">
+                  <div>
+                    <p className="text-base font-semibold text-foreground mb-1">
                       Add Invoice
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                     Create one-time or recurring invoice, or ask for deposit to sign
-                    </Typography>
-                  </Box>
-                }
-                sx={{ width: '100%', m: 0 }}
-              />
-            </Paper>
-            
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 2,
-                borderColor: formData.services.option === 'services' ? 'primary.main' : 'grey.300',
-                backgroundColor: formData.services.option === 'services' ? 'primary.50' : 'background.paper',
-                borderWidth: formData.services.option === 'services' ? 2 : 1,
-                ...(stepErrors.option && formData.services.option !== 'services' ? {
-                  borderColor: 'error.main',
-                  backgroundColor: 'error.light'
-                } : {})
-              }}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Create one-time or recurring invoice, or ask for deposit to sign
+                    </p>
+                  </div>
+                </Label>
+              </div>
+            </div>
+
+            {/* Itemized Services Option */}
+            <div 
+              className={`relative rounded-lg border p-4 transition-all cursor-pointer ${
+                formData.services.option === 'services' 
+                  ? 'border-primary border-2 bg-primary/5' 
+                  : stepErrors.option && formData.services.option !== 'services'
+                    ? 'border-destructive bg-destructive/5'
+                    : 'border-border bg-card hover:border-primary/50'
+              }`}
+              onClick={() => handleServiceTypeChange('services')}
             >
-              <FormControlLabel
-                value="services"
-                control={<Radio />}
-                label={
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight="600">
+              <div className="flex items-start space-x-3">
+                <RadioGroupItem value="services" id="services" className="mt-1" />
+                <Label htmlFor="services" className="flex-1 cursor-pointer">
+                  <div>
+                    <p className="text-base font-semibold text-foreground mb-1">
                       Itemized Services
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    </p>
+                    <p className="text-sm text-muted-foreground">
                       No invoice or deposit request will be created
-                    </Typography>
-                  </Box>
-                }
-                sx={{ width: '100%', m: 0 }}
-              />
-            </Paper>
+                    </p>
+                  </div>
+                </Label>
+              </div>
+            </div>
           </RadioGroup>
+          
           {stepErrors.option && (
-            <FormHelperText error>{stepErrors.option}</FormHelperText>
+            <p className="text-sm text-destructive mt-2">{stepErrors.option}</p>
           )}
-        </FormControl>
-      </Paper>
+        </div>
+      </div>
 
       {formData.services.option === 'invoice' && (
         <InvoiceComponent
@@ -392,7 +497,7 @@ console.log("servicesinvoices",invoices)
           serviceoptions={serviceoptions}
         />
       )}
-    </Box>
+    </div>
   );
 };
 export default ServicesInvoicesStep;

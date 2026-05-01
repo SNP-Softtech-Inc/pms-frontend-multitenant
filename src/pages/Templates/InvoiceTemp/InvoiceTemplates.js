@@ -569,9 +569,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       if (isEditMode && editingTemplateId) {
         await templateAPI.updateInvoiceTemplate(editingTemplateId, payload);
         toast.success("Invoice template updated successfully");
+        setOpenPreview(false)
       } else {
         await templateAPI.createInvoiceTemplate(payload);
         toast.success("Invoice template created successfully");
+        setOpenPreview(false);
       }
 
       setShowForm(false);
