@@ -1129,6 +1129,7 @@ import ShortcodeTextField from "../../components/ShortcodeTextField";
 import AutomationDrawer from "./AutomationDrawer";
 
 const JobDrawer = ({ open, onClose, fetchJobData, selectedPipeline }) => {
+  console.log("selectedPipeline in JobDrawer:", selectedPipeline);
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   
@@ -1172,7 +1173,11 @@ const JobDrawer = ({ open, onClose, fetchJobData, selectedPipeline }) => {
   const [stageSearchOpen, setStageSearchOpen] = useState(false);
   const [jobTemplateSearchOpen, setJobTemplateSearchOpen] = useState(false);
   const [statusSearchOpen, setStatusSearchOpen] = useState(false);
-
+useEffect(() => {
+  if (selectedPipeline) {
+    setPipelineValue(selectedPipeline);
+  }
+}, [selectedPipeline]);
   // Refs
   const descriptionFieldRef = useRef(null);
   const textFieldRef = useRef(null);

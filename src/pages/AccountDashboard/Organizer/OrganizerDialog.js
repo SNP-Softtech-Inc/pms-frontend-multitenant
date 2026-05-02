@@ -1,25 +1,1020 @@
+// import {
+//   MenuItem,
+//   Select,
+//   FormControl,
+//   Dialog,
+//   DialogContent,
+//   Typography,
+//   DialogTitle,
+//   IconButton,
+//   Box,
+//   TextField,
+//   Button,
+//   Input,
+// } from "@mui/material";
+// import { LinearProgress } from "@mui/material";
+// import CloseIcon from "@mui/icons-material/Close";
+// import { useState, useEffect, useCallback, useContext } from "react";
+// import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+// import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+// import { toast } from "react-toastify";
+// import dayjs from "dayjs";
+// import { debounce } from "lodash";
+
+// import { organizerAPI } from "../../../services/api";
+
+// const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
+//   const sections = organizer?.sections;
+//   console.log("sections", sections);
+//   const [selectedDropdownValues, setSelectedDropdownValues] = useState({});
+//   const [inputValues, setInputValues] = useState({});
+//   const [selectedYesNoValues, setSelectedYesNoValues] = useState({});
+//   const [radioValues, setRadioValues] = useState({});
+//   const [checkboxValues, setCheckboxValues] = useState({});
+//   const [answeredElements, setAnsweredElements] = useState({});
+//   const [activeStep, setActiveStep] = useState(0);
+//   const [startDate, setStartDate] = useState(dayjs());
+//   const [uploadedFiles, setUploadedFiles] = useState({}); // Stores file names for each file upload question
+//   const [file, setFile] = useState(null);
+//   const [isDocumentForm, setIsDocumentForm] = useState(false);
+//   // Create a debounced auto-save function
+
+//   const debouncedAutoSave = useCallback(
+//     debounce(async (data) => {
+//       try {
+//         await organizerAPI.autoSaveOrganizer(organizer._id, data);
+//         console.log("Auto-save successful");
+//       } catch (error) {
+//         console.error("Error auto-saving organizer:", error);
+//       }
+//     }, 2000),
+//     [organizer?._id],
+//   );
+//   // Function to prepare data for submission (used by both auto-save and submit)
+//   const prepareSubmitData = (finalSubmit = false) => {
+//     return {
+//       sections:
+//         organizer?.sections?.map((section) => ({
+//           name: section?.text || "",
+//           id: section?.id?.toString() || "",
+//           text: section?.text || "",
+//           sectionsettings: section?.sectionsettings,
+//           formElements:
+//             section?.formElements?.map((question) => ({
+//               type: question?.type || "",
+//               id: question?.id || "",
+//               sectionid: section?.id || "",
+//               options:
+//                 question?.options?.map((option) => ({
+//                   id: option?.id || "",
+//                   text: option?.text || "",
+//                   selected: getOptionSelectedState(
+//                     question,
+//                     option,
+//                     section.id,
+//                   ),
+//                 })) || [],
+//               text: question?.text || "",
+//               textvalue: getQuestionTextValue(question, section.id),
+//               questionsectionsettings: question?.questionsectionsettings,
+//               ...(question.type === "File Upload" && {
+//                 fileMetadata: {
+//                   fileName:
+//                     uploadedFiles[`${section.id}_${question.text}`] || "",
+//                   // Add other metadata like upload date, size, etc.
+//                 },
+//               }),
+//             })) || [],
+//         })) || [],
+//       status: finalSubmit ? "Completed" : "In Progress",
+//       // completedby:loginuserid,
+//       active: true,
+//       lastSaved: new Date().toISOString(),
+//     };
+//   };
+
+//   // Auto-save whenever relevant state changes
+//   useEffect(() => {
+//     if (open && organizer?._id) {
+//       const data = prepareSubmitData(false);
+//       debouncedAutoSave(data);
+//     }
+//   }, [
+//     open,
+//     organizer?._id,
+//     inputValues,
+//     radioValues,
+//     checkboxValues,
+//     selectedYesNoValues,
+//     selectedDropdownValues,
+//     startDate,
+//     uploadedFiles,
+//     debouncedAutoSave,
+//   ]);
+
+//   // Cleanup debounce on unmount
+//   useEffect(() => {
+//     return () => {
+//       debouncedAutoSave.cancel();
+//     };
+//   }, [debouncedAutoSave]);
+
+//   const handleRadioChange = (value, elementText, sectionId) => {
+//     const key = `${sectionId}_${elementText}`;
+//     setRadioValues((prevValues) => ({
+//       ...prevValues,
+//       [key]: value,
+//     }));
+//     setAnsweredElements((prevAnswered) => ({
+//       ...prevAnswered,
+//       [key]: true,
+//     }));
+//   };
+
+//   const handleCheckboxChange = (value, elementText, sectionId) => {
+//     const key = `${sectionId}_${elementText}`;
+//     setCheckboxValues((prevValues) => ({
+//       ...prevValues,
+//       [key]: {
+//         ...prevValues[key],
+//         [value]: !prevValues[key]?.[value],
+//       },
+//     }));
+//     setAnsweredElements((prevAnswered) => ({
+//       ...prevAnswered,
+//       [key]: true,
+//     }));
+//   };
+
+//   const handleYesNoChange = (value, elementText, sectionId) => {
+//     const key = `${sectionId}_${elementText}`;
+//     setSelectedYesNoValues((prevValues) => ({
+//       ...prevValues,
+//       [key]: value,
+//     }));
+//     setAnsweredElements((prevAnswered) => ({
+//       ...prevAnswered,
+//       [key]: true,
+//     }));
+//   };
+
+//   const handleInputChange = (event, elementText, sectionId) => {
+//     const key = `${sectionId}_${elementText}`;
+//     const { value } = event.target;
+//     setInputValues((prevValues) => ({
+//       ...prevValues,
+//       [key]: value,
+//     }));
+//     setAnsweredElements((prevAnswered) => ({
+//       ...prevAnswered,
+//       [key]: true,
+//     }));
+//   };
+
+//   const handleDropdownValueChange = (event, elementText, sectionId) => {
+//     const key = `${sectionId}_${elementText}`;
+//     setSelectedDropdownValues((prevValues) => ({
+//       ...prevValues,
+//       [key]: event.target.value,
+//     }));
+//     setAnsweredElements((prevAnswered) => ({
+//       ...prevAnswered,
+//       [key]: true,
+//     }));
+//   };
+
+//   const shouldShowSection = (section) => {
+//     if (!section.sectionsettings?.conditional) return true;
+//     const conditions = section.sectionsettings.conditions || [];
+
+//     return conditions.every((condition) => {
+//       if (!condition.question || !condition.answer) return false;
+
+//       for (const key in radioValues) {
+//         if (
+//           key.endsWith(`_${condition.question}`) &&
+//           radioValues[key] === condition.answer
+//         ) {
+//           return true;
+//         }
+//       }
+
+//       for (const key in checkboxValues) {
+//         if (
+//           key.endsWith(`_${condition.question}`) &&
+//           checkboxValues[key]?.[condition.answer]
+//         ) {
+//           return true;
+//         }
+//       }
+
+//       for (const key in selectedDropdownValues) {
+//         if (
+//           key.endsWith(`_${condition.question}`) &&
+//           selectedDropdownValues[key] === condition.answer
+//         ) {
+//           return true;
+//         }
+//       }
+
+//       for (const key in selectedYesNoValues) {
+//         if (
+//           key.endsWith(`_${condition.question}`) &&
+//           selectedYesNoValues[key] === condition.answer
+//         ) {
+//           return true;
+//         }
+//       }
+//       return false;
+//     });
+//   };
+
+//   const getVisibleSections = () => (sections || []).filter(shouldShowSection);
+
+//   const visibleSections = getVisibleSections();
+//   const totalSteps = visibleSections.length;
+
+//   const shouldShowElement = (element, sectionId) => {
+//     const settings = element.questionsectionsettings;
+//     if (!settings?.conditional) return true;
+//     const conditions = settings?.conditions || [];
+
+//     for (const condition of conditions) {
+//       const { question, answer } = condition;
+//       if (!question || !answer) continue;
+
+//       let conditionMet = false;
+
+//       for (const key in radioValues) {
+//         if (key.endsWith(`_${question}`) && radioValues[key] === answer) {
+//           conditionMet = true;
+//           break;
+//         }
+//       }
+//       if (conditionMet) continue;
+
+//       for (const key in checkboxValues) {
+//         if (key.endsWith(`_${question}`) && checkboxValues[key]?.[answer]) {
+//           conditionMet = true;
+//           break;
+//         }
+//       }
+//       if (conditionMet) continue;
+
+//       for (const key in selectedDropdownValues) {
+//         if (
+//           key.endsWith(`_${question}`) &&
+//           selectedDropdownValues[key] === answer
+//         ) {
+//           conditionMet = true;
+//           break;
+//         }
+//       }
+//       if (conditionMet) continue;
+
+//       for (const key in selectedYesNoValues) {
+//         if (
+//           key.endsWith(`_${question}`) &&
+//           selectedYesNoValues[key] === answer
+//         ) {
+//           conditionMet = true;
+//           break;
+//         }
+//       }
+//       if (conditionMet) continue;
+
+//       return false;
+//     }
+
+//     return true;
+//   };
+
+//   const handleNext = () => {
+//     if (activeStep < totalSteps - 1) {
+//       setActiveStep((prevActiveStep) => prevActiveStep + 1);
+//     }
+//   };
+
+//   const handleBack = () => {
+//     if (activeStep > 0) {
+//       setActiveStep((prevActiveStep) => prevActiveStep - 1);
+//     }
+//   };
+
+//   const handleDropdownChange = (event) => {
+//     const selectedIndex = event.target.value;
+//     setActiveStep(selectedIndex);
+//   };
+
+//   const handleSubmit = async () => {
+//     try {
+//       const data = prepareSubmitData(true);
+
+//       if (data.status === "Completed") {
+//         await organizerAPI.completeAndNotifyOrganizer(organizer._id, data);
+//       } else {
+//         await organizerAPI.updateOrganizerAccountWise(organizer._id, data);
+//       }
+
+//       toast.success("Organizer updated successfully");
+//       handleClose();
+//     } catch (error) {
+//       console.error(error);
+//       toast.error("Failed to update organizer");
+//     }
+//   };
+
+//   const getQuestionTextValue = (question, sectionId) => {
+//     const key = `${sectionId}_${question.text}`;
+
+//     switch (question.type) {
+//       case "Free Entry":
+//       case "Email":
+//       case "Number":
+//         return inputValues[key] || "";
+//       case "Radio Buttons":
+//         return radioValues[key] || "";
+//       case "Checkboxes":
+//         return checkboxValues[key]
+//           ? Object.keys(checkboxValues[key])
+//               .filter((k) => checkboxValues[key][k])
+//               .join(", ")
+//           : "";
+//       case "Yes/No":
+//         return selectedYesNoValues[key] || "";
+//       case "Dropdown":
+//         return selectedDropdownValues[key] || "";
+//       case "Date":
+//         return startDate?.toISOString() || "";
+//       case "Text Editor":
+//         return question.text || "";
+//       case "File Upload":
+//         return uploadedFiles[key] || "";
+//       default:
+//         return "";
+//     }
+//   };
+
+//   const getOptionSelectedState = (question, option, sectionId) => {
+//     const key = `${sectionId}_${question.text}`;
+//     switch (question.type) {
+//       case "Radio Buttons":
+//         return radioValues[key] === option.text;
+//       case "Checkboxes":
+//         return checkboxValues[key]?.[option.text] || false;
+//       case "Yes/No":
+//         return selectedYesNoValues[key] === option.text;
+//       case "Dropdown":
+//         return selectedDropdownValues[key] === option.text;
+//       default:
+//         return false;
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (organizer?.sections) {
+//       const newInputValues = {};
+//       const newRadioValues = {};
+//       const newCheckboxValues = {};
+//       const newSelectedYesNoValues = {};
+//       const newSelectedDropdownValues = {};
+//       const newAnsweredElements = {};
+//       const newUploadedFiles = {};
+//       let initialDate = dayjs();
+
+//       organizer.sections.forEach((section) => {
+//         section.formElements.forEach((element) => {
+//           const key = `${section.id}_${element.text}`;
+
+//           if (element.textvalue) {
+//             newAnsweredElements[key] = true;
+
+//             switch (element.type) {
+//               case "Free Entry":
+//               case "Email":
+//               case "Number":
+//                 newInputValues[key] = element.textvalue;
+//                 break;
+//               case "Radio Buttons":
+//                 newRadioValues[key] = element.textvalue;
+//                 break;
+//               case "Checkboxes":
+//                 const selectedOptions = element.textvalue
+//                   .split(",")
+//                   .map((s) => s.trim());
+//                 newCheckboxValues[key] = {};
+//                 element.options.forEach((option) => {
+//                   newCheckboxValues[key][option.text] =
+//                     selectedOptions.includes(option.text);
+//                 });
+//                 break;
+//               case "Yes/No":
+//                 newSelectedYesNoValues[key] = element.textvalue;
+//                 break;
+//               case "Dropdown":
+//                 newSelectedDropdownValues[key] = element.textvalue;
+//                 break;
+//               case "Date":
+//                 initialDate = dayjs(element.textvalue);
+//                 break;
+//               case "File Upload":
+//                 // If there's a textvalue, assume it's a file name
+//                 if (element.textvalue) {
+//                   newUploadedFiles[key] = element.textvalue;
+//                 }
+//                 break;
+//             }
+//           }
+//         });
+//       });
+
+//       setInputValues(newInputValues);
+//       setRadioValues(newRadioValues);
+//       setCheckboxValues(newCheckboxValues);
+//       setSelectedYesNoValues(newSelectedYesNoValues);
+//       setSelectedDropdownValues(newSelectedDropdownValues);
+//       setAnsweredElements(newAnsweredElements);
+//       setStartDate(initialDate);
+//       setUploadedFiles(newUploadedFiles);
+//     }
+//   }, [organizer]);
+
+//   const isElementActive = (element) => {
+//     if (organizer?.issealed) return true;
+//     return element.active === true;
+//   };
+
+//   return (
+//     <>
+//       <LocalizationProvider dateAdapter={AdapterDayjs}>
+//         <Dialog fullScreen open={open} onClose={handleClose}>
+//           <DialogTitle
+//             sx={{
+//               display: "flex",
+//               justifyContent: "space-between",
+//               alignItems: "center",
+//               px: 3,
+//               py: 2,
+//               borderBottom: "1px solid #ddd",
+//             }}
+//           >
+//             <Typography variant="h6" component="p">
+//               {organizer?.organizerName || "Organizer"}
+//             </Typography>
+//             <IconButton edge="end" onClick={handleClose}>
+//               <CloseIcon />
+//             </IconButton>
+//           </DialogTitle>
+//           <DialogContent>
+//             <FormControl
+//               fullWidth
+//               sx={{ marginBottom: "10px", marginTop: "10px" }}
+//             >
+//               <Select
+//                 value={activeStep}
+//                 onChange={handleDropdownChange}
+//                 size="small"
+//               >
+//                 {visibleSections.map((section, index) => {
+//                   const visibleElements = section.formElements.filter((el) =>
+//                     shouldShowElement(el, section.id),
+//                   );
+
+//                   const answeredCount = visibleElements.reduce(
+//                     (count, element) => {
+//                       const key = `${section.id}_${element.text}`;
+//                       return count + (answeredElements[key] ? 1 : 0);
+//                     },
+//                     0,
+//                   );
+
+//                   const totalVisibleElements = visibleElements.length;
+
+//                   return (
+//                     <MenuItem key={section.id} value={index}>
+//                       {section.text} ({answeredCount}/{totalVisibleElements})
+//                     </MenuItem>
+//                   );
+//                 })}
+//               </Select>
+//             </FormControl>
+//             <Box mt={2} mb={2}>
+//               <LinearProgress
+//                 variant="determinate"
+//                 value={((activeStep + 1) / totalSteps) * 100}
+//               />
+//             </Box>
+
+//             <Box sx={{ pl: 20, pr: 20 }}>
+//               {visibleSections.map(
+//                 (section, sectionIndex) =>
+//                   sectionIndex === activeStep && (
+//                     <Box key={section.id}>
+//                       {section.formElements.map(
+//                         (element) =>
+//                           shouldShowElement(element, section.id) && (
+//                             <Box key={`${section.id}_${element.id}`}>
+//                               {element.type === "Text Editor" && (
+//                                 <Box mt={2} mb={2}>
+//                                   <Typography>
+//                                     <span
+//                                       dangerouslySetInnerHTML={{
+//                                         __html: element.text,
+//                                       }}
+//                                     />
+//                                   </Typography>
+//                                 </Box>
+//                               )}
+
+//                               {(element.type === "Free Entry" ||
+//                                 element.type === "Email") && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <TextField
+//                                     disabled={isElementActive(element)}
+//                                     variant="outlined"
+//                                     size="small"
+//                                     multiline
+//                                     fullWidth
+//                                     placeholder={`${element.type} Answer`}
+//                                     inputProps={{
+//                                       type:
+//                                         element.type === "Free Entry"
+//                                           ? "text"
+//                                           : element.type.toLowerCase(),
+//                                     }}
+//                                     maxRows={8}
+//                                     style={{ display: "block" }}
+//                                     value={
+//                                       inputValues[
+//                                         `${section.id}_${element.text}`
+//                                       ] || ""
+//                                     }
+//                                     onChange={(e) =>
+//                                       handleInputChange(
+//                                         e,
+//                                         element.text,
+//                                         section.id,
+//                                       )
+//                                     }
+//                                   />
+//                                 </Box>
+//                               )}
+
+//                               {element.type === "Number" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <TextField
+//                                     disabled={isElementActive(element)}
+//                                     variant="outlined"
+//                                     size="small"
+//                                     multiline
+//                                     fullWidth
+//                                     placeholder={`${element.type} Answer`}
+//                                     inputProps={{
+//                                       type: "text",
+//                                       inputMode: "numeric",
+//                                       pattern: "[0-9]*",
+//                                     }}
+//                                     maxRows={8}
+//                                     style={{
+//                                       display: "block",
+//                                       marginTop: "15px",
+//                                     }}
+//                                     value={
+//                                       inputValues[
+//                                         `${section.id}_${element.text}`
+//                                       ] || ""
+//                                     }
+//                                     onChange={(e) => {
+//                                       const numericValue =
+//                                         e.target.value.replace(/\D/g, "");
+//                                       handleInputChange(
+//                                         { target: { value: numericValue } },
+//                                         element.text,
+//                                         section.id,
+//                                       );
+//                                     }}
+//                                   />
+//                                 </Box>
+//                               )}
+
+//                               {element.type === "Radio Buttons" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <Box
+//                                     sx={{
+//                                       display: "flex",
+//                                       gap: 1,
+//                                       flexWrap: "wrap",
+//                                     }}
+//                                   >
+//                                     {element.options.map((option) => (
+//                                       <Button
+//                                         key={option.text}
+//                                         variant={
+//                                           radioValues[
+//                                             `${section.id}_${element.text}`
+//                                           ] === option.text
+//                                             ? "contained"
+//                                             : "outlined"
+//                                         }
+//                                         disabled={isElementActive(element)}
+//                                         onClick={() =>
+//                                           !isElementActive(element) &&
+//                                           handleRadioChange(
+//                                             option.text,
+//                                             element.text,
+//                                             section.id,
+//                                           )
+//                                         }
+//                                         sx={{
+//                                           borderRadius: "15px",
+//                                         }}
+//                                       >
+//                                         {option.text}
+//                                       </Button>
+//                                     ))}
+//                                   </Box>
+//                                 </Box>
+//                               )}
+
+//                               {element.type === "Checkboxes" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <Box
+//                                     sx={{
+//                                       display: "flex",
+//                                       gap: 1,
+//                                       flexWrap: "wrap",
+//                                     }}
+//                                   >
+//                                     {element.options.map((option) => (
+//                                       <Button
+//                                         key={option.text}
+//                                         variant={
+//                                           checkboxValues[
+//                                             `${section.id}_${element.text}`
+//                                           ]?.[option.text]
+//                                             ? "contained"
+//                                             : "outlined"
+//                                         }
+//                                         disabled={isElementActive(element)}
+//                                         onClick={() =>
+//                                           !isElementActive(element) &&
+//                                           handleCheckboxChange(
+//                                             option.text,
+//                                             element.text,
+//                                             section.id,
+//                                           )
+//                                         }
+//                                         sx={{
+//                                           borderRadius: "15px",
+//                                         }}
+//                                       >
+//                                         {option.text}
+//                                       </Button>
+//                                     ))}
+//                                   </Box>
+//                                 </Box>
+//                               )}
+
+//                               {element.type === "Yes/No" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <Box sx={{ display: "flex", gap: 1 }}>
+//                                     {element.options.map((option) => (
+//                                       <Button
+//                                         key={option.text}
+//                                         variant={
+//                                           selectedYesNoValues[
+//                                             `${section.id}_${element.text}`
+//                                           ] === option.text
+//                                             ? "contained"
+//                                             : "outlined"
+//                                         }
+//                                         disabled={isElementActive(element)}
+//                                         onClick={() =>
+//                                           !isElementActive(element) &&
+//                                           handleYesNoChange(
+//                                             option.text,
+//                                             element.text,
+//                                             section.id,
+//                                           )
+//                                         }
+//                                         sx={{
+//                                           borderRadius: "15px",
+//                                         }}
+//                                       >
+//                                         {option.text}
+//                                       </Button>
+//                                     ))}
+//                                   </Box>
+//                                 </Box>
+//                               )}
+
+//                               {element.type === "Dropdown" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <FormControl fullWidth>
+//                                     <Select
+//                                       value={
+//                                         selectedDropdownValues[
+//                                           `${section.id}_${element.text}`
+//                                         ] || ""
+//                                       }
+//                                       disabled={isElementActive(element)}
+//                                       onChange={(event) =>
+//                                         handleDropdownValueChange(
+//                                           event,
+//                                           element.text,
+//                                           section.id,
+//                                         )
+//                                       }
+//                                       size="small"
+//                                     >
+//                                       {element.options.map((option) => (
+//                                         <MenuItem
+//                                           key={option.text}
+//                                           value={option.text}
+//                                         >
+//                                           {option.text}
+//                                         </MenuItem>
+//                                       ))}
+//                                     </Select>
+//                                   </FormControl>
+//                                 </Box>
+//                               )}
+
+//                               {element.type === "Date" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <DatePicker
+//                                     format="MM/DD/YYYY"
+//                                     sx={{
+//                                       width: "100%",
+//                                       backgroundColor: "#fff",
+//                                     }}
+//                                     value={startDate}
+//                                     disabled={isElementActive(element)}
+//                                     onChange={(newValue) => {
+//                                       if (!isElementActive(element)) {
+//                                         setStartDate(newValue);
+//                                         setAnsweredElements((prev) => ({
+//                                           ...prev,
+//                                           [`${section.id}_${element.text}`]: true,
+//                                         }));
+//                                       }
+//                                     }}
+//                                     renderInput={(params) => (
+//                                       <TextField {...params} size="small" />
+//                                     )}
+//                                   />
+//                                 </Box>
+//                               )}
+
+//                               {/* {element.type === "File Upload" && (
+//                               <Box mt={2}>
+//                                 <Typography
+//                                   variant="subtitle2"
+//                                   component="p"
+//                                   gutterBottom
+//                                   sx={{ fontWeight: "550" }}
+//                                 >
+//                                   {element.text}
+//                                 </Typography>
+//                                 This file upload question
+//                               </Box>
+//                             )} */}
+//                               {element.type === "File Upload" && (
+//                                 <Box mt={2}>
+//                                   <Typography
+//                                     variant="subtitle2"
+//                                     component="p"
+//                                     gutterBottom
+//                                     sx={{ fontWeight: "550" }}
+//                                   >
+//                                     {element.text}
+//                                   </Typography>
+//                                   <Box
+//                                     sx={{
+//                                       display: "flex",
+//                                       alignItems: "center",
+//                                       gap: 1,
+//                                     }}
+//                                   >
+//                                     <Typography
+//                                       variant="body1"
+//                                       component="label"
+//                                       htmlFor={`fileInput_${section.id}_${element.id}`}
+//                                       sx={{
+//                                         cursor: isElementActive(element)
+//                                           ? "default"
+//                                           : "pointer",
+//                                       }}
+//                                     >
+//                                       Upload Document
+//                                     </Typography>
+//                                     <Input
+//                                       type="file"
+//                                       id={`fileInput_${section.id}_${element.id}`}
+//                                       onChange={(e) => {
+//                                         const selectedFile = e.target.files[0];
+//                                         if (selectedFile) {
+//                                           setFile(selectedFile);
+//                                           setIsDocumentForm(true);
+//                                           // Store the temporary file name in state
+//                                           const key = `${section.id}_${element.text}`;
+//                                           setUploadedFiles((prev) => ({
+//                                             ...prev,
+//                                             [key]: selectedFile.name,
+//                                           }));
+//                                           setAnsweredElements((prev) => ({
+//                                             ...prev,
+//                                             [key]: true,
+//                                           }));
+//                                         }
+//                                       }}
+//                                       sx={{ display: "none" }}
+//                                       disabled={isElementActive(element)}
+//                                     />
+//                                   </Box>
+//                                   {uploadedFiles[
+//                                     `${section.id}_${element.text}`
+//                                   ] && (
+//                                     <Box
+//                                       sx={{
+//                                         display: "flex",
+//                                         alignItems: "center",
+//                                         gap: 1,
+//                                         mt: 1,
+//                                       }}
+//                                     >
+//                                       <Typography variant="caption">
+//                                         Selected file:{" "}
+//                                         {
+//                                           uploadedFiles[
+//                                             `${section.id}_${element.text}`
+//                                           ]
+//                                         }
+//                                       </Typography>
+//                                       <IconButton
+//                                         size="small"
+//                                         onClick={() => {
+//                                           const key = `${section.id}_${element.text}`;
+//                                           setUploadedFiles((prev) => {
+//                                             const newState = { ...prev };
+//                                             delete newState[key];
+//                                             return newState;
+//                                           });
+//                                           setAnsweredElements((prev) => ({
+//                                             ...prev,
+//                                             [key]: false,
+//                                           }));
+//                                           // Trigger auto-save with the removed file
+//                                           const data = prepareSubmitData(false);
+//                                           debouncedAutoSave(data);
+//                                         }}
+//                                         disabled={isElementActive(element)}
+//                                       >
+//                                         <CloseIcon fontSize="small" />
+//                                       </IconButton>
+//                                     </Box>
+//                                   )}
+//                                 </Box>
+//                               )}
+//                             </Box>
+//                           ),
+//                       )}
+//                     </Box>
+//                   ),
+//               )}
+
+//               <Box
+//                 mt={3}
+//                 display="flex"
+//                 alignItems="center"
+//                 justifyContent={"space-between"}
+//               >
+//                 <Box display="flex" gap={3} alignItems="center">
+//                   {activeStep > 0 && (
+//                     <Button onClick={handleBack} variant="outlined">
+//                       <ArrowBackIcon fontSize="small" />
+//                     </Button>
+//                   )}
+
+//                   {activeStep < totalSteps - 1 ? (
+//                     <Button onClick={handleNext} variant="contained">
+//                       Next{" "}
+//                       <ArrowForwardIcon
+//                         fontSize="small"
+//                         sx={{ marginLeft: 2 }}
+//                       />
+//                     </Button>
+//                   ) : (
+//                     <Button variant="contained" onClick={handleSubmit}>
+//                       Submit
+//                     </Button>
+//                   )}
+//                 </Box>
+
+//                 <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+//                   <Typography>
+//                     Step {activeStep + 1} of {totalSteps}
+//                   </Typography>
+//                 </Box>
+//               </Box>
+//             </Box>
+//           </DialogContent>
+//         </Dialog>
+//       </LocalizationProvider>
+//     </>
+//   );
+// };
+
+// export default OrganizerDialog;
+
+
 import {
-  MenuItem,
   Select,
-  FormControl,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import {
   Dialog,
   DialogContent,
-  Typography,
   DialogTitle,
-  IconButton,
-  Box,
-  TextField,
-  Button,
-  Input,
-} from "@mui/material";
-import { LinearProgress } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+  DialogHeader,
+} from "../../../components/ui/dialog";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
+import { Label } from "../../../components/ui/label";
+import { Progress } from "../../../components/ui/progress";
+import { Calendar } from "../../../components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../../components/ui/popover";
+import { cn } from "../../../lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon, X, ArrowLeft, ArrowRight } from "lucide-react";
 import { useState, useEffect, useCallback, useContext } from "react";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { debounce } from "lodash";
@@ -37,10 +1032,9 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
   const [answeredElements, setAnsweredElements] = useState({});
   const [activeStep, setActiveStep] = useState(0);
   const [startDate, setStartDate] = useState(dayjs());
-  const [uploadedFiles, setUploadedFiles] = useState({}); // Stores file names for each file upload question
+  const [uploadedFiles, setUploadedFiles] = useState({});
   const [file, setFile] = useState(null);
   const [isDocumentForm, setIsDocumentForm] = useState(false);
-  // Create a debounced auto-save function
 
   const debouncedAutoSave = useCallback(
     debounce(async (data) => {
@@ -53,7 +1047,7 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
     }, 2000),
     [organizer?._id],
   );
-  // Function to prepare data for submission (used by both auto-save and submit)
+
   const prepareSubmitData = (finalSubmit = false) => {
     return {
       sections:
@@ -84,19 +1078,16 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
                 fileMetadata: {
                   fileName:
                     uploadedFiles[`${section.id}_${question.text}`] || "",
-                  // Add other metadata like upload date, size, etc.
                 },
               }),
             })) || [],
         })) || [],
       status: finalSubmit ? "Completed" : "In Progress",
-      // completedby:loginuserid,
       active: true,
       lastSaved: new Date().toISOString(),
     };
   };
 
-  // Auto-save whenever relevant state changes
   useEffect(() => {
     if (open && organizer?._id) {
       const data = prepareSubmitData(false);
@@ -115,7 +1106,6 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
     debouncedAutoSave,
   ]);
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       debouncedAutoSave.cancel();
@@ -174,11 +1164,11 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
     }));
   };
 
-  const handleDropdownValueChange = (event, elementText, sectionId) => {
+  const handleDropdownValueChange = (value, elementText, sectionId) => {
     const key = `${sectionId}_${elementText}`;
     setSelectedDropdownValues((prevValues) => ({
       ...prevValues,
-      [key]: event.target.value,
+      [key]: value,
     }));
     setAnsweredElements((prevAnswered) => ({
       ...prevAnswered,
@@ -304,8 +1294,8 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
     }
   };
 
-  const handleDropdownChange = (event) => {
-    const selectedIndex = event.target.value;
+  const handleDropdownChange = (value) => {
+    const selectedIndex = parseInt(value);
     setActiveStep(selectedIndex);
   };
 
@@ -421,7 +1411,6 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
                 initialDate = dayjs(element.textvalue);
                 break;
               case "File Upload":
-                // If there's a textvalue, assume it's a file name
                 if (element.textvalue) {
                   newUploadedFiles[key] = element.textvalue;
                 }
@@ -448,36 +1437,32 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
   };
 
   return (
-    <>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Dialog fullScreen open={open} onClose={handleClose}>
-          <DialogTitle
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              px: 3,
-              py: 2,
-              borderBottom: "1px solid #ddd",
-            }}
-          >
-            <Typography variant="h6" component="p">
-              {organizer?.organizerName || "Organizer"}
-            </Typography>
-            <IconButton edge="end" onClick={handleClose}>
-              <CloseIcon />
-            </IconButton>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-[90vw] h-[90vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 py-4 border-b flex flex-row items-center justify-between">
+          <DialogTitle>
+            {organizer?.organizerName || "Organizer"}
           </DialogTitle>
-          <DialogContent>
-            <FormControl
-              fullWidth
-              sx={{ marginBottom: "10px", marginTop: "10px" }}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-4">
+            <Select
+              value={activeStep.toString()}
+              onValueChange={handleDropdownChange}
             >
-              <Select
-                value={activeStep}
-                onChange={handleDropdownChange}
-                size="small"
-              >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {visibleSections.map((section, index) => {
                   const visibleElements = section.formElements.filter((el) =>
                     shouldShowElement(el, section.id),
@@ -494,493 +1479,388 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
                   const totalVisibleElements = visibleElements.length;
 
                   return (
-                    <MenuItem key={section.id} value={index}>
+                    <SelectItem key={section.id} value={index.toString()}>
                       {section.text} ({answeredCount}/{totalVisibleElements})
-                    </MenuItem>
+                    </SelectItem>
                   );
                 })}
-              </Select>
-            </FormControl>
-            <Box mt={2} mb={2}>
-              <LinearProgress
-                variant="determinate"
-                value={((activeStep + 1) / totalSteps) * 100}
-              />
-            </Box>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <Box sx={{ pl: 20, pr: 20 }}>
-              {visibleSections.map(
-                (section, sectionIndex) =>
-                  sectionIndex === activeStep && (
-                    <Box key={section.id}>
-                      {section.formElements.map(
-                        (element) =>
-                          shouldShowElement(element, section.id) && (
-                            <Box key={`${section.id}_${element.id}`}>
-                              {element.type === "Text Editor" && (
-                                <Box mt={2} mb={2}>
-                                  <Typography>
-                                    <span
-                                      dangerouslySetInnerHTML={{
-                                        __html: element.text,
-                                      }}
-                                    />
-                                  </Typography>
-                                </Box>
-                              )}
+          <div className="mb-4">
+            <Progress
+              value={((activeStep + 1) / totalSteps) * 100}
+              className="w-full"
+            />
+          </div>
 
-                              {(element.type === "Free Entry" ||
-                                element.type === "Email") && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <TextField
-                                    disabled={isElementActive(element)}
-                                    variant="outlined"
-                                    size="small"
-                                    multiline
-                                    fullWidth
-                                    placeholder={`${element.type} Answer`}
-                                    inputProps={{
-                                      type:
-                                        element.type === "Free Entry"
-                                          ? "text"
-                                          : element.type.toLowerCase(),
-                                    }}
-                                    maxRows={8}
-                                    style={{ display: "block" }}
-                                    value={
-                                      inputValues[
-                                        `${section.id}_${element.text}`
-                                      ] || ""
-                                    }
-                                    onChange={(e) =>
-                                      handleInputChange(
-                                        e,
-                                        element.text,
-                                        section.id,
-                                      )
-                                    }
-                                  />
-                                </Box>
-                              )}
+          <div className="max-w-4xl mx-auto">
+            {visibleSections.map(
+              (section, sectionIndex) =>
+                sectionIndex === activeStep && (
+                  <div key={section.id}>
+                    {section.formElements.map(
+                      (element) =>
+                        shouldShowElement(element, section.id) && (
+                          <div key={`${section.id}_${element.id}`} className="mb-6">
+                            {element.type === "Text Editor" && (
+                              <div className="mt-2 mb-2">
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: element.text,
+                                  }}
+                                />
+                              </div>
+                            )}
 
-                              {element.type === "Number" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <TextField
-                                    disabled={isElementActive(element)}
-                                    variant="outlined"
-                                    size="small"
-                                    multiline
-                                    fullWidth
-                                    placeholder={`${element.type} Answer`}
-                                    inputProps={{
-                                      type: "text",
-                                      inputMode: "numeric",
-                                      pattern: "[0-9]*",
-                                    }}
-                                    maxRows={8}
-                                    style={{
-                                      display: "block",
-                                      marginTop: "15px",
-                                    }}
-                                    value={
-                                      inputValues[
-                                        `${section.id}_${element.text}`
-                                      ] || ""
-                                    }
-                                    onChange={(e) => {
-                                      const numericValue =
-                                        e.target.value.replace(/\D/g, "");
-                                      handleInputChange(
-                                        { target: { value: numericValue } },
-                                        element.text,
-                                        section.id,
-                                      );
-                                    }}
-                                  />
-                                </Box>
-                              )}
+                            {(element.type === "Free Entry" ||
+                              element.type === "Email") && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <Textarea
+                                  disabled={isElementActive(element)}
+                                  placeholder={`${element.type} Answer`}
+                                  value={
+                                    inputValues[
+                                      `${section.id}_${element.text}`
+                                    ] || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e,
+                                      element.text,
+                                      section.id,
+                                    )
+                                  }
+                                  className="w-full"
+                                  rows={4}
+                                />
+                              </div>
+                            )}
 
-                              {element.type === "Radio Buttons" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      gap: 1,
-                                      flexWrap: "wrap",
-                                    }}
-                                  >
-                                    {element.options.map((option) => (
-                                      <Button
-                                        key={option.text}
-                                        variant={
-                                          radioValues[
-                                            `${section.id}_${element.text}`
-                                          ] === option.text
-                                            ? "contained"
-                                            : "outlined"
-                                        }
-                                        disabled={isElementActive(element)}
-                                        onClick={() =>
-                                          !isElementActive(element) &&
-                                          handleRadioChange(
-                                            option.text,
-                                            element.text,
-                                            section.id,
-                                          )
-                                        }
-                                        sx={{
-                                          borderRadius: "15px",
-                                        }}
-                                      >
-                                        {option.text}
-                                      </Button>
-                                    ))}
-                                  </Box>
-                                </Box>
-                              )}
+                            {element.type === "Number" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <Input
+                                  disabled={isElementActive(element)}
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  placeholder={`${element.type} Answer`}
+                                  value={
+                                    inputValues[
+                                      `${section.id}_${element.text}`
+                                    ] || ""
+                                  }
+                                  onChange={(e) => {
+                                    const numericValue =
+                                      e.target.value.replace(/\D/g, "");
+                                    handleInputChange(
+                                      { target: { value: numericValue } },
+                                      element.text,
+                                      section.id,
+                                    );
+                                  }}
+                                  className="w-full"
+                                />
+                              </div>
+                            )}
 
-                              {element.type === "Checkboxes" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      gap: 1,
-                                      flexWrap: "wrap",
-                                    }}
-                                  >
-                                    {element.options.map((option) => (
-                                      <Button
-                                        key={option.text}
-                                        variant={
-                                          checkboxValues[
-                                            `${section.id}_${element.text}`
-                                          ]?.[option.text]
-                                            ? "contained"
-                                            : "outlined"
-                                        }
-                                        disabled={isElementActive(element)}
-                                        onClick={() =>
-                                          !isElementActive(element) &&
-                                          handleCheckboxChange(
-                                            option.text,
-                                            element.text,
-                                            section.id,
-                                          )
-                                        }
-                                        sx={{
-                                          borderRadius: "15px",
-                                        }}
-                                      >
-                                        {option.text}
-                                      </Button>
-                                    ))}
-                                  </Box>
-                                </Box>
-                              )}
-
-                              {element.type === "Yes/No" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <Box sx={{ display: "flex", gap: 1 }}>
-                                    {element.options.map((option) => (
-                                      <Button
-                                        key={option.text}
-                                        variant={
-                                          selectedYesNoValues[
-                                            `${section.id}_${element.text}`
-                                          ] === option.text
-                                            ? "contained"
-                                            : "outlined"
-                                        }
-                                        disabled={isElementActive(element)}
-                                        onClick={() =>
-                                          !isElementActive(element) &&
-                                          handleYesNoChange(
-                                            option.text,
-                                            element.text,
-                                            section.id,
-                                          )
-                                        }
-                                        sx={{
-                                          borderRadius: "15px",
-                                        }}
-                                      >
-                                        {option.text}
-                                      </Button>
-                                    ))}
-                                  </Box>
-                                </Box>
-                              )}
-
-                              {element.type === "Dropdown" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <FormControl fullWidth>
-                                    <Select
-                                      value={
-                                        selectedDropdownValues[
+                            {element.type === "Radio Buttons" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <div className="flex gap-2 flex-wrap">
+                                  {element.options.map((option) => (
+                                    <Button
+                                      key={option.text}
+                                      variant={
+                                        radioValues[
                                           `${section.id}_${element.text}`
-                                        ] || ""
+                                        ] === option.text
+                                          ? "default"
+                                          : "outline"
                                       }
                                       disabled={isElementActive(element)}
-                                      onChange={(event) =>
-                                        handleDropdownValueChange(
-                                          event,
+                                      onClick={() =>
+                                        !isElementActive(element) &&
+                                        handleRadioChange(
+                                          option.text,
                                           element.text,
                                           section.id,
                                         )
                                       }
-                                      size="small"
+                                      className="rounded-full"
                                     >
-                                      {element.options.map((option) => (
-                                        <MenuItem
-                                          key={option.text}
-                                          value={option.text}
-                                        >
-                                          {option.text}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                </Box>
-                              )}
+                                      {option.text}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
-                              {element.type === "Date" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
+                            {element.type === "Checkboxes" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <div className="flex gap-2 flex-wrap">
+                                  {element.options.map((option) => (
+                                    <Button
+                                      key={option.text}
+                                      variant={
+                                        checkboxValues[
+                                          `${section.id}_${element.text}`
+                                        ]?.[option.text]
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      disabled={isElementActive(element)}
+                                      onClick={() =>
+                                        !isElementActive(element) &&
+                                        handleCheckboxChange(
+                                          option.text,
+                                          element.text,
+                                          section.id,
+                                        )
+                                      }
+                                      className="rounded-full"
+                                    >
+                                      {option.text}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {element.type === "Yes/No" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <div className="flex gap-2">
+                                  {element.options.map((option) => (
+                                    <Button
+                                      key={option.text}
+                                      variant={
+                                        selectedYesNoValues[
+                                          `${section.id}_${element.text}`
+                                        ] === option.text
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      disabled={isElementActive(element)}
+                                      onClick={() =>
+                                        !isElementActive(element) &&
+                                        handleYesNoChange(
+                                          option.text,
+                                          element.text,
+                                          section.id,
+                                        )
+                                      }
+                                      className="rounded-full"
+                                    >
+                                      {option.text}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {element.type === "Dropdown" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <Select
+                                  value={
+                                    selectedDropdownValues[
+                                      `${section.id}_${element.text}`
+                                    ] || ""
+                                  }
+                                  onValueChange={(value) =>
+                                    handleDropdownValueChange(
+                                      value,
+                                      element.text,
+                                      section.id,
+                                    )
+                                  }
+                                  disabled={isElementActive(element)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {element.options.map((option) => (
+                                      <SelectItem
+                                        key={option.text}
+                                        value={option.text}
+                                      >
+                                        {option.text}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
+                            {element.type === "Date" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !startDate && "text-muted-foreground"
+                                      )}
+                                      disabled={isElementActive(element)}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {startDate ? format(startDate.toDate(), "MM/dd/yyyy") : "Pick a date"}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={startDate?.toDate()}
+                                      onSelect={(date) => {
+                                        if (!isElementActive(element) && date) {
+                                          setStartDate(dayjs(date));
+                                          setAnsweredElements((prev) => ({
+                                            ...prev,
+                                            [`${section.id}_${element.text}`]: true,
+                                          }));
+                                        }
+                                      }}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+                            )}
+
+                            {element.type === "File Upload" && (
+                              <div className="mt-2">
+                                <Label className="font-medium mb-2 block">
+                                  {element.text}
+                                </Label>
+                                <div className="flex items-center gap-2">
+                                  <Label
+                                    htmlFor={`fileInput_${section.id}_${element.id}`}
+                                    className={cn(
+                                      "cursor-pointer text-sm font-medium",
+                                      isElementActive(element) && "cursor-default opacity-50"
+                                    )}
                                   >
-                                    {element.text}
-                                  </Typography>
-                                  <DatePicker
-                                    format="MM/DD/YYYY"
-                                    sx={{
-                                      width: "100%",
-                                      backgroundColor: "#fff",
-                                    }}
-                                    value={startDate}
-                                    disabled={isElementActive(element)}
-                                    onChange={(newValue) => {
-                                      if (!isElementActive(element)) {
-                                        setStartDate(newValue);
+                                    Upload Document
+                                  </Label>
+                                  <Input
+                                    type="file"
+                                    id={`fileInput_${section.id}_${element.id}`}
+                                    onChange={(e) => {
+                                      const selectedFile = e.target.files[0];
+                                      if (selectedFile) {
+                                        setFile(selectedFile);
+                                        setIsDocumentForm(true);
+                                        const key = `${section.id}_${element.text}`;
+                                        setUploadedFiles((prev) => ({
+                                          ...prev,
+                                          [key]: selectedFile.name,
+                                        }));
                                         setAnsweredElements((prev) => ({
                                           ...prev,
-                                          [`${section.id}_${element.text}`]: true,
+                                          [key]: true,
                                         }));
                                       }
                                     }}
-                                    renderInput={(params) => (
-                                      <TextField {...params} size="small" />
-                                    )}
+                                    className="hidden"
+                                    disabled={isElementActive(element)}
                                   />
-                                </Box>
-                              )}
-
-                              {/* {element.type === "File Upload" && (
-                              <Box mt={2}>
-                                <Typography
-                                  variant="subtitle2"
-                                  component="p"
-                                  gutterBottom
-                                  sx={{ fontWeight: "550" }}
-                                >
-                                  {element.text}
-                                </Typography>
-                                This file upload question
-                              </Box>
-                            )} */}
-                              {element.type === "File Upload" && (
-                                <Box mt={2}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    component="p"
-                                    gutterBottom
-                                    sx={{ fontWeight: "550" }}
-                                  >
-                                    {element.text}
-                                  </Typography>
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 1,
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="body1"
-                                      component="label"
-                                      htmlFor={`fileInput_${section.id}_${element.id}`}
-                                      sx={{
-                                        cursor: isElementActive(element)
-                                          ? "default"
-                                          : "pointer",
+                                </div>
+                                {uploadedFiles[
+                                  `${section.id}_${element.text}`
+                                ] && (
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-sm text-muted-foreground">
+                                      Selected file:{" "}
+                                      {
+                                        uploadedFiles[
+                                          `${section.id}_${element.text}`
+                                        ]
+                                      }
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => {
+                                        const key = `${section.id}_${element.text}`;
+                                        setUploadedFiles((prev) => {
+                                          const newState = { ...prev };
+                                          delete newState[key];
+                                          return newState;
+                                        });
+                                        setAnsweredElements((prev) => ({
+                                          ...prev,
+                                          [key]: false,
+                                        }));
+                                        const data = prepareSubmitData(false);
+                                        debouncedAutoSave(data);
                                       }}
-                                    >
-                                      Upload Document
-                                    </Typography>
-                                    <Input
-                                      type="file"
-                                      id={`fileInput_${section.id}_${element.id}`}
-                                      onChange={(e) => {
-                                        const selectedFile = e.target.files[0];
-                                        if (selectedFile) {
-                                          setFile(selectedFile);
-                                          setIsDocumentForm(true);
-                                          // Store the temporary file name in state
-                                          const key = `${section.id}_${element.text}`;
-                                          setUploadedFiles((prev) => ({
-                                            ...prev,
-                                            [key]: selectedFile.name,
-                                          }));
-                                          setAnsweredElements((prev) => ({
-                                            ...prev,
-                                            [key]: true,
-                                          }));
-                                        }
-                                      }}
-                                      sx={{ display: "none" }}
                                       disabled={isElementActive(element)}
-                                    />
-                                  </Box>
-                                  {uploadedFiles[
-                                    `${section.id}_${element.text}`
-                                  ] && (
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 1,
-                                        mt: 1,
-                                      }}
                                     >
-                                      <Typography variant="caption">
-                                        Selected file:{" "}
-                                        {
-                                          uploadedFiles[
-                                            `${section.id}_${element.text}`
-                                          ]
-                                        }
-                                      </Typography>
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => {
-                                          const key = `${section.id}_${element.text}`;
-                                          setUploadedFiles((prev) => {
-                                            const newState = { ...prev };
-                                            delete newState[key];
-                                            return newState;
-                                          });
-                                          setAnsweredElements((prev) => ({
-                                            ...prev,
-                                            [key]: false,
-                                          }));
-                                          // Trigger auto-save with the removed file
-                                          const data = prepareSubmitData(false);
-                                          debouncedAutoSave(data);
-                                        }}
-                                        disabled={isElementActive(element)}
-                                      >
-                                        <CloseIcon fontSize="small" />
-                                      </IconButton>
-                                    </Box>
-                                  )}
-                                </Box>
-                              )}
-                            </Box>
-                          ),
-                      )}
-                    </Box>
-                  ),
-              )}
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ),
+                    )}
+                  </div>
+                ),
+            )}
 
-              <Box
-                mt={3}
-                display="flex"
-                alignItems="center"
-                justifyContent={"space-between"}
-              >
-                <Box display="flex" gap={3} alignItems="center">
-                  {activeStep > 0 && (
-                    <Button onClick={handleBack} variant="outlined">
-                      <ArrowBackIcon fontSize="small" />
-                    </Button>
-                  )}
+            <div className="mt-6 flex items-center justify-between">
+              <div className="flex gap-3 items-center">
+                {activeStep > 0 && (
+                  <Button onClick={handleBack} variant="outline">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back
+                  </Button>
+                )}
 
-                  {activeStep < totalSteps - 1 ? (
-                    <Button onClick={handleNext} variant="contained">
-                      Next{" "}
-                      <ArrowForwardIcon
-                        fontSize="small"
-                        sx={{ marginLeft: 2 }}
-                      />
-                    </Button>
-                  ) : (
-                    <Button variant="contained" onClick={handleSubmit}>
-                      Submit
-                    </Button>
-                  )}
-                </Box>
+                {activeStep < totalSteps - 1 ? (
+                  <Button onClick={handleNext}>
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit}>
+                    Submit
+                  </Button>
+                )}
+              </div>
 
-                <Box sx={{ display: "flex", alignItems: "flex-end" }}>
-                  <Typography>
-                    Step {activeStep + 1} of {totalSteps}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </DialogContent>
-        </Dialog>
-      </LocalizationProvider>
-    </>
+              <div className="text-sm text-muted-foreground">
+                Step {activeStep + 1} of {totalSteps}
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -1247,7 +1247,7 @@ export const chatAPI = {
     chatApi.post(`/chats/chatsaccountwise/addclienttask`, data),
 
   updateTaskCheckedStatus: (data) =>
-    chatApi.post(`/chatsaccountwise/updateTaskCheckedStatus`, data),
+    chatApi.post(`/chats/chatsaccountwise/updateTaskCheckedStatus`, data),
 
   // ================= UNREAD =================
 

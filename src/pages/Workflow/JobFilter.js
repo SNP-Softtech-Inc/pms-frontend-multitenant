@@ -417,34 +417,42 @@
 
 
 import React, { useState, useEffect } from "react";
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  X, 
+  Check 
+} from "lucide-react";
 import { templateAPI } from "../../services/api";
 
+// Shadcn UI Components
 import { Button } from "../../components/ui/button";
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "../../components/ui/popover";
-import {
   Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
 } from "../../components/ui/command";
-import { Input } from "../../components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components/ui/select";
-
-import { X, ChevronDown, ChevronUp } from "lucide-react";
 import MultiSelectDropdown from "../../components/MultiSelectDropdown";
 
 const FilterDropdown = ({ onFilterChange }) => {
-  const [open, setOpen] = useState(false);
+  const [filterAnchorOpen, setFilterAnchorOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState([]);
 
   const options = [
@@ -459,11 +467,27 @@ const FilterDropdown = ({ onFilterChange }) => {
     if (!selectedFilters.includes(option)) {
       setSelectedFilters((prev) => [...prev, option]);
     }
-    setOpen(false);
+    setFilterAnchorOpen(false);
   };
 
   const removeFilter = (option) => {
     setSelectedFilters((prev) => prev.filter((item) => item !== option));
+    // Resetting specific states as per original logic
+    if (option === "Client-facing status") setClientStatus([]);
+    if (option === "Account name") setAccountNameValue("");
+    if (option === "Priority") setPriorityValue("");
+    if (option === "Job assignees") {
+      setCombinedValues([]);
+      setSelectedUser([]);
+    }
+    if (option === "Pipeline and stage") {
+      setSelectedStages({});
+      setActivePipeline(null);
+    }
+  };
+
+  const clearAll = () => {
+    setSelectedFilters([]);
     setClientStatus([]);
     setAccountNameValue("");
     setPriorityValue("");
@@ -478,7 +502,7 @@ const FilterDropdown = ({ onFilterChange }) => {
 
   const handleUserChange = (newSelectedUsers) => {
     setSelectedUser(newSelectedUsers);
-    const selectedValues = newSelectedUsers.map((o) => o.label);
+    const selectedValues = newSelectedUsers.map((option) => option.label);
     setCombinedValues(selectedValues);
   };
 
@@ -493,8 +517,8 @@ const FilterDropdown = ({ onFilterChange }) => {
         if (res?.data) {
           setClientStatusOptions(res.data.clientFacingJobStatues);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error(error);
       }
     };
     fetchClientFacingStatus();
@@ -512,21 +536,21 @@ const FilterDropdown = ({ onFilterChange }) => {
         if (res?.data?.pipeline) {
           setPipelines(res.data.pipeline);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error(error);
       }
     };
     fetchPipelines();
   }, []);
 
   const handlePipelineCheckboxToggle = (pipeline) => {
-    const stageNames = pipeline.stages.map((s) => s.name);
-    const current = selectedStages[pipeline.pipelineName] || [];
+    const stageNames = pipeline.stages.map((stage) => stage.name);
+    const currentSelected = selectedStages[pipeline.pipelineName] || [];
 
-    if (current.length === stageNames.length) {
-      const newState = { ...selectedStages };
-      delete newState[pipeline.pipelineName];
-      setSelectedStages(newState);
+    if (currentSelected.length === stageNames.length) {
+      const newSelected = { ...selectedStages };
+      delete newSelected[pipeline.pipelineName];
+      setSelectedStages(newSelected);
     } else {
       setSelectedStages((prev) => ({
         ...prev,
@@ -539,28 +563,25 @@ const FilterDropdown = ({ onFilterChange }) => {
     setSelectedStages((prev) => {
       const current = prev[pipelineName] || [];
       let updated;
-
       if (current.includes(stageName)) {
         updated = current.filter((s) => s !== stageName);
       } else {
         updated = [...current, stageName];
       }
-
       if (updated.length === 0) {
         const newState = { ...prev };
         delete newState[pipelineName];
         return newState;
       }
-
       return { ...prev, [pipelineName]: updated };
     });
   };
 
-  // ===================== OTHER =====================
+  // ===================== OTHER FILTERS =====================
   const [accountNameValue, setAccountNameValue] = useState("");
   const [priorityValue, setPriorityValue] = useState("");
 
-  // ===================== SEND FILTER =====================
+  // ===================== SEND FILTER DATA =====================
   useEffect(() => {
     onFilterChange?.({
       jobAssignees: combinedValues,
@@ -569,210 +590,177 @@ const FilterDropdown = ({ onFilterChange }) => {
       accountName: accountNameValue,
       priority: priorityValue,
     });
-  }, [
-    combinedValues,
-    clientStatus,
-    selectedStages,
-    accountNameValue,
-    priorityValue,
-    onFilterChange,
-  ]);
+  }, [combinedValues, clientStatus, selectedStages, accountNameValue, priorityValue, onFilterChange]);
 
   return (
-    <div>
-      {/* HEADER */}
-      <div className="flex items-center gap-2">
-        <Popover open={open} onOpenChange={setOpen}>
+    <div className="flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Popover open={filterAnchorOpen} onOpenChange={setFilterAnchorOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="flex gap-2">
+            <Button
+              variant="outline"
+              className="rounded-xl border-gray-200 px-5 py-2 text-gray-700 shadow-sm hover:bg-gray-50 flex items-center gap-2"
+            >
               Filters ({selectedFilters.length})
-              {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {filterAnchorOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </PopoverTrigger>
-
-          <PopoverContent className="w-60 p-1">
+          <PopoverContent className="w-[260px] p-0 rounded-xl overflow-hidden" align="start">
             <Command>
               <CommandList>
-                {options.map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => handleOptionSelect(option)}
-                  >
-                    {option}
-                  </CommandItem>
-                ))}
+                <CommandGroup>
+                  {options.map((option) => (
+                    <CommandItem
+                      key={option}
+                      onSelect={() => handleOptionSelect(option)}
+                      className="cursor-pointer py-2"
+                    >
+                      {option}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
 
         {selectedFilters.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedFilters([]);
-              setClientStatus([]);
-              setAccountNameValue("");
-              setPriorityValue("");
-              setCombinedValues([]);
-              setSelectedStages({});
-            }}
-          >
+          <Button variant="ghost" size="sm" onClick={clearAll} className="text-blue-600 hover:text-blue-700">
             Clear All
           </Button>
         )}
       </div>
 
-      {/* FILTER BLOCKS */}
+      {/* Filters Horizontal UI */}
       {selectedFilters.length > 0 && (
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
           {selectedFilters.map((filter) => (
             <div
               key={filter}
-              className="relative min-w-[260px] rounded-2xl border p-4 shadow-sm bg-white"
+              className="relative min-w-[280px] p-4 rounded-2xl border border-gray-100 bg-white shadow-md"
             >
-              <div className="font-semibold mb-2">{filter}</div>
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-semibold text-sm text-gray-900">{filter}</span>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => removeFilter(filter)}
+                  className="h-6 w-6 rounded-full bg-gray-100 hover:bg-gray-200"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
 
-              {/* JOB ASSIGNEES */}
-              {filter === "Job assignees" && (
-                <MultiSelectDropdown
-                  value={selectedUser}
-                  onChange={handleUserChange}
-                  placeholder="Select assignees"
-                />
-              )}
+              {/* Content by Filter Type */}
+              <div className="mt-2">
+                {/* Job Assignees */}
+                {filter === "Job assignees" && (
+                  <MultiSelectDropdown
+                    value={selectedUser}
+                    onChange={handleUserChange}
+                    placeholder="Select assignees"
+                  />
+                )}
 
-              {/* ACCOUNT */}
-              {filter === "Account name" && (
-                <Input
-                  placeholder="Enter account name"
-                  value={accountNameValue}
-                  onChange={(e) => setAccountNameValue(e.target.value)}
-                />
-              )}
+                {/* Account Name */}
+                {filter === "Account name" && (
+                  <Input
+                    placeholder="Enter account name"
+                    value={accountNameValue}
+                    onChange={(e) => setAccountNameValue(e.target.value)}
+                    className="h-9"
+                  />
+                )}
 
-              {/* STATUS */}
-              {filter === "Client-facing status" && (
-                <div className="space-y-2 max-h-40 overflow-auto">
-                  {clientStatusOptions.map((status) => (
-                    <div
-                      key={status._id}
-                      className="flex items-center gap-2"
-                    >
-                      <Checkbox
-                        checked={clientStatus.includes(
-                          status.clientfacingName
-                        )}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setClientStatus((prev) => [
-                              ...prev,
-                              status.clientfacingName,
-                            ]);
-                          } else {
-                            setClientStatus((prev) =>
-                              prev.filter(
-                                (s) => s !== status.clientfacingName
-                              )
-                            );
-                          }
-                        }}
-                      />
-                      <span className="text-sm">
-                        {status.clientfacingName}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                {/* Client Status */}
+                {filter === "Client-facing status" && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between h-9 text-xs font-normal">
+                        {clientStatus.length > 0 ? clientStatus.join(", ") : "Select status"}
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[240px] p-0">
+                      <div className="max-h-60 overflow-y-auto p-1">
+                        {clientStatusOptions.map((status) => (
+                          <div
+                            key={status._id}
+                            className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                            onClick={() => {
+                              const val = status.clientfacingName;
+                              setClientStatus((prev) =>
+                                prev.includes(val) ? prev.filter((i) => i !== val) : [...prev, val]
+                              );
+                            }}
+                          >
+                            <Checkbox checked={clientStatus.includes(status.clientfacingName)} />
+                            <span className="text-sm">{status.clientfacingName}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
 
-              {/* PIPELINE */}
-              {filter === "Pipeline and stage" && (
-                <div className="space-y-1">
-                  {pipelines.map((pipeline) => (
-                    <Popover key={pipeline._id}>
-                      <PopoverTrigger asChild>
-                        <div className="flex justify-between items-center p-2 rounded cursor-pointer hover:bg-muted">
+                {/* Pipeline and Stage */}
+                {filter === "Pipeline and stage" && (
+                  <div className="space-y-1">
+                    {pipelines.map((pipeline) => (
+                      <Popover key={pipeline._id}>
+                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 group transition-colors">
                           <div className="flex items-center gap-2">
                             <Checkbox
                               checked={
-                                selectedStages[pipeline.pipelineName]
-                                  ?.length === pipeline.stages.length
+                                selectedStages[pipeline.pipelineName]?.length === pipeline.stages.length
                               }
-                              onCheckedChange={() =>
-                                handlePipelineCheckboxToggle(pipeline)
-                              }
+                              onCheckedChange={() => handlePipelineCheckboxToggle(pipeline)}
                             />
-                            <span className="text-sm">
-                              {pipeline.pipelineName}
-                            </span>
+                            <PopoverTrigger asChild>
+                              <span className="text-[13px] cursor-pointer hover:underline">
+                                {pipeline.pipelineName}
+                              </span>
+                            </PopoverTrigger>
                           </div>
-
-                          <span className="text-xs">
-                            (
-                            {selectedStages[pipeline.pipelineName]?.length ||
-                              0}
-                            /{pipeline.stages.length})
+                          <span className="text-[11px] text-gray-400">
+                            ({selectedStages[pipeline.pipelineName]?.length || 0}/{pipeline.stages.length})
                           </span>
                         </div>
-                      </PopoverTrigger>
+                        <PopoverContent side="right" className="w-52 p-1">
+                          {pipeline.stages.map((stage) => (
+                            <div
+                              key={stage._id}
+                              className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                              onClick={() => handleStageToggle(pipeline.pipelineName, stage.name)}
+                            >
+                              <Checkbox
+                                checked={selectedStages[pipeline.pipelineName]?.includes(stage.name) || false}
+                              />
+                              <span className="text-xs">{stage.name}</span>
+                            </div>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    ))}
+                  </div>
+                )}
 
-                      <PopoverContent className="w-48">
-                        {pipeline.stages.map((stage) => (
-                          <div
-                            key={stage._id}
-                            className="flex items-center gap-2 p-1 cursor-pointer"
-                            onClick={() =>
-                              handleStageToggle(
-                                pipeline.pipelineName,
-                                stage.name
-                              )
-                            }
-                          >
-                            <Checkbox
-                              checked={
-                                selectedStages[
-                                  pipeline.pipelineName
-                                ]?.includes(stage.name) || false
-                              }
-                            />
-                            <span className="text-sm">
-                              {stage.name}
-                            </span>
-                          </div>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  ))}
-                </div>
-              )}
-
-              {/* PRIORITY */}
-              {filter === "Priority" && (
-                <Select
-                  value={priorityValue}
-                  onValueChange={(val) => setPriorityValue(val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                   <SelectItem value="all">All</SelectItem>
-<SelectItem value="High">High</SelectItem>
-<SelectItem value="Medium">Medium</SelectItem>
-<SelectItem value="Low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* REMOVE */}
-              <button
-                onClick={() => removeFilter(filter)}
-                className="absolute top-2 right-2 p-1 rounded bg-muted"
-              >
-                <X size={14} />
-              </button>
+                {/* Priority */}
+                {filter === "Priority" && (
+                  <Select value={priorityValue} onValueChange={(val) => setPriorityValue(val)}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
           ))}
         </div>

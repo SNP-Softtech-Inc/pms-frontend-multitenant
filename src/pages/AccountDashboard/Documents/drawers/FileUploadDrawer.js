@@ -1,3 +1,333 @@
+// import React, { useState, useEffect } from "react";
+// import {
+//   FaFilePdf,
+//   FaFileWord,
+//   FaFileExcel,
+//   FaFileImage,
+//   FaFileAlt,
+// } from "react-icons/fa";
+// import { AiFillFileUnknown } from "react-icons/ai";
+
+// import {
+//   Drawer,
+//   Box,
+//   Typography,
+//   Button,
+//   List,
+//   ListItem,
+//   ListItemIcon,
+//   ListItemText,
+//   Collapse,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   DialogActions,
+//   Checkbox,
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableRow,
+// } from "@mui/material";
+
+// import FolderIcon from "@mui/icons-material/Folder";
+// import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+// import ExpandLess from "@mui/icons-material/ExpandLess";
+// import ExpandMore from "@mui/icons-material/ExpandMore";
+
+// import { toast } from "react-toastify";
+// import { useAuth } from "../../../../context/AuthContext";
+// import { accountDocsAPI,invoiceAPI  } from "../../../../services/api";
+
+// const FileUploadDrawer = ({
+//   isOpen,
+//   onClose,
+//   folderTree,
+//   fetchFolderTree,
+//   selectedFolderForMenu,
+//   accountId,
+// }) => {
+//   const { user } = useAuth();
+
+//   const [files, setFiles] = useState([]);
+//   const [selectedFolder, setSelectedFolder] = useState("");
+//   const [message, setMessage] = useState("");
+
+//   // Invoice states
+//   const [invoiceConfirmOpen, setInvoiceConfirmOpen] = useState(false);
+//   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+//   const [invoiceList, setInvoiceList] = useState([]);
+//   const [selectedInvoices, setSelectedInvoices] = useState([]);
+
+//   // Reset state
+//   useEffect(() => {
+//     if (isOpen && selectedFolderForMenu) {
+//       setSelectedFolder(selectedFolderForMenu.path);
+//     } else if (!isOpen) {
+//       setSelectedFolder("");
+//       setFiles([]);
+//       setMessage("");
+//       setSelectedInvoices([]);
+//     }
+//   }, [isOpen, selectedFolderForMenu]);
+
+//   // Fetch invoices
+
+
+
+//   // File validation
+//   const handleFileChange = (e) => {
+//     const selectedFiles = Array.from(e.target.files);
+//     const maxSize = 50 * 1024 * 1024;
+
+//     const validFiles = selectedFiles.filter((file) => {
+//       if (file.size > maxSize) {
+//         toast.error(`${file.name} exceeds 50MB`);
+//         return false;
+//       }
+//       if (file.type.startsWith("video/") || file.type.startsWith("audio/")) {
+//         toast.error(`${file.name} is not allowed`);
+//         return false;
+//       }
+//       return true;
+//     });
+
+//     setFiles(validFiles);
+//   };
+
+  
+
+//   const handleUpload = async () => {
+//   if (!files.length || !selectedFolder) {
+//     setMessage("Please select files and folder");
+//     return;
+//   }
+
+//   // 🚨 Only check for this folder
+//   if (selectedFolder.includes("Firm docs shared with client")) {
+//     try {
+//       const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
+//       const invoices = res.data?.invoice || [];
+
+//       console.log("Fetched invoices:", invoices);
+
+//       setInvoiceList(invoices);
+
+//       if (invoices.length > 0) {
+//         // 🔥 Show confirm dialog if invoices exist
+//         setInvoiceConfirmOpen(true);
+//       } else {
+//         // ✅ No invoices → upload directly
+//         performUpload();
+//       }
+//     } catch (err) {
+//       console.error("Error fetching invoices", err);
+
+//       // fallback → allow upload
+//       performUpload();
+//     }
+//   } else {
+//     performUpload();
+//   }
+// };
+//   const performUpload = async () => {
+//     try {
+//       const formData = new FormData();
+
+//       files.forEach((file) => formData.append("files", file));
+//       formData.append("invoices", JSON.stringify(selectedInvoices));
+//       formData.append("adminUserName", user?.username || "Unknown");
+
+//       await accountDocsAPI.uploadFile(formData, selectedFolder);
+
+//       toast.success("Files uploaded successfully");
+
+//       setInvoiceDialogOpen(false);
+//       setSelectedInvoices([]);
+//       onClose();
+//       fetchFolderTree();
+//     } catch (err) {
+//       console.error(err);
+//       toast.error("Upload failed");
+//     }
+//   };
+
+//   return (
+//     <>
+//       {/* DRAWER */}
+//       <Drawer anchor="right" open={isOpen} onClose={onClose}>
+//         <Box sx={{ width: 400, p: 3, bgcolor: "#f0f8ff", height: "100%" }}>
+//           <Typography variant="h6">📄 Upload File</Typography>
+
+//           <Button component="label" fullWidth sx={{ mt: 2 }}>
+//             {files.length
+//               ? `${files.length} file(s) selected`
+//               : "Select Files"}
+//             <input type="file" hidden multiple onChange={handleFileChange} />
+//           </Button>
+
+//           <Button variant="contained" fullWidth onClick={handleUpload}>
+//             Upload
+//           </Button>
+
+//           {message && <Typography mt={2}>{message}</Typography>}
+
+//           <Button fullWidth sx={{ mt: 2 }} onClick={onClose}>
+//             Close
+//           </Button>
+
+//           <Box mt={3}>
+//             <Typography>Select Folder</Typography>
+//             <FolderTreeSelector
+//               items={folderTree}
+//               onSelect={setSelectedFolder}
+//               selectedFolder={selectedFolder}
+//             />
+//           </Box>
+//         </Box>
+//       </Drawer>
+
+//       {/* CONFIRM */}
+//       <Dialog open={invoiceConfirmOpen}>
+//         <DialogTitle>Invoice Lock</DialogTitle>
+//         <DialogActions>
+//           <Button
+//             onClick={() => {
+//               setInvoiceConfirmOpen(false);
+//               performUpload();
+//             }}
+//           >
+//             No
+//           </Button>
+//           <Button
+//             onClick={() => {
+//               setInvoiceConfirmOpen(false);
+//               setInvoiceDialogOpen(true);
+//             }}
+//           >
+//             Yes
+//           </Button>
+//         </DialogActions>
+//       </Dialog>
+
+//       {/* INVOICE TABLE */}
+//       <Dialog open={invoiceDialogOpen} fullWidth maxWidth="md">
+//         <DialogTitle>Select Invoices</DialogTitle>
+//         <DialogContent>
+//           <Table>
+//             <TableHead>
+//               <TableRow>
+//                 <TableCell>Select</TableCell>
+//                 <TableCell>Invoice</TableCell>
+//                 <TableCell>Amount</TableCell>
+//               </TableRow>
+//             </TableHead>
+
+//             <TableBody>
+//               {invoiceList.map((inv) => {
+//                 const checked = selectedInvoices.includes(inv._id);
+
+//                 return (
+//                   <TableRow
+//                     key={inv._id}
+//                     onClick={() => {
+//                       setSelectedInvoices((prev) =>
+//                         prev.includes(inv._id)
+//                           ? prev.filter((i) => i !== inv._id)
+//                           : [...prev, inv._id]
+//                       );
+//                     }}
+//                   >
+//                     <TableCell>
+//                       <Checkbox checked={checked} />
+//                     </TableCell>
+//                     <TableCell>{inv.invoicenumber}</TableCell>
+//                     <TableCell>₹{inv.summary?.total}</TableCell>
+//                   </TableRow>
+//                 );
+//               })}
+//             </TableBody>
+//           </Table>
+//         </DialogContent>
+
+//         <DialogActions>
+//           <Button onClick={() => setInvoiceDialogOpen(false)}>Cancel</Button>
+//           <Button
+//             onClick={() => {
+//               if (!selectedInvoices.length) {
+//                 toast.warning("Select at least one invoice");
+//                 return;
+//               }
+//               performUpload();
+//             }}
+//           >
+//             OK
+//           </Button>
+//         </DialogActions>
+//       </Dialog>
+//     </>
+//   );
+// };
+
+// // ================= FOLDER TREE =================
+// const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
+//   const [expanded, setExpanded] = useState({});
+
+//   const toggleExpand = (path) => {
+//     setExpanded((prev) => ({ ...prev, [path]: !prev[path] }));
+//   };
+
+//   return (
+//     <List>
+//       {items?.map((item) => {
+//         if (item.type !== "folder") return null;
+
+//         const isExpanded = expanded[item.path];
+//         const isSelected = selectedFolder === item.path;
+
+//         return (
+//           <React.Fragment key={item.path}>
+//             <ListItem
+//               sx={{
+//                 pl: 2 + level * 2,
+//                 bgcolor: isSelected ? "#b2d8ff" : "transparent",
+//                 cursor: item.meta?.readOnly ? "not-allowed" : "pointer",
+//                 opacity: item.meta?.readOnly ? 0.6 : 1,
+//               }}
+//               onClick={() => !item.meta?.readOnly && onSelect(item.path)}
+//             >
+//               <ListItemIcon
+//                 onClick={(e) => {
+//                   e.stopPropagation();
+//                   toggleExpand(item.path);
+//                 }}
+//               >
+//                 {isExpanded ? <FolderOpenIcon /> : <FolderIcon />}
+//               </ListItemIcon>
+
+//               <ListItemText primary={item.name} />
+
+//               {item.children?.length > 0 &&
+//                 (isExpanded ? <ExpandLess /> : <ExpandMore />)}
+//             </ListItem>
+
+//             <Collapse in={isExpanded}>
+//               <FolderTreeSelector
+//                 items={item.children}
+//                 onSelect={onSelect}
+//                 selectedFolder={selectedFolder}
+//                 level={level + 1}
+//               />
+//             </Collapse>
+//           </React.Fragment>
+//         );
+//       })}
+//     </List>
+//   );
+// };
+
+// export default FileUploadDrawer;
+
 import React, { useState, useEffect } from "react";
 import {
   FaFilePdf,
@@ -7,37 +337,19 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
-
-import {
-  Drawer,
-  Box,
-  Typography,
-  Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Collapse,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Checkbox,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from "@mui/material";
-
-import FolderIcon from "@mui/icons-material/Folder";
-import FolderOpenIcon from "@mui/icons-material/FolderOpen";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-
 import { toast } from "react-toastify";
 import { useAuth } from "../../../../context/AuthContext";
-import { accountDocsAPI,invoiceAPI  } from "../../../../services/api";
+import { accountDocsAPI, invoiceAPI } from "../../../../services/api";
+import { Button } from "../../../../components/ui/button";
+import {
+  Folder,
+  FolderOpen,
+  ChevronDown,
+  ChevronRight,
+  X,
+  Upload,
+  FileUp,
+} from "lucide-react";
 
 const FileUploadDrawer = ({
   isOpen,
@@ -71,9 +383,20 @@ const FileUploadDrawer = ({
     }
   }, [isOpen, selectedFolderForMenu]);
 
-  // Fetch invoices
-
-
+  // Fetch invoices when dialog opens
+  useEffect(() => {
+    if (invoiceDialogOpen) {
+      const fetchInvoices = async () => {
+        try {
+          const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
+          setInvoiceList(res.data?.invoice || []);
+        } catch (err) {
+          console.error("Error fetching invoices", err);
+        }
+      };
+      fetchInvoices();
+    }
+  }, [invoiceDialogOpen, accountId]);
 
   // File validation
   const handleFileChange = (e) => {
@@ -95,65 +418,37 @@ const FileUploadDrawer = ({
     setFiles(validFiles);
   };
 
-  // const handleUpload = async () => {
-  //   if (!files.length || !selectedFolder) {
-  //     setMessage("Please select files and folder");
-  //     return;
-  //   }
-
-  //   if (selectedFolder.includes("Firm Documents Shared with Client")) {
-  //     try {
-  //       const res = await fetch(
-  //         `https://www.snptaxes.com/workflow/invoices/invoice/pending/invoicelistby/accountid/${accountId}`
-  //       );
-  //       const data = await res.json();
-
-  //       if (!data.invoice?.length) {
-  //         performUpload();
-  //       } else {
-  //         setInvoiceConfirmOpen(true);
-  //       }
-  //     } catch {
-  //       performUpload();
-  //     }
-  //   } else {
-  //     performUpload();
-  //   }
-  // };
+  const handleFolderSelect = (path) => setSelectedFolder(path);
 
   const handleUpload = async () => {
-  if (!files.length || !selectedFolder) {
-    setMessage("Please select files and folder");
-    return;
-  }
+    if (!files.length || !selectedFolder) {
+      setMessage("Please select files and folder");
+      return;
+    }
 
-  // 🚨 Only check for this folder
-  if (selectedFolder.includes("Firm docs shared with client")) {
-    try {
-      const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
-      const invoices = res.data?.invoice || [];
+    // Check for "Firm docs shared with client" folder
+    if (selectedFolder.includes("Firm docs shared with client")) {
+      try {
+        const res = await invoiceAPI.getPendingInvoicesByAccountId(accountId);
+        const invoices = res.data?.invoice || [];
 
-      console.log("Fetched invoices:", invoices);
+        console.log("Fetched invoices:", invoices);
+        setInvoiceList(invoices);
 
-      setInvoiceList(invoices);
-
-      if (invoices.length > 0) {
-        // 🔥 Show confirm dialog if invoices exist
-        setInvoiceConfirmOpen(true);
-      } else {
-        // ✅ No invoices → upload directly
+        if (invoices.length > 0) {
+          setInvoiceConfirmOpen(true);
+        } else {
+          performUpload();
+        }
+      } catch (err) {
+        console.error("Error fetching invoices", err);
         performUpload();
       }
-    } catch (err) {
-      console.error("Error fetching invoices", err);
-
-      // fallback → allow upload
+    } else {
       performUpload();
     }
-  } else {
-    performUpload();
-  }
-};
+  };
+
   const performUpload = async () => {
     try {
       const formData = new FormData();
@@ -176,124 +471,235 @@ const FileUploadDrawer = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* DRAWER */}
-      <Drawer anchor="right" open={isOpen} onClose={onClose}>
-        <Box sx={{ width: 400, p: 3, bgcolor: "#f0f8ff", height: "100%" }}>
-          <Typography variant="h6">📄 Upload File</Typography>
+      {/* MAIN UPLOAD DRAWER */}
+      <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+        
+        <div className="absolute right-0 top-0 h-full w-full sm:w-[450px] bg-background shadow-xl flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+            <div className="flex items-center gap-2.5">
+              <FileUp className="h-5 w-5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Upload File</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-          <Button component="label" fullWidth sx={{ mt: 2 }}>
-            {files.length
-              ? `${files.length} file(s) selected`
-              : "Select Files"}
-            <input type="file" hidden multiple onChange={handleFileChange} />
-          </Button>
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {/* File picker */}
+            <label className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted/30 px-4 py-8 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-sm font-medium text-foreground">
+                  {files.length > 0 ? `${files.length} file(s) selected` : "Click to select files"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Max 50 MB per file. No audio/video.</p>
+              </div>
+              <input type="file" className="hidden" multiple onChange={handleFileChange} />
+            </label>
 
-          <Button variant="contained" fullWidth onClick={handleUpload}>
-            Upload
-          </Button>
+            {/* Selected files list */}
+            {files.length > 0 && (
+              <div className="space-y-1">
+                {Array.from(files).map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-2 text-sm text-foreground">
+                    <span className="truncate flex-1">{f.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {Math.round(f.size / 1024)} KB
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
-          {message && <Typography mt={2}>{message}</Typography>}
+            {/* Selected folder display */}
+            {selectedFolder && (
+              <div className="rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
+                <p className="text-xs font-medium text-primary mb-0.5">Uploading to</p>
+                <p className="text-sm text-foreground break-all">{selectedFolder}</p>
+              </div>
+            )}
 
-          <Button fullWidth sx={{ mt: 2 }} onClick={onClose}>
-            Close
-          </Button>
+            {/* Message */}
+            {message && (
+              <p className="text-sm font-medium text-foreground">{message}</p>
+            )}
 
-          <Box mt={3}>
-            <Typography>Select Folder</Typography>
-            <FolderTreeSelector
-              items={folderTree}
-              onSelect={setSelectedFolder}
-              selectedFolder={selectedFolder}
-            />
-          </Box>
-        </Box>
-      </Drawer>
+            {/* Folder tree */}
+            <div>
+              <p className="text-sm font-medium text-foreground mb-2">Select Folder</p>
+              <div className="rounded-lg border border-border bg-background overflow-auto max-h-72">
+                <FolderTreeSelector
+                  items={folderTree}
+                  onSelect={handleFolderSelect}
+                  selectedFolder={selectedFolder}
+                />
+              </div>
+            </div>
+          </div>
 
-      {/* CONFIRM */}
-      <Dialog open={invoiceConfirmOpen}>
-        <DialogTitle>Invoice Lock</DialogTitle>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setInvoiceConfirmOpen(false);
-              performUpload();
-            }}
-          >
-            No
-          </Button>
-          <Button
-            onClick={() => {
-              setInvoiceConfirmOpen(false);
-              setInvoiceDialogOpen(true);
-            }}
-          >
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={handleUpload} className="flex-1">
+              Upload
+            </Button>
+          </div>
+        </div>
+      </div>
 
-      {/* INVOICE TABLE */}
-      <Dialog open={invoiceDialogOpen} fullWidth maxWidth="md">
-        <DialogTitle>Select Invoices</DialogTitle>
-        <DialogContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Select</TableCell>
-                <TableCell>Invoice</TableCell>
-                <TableCell>Amount</TableCell>
-              </TableRow>
-            </TableHead>
+      {/* INVOICE LOCK CONFIRMATION MODAL */}
+      {invoiceConfirmOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setInvoiceConfirmOpen(false)} />
+          <div className="relative z-[61] w-full max-w-sm rounded-lg bg-background p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Invoice Lock</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Do you want to lock this file to an invoice?
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setInvoiceConfirmOpen(false);
+                  performUpload();
+                }}
+              >
+                No
+              </Button>
+              <Button
+                onClick={() => {
+                  setInvoiceConfirmOpen(false);
+                  setInvoiceDialogOpen(true);
+                }}
+              >
+                Yes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <TableBody>
-              {invoiceList.map((inv) => {
-                const checked = selectedInvoices.includes(inv._id);
+      {/* INVOICE SELECTION MODAL */}
+      {invoiceDialogOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setInvoiceDialogOpen(false)} />
+          <div className="relative z-[61] w-full max-w-2xl rounded-lg bg-background shadow-2xl flex flex-col max-h-[85vh]">
+            {/* Modal header */}
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
+              <h3 className="text-lg font-semibold text-foreground">Select Invoice(s)</h3>
+              <button
+                onClick={() => setInvoiceDialogOpen(false)}
+                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
-                return (
-                  <TableRow
-                    key={inv._id}
-                    onClick={() => {
-                      setSelectedInvoices((prev) =>
-                        prev.includes(inv._id)
-                          ? prev.filter((i) => i !== inv._id)
-                          : [...prev, inv._id]
-                      );
-                    }}
-                  >
-                    <TableCell>
-                      <Checkbox checked={checked} />
-                    </TableCell>
-                    <TableCell>{inv.invoicenumber}</TableCell>
-                    <TableCell>₹{inv.summary?.total}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </DialogContent>
+            {/* Modal body */}
+            <div className="flex-1 overflow-auto px-5 py-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Select one or more invoices before uploading.
+              </p>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/30 border-b border-border">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Select
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Invoice #
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {invoiceList.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          No invoices found.
+                        </td>
+                      </tr>
+                    ) : (
+                      invoiceList.map((inv) => {
+                        const checked = selectedInvoices.includes(inv._id);
+                        return (
+                          <tr
+                            key={inv._id}
+                            onClick={() => {
+                              setSelectedInvoices((prev) =>
+                                prev.includes(inv._id)
+                                  ? prev.filter((i) => i !== inv._id)
+                                  : [...prev, inv._id]
+                              );
+                            }}
+                            className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                              checked ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            <td className="px-4 py-3">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                readOnly
+                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                              />
+                            </td>
+                            <td className="px-4 py-3 font-medium text-foreground">
+                              {inv.invoicenumber}
+                            </td>
+                            <td className="px-4 py-3 text-foreground">
+                              ₹{inv.summary?.total}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        <DialogActions>
-          <Button onClick={() => setInvoiceDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={() => {
-              if (!selectedInvoices.length) {
-                toast.warning("Select at least one invoice");
-                return;
-              }
-              performUpload();
-            }}
-          >
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
+            {/* Modal footer */}
+            <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
+              <Button variant="outline" onClick={() => setInvoiceDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!selectedInvoices.length) {
+                    toast.warning("Select at least one invoice");
+                    return;
+                  }
+                  performUpload();
+                }}
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
 
-// ================= FOLDER TREE =================
+// ================= FOLDER TREE SELECTOR =================
 const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
   const [expanded, setExpanded] = useState({});
 
@@ -302,51 +708,75 @@ const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
   };
 
   return (
-    <List>
+    <ul className="py-1">
       {items?.map((item) => {
         if (item.type !== "folder") return null;
 
         const isExpanded = expanded[item.path];
         const isSelected = selectedFolder === item.path;
+        const hasChildren = item.children?.length > 0;
+        const isReadOnly = item.meta?.readOnly;
 
         return (
-          <React.Fragment key={item.path}>
-            <ListItem
-              sx={{
-                pl: 2 + level * 2,
-                bgcolor: isSelected ? "#b2d8ff" : "transparent",
-                cursor: item.meta?.readOnly ? "not-allowed" : "pointer",
-                opacity: item.meta?.readOnly ? 0.6 : 1,
-              }}
-              onClick={() => !item.meta?.readOnly && onSelect(item.path)}
+          <li key={item.path}>
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md mx-1 mb-0.5 cursor-pointer transition-colors text-sm
+                ${
+                  isSelected
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-foreground hover:bg-muted"
+                }
+                ${
+                  isReadOnly
+                    ? "opacity-50 cursor-not-allowed pointer-events-none"
+                    : ""
+                }
+              `}
+              style={{ paddingLeft: `${12 + level * 16}px` }}
+              onClick={() => !isReadOnly && onSelect(item.path)}
             >
-              <ListItemIcon
+              {/* Expand/Collapse button */}
+              <button
+                className="shrink-0 text-muted-foreground hover:text-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleExpand(item.path);
                 }}
               >
-                {isExpanded ? <FolderOpenIcon /> : <FolderIcon />}
-              </ListItemIcon>
+                {hasChildren ? (
+                  isExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )
+                ) : (
+                  <span className="w-3.5 inline-block" />
+                )}
+              </button>
 
-              <ListItemText primary={item.name} />
+              {/* Folder icon */}
+              {isExpanded ? (
+                <FolderOpen className="h-4 w-4 text-primary shrink-0" />
+              ) : (
+                <Folder className="h-4 w-4 text-primary shrink-0" />
+              )}
 
-              {item.children?.length > 0 &&
-                (isExpanded ? <ExpandLess /> : <ExpandMore />)}
-            </ListItem>
+              <span className="truncate">{item.name}</span>
+            </div>
 
-            <Collapse in={isExpanded}>
+            {/* Recursive children */}
+            {hasChildren && isExpanded && (
               <FolderTreeSelector
                 items={item.children}
                 onSelect={onSelect}
                 selectedFolder={selectedFolder}
                 level={level + 1}
               />
-            </Collapse>
-          </React.Fragment>
+            )}
+          </li>
         );
       })}
-    </List>
+    </ul>
   );
 };
 
