@@ -2727,7 +2727,7 @@ export const FolderTreeView = ({ accountId }) => {
   // Toggle sign status
   const toggleSignStatus = async (item) => {
     try {
-      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}uploads/accounts/${item.path}`;
       const fileName = item.name;
       const res = await fetch(
         `${SIGNATURE_API}api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,

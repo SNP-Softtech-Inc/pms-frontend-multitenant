@@ -642,79 +642,7 @@ const AccountProposalTable = () => {
         }}
       />
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {selectedIds.length} of {proposals.length} row(s) selected.
-        </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
-            <select
-              className="h-8 w-16 rounded-md border border-input bg-background px-2 py-1 text-sm"
-              value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(parseInt(e.target.value, 10));
-                setPage(0);
-              }}
-            >
-              {[5, 10, 20, 30, 40, 50].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {page + 1} of {Math.ceil(proposals.length / rowsPerPage)}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(0)}
-              disabled={page === 0}
-            >
-              First
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 0}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= Math.ceil(proposals.length / rowsPerPage) - 1}
-            >
-              Next
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(Math.ceil(proposals.length / rowsPerPage) - 1)}
-              disabled={page >= Math.ceil(proposals.length / rowsPerPage) - 1}
-            >
-              Last
-            </Button>
-          </div>
-        </div>
-      </div>
 
-      {/* Empty State */}
-      {proposals.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-muted-foreground mb-4">No proposals available</p>
-          <Button onClick={handleCreateNew}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create First Proposal
-          </Button>
-        </div>
-      )}
 
       {/* Dialog */}
       <ProposalPreviewDialog

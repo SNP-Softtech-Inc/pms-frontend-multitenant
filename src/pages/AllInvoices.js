@@ -477,28 +477,7 @@ const InvoiceTable = () => {
 
   // ================= COLUMNS =================
   const columns = [
-    {
-      id: "select",
-      header: () => (
-        <input
-          type="checkbox"
-          checked={
-            filteredInvoices.length > 0 &&
-            filteredInvoices.every((inv) =>
-              selectedInvoices.includes(inv._id)
-            )
-          }
-          onChange={handleSelectAll}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type="checkbox"
-          checked={selectedInvoices.includes(row.original._id)}
-          onChange={() => handleSelectOne(row.original._id)}
-        />
-      ),
-    },
+   
     {
       accessorKey: "account.accountName",
       header: "Client",
