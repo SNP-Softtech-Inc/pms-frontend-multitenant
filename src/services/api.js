@@ -208,6 +208,11 @@ export const authAPI = {
   resetPassword: (id, token, data) =>
     authUserApi.post(`/api/auth/reset-password/${id}/${token}`, data),
 
+  verifyPassword: (data) => authUserApi.post("/api/auth/verify-password", data),
+changePassword: (data) => authUserApi.post("/api/auth/change-password", data),
+updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data),
+
+
   // ======================= TEAMMEMBERS APIs ===============================
 
   // Activation endpoints

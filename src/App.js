@@ -64,6 +64,7 @@ import ContactImport from "./pages/Import/ContactImport";
 import AccountImport from "./pages/Import/AccountImport";
 import UploadFolderToAccount from "./pages/Import/UploadFolderToAccount";
 import InternalCommunication from "./pages/Internal-communication/internalCommunication";
+import InboxPlus from "./pages/InboxPlus";
 function App() {
   return (
     <Routes>
@@ -290,6 +291,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/Inbox+" element={<ProtectedRoute><InboxPlus /></ProtectedRoute>}/>
       </Route>
 
       {/* Fallback */}

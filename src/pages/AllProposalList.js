@@ -442,7 +442,7 @@ const ProposalsEls = () => {
         <span
           className="text-sm cursor-pointer text-blue-600 hover:text-blue-800"
           onClick={() =>
-            handleEdit(row.original._id, row.original.general.account?.[0]?._id)
+            handleEdit(row.original._id, row.original.general.account?._id)
           }
         >
           {row.original.general.proposalName || "Untitled"}

@@ -658,7 +658,7 @@ import {
 } from "../../components/ui/drawer";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Checkbox } from "../../components/ui/checkbox";
-import { X } from "lucide-react";
+import { Loader, X } from "lucide-react";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 
 const AccountDetails = () => {
@@ -917,7 +917,7 @@ const AccountDetails = () => {
 
   if (!account) return (
     <div className="flex items-center justify-center h-64">
-      <p className="text-muted-foreground">Loading...</p>
+      <p className="text-muted-foreground"><Loader/></p>
     </div>
   );
 
@@ -1043,13 +1043,13 @@ const AccountDetails = () => {
                     <Switch
                       checked={c.canLogin}
                       onCheckedChange={() => handleSwitchClick(c)}
-                      disabled
+                      // disabled
                       className="data-[state=checked]:bg-blue-600"
                     />
                     <Switch
                       checked={c.canNotify}
                       onCheckedChange={() => handleNotifyToggle(c)}
-                      disabled
+                      // disabled
                       className="data-[state=checked]:bg-blue-600"
                     />
                     <Switch

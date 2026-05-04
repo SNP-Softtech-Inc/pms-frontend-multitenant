@@ -422,7 +422,7 @@ const Communication = () => {
   const [selectedChatIds, setSelectedChatIds] = useState([]);
   const [isActiveTrue, setIsActiveTrue] = useState(true);
   const [accountName, setAccountName] = useState("");
-
+console.log("chat list by account",chatList)
   // ================= ACCOUNT DETAILS =================
   const fetchAccountDetails = async (accountId) => {
     try {
@@ -657,10 +657,13 @@ const Communication = () => {
 
                         const clean =
                           latest.message?.replace(/<[^>]+>/g, "") || "";
-                        const sender =
-                          latest.fromwhome === "Admin" && latest.senderid;
-
-                        return `${sender || ""}: ${
+                        // const sender =
+                        //   latest.fromwhome === "Admin" && latest.senderid;
+const sender =
+  latest.fromwhome === "Admin"
+    ? latest.senderid
+    : latest.senderid || "Client";
+                        return `${sender || ""} : ${
                           clean.length > 35 ? clean.slice(0, 35) + "..." : clean
                         }`;
                       })()}

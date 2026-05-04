@@ -916,8 +916,8 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
             {/* Permissions */}
             <div className="flex items-center gap-5">
               {[{field:"login",label:"Login"},{field:"notify",label:"Notify"},{field:"emailSync",label:"Email Sync"}].map(({field,label}) => (
-                <label key={field} className="flex items-center gap-1.5 cursor-not-allowed opacity-60">
-                  <input type="checkbox" checked={contact[field] || false} disabled
+                <label key={field} className="flex items-center gap-1.5 cursor-pointer opacity-60">
+                  <input type="checkbox" checked={contact[field] || false} 
                     onChange={(e) => dispatch(updateContactField({ index: contactIndex, field, value: e.target.checked }))}
                     className="h-3.5 w-3.5 rounded accent-primary" />
                   <span className="text-xs text-foreground">{label}</span>

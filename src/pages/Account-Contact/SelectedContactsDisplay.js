@@ -74,15 +74,15 @@ export default function SelectedContactsDisplay({ contacts, onRemove, onUpdateFi
               <p className="text-xs text-slate-500 mt-0.5">{contact.email}</p>
               <div className="flex items-center gap-4 mt-2">
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={contact.login || false} disabled onChange={e => onUpdateField(index, "login", e.target.checked)} sx={{ padding: '2px' }} />}
+                  control={<Checkbox size="small" checked={contact.login || false}  onChange={e => onUpdateField(index, "login", e.target.checked)} sx={{ padding: '2px' }} />}
                   label={<span className="text-xs text-slate-600">Login</span>}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={contact.notify || false} disabled onChange={e => onUpdateField(index, "notify", e.target.checked)} sx={{ padding: '2px' }} />}
+                  control={<Checkbox size="small" checked={contact.notify || false}  onChange={e => onUpdateField(index, "notify", e.target.checked)} sx={{ padding: '2px' }} />}
                   label={<span className="text-xs text-slate-600">Notify</span>}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={contact.emailSync || false} disabled onChange={e => onUpdateField(index, "emailSync", e.target.checked)} sx={{ padding: '2px' }} />}
+                  control={<Checkbox size="small" checked={contact.emailSync || false}  onChange={e => onUpdateField(index, "emailSync", e.target.checked)} sx={{ padding: '2px' }} />}
                   label={<span className="text-xs text-slate-600">Email Sync</span>}
                 />
               </div>
