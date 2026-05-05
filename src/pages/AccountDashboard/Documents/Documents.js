@@ -670,7 +670,7 @@
 //         const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
 //         const fileName = item.name;
 //         const res = await fetch(
-//           `${SIGNATURE_API}api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
+//           `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
 //         );
 //         const data = await res.json();
 //         console.log("token data", data);
@@ -686,7 +686,7 @@
 //     const cancelSignature = async (item) => {
 //       try {
 //         await axios.delete(
-//           `${SIGNATURE_API}signature/cancel/${item.meta.esignRequestId}`,
+//           `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
 //           {
 //             data: {
 //               folder: item.meta.folder,
@@ -1473,17 +1473,17 @@
 //           </DialogTitle>
 
 //           <DialogContent dividers>
-//             {token && showBuilderFor && (
-//               <DocusealBuilder
-//                 token={token}
-//                 customCss={customCss}
-//                 onComplete={() => {
-//                   console.log("DocuSeal finished sending document");
-//                   setShowBuilderFor(null);
-//                   setOpenDialog(false);
-//                 }}
-//               />
-//             )}
+            // {token && showBuilderFor && (
+            //   <DocusealBuilder
+            //     token={token}
+            //     customCss={customCss}
+            //     onComplete={() => {
+            //       console.log("DocuSeal finished sending document");
+            //       setShowBuilderFor(null);
+            //       setOpenDialog(false);
+            //     }}
+            //   />
+            // )}
 //           </DialogContent>
 //         </Dialog>
 
@@ -2175,119 +2175,7 @@
 
 
 // DocsFolderTree.tsx (Parent Component)
-// import React, { useState, useEffect } from "react";
-// import {
-//   Button,
-//   Typography,
-//   Box,
-//   FormControl,
-//   Alert,
-//   Select,
-//   CircularProgress,
-//   InputLabel,
-//   MenuItem,
-// } from "@mui/material";
-// import { useParams } from "react-router-dom";
-// import { toast } from "react-toastify";
-// import { FolderTreeView } from "./FolderTreeView";
-// import { folderManagementAPI, docAPI } from "../../../services/api";
 
-// const DocsFolderTree = () => {
-//   const { accountId } = useParams();
-//   console.log("account id for the documentation", accountId);
-//   const [templates, setTemplates] = useState([]);
-//   const [selectedTemplate, setSelectedTemplate] = useState("");
-//   console.log("selected template", selectedTemplate);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-
-//   // Fetch templates list - Using folderManagementAPI
-//   useEffect(() => {
-//     const fetchTemplates = async () => {
-//       setLoading(true);
-//       try {
-//         const res = await folderManagementAPI.getFolderTemplates();
-//         setTemplates(res.data.folderTemplates || []);
-//       } catch (err) {
-//         setError("Failed to fetch templates");
-//         console.error(err);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchTemplates();
-//   }, []);
-
-//   const applyTemplateToAccount = () => {
-//     console.log("ghjh");
-
-//     const payload = {
-//       accountId: accountId,
-//       templateId: selectedTemplate || null,
-//     };
-
-//     console.log("applyTemplateToAccount payload:", payload);
-
-//     docAPI
-//       .applyTemplateToAccount(payload)
-//       .then((res) => {
-//         console.log("API response:", res.data);
-//         toast.success("Folder Template Assign Successfully");
-//         setSelectedTemplate("");
-//       })
-//       .catch((error) => {
-//         console.error("Error applying template:", error);
-//         toast.error("Failed to Assign Folder Template");
-//         alert("Failed to Assign Folder Template");
-//       });
-//   };
-
-//   return (
-//     <Box sx={{ p: 3 }}>
-//       <Typography variant="h5" gutterBottom>
-//         Apply Template to Account
-//       </Typography>
-
-//       <FormControl fullWidth sx={{ mb: 2 }}>
-//         <InputLabel id="template-label">Select Template</InputLabel>
-//         <Select
-//           labelId="template-label"
-//           value={selectedTemplate}
-//           label="Select Template"
-//           onChange={(e) => setSelectedTemplate(e.target.value)}
-//         >
-//           <MenuItem value="">
-//             <em>Choose a template</em>
-//           </MenuItem>
-//           {templates.map((template) => (
-//             <MenuItem key={template._id} value={template._id}>
-//               {template.templatename}
-//             </MenuItem>
-//           ))}
-//         </Select>
-//       </FormControl>
-
-//       <Button
-//         variant="contained"
-//         color="primary"
-//         disabled={loading || !selectedTemplate}
-//         onClick={applyTemplateToAccount}
-//         sx={{ textTransform: "none" }}
-//       >
-//         {loading ? (
-//           <CircularProgress size={24} color="inherit" />
-//         ) : (
-//           "Apply Template"
-//         )}
-//       </Button>
-
-//       <FolderTreeView accountId={accountId} />
-//     </Box>
-//   );
-// };
-
-// export default DocsFolderTree;
 
 
 

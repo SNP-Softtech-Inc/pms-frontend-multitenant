@@ -24,7 +24,7 @@ const ACCOUNT_URL = process.env.REACT_APP_ACCOUNT_CONTACT ;
   // ✅ Handle preview update
   useEffect(() => {
     if (currentImage) {
-      setPreview(`${ACCOUNT_URL}${currentImage}`);
+      setPreview(`${ACCOUNT_URL}/${currentImage}`);
     } else {
       setPreview("");
     }

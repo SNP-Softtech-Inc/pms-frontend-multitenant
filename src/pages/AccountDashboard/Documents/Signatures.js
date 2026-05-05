@@ -3,6 +3,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { FileSignature } from "lucide-react";
 const Signatures = () => {
+   const { accountId } = useParams();
    const SIGNATURE_API =process.env.REACT_APP_ESIGNATURE_API
    const [signatureList,setSignatureList]=useState([])
     const { data } = useParams();
@@ -10,7 +11,7 @@ const Signatures = () => {
     const fetchApprovals = async () => {
       try {
         const res = await axios.get(
-          `${SIGNATURE_API}signautrelist/${data}`
+          `${SIGNATURE_API}/signautrelist/${accountId}`
         );
         setSignatureList(res.data || []);
       } catch (err) {
@@ -18,7 +19,7 @@ const Signatures = () => {
       }
     };
     fetchApprovals();
-  }, [data]);
+  }, [accountId]);
   const statusStyles = (status) => {
     const s = (status || "").toLowerCase();
     if (s === "completed" || s === "signed") return "bg-green-50 text-green-700 border border-green-200";

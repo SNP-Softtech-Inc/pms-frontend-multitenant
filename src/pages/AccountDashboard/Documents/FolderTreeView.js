@@ -2074,6 +2074,7 @@
 
 // FolderTreeView.jsx
 import React, { useState, useEffect } from "react";
+import customCss from "./docuseal-dark-theme.css";
 import { DocusealBuilder } from "@docuseal/react";
 import {
   MoreVertical,
@@ -2154,7 +2155,7 @@ import {
   accountsAPI,
   invoiceAPI,
 } from "../../../services/api";
-
+import axios from "axios"
 // Custom CSS
 import "./docuseal-dark-theme.css";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
@@ -2727,10 +2728,10 @@ export const FolderTreeView = ({ accountId }) => {
   // Toggle sign status
   const toggleSignStatus = async (item) => {
     try {
-      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}uploads/accounts/${item.path}`;
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
       const fileName = item.name;
       const res = await fetch(
-        `${SIGNATURE_API}api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
+        `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
       );
       const data = await res.json();
       console.log("token data", data);
@@ -2746,7 +2747,7 @@ export const FolderTreeView = ({ accountId }) => {
   const cancelSignature = async (item) => {
     try {
       await axios.delete(
-        `${SIGNATURE_API}signature/cancel/${item.meta.esignRequestId}`,
+        `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
         {
           data: {
             folder: item.meta.folder,
@@ -3523,7 +3524,7 @@ const getStatusChip = (meta, isFolder) => {
       </Dialog>
 
       {/* Docuseal Dialog */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+      {/* <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-xl">{selectedFolderForMenu?.name || "Document"}</DialogTitle>
@@ -3532,7 +3533,7 @@ const getStatusChip = (meta, isFolder) => {
             {token && showBuilderFor && (
               <DocusealBuilder
                 token={token}
-                customCss={/* Your custom CSS */ ""}
+                  customCss={customCss}
                 onComplete={() => {
                   console.log("DocuSeal finished sending document");
                   setShowBuilderFor(null);
@@ -3551,8 +3552,43 @@ const getStatusChip = (meta, isFolder) => {
             <span className="sr-only">Close</span>
           </Button>
         </DialogContent>
-      </Dialog>
-
+      </Dialog> */}
+<Dialog open={openDialog} onOpenChange={setOpenDialog}>
+  <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col">
+    <DialogHeader className="p-6 pb-0">
+      <DialogTitle className="text-xl">
+        {selectedFolderForMenu?.name || "Document"}
+      </DialogTitle>
+      {/* <Button
+        variant="ghost"
+        size="icon"
+        className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
+        onClick={() => {
+          setOpenDialog(false);
+          setShowBuilderFor(null);
+          setToken("");
+        }}
+      >
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </Button> */}
+    </DialogHeader>
+    
+    <div className="flex-1 overflow-auto p-6 pt-2">
+                 {token && showBuilderFor && (
+              <DocusealBuilder
+                token={token}
+                customCss={customCss}
+                onComplete={() => {
+                  console.log("DocuSeal finished sending document");
+                  setShowBuilderFor(null);
+                  setOpenDialog(false);
+                }}
+              />
+            )}
+    </div>
+  </DialogContent>
+</Dialog>
       {/* Approval Dialog */}
       <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
         <DialogContent className="sm:max-w-lg">

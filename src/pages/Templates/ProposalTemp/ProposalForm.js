@@ -1277,6 +1277,9 @@ const ProposalForm = () => {
         await proposalAPI.createProposal(submissionData);
         toast.success("Proposal submitted successfully!");
       }
+        // ✅ IMPORTANT FIX
+    setCurrentStep(0);   // reset step
+    setFormData(prev => prev); // optional: force fresh render
 
       navigate('/firmtemp/templates/proposals');
     } catch (error) {
