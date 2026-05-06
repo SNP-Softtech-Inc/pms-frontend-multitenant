@@ -395,9 +395,10 @@ const SendOrganizer = forwardRef(
 
         setLoading(true);
 
-        const promises = selectedaccount.map((accountId) => {
+        const promises = selectedaccount.map((account) => {
           const requestData = {
-            accountid: accountId,
+            // accountid: accountId,
+            accountid: account?.value || account, 
             organizertemplateid: selectedTemplate,
             organizerName:
               selectedOrganizerTempData?.organizerName || "",

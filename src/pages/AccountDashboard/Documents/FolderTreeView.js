@@ -2691,7 +2691,7 @@ export const FolderTreeView = ({ accountId }) => {
         await fetchFolderTree();
       }
 
-      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}uploads/accounts/${fullPath}`;
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
       const extension = fileName.split(".").pop().toLowerCase();
 
       if (extension === "xls" || extension === "xlsx") {

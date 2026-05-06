@@ -1683,7 +1683,9 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
       }
 
       console.log(proposalId ? "Updated proposal:" : "Created proposal:", result);
-
+    // ✅ IMPORTANT FIX
+    setCurrentStep(0);   // reset step
+    setFormData(prev => prev); // optional: force fresh render
       // Navigate using the account ID from the submission or from cookies
       const redirectAccountId = accountIdValue || Cookies.get("accountId");
       navigate(`/clients/accounts/accountsdash/proposals/${redirectAccountId}`);
