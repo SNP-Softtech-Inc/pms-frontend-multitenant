@@ -1524,40 +1524,85 @@ const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
 
   const invoiceoptions = invoiceTemplates.map((invoice) => ({ value: invoice._id, label: invoice.templatename }));
 
-  const fetchInvoiceTemplateById = useCallback(async (templateId) => {
-    try {
-      const response = await templateAPI.getInvoiceTemplateById(templateId);
-      const template = response.data.invoiceTemplate;
-      if (template) {
-        if (template.paymentMethod) setPaymentMode({ value: template.paymentMethod, label: template.paymentMethod });
-        setIsEmailInvoice(template.sendEmailWhenInvCreated || false);
-        setIsPayInvoice(template.payInvoicewithcredits || false);
-        setReminders(template.sendReminderstoClients || false);
-        setDescription(template.description || "");
-        setClientNote(template.clientNote || "");
-        if (template.lineItems?.length > 0) {
-          const lineItemsData = template.lineItems.map((item) => ({
-            productName: item.productorService || "",
-            description: item.description || "",
-            rate: item.rate ? `$${item.rate}` : "$0.00",
-            qty: item.quantity || "1",
-            amount: item.amount ? `$${item.amount}` : "$0.00",
-            tax: item.tax === "true" || item.tax === true,
-            isDiscount: false,
-          }));
-          setRows(lineItemsData);
-        }
-        if (template.summary) {
-          setSubtotal(template.summary.subtotal || 0);
-          setTaxRate(template.summary.taxRate || 0);
-        }
+  // const fetchInvoiceTemplateById = useCallback(async (templateId) => {
+  //   try {
+  //     const response = await templateAPI.getInvoiceTemplateById(templateId);
+  //     const template = response.data.invoiceTemplate;
+  //     if (template) {
+  //       if (template.paymentMethod) setPaymentMode({ value: template.paymentMethod, label: template.paymentMethod });
+  //       setIsEmailInvoice(template.sendEmailWhenInvCreated || false);
+  //       setIsPayInvoice(template.payInvoicewithcredits || false);
+  //       setReminders(template.sendReminderstoClients || false);
+  //       setDescription(template.description || "");
+  //       setClientNote(template.clientNote || "");
+  //       if (template.lineItems?.length > 0) {
+  //         const lineItemsData = template.lineItems.map((item) => ({
+  //           productName: item.productorService || "",
+  //           description: item.description || "",
+  //           rate: item.rate ? `$${item.rate}` : "$0.00",
+  //           qty: item.quantity || "1",
+  //           amount: item.amount ? `$${item.amount}` : "$0.00",
+  //           tax: item.tax === "true" || item.tax === true,
+  //           isDiscount: false,
+  //         }));
+  //         setRows(lineItemsData);
+  //       }
+  //       if (template.summary) {
+  //         setSubtotal(template.summary.subtotal || 0);
+  //         setTaxRate(template.summary.taxRate || 0);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching invoice template:", error);
+  //     toast.error("Failed to load template data");
+  //   }
+  // }, []);
+const fetchInvoiceTemplateById = useCallback(async (templateId) => {
+  try {
+    const response = await templateAPI.getInvoiceTemplateById(templateId);
+    const template = response.data.invoiceTemplate;
+    if (template) {
+      if (template.paymentMethod) setPaymentMode({ value: template.paymentMethod, label: template.paymentMethod });
+      setIsEmailInvoice(template.sendEmailWhenInvCreated || false);
+      setIsPayInvoice(template.payInvoicewithcredits || false);
+      setReminders(template.sendReminderstoClients || false);
+      setDescription(template.description || "");
+      setClientNote(template.clientNote || "");
+      if (template.lineItems?.length > 0) {
+        const lineItemsData = template.lineItems.map((item) => ({
+          productName: item.productorService || "",
+          description: item.description || "",
+          rate: item.rate ? `$${parseFloat(item.rate).toFixed(2)}` : "$0.00", // Ensure proper formatting
+          qty: item.quantity?.toString() || "1",
+          amount: item.amount ? `$${parseFloat(item.amount).toFixed(2)}` : "$0.00", // Ensure proper formatting
+          tax: item.tax === "true" || item.tax === true,
+          isDiscount: false,
+          id: `${Date.now()}_${Math.random()}` // Add unique ID for each row
+        }));
+        setRows(lineItemsData);
+      } else {
+        // Reset to default empty row if no line items
+        setRows([{
+          productName: "",
+          description: "",
+          rate: "$0.00",
+          qty: "1",
+          amount: "$0.00",
+          tax: false,
+          isDiscount: false,
+          id: `${Date.now()}_${Math.random()}`
+        }]);
       }
-    } catch (error) {
-      console.error("Error fetching invoice template:", error);
-      toast.error("Failed to load template data");
+      if (template.summary) {
+        setSubtotal(template.summary.subtotal || 0);
+        setTaxRate(template.summary.taxRate || 0);
+      }
     }
-  }, []);
-
+  } catch (error) {
+    console.error("Error fetching invoice template:", error);
+    toast.error("Failed to load template data");
+  }
+}, []);
   const resetTemplateData = () => {
     setPaymentMode({ value: "Bank Debits", label: "Bank Debits" });
     setIsEmailInvoice(false);
@@ -1684,13 +1729,37 @@ const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
     });
   }, []);
 
-  const addRow = useCallback((isDiscountRow = false) => {
-    const newRow = isDiscountRow
-      ? { productName: "", description: "", rate: "$-10.00", qty: "1", amount: "$-10.00", tax: false, isDiscount: true }
-      : { productName: "", description: "", rate: "$0.00", qty: "1", amount: "$0.00", tax: false, isDiscount: false };
-    setRows((prev) => [...prev, newRow]);
-  }, []);
-
+  // const addRow = useCallback((isDiscountRow = false) => {
+  //   const newRow = isDiscountRow
+  //     ? { productName: "", description: "", rate: "$-10.00", qty: "1", amount: "$-10.00", tax: false, isDiscount: true }
+  //     : { productName: "", description: "", rate: "$0.00", qty: "1", amount: "$0.00", tax: false, isDiscount: false };
+  //   setRows((prev) => [...prev, newRow]);
+  // }, []);
+  
+const addRow = useCallback((isDiscountRow = false) => {
+  const newRow = isDiscountRow
+    ? { 
+        id: `${Date.now()}_${Math.random()}`,
+        productName: "", 
+        description: "", 
+        rate: "$-10.00", 
+        qty: "1", 
+        amount: "$-10.00", 
+        tax: false, 
+        isDiscount: true 
+      }
+    : { 
+        id: `${Date.now()}_${Math.random()}`,
+        productName: "", 
+        description: "", 
+        rate: "$0.00", 
+        qty: "1", 
+        amount: "$0.00", 
+        tax: false, 
+        isDiscount: false 
+      };
+  setRows((prev) => [...prev, newRow]);
+}, []);
   const deleteRow = useCallback((index) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
   }, []);

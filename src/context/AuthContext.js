@@ -218,10 +218,9 @@ export const AuthProvider = ({ children }) => {
       clearAuthData();
       setLoading(false);
 
-      setTimeout(() => {
-        // navigationRef.current("/admin/login", { replace: true });
-        navigate("/admin/login");
-      }, 100);
+       setTimeout(() => {
+    navigate("/login", { replace: true });
+  }, 100);
     }
   }, [clearAuthData]);
 

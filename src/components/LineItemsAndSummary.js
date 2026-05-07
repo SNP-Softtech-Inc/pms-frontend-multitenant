@@ -1402,7 +1402,10 @@ const ServiceCombobox = ({ options, value, placeholder, onChange, onInputChange,
     }
     setOpen(false);
   };
-
+// In ServiceCombobox component, add this useEffect:
+useEffect(() => {
+  setInputValue(value || "");
+}, [value]);
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <input

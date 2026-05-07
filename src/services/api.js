@@ -200,6 +200,9 @@ export const authAPI = {
       },
     });
   },
+  // ✅ UPDATE EMAIL SYNC EMAIL
+  updateEmailSyncEmail: (data) =>
+    authUserApi.patch("/api/auth/email-sync", data),
   // Logout
   logout: () => authUserApi.post("/api/auth/logout"),
 

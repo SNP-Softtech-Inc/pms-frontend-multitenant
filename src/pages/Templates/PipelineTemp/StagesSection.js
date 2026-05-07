@@ -2462,7 +2462,7 @@ const StagesSection = ({
   const [tempSelectedTags, setTempSelectedTags] = useState([]);
   const [filteredTags, setFilteredTags] = useState([]);
   const [clientFacingJobs, setClientFacingJobs] = useState([]);
-
+const [openAutomationMenu, setOpenAutomationMenu] = useState(false);
   const [addTaskTemplates, setAddTaskTemplates] = useState([]);
   const [addEmailTemplates, setAddEmailTemplates] = useState([]);
   const [addChatTemplates, setAddChatTemplates] = useState([]);
@@ -2669,14 +2669,20 @@ const StagesSection = ({
 
   const maxDescriptionLength = 150;
 
-  const handleAutomationMenuOpen = (event, stageIndex) => {
-    setAnchorEl(event.currentTarget);
-    setStageSelected(stageIndex);
-  };
-
+  // const handleAutomationMenuOpen = (event, stageIndex) => {
+  //   setAnchorEl(event.currentTarget);
+  //   setStageSelected(stageIndex);
+  // };
+const handleAutomationMenuOpen = (stageIndex) => {
+  setStageSelected(stageIndex);
+  setOpenAutomationMenu(true);
+};
+  // const handleAutomationMenuClose = () => {
+  //   setAnchorEl(null);
+  // };
   const handleAutomationMenuClose = () => {
-    setAnchorEl(null);
-  };
+  setOpenAutomationMenu(false);
+};
 
   const handleAddAutomation = (stageSelected, option) => {
     const newAutomation = {
@@ -3299,75 +3305,7 @@ const StagesSection = ({
                   <p className="text-xs text-muted-foreground">Triggered when job enters stage</p>
                 </div>
 
-                {/* Automations List */}
-                {/* {stage.automations && stage.automations.length > 0 ? (
-                  <div className="space-y-2">
-                    {stage.automations.map((automation, autoIndex) => {
-                      const getTemplateName = () => {
-                        if (!automation.selectedtemp) return null;
-                        const optionsMap = {
-                          "Create Task": taskTemplateOptions,
-                          "Send Email": emailTemplateOptions,
-                          "Send message": chatTemplateOptions,
-                          "Send Invoice": invoiceTemplateOptions,
-                          "Send Proposal/Els": proposalElsOptions,
-                          "Apply folder template": optionfolder,
-                          "Create Organizer": organizerOptions,
-                        };
-                        return optionsMap[automation.type]?.find(
-                          (opt) => opt.value === automation.selectedtemp
-                        )?.label;
-                      };
-
-                      const getTagDetails = (id) => filteredTags.find((tag) => tag._id === id);
-                      const tagDetails = automation.selectedTags?.map(getTagDetails).filter(Boolean) || [];
-                      const templateName = getTemplateName();
-
-                      return (
-                        <div key={automation.id || autoIndex} className="p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
-                                {automation.index}
-                              </div>
-                              <span className="text-xs font-semibold">{automation.type}</span>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteSavedAutomation(index, autoIndex)}
-                              className="text-destructive hover:bg-destructive/10 h-6 w-6"
-                            >
-                              <RiDeleteBin6Line size={12} />
-                            </Button>
-                          </div>
-
-                          {templateName && (
-                            <Badge variant="outline" className="mb-2 text-xs">
-                              {templateName}
-                            </Badge>
-                          )}
-
-                          {tagDetails.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {tagDetails.map((tag) => (
-                                <Badge
-                                  key={tag._id}
-                                  style={{ backgroundColor: tag.tagColour }}
-                                  className="text-white text-xs"
-                                >
-                                  {tag.tagName}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No automations configured</p>
-                )} */}
+               
                 {/* Automations List */}
 {stage.automations && stage.automations.length > 0 ? (
   <div className="flex flex-col gap-1.5">
@@ -3592,15 +3530,20 @@ const StagesSection = ({
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t border-border">
+              {/* <div className="p-4 border-t border-border">
                 <Button
                   variant={stage.automations?.length > 0 ? "default" : "outline"}
                   className="w-full gap-2"
-                  onClick={(e) =>
-                    stage.automations?.length > 0
-                      ? handleEditAutomations(index)
-                      : handleAutomationMenuOpen(e, index)
-                  }
+                  // onClick={(e) =>
+                  //   stage.automations?.length > 0
+                  //     ? handleEditAutomations(index)
+                  //     : handleAutomationMenuOpen(e, index)
+                  // }
+                  onClick={() =>
+  stage.automations?.length > 0
+    ? handleEditAutomations(index)
+    : handleAutomationMenuOpen(index)
+}
                 >
                   {stage.automations?.length > 0 ? (
                     <>
@@ -3612,7 +3555,110 @@ const StagesSection = ({
                     </>
                   )}
                 </Button>
-              </div>
+              </div> */}
+              <div className="p-4 border-t border-border">
+  {stage.automations?.length > 0 ? (
+    <Button
+      className="w-full gap-2"
+      onClick={() => handleEditAutomations(index)}
+    >
+      <LuPenLine className="h-4 w-4" />
+      Edit Automations ({stage.automations.length})
+    </Button>
+  ) : (
+    <DropdownMenu
+      open={openAutomationMenu && stageSelected === index}
+      onOpenChange={(open) => {
+        setOpenAutomationMenu(open);
+        if (open) setStageSelected(index);
+      }}
+    >
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="w-full gap-2">
+          <Plus className="h-4 w-4" />
+          Add Automation
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Send Email")
+          }
+        >
+          Send Email
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Send Invoice")
+          }
+        >
+          Send Invoice
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Send Proposal/Els")
+          }
+        >
+          Send Proposal/Els
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Create Organizer")
+          }
+        >
+          Create Organizer
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Apply folder template")
+          }
+        >
+          Apply folder template
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Update account tags")
+          }
+        >
+          Update account tags
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Create Task")
+          }
+        >
+          Create Task
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(index, "Send message")
+          }
+        >
+          Send message
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            handleAddAutomation(
+              index,
+              "Update client-facing job status"
+            )
+          }
+        >
+          Update client-facing job status
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )}
+</div>
             </div>
 
             {/* Add Stage Button Between Stages */}
@@ -3631,7 +3677,7 @@ const StagesSection = ({
       </div>
 
       {/* Automation Menu Dropdown */}
-      <DropdownMenu open={Boolean(anchorEl)} onOpenChange={setAnchorEl}>
+      {/* <DropdownMenu open={Boolean(anchorEl)} onOpenChange={setAnchorEl}>
         <DropdownMenuTrigger asChild>
           <span />
         </DropdownMenuTrigger>
@@ -3664,7 +3710,7 @@ const StagesSection = ({
             Update client-facing job status
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
 
       {/* Automation Drawer */}
       {isDrawerOpen && (
