@@ -44,9 +44,9 @@ const MyAccount = () => {
   const navigate = useNavigate();
 
   const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
-
+const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC
   const { user, updateUserData, logout } = useAuth();
-
+console.log("users deatils",user)
   // Personal Details State
   const [isEditable, setIsEditable] = useState(false);
   const [showSaveButtons, setShowSaveButtons] = useState(false);
@@ -451,89 +451,101 @@ const [emailsync, setEmailSync] = useState("");
       setEmailNotificationState((prev) => ({ ...prev, [name]: !updated }));
     }
   };
-    const handleGoogleLogin = () => {
-    window.location.href = `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/auth/google`;
-  };
   const [emailList, setEmailList] = useState([]);
   const handleTokenLogin = async () => {
-  const targetEmail = emailsync;
+    const targetEmail = emailsync;
+    console.log("target", targetEmail);
+    if (!targetEmail) {
+      alert("⚠️ Please enter your email or login with Google first.");
+      return;
+    }
 
-  console.log("target", targetEmail);
+    try {
+      const res = await axios.get(
+        `${EMAIL_SYNC}/emailsync/user/login-with-token/${targetEmail}`
+      );
+      console.log("payload", res.data);
+      setEmail(targetEmail);
+      // setProfile(res.data.profile);
+      setEmailList(res.data.emails || []);
+      localStorage.setItem("gmail_user_email", targetEmail);
+      setEmailSync(targetEmail);
 
-  if (!targetEmail) {
-    alert("⚠️ Please enter your email or login with Google first.");
-    return;
-  }
-
+      await updateUserEmailSync( targetEmail);
+      alert("✅ Logged in using refresh token!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Token login failed. Please login with Google again.");
+    }
+  };
+ 
+  const updateUserEmailSync = async (emailSyncValue) => {
   try {
-    const res = await axios.get(
-      `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/user/login-with-token/${targetEmail}`
-    );
+    console.log("Sending email sync:", emailSyncValue);
 
-    console.log("payload", res.data);
-
-    setEmail(targetEmail);
-    setEmailList(res.data.emails || []);
-    localStorage.setItem("gmail_user_email", targetEmail);
-    setEmailSync(targetEmail);
-
-    // ✅ Update emailSyncEmail in backend
-    await authAPI.updateEmailSyncEmail({
-      emailSyncEmail: targetEmail,
+    const res = await authAPI.updateEmailSyncEmail({
+      emailSyncEmail: emailSyncValue,
     });
 
-    alert("✅ Logged in using refresh token!");
-  } catch (err) {
-    console.error(err);
+    console.log("✅ Email sync updated:", res.data);
 
-    alert("❌ Token login failed. Please login with Google again.");
+    if (res.data?.user?.emailSyncEmail) {
+      setEmailSync(res.data.user.emailSyncEmail);
+    }
+
+    if (res.data?.user) {
+      updateUserData(res.data.user);
+    }
+
+    return res.data;
+  } catch (error) {
+    console.error("❌ Failed to update email sync:");
+
+    console.log("FULL ERROR:", error);
+
+    console.log("ERROR RESPONSE:", error.response);
+
+    console.log("ERROR DATA:", error.response?.data);
+
+    throw error;
   }
 };
-  const handleEmailSync = async () => {
-  if (!emailsync?.trim()) {
+const handleEmailSync = async () => {
+  if (!emailsync) {
     alert("⚠️ Please enter an email address.");
     return;
   }
 
   try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/user/exists/${emailsync}`
+    const res = await axios.get(
+      `${EMAIL_SYNC}/emailsync/user/exists/${emailsync}`
     );
 
-    // ✅ If user exists → token login
-    if (response.data.exists) {
+    console.log("Exists response:", res.data);
+
+    if (res.data.exists) {
       console.log("User exists, using token login.");
 
       await handleTokenLogin();
-
-      // ✅ Update email sync email
-      await authAPI.updateEmailSyncEmail({
-        emailSyncEmail: emailsync,
-      });
-
-      console.log("Email sync updated successfully.");
-    }
-
-    // ✅ If user does not exist → Google login
-    else {
+    } else {
       console.log("User not found, redirecting to Google login.");
 
-      setEmail(emailsync);
+      await updateUserEmailSync(emailsync);
 
-      // 🚀 Do NOT continue after Google redirect
-      return await handleGoogleLogin();
+      // window.location.href = `${EMAIL_SYNC}/emailsync/auth/google`;
+      window.location.href = `${EMAIL_SYNC}/emailsync/auth/google?tenantId=${user.tenantId}`;
     }
-       // ✅ Update email sync email
-      await authAPI.updateEmailSyncEmail({
-        emailSyncEmail: emailsync,
-      });
   } catch (error) {
     console.error("Email sync failed:", error);
-    console.log("email sync error", error);
+    console.log("Error response:", error.response?.data);
 
-    alert("❌ Something went wrong while checking email existence.");
+    alert(
+      error.response?.data?.message ||
+        "❌ Something went wrong while checking email existence."
+    );
   }
 };
+
   return (
     <Box sx={{ p: 3, width: "100%" }}>
       {/* Session Expiry Alert */}
@@ -718,104 +730,7 @@ const [emailsync, setEmailSync] = useState("");
         </Grid>
       </Grid>
 
-      {/* <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-       
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Notification Preferences</Typography>
-              <HelpOutlineRoundedIcon sx={{ color: "blue" }} />
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            <TableContainer sx={{ borderRadius: 3 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Notification</TableCell>
-                    <TableCell align="center">INBOX+</TableCell>
-                    <TableCell align="center">EMAIL</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {notificationItems.map((item) => (
-                    <TableRow key={item}>
-                      <TableCell>{item}</TableCell>
-                      <TableCell align="center">
-                        <Checkbox
-                          checked={notificationState[item] || false}
-                          onChange={() => handleNotificationChange(item)}
-                          color="primary"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Checkbox
-                          checked={emailNotificationState[item] || false}
-                          onChange={() => handleEmailNotificationChange(item)}
-                          color="primary"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-        <Grid size={{xs:12,md:6}}>
-            <Box className="emailsyns">
-            <Box>
-              <Typography variant="h6"> Email Sync</Typography>
-            </Box>
-            <Box className="hr" style={{ marginTop: "10px" }}></Box>
-            <Box
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                marginTop: "20px",
-              }}
-            >
-              <p>
-                Sync your existing email with TaxDome — all your client messages
-                in one place.
-              </p>
-              <HelpOutlineRoundedIcon style={{ color: "blue" }} />
-            </Box>
-            <Box style={{ marginTop: "25px" }}>
-              <Box sx={{ width: "94%", margin: "8px" }}>
-                <Box className="base-TextField-root">
-                  <label htmlFor="last-name">Email for sync</label>
-                  <TextField
-                    name="Email for sync"
-                    // value={emailId}
-                    value={emailsync}
-                    onChange={(e) => setEmailSync(e.target.value)}
-                   
-                    size="small"
-                    margin="normal"
-                    fullWidth
-                    placeholder="Email for sync"
-                  />
-                </Box>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  // onClick={handleEmailIdSubmit}
-                  onClick={handleEmailSync}
-                  sx={{
-                    mt: 2,
-                    width: isSmallScreen ? "100%" : "auto",
-                    borderRadius: "10px",
-                  }}
-                >
-                  Sync your email
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-        </Grid>
-      </Grid> */}
+      
 
 <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
   {/* ================= NOTIFICATION PREFERENCES ================= */}
@@ -905,7 +820,7 @@ const [emailsync, setEmailSync] = useState("");
           type="submit"
           variant="contained"
           color="primary"
-          onClick={handleEmailSync}
+           onClick={handleEmailSync}
           sx={{
             mt: 3,
             width: isSmallScreen ? "100%" : "auto",

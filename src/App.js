@@ -65,6 +65,8 @@ import AccountImport from "./pages/Import/AccountImport";
 import UploadFolderToAccount from "./pages/Import/UploadFolderToAccount";
 import InternalCommunication from "./pages/Internal-communication/internalCommunication";
 import InboxPlus from "./pages/InboxPlus";
+import Inbox from "./pages/AccountDashboard/Email/Inbox";
+import Sent from "./pages/AccountDashboard/Email/Sent";
 function App() {
   return (
     <Routes>
@@ -132,7 +134,11 @@ function App() {
             <Route path="invoices" element={<InvoiceList />} />
             <Route path="payment" element={<Payment />} />
           </Route>
-          <Route path="email/:accountId" element={<Email />} />
+          <Route path="email/:accountId" element={<Email />} >
+          <Route path="inbox" element={<Inbox />} />
+              <Route path="sent" element={<Sent />} />
+          
+          </Route>
           <Route path="proposals/:accountId" element={<Proposals />} />
           <Route
             path="proposals/:accountId/account-proposal"

@@ -1191,7 +1191,7 @@ const AutomationDrawer = ({
                         )}
 
                       {/* Client Status Information */}
-                      {automation.type === "Update client-facing job status" && (
+                      {/* {automation.type === "Update client-facing job status" && (
                         <div className="space-y-2">
                           <span className="text-sm font-medium">Client Status:</span>
                           <div className="flex items-center gap-2">
@@ -1228,8 +1228,59 @@ const AutomationDrawer = ({
                             </p>
                           )}
                         </div>
-                      )}
+                      )} */}
+{/* Client Status Information */}
+{automation.type === "Update client-facing job status" && (
+  <div className="space-y-2">
+    <span className="text-sm font-medium">Client Status:</span>
 
+    <div className="flex items-center gap-2">
+      {automation.selectedClientStatus && (
+        <>
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{
+              backgroundColor:
+                clientStatusOptions?.find(
+                  (opt) =>
+                    opt.value ===
+                    (automation.selectedClientStatus?._id ||
+                      automation.selectedClientStatus)
+                )?.clientfacingColour || "#ccc",
+            }}
+          />
+
+          <span className="text-sm">
+            {automation.selectedClientStatus?.clientfacingName ||
+              clientStatusOptions?.find(
+                (opt) =>
+                  opt.value ===
+                  (automation.selectedClientStatus?._id ||
+                    automation.selectedClientStatus)
+              )?.label ||
+              "Not set"}
+          </span>
+        </>
+      )}
+    </div>
+
+    <p className="text-sm">
+      Visibility:{" "}
+      {automation.status
+        ? "Visible to client"
+        : "Hidden from client"}
+    </p>
+
+    {(automation.statusDescription ||
+      automation.clientDescription) && (
+      <p className="text-sm text-muted-foreground">
+        Description:{" "}
+        {automation.statusDescription ||
+          automation.clientDescription}
+      </p>
+    )}
+  </div>
+)}
                       {/* Warning for Account Tags Automation */}
                       {automation.type === "Update account tags" && (
                         <Alert variant="destructive" className="mt-2">

@@ -1184,7 +1184,7 @@ useEffect(() => {
 
   const activePipeline = selectedPipeline || pipelineValue;
   const selectedOption = "contacts";
-
+console.log("active pipeline",activePipeline)
   // Shortcuts
   useEffect(() => {
     if (selectedOption === "contacts" || selectedOption === "account") {
@@ -1251,6 +1251,7 @@ useEffect(() => {
       const res = await templateAPI.getPipelineStages(pipelineId);
       const fetchedStages = res.data.data.stages || [];
       setStages(fetchedStages);
+      console.log("njdsbhjbvaga",fetchedStages)
       if (fetchedStages.length > 0) {
         setSelectedStage(fetchedStages[0]);
       } else {
@@ -1283,14 +1284,6 @@ useEffect(() => {
     }
   };
 
-  // const fetchAccountData = async () => {
-  //   try {
-  //     const response = await accountsAPI.getAccountNamesByStatus(true);
-  //     setAccountData(response.data.accountlist || []);
-  //   } catch (error) {
-  //     console.error("Error fetching account data:", error);
-  //   }
-  // };
 
   // Effects
   useEffect(() => {
@@ -1463,9 +1456,10 @@ useEffect(() => {
     }
 
     const stage = stages.find((s) => s._id === selectedStage._id);
-
+console.log("stages for the job drawer",stages)
     if (stage?.automations && stage.automations.length > 0) {
       setStageAutomations(stage.automations);
+      console.log("stage automations",stage.automations)
       const jobDataForAutomation = {
         accounts: selectedaccount.map((acc) => acc.value || acc),
         stageid: selectedStage._id,
@@ -1488,6 +1482,7 @@ useEffect(() => {
         enddate: absoluteDate && dueDate ? dueDate.toISOString() : null,
       };
       window.tempJobData = jobDataForAutomation;
+      console.log("jobDataForAutomation",jobDataForAutomation)
       setAutomationDrawerOpen(true);
       return;
     }
@@ -1515,6 +1510,7 @@ useEffect(() => {
         startdate: absoluteDate && startDate ? startDate.toISOString() : null,
         enddate: absoluteDate && dueDate ? dueDate.toISOString() : null,
       };
+      console.log("jobdata",jobData)
       createJobMutation.mutate(jobData);
     } catch (error) {
       console.error("Failed to create job:", error);

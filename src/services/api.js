@@ -13,6 +13,7 @@ const INVOICE_URL = process.env.REACT_APP_INVOICE;
 const JOBS_URL = process.env.REACT_APP_JOBS;
 const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
 const INTERNAL_CHAT_URL = process.env.REACT_APP_TEAMMATES_CHAT;
+const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -92,7 +93,12 @@ const internalChatApi = axios.create({
     "Content-Type": "application/json",
   },
 });
-
+const emailSyncApi = axios.create({
+  baseURL: EMAIL_SYNC,
+  headers:{
+    "Content-Type": "application/json",
+  }
+})
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
   // REQUEST INTERCEPTOR (Attach Token)
@@ -164,6 +170,7 @@ attachInterceptors(invoiceApi);
 attachInterceptors(jobsApi);
 attachInterceptors(accountTasksApi);
 attachInterceptors(internalChatApi);
+attachInterceptors(emailSyncApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -1547,4 +1554,38 @@ export const internalChatAPI = {
   // ✅ UPDATE MESSAGE (you MUST add backend for this if not exists)
   updateMessage: (chatId, data) =>
     internalChatApi.patch(`/api/internalchat/${chatId}/message/update`, data),
+};
+export const emailSyncAPI = {
+  // ================= EMAIL THREADS =================
+
+  // Get all # notification threads
+  getMessageNotifications: () =>
+    emailSyncApi.get("/emailsync/messagesList/messagesnotification"),
+
+  // Get threads by emails
+  getMessagesByEmails: (emails) =>
+    emailSyncApi.post("/emailsync/messagesList/messages", {
+      emails,
+    }),
+
+  // ================= UNREAD =================
+
+  // Get unread count for # subjects
+  getUnreadCount: () =>
+    emailSyncApi.get("/emailsync/messagesList/messages/unread-count"),
+
+  // ================= THREAD ACTIONS =================
+
+  // Mark thread as read
+  markThreadAsRead: (threadId) =>
+    emailSyncApi.patch("/emailsync/messagesList/threads/mark-read", {
+      threadId,
+    }),
+
+  // Archive / Unarchive thread
+  archiveThread: (threadId, archived = true) =>
+    emailSyncApi.patch("/emailsync/messagesList/threads/archive", {
+      threadId,
+      archived,
+    }),
 };
