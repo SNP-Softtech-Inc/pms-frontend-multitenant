@@ -545,6 +545,29 @@ const handleEmailSync = async () => {
     );
   }
 };
+const USER_URL = process.env.REACT_APP_AUTH_USER;
+const handleConnectGmail = async () => {
+  try {
+    // Save email sync value first
+    await updateUserEmailSync(emailsync);
+
+    // JWT token from login
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Login token missing");
+      return;
+    }
+
+    // Redirect to backend Google OAuth
+    window.location.href =
+      `${USER_URL}/api/googleauth/google?token=${token}`;
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to connect Gmail");
+  }
+};
 
   return (
     <Box sx={{ p: 3, width: "100%" }}>
@@ -829,6 +852,17 @@ const handleEmailSync = async () => {
         >
           Sync your email
         </Button>
+        <Button
+    variant="outlined"
+    color="error"
+    onClick={handleConnectGmail}
+    sx={{
+      width: isSmallScreen ? "100%" : "auto",
+      borderRadius: "10px",
+    }}
+  >
+    Connect Gmail
+  </Button>
       </Box>
     </Paper>
   </Grid>

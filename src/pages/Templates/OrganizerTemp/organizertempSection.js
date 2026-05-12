@@ -2534,24 +2534,44 @@ const Section = ({
 
     case "Text Editor":
       return (
-        <Card className="mb-4 w-full">
-          <CardContent className="p-3">
-            <ElementHeader label="Text Editor" element={element} />
-            <div className="flex items-start gap-2 w-full">
-              <div className="flex-1 w-full">
-                <ReactQuill
-                  theme="snow"
-                  value={element.text}
-                  modules={modules}
-                  formats={formats}
-                  onChange={(newText) => handleQuillChange(element.id, newText)}
-                  className="h-48 mb-12"
-                />
-              </div>
-              {actionButtons}
-            </div>
-          </CardContent>
-        </Card>
+        // <Card className="mb-4 w-full">
+        //   <CardContent className="p-3">
+        //     <ElementHeader label="Text Editor" element={element} />
+        //     <div className="flex items-start gap-2 w-full">
+        //       <div className="flex-1 w-full">
+        //         <ReactQuill
+        //           theme="snow"
+        //           value={element.text}
+        //           modules={modules}
+        //           formats={formats}
+        //           onChange={(newText) => handleQuillChange(element.id, newText)}
+        //           className="h-48 mb-12"
+        //         />
+        //       </div>
+        //       {actionButtons}
+        //     </div>
+        //   </CardContent>
+        // </Card>
+        <Card className="mb-4 w-full h-auto">
+  <CardContent className="p-3 h-auto">
+    <ElementHeader label="Text Editor" element={element} />
+
+    <div className="flex items-start gap-2 w-full">
+      <div className="flex-1 w-full">
+        <ReactQuill
+          theme="snow"
+          value={element.text}
+          modules={modules}
+          formats={formats}
+          onChange={(newText) => handleQuillChange(element.id, newText)}
+          className="min-h-[200px]"
+        />
+      </div>
+
+      {actionButtons}
+    </div>
+  </CardContent>
+</Card>
       );
 
     default:

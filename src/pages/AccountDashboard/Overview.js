@@ -215,7 +215,8 @@ const Overview = () => {
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <SectionHeader
               title="Unpaid Invoices"
-              to={`/clients/accounts/accountsdash/invoices/${accountId}/invoice`}
+              to={`/clients/accounts/accountsdash/invoices/${accountId}/invoices`}
+          
               icon={PiReceipt}
               count={invoicesCount}
             />

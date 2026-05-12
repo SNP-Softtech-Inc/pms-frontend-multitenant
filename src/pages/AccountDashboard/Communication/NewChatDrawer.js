@@ -326,6 +326,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
+import { fromJSON } from "postcss";
 
 const NewChatDrawer = ({
   open,
@@ -447,6 +448,8 @@ const saveChat = async () => {
     const payload = {
       accountids: selectedaccount.map((a) => a.value),
       chatsubject: inputText,
+      from:username,
+      templatename:selectedtemp.label,
       description: [
         {
           message: description,

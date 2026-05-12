@@ -498,7 +498,8 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import OrganizerUpdate from "./Organizer/OrganizerUpdate";
 import OrganizerDialog from "./Organizer/OrganizerDialog";
 import { organizerAPI } from "../../services/api";
@@ -658,7 +659,163 @@ const Organizers = () => {
   const handleClosePreview = () => {
     setShowForm(false);
   };
+ const handleDownload = async (organizer) => {
+    if (!organizer) return;
+console.log("download oragnizer",organizer)
+    // ------------------ CLEAN TEXT FUNCTION ------------------
+    const stripHtml = (html) => {
+      if (!html) return "";
 
+      let text = html;
+
+      // remove spaced-out html tags:  < p > , < / b r >
+      text = text.replace(/<\s*\/?\s*[^>]*\s*>/g, " ");
+
+      // remove normal html tags
+      text = text.replace(/<[^>]+>/g, " ");
+
+      // decode html entities
+      const textarea = document.createElement("textarea");
+      textarea.innerHTML = text;
+      text = textarea.value;
+
+      // remove weird MS Word / non-ASCII garbage characters
+      text = text.replace(/[^\x00-\x7F]+/g, " ");
+
+      // remove control characters
+      text = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, " ");
+
+      // fix letter separated text like: W e l c o m e
+      text = text.replace(/(\w)\s(?=\w)/g, "$1");
+
+      // collapse extra spaces and line breaks
+      text = text.replace(/\s+/g, " ").trim();
+
+      return text;
+    };
+
+    // ------------------ PDF INIT ------------------
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    let y = 40;
+
+    // ------------------ TITLE ------------------
+    pdf.setFontSize(16);
+    pdf.text(organizer?.organizerName || "Organizer", 40, y);
+    y += 25;
+
+    // ------------------ LOOP SECTIONS ------------------
+    for (const section of organizer?.sections || []) {
+      if (!section) continue;
+
+      // add new page if needed
+      if (y > pageHeight - 80) {
+        pdf.addPage();
+        y = 40;
+      }
+
+      // section title
+      pdf.setFontSize(14);
+      pdf.text(section?.name || "Section", 40, y);
+      y += 20;
+
+      // ------------------ LOOP FORM ELEMENTS ------------------
+      for (const el of section?.formElements || []) {
+        if (!el) continue;
+
+        // skip unanswered elements
+        if (
+          !el.textvalue &&
+          !el.files?.length &&
+          !el.imageUrl &&
+          !el.images?.length
+        ) {
+          continue;
+        }
+
+        // page break protection
+        if (y > pageHeight - 120) {
+          pdf.addPage();
+          y = 40;
+        }
+
+        // question
+        pdf.setFontSize(12);
+        pdf.text(`Q: ${stripHtml(el.text || "")}`, 40, y);
+        y += 16;
+
+        // ------------------ TEXT ANSWER ------------------
+        if (el.textvalue) {
+          const cleanAnswer = stripHtml(el.textvalue);
+
+          const textLines = pdf.splitTextToSize(
+            `A: ${cleanAnswer}`,
+            pageWidth - 80,
+          );
+          pdf.text(textLines, 40, y);
+          y += textLines.length * 14;
+        }
+
+        // ------------------ IMAGES ------------------
+        if (el.imageUrl || el.images?.length) {
+          const images = el.images || [el.imageUrl];
+
+          for (const img of images) {
+            try {
+              const res = await fetch(img, { mode: "cors" });
+              const blob = await res.blob();
+
+              const reader = new FileReader();
+              await new Promise((resolve) => {
+                reader.onloadend = resolve;
+                reader.readAsDataURL(blob);
+              });
+
+              const imgWidth = 180;
+              const imgHeight = 130;
+
+              if (y > pageHeight - 180) {
+                pdf.addPage();
+                y = 40;
+              }
+
+              pdf.addImage(reader.result, "JPEG", 40, y, imgWidth, imgHeight);
+              y += imgHeight + 10;
+            } catch (e) {
+              pdf.text("Image could not be loaded", 40, y);
+              y += 14;
+            }
+          }
+        }
+
+        // ------------------ FILE LIST ------------------
+        if (el.files?.length) {
+          pdf.setFontSize(11);
+
+          for (const f of el.files) {
+            const fname = f?.name || "File";
+
+            const line = pdf.splitTextToSize(
+              `Attached File: ${fname}`,
+              pageWidth - 80,
+            );
+
+            pdf.text(line, 40, y);
+            y += line.length * 14;
+          }
+        }
+
+        y += 6;
+      }
+
+      y += 10;
+    }
+
+    // ------------------ SAVE PDF ------------------
+    pdf.save(`${organizer?.organizerName || "organizer"}_answers.pdf`);
+  };
   // ================= TABLE COLUMNS =================
   const columns = React.useMemo(() => {
     return [
@@ -783,6 +940,13 @@ const Organizers = () => {
                 }}
               >
                 Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  handleDownload(row.original);
+                }}
+              >
+                Download
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
