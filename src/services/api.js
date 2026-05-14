@@ -617,6 +617,12 @@ getAccountsByTeamMember: (active) =>
     `/api/clientaccounts/accountlist/names-by-status`,
     { params } // ✅ THIS is the correct way
   ),
+  
+  getAccountsByTeamMemberName : (params) =>
+  accountcontactApi.get(
+    `/api/clientaccounts/accountlist/teams-by-status`,
+    { params } // ✅ THIS is the correct way
+  ),
   getAccountNamesWithEmails: () =>
     accountcontactApi.get("/api/clientaccounts/accounts-by-status-with-emails"),
 
@@ -741,8 +747,13 @@ export const contactsAPI = {
       data,
     ),
 
-  resendActivationEmail: (contactId) =>
-    accountcontactApi.post(`/api/contacts/${contactId}/resend-activation`),
+  // resendActivationEmail: (contactId) =>
+  //   accountcontactApi.post(`/api/contacts/${contactId}/resend-activation`),
+  resendActivationEmail: (contactId, data) =>
+  accountcontactApi.post(
+    `/api/contacts/${contactId}/resend-activation`,
+    data
+  ),
 };
 
 // ================= PROPOSALS APIs =================

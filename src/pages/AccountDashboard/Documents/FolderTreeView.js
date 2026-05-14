@@ -1926,7 +1926,7 @@
 //               bgcolor: "#f5f5f5",
 //             }}
 //           >
-//             {/* The iframe will handle PDFs, Images, and Text files. 
+//             {/* The iframe will handle PDFs, Images, and Text files.
 //           Browsers will automatically use their built-in viewers.
 //       */}
 //             <iframe
@@ -2079,9 +2079,7 @@ import { DocusealBuilder } from "@docuseal/react";
 import {
   MoreVertical,
   Folder as FolderIcon,
-  FolderOpen,
-  FolderClosed,
-  FileIcon,
+
   Lock,
   Unlock,
   Upload,
@@ -2097,7 +2095,9 @@ import {
   Stamp,
   X,
   ChevronRight,
-  ChevronDown,Pencil,FileText
+  ChevronDown,
+  Pencil,
+  FileText,
 } from "lucide-react";
 import {
   FaFilePdf,
@@ -2111,7 +2111,7 @@ import { toast } from "react-toastify";
 
 // shadcn/ui imports
 import { Button } from "../../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -2121,7 +2121,7 @@ import {
   DialogTitle,
 } from "../../../components/ui/dialog";
 import { Checkbox } from "../../../components/ui/checkbox";
-import { Input } from "../../../components/ui/input";
+
 import { Label } from "../../../components/ui/label";
 import { Badge } from "../../../components/ui/badge";
 import { Textarea } from "../../../components/ui/textarea";
@@ -2150,15 +2150,21 @@ import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
 
 // API imports
-import {
-  accountDocsAPI,
-  accountsAPI,
-  invoiceAPI,
-} from "../../../services/api";
-import axios from "axios"
+import { accountDocsAPI, accountsAPI, invoiceAPI } from "../../../services/api";
+import axios from "axios";
 // Custom CSS
 import "./docuseal-dark-theme.css";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
+import {
+  Avatar,
+  AvatarFallback,
+} from "../../../components/ui/avatar";
 export const FolderTreeView = ({ accountId }) => {
   const confirm = useConfirm();
   const [clientEmail, setClientEmail] = useState("");
@@ -2357,7 +2363,7 @@ export const FolderTreeView = ({ accountId }) => {
     setSelectAll(!selectAll);
   };
 
-   const toggleFolder = (path, isReadOnly) => {
+  const toggleFolder = (path, isReadOnly) => {
     setExpandedFolders((prev) => ({
       ...prev,
       [path]: !prev[path],
@@ -2374,39 +2380,7 @@ export const FolderTreeView = ({ accountId }) => {
     setMenuAnchorEl(null);
   };
 
-  // Update status - Using accountDocsAPI
-  const updateStatus = async (
-    item,
-    statusType,
-    newValue,
-    approvalId = null,
-    esignRequestId = null,
-  ) => {
-    try {
-      if (!item?.path) return alert("Invalid item selected");
-
-      const body = {
-        targetPath: item.path,
-        status: {
-          [statusType]: newValue,
-          ...(approvalId && { approvalId }),
-          ...(esignRequestId && { esignRequestId }),
-        },
-      };
-
-      const res = await accountDocsAPI.updateStatus(body);
-
-      if (res.status === 200 || res.status === 201) {
-        toast.success(res.data.message || "Status updated successfully");
-        fetchFolderTree();
-      } else {
-        toast.error(res.data.error || "Failed to update status");
-      }
-    } catch (err) {
-      console.error("Error updating status:", err);
-      toast.error("Error updating status");
-    }
-  };
+ 
 
   // Toggle read-only - Using accountDocsAPI
   const toggleReadOnly = async (item) => {
@@ -2443,91 +2417,35 @@ export const FolderTreeView = ({ accountId }) => {
     }
   };
 
-  // Trash item - Using accountDocsAPI
-  // const trashItem = async (item) => {
-  //   if (!item?.path) return alert("Invalid path");
-  //   const confirmTrash = window.confirm(
-  //     `Are you sure you want to move "${item.name}" to Trash?`,
-  //   );
-  //   if (!confirmTrash) return;
-
-  //   try {
-  //     const response = await accountDocsAPI.trashItem({
-  //       targetPath: item.path,
-  //       trashedBy: "Admin",
-  //     });
-
-  //     if (response.data?.success) {
-  //       toast.success(response.data.message || "Moved to trash");
-  //       setTimeout(() => {
-  //         fetchFolderTree();
-  //       }, 500);
-  //     } else {
-  //       toast.error(response.data?.message || "Failed to move to trash");
-  //     }
-  //   } catch (err) {
-  //     console.error("Error trashing item:", err);
-  //     toast.error("Error moving item to trash");
-  //   }
-  //   handleMenuClose();
-  // };
-
   const trashItem = async (item) => {
-  if (!item?.path) return alert("Invalid path");
-
-  confirm({
-    title: "Move to Trash",
-    description: `Are you sure you want to move "${item.name}" to Trash?`,
-    onConfirm: async () => {
-      try {
-        const response = await accountDocsAPI.trashItem({
-          targetPath: item.path,
-          trashedBy: "Admin",
-        });
-
-        if (response.data?.success) {
-          toast.success(response.data.message || "Moved to trash");
-          setTimeout(() => {
-            fetchFolderTree();
-          }, 500);
-        } else {
-          toast.error(response.data?.message || "Failed to move to trash");
-        }
-      } catch (err) {
-        console.error("Error trashing item:", err);
-        toast.error("Error moving item to trash");
-      }
-
-      handleMenuClose();
-    },
-  });
-};
-  // Delete item - Using accountDocsAPI
-  const deleteItem = async (item) => {
     if (!item?.path) return alert("Invalid path");
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete "${item.name}"? This cannot be undone!`,
-    );
-    if (!confirmDelete) return;
 
-    try {
-      const response = await accountDocsAPI.deleteItem({
-        targetPath: item.path,
-      });
+    confirm({
+      title: "Move to Trash",
+      description: `Are you sure you want to move "${item.name}" to Trash?`,
+      onConfirm: async () => {
+        try {
+          const response = await accountDocsAPI.trashItem({
+            targetPath: item.path,
+            trashedBy: "Admin",
+          });
 
-      if (response.data?.success) {
-        toast.success(response.data.message);
-        setTimeout(() => {
-          fetchFolderTree();
-        }, 800);
-      } else {
-        toast.error(response.data?.message || "Failed to delete");
-      }
-    } catch (err) {
-      console.error("Error deleting item:", err);
-      toast.error("Error deleting file or folder");
-    }
-    handleMenuClose();
+          if (response.data?.success) {
+            toast.success(response.data.message || "Moved to trash");
+            setTimeout(() => {
+              fetchFolderTree();
+            }, 500);
+          } else {
+            toast.error(response.data?.message || "Failed to move to trash");
+          }
+        } catch (err) {
+          console.error("Error trashing item:", err);
+          toast.error("Error moving item to trash");
+        }
+
+        handleMenuClose();
+      },
+    });
   };
 
   // Bulk trash - Using accountDocsAPI
@@ -2632,9 +2550,7 @@ export const FolderTreeView = ({ accountId }) => {
         fetchFolderTree();
         setBulkLockDialogOpen(false);
       } else {
-        toast.error(
-          response.data?.message || `Failed to ${lockStatus} items`,
-        );
+        toast.error(response.data?.message || `Failed to ${lockStatus} items`);
       }
     } catch (err) {
       console.error("Bulk lock error:", err);
@@ -2682,9 +2598,7 @@ export const FolderTreeView = ({ accountId }) => {
         return;
       }
 
-      if (
-        meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")
-      ) {
+      if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
         await accountDocsAPI.removeNewTag({ filePath: fullPath });
         await fetchFolderTree();
       }
@@ -2963,75 +2877,20 @@ export const FolderTreeView = ({ accountId }) => {
       .replace(" ", "-");
   };
 
-//   const getStatusChip = (meta, isFolder) => {
-//     if (isFolder) return null;
-//     const chips = [];
-
-//     if (SIGN_STATUSES.includes(meta.signStatus)) {
-//       let variant = "default";
-//       if (meta.signStatus === "pendingSignature") variant = "warning";
-//       if (meta.signStatus === "signatureCompleted") variant = "success";
-//       chips.push(
-//         <Badge key="signChip" variant={variant}>
-//           {statusTextMap[meta.signStatus]}
-//         </Badge>,
-//       );
-//     }
-
-//     if (APPROVAL_STATUSES.includes(meta.authStatus)) {
-//       let variant = "default";
-//       if (meta.authStatus === "pendingApproval") variant = "warning";
-//       if (meta.authStatus === "approvalCompleted") variant = "success";
-//       if (meta.authStatus === "canceledApproval") variant = "destructive";
-
-//       if (meta.authStatus === "canceledApproval" && meta.cancelReason) {
-//         chips.push(
-//           <TooltipProvider key="approvalCanceledChip">
-//             <Tooltip>
-//               <TooltipTrigger>
-//                 <Badge variant="destructive">Approval Canceled</Badge>
-//               </TooltipTrigger>
-//               <TooltipContent>{meta.cancelReason}</TooltipContent>
-//             </Tooltip>
-//           </TooltipProvider>,
-//         );
-//       } else {
-//         chips.push(
-//           <Badge key="approvalChip" variant={variant}>
-//             {approvalStatusTextMap[meta.authStatus]}
-//           </Badge>,
-//         );
-//       }
-//     }
-
-//     if (INVOICE_LOCK_STATUSES.includes(meta.lockInvoiceStatus)) {
-//       let variant = "default";
-//       if (meta.lockInvoiceStatus === "pendingpayment") variant = "warning";
-//       if (meta.lockInvoiceStatus === "paymentcompleted") variant = "success";
-//       chips.push(
-//         <Badge key="invoiceLockChip" variant={variant}>
-//           {invoiceStatusTextMap[meta.lockInvoiceStatus]}
-//         </Badge>,
-//       );
-//     }
-
-//     if (chips.length === 0) return null;
-//     return <div className="flex gap-1">{chips}</div>;
-//   };
-const getStatusChip = (meta, isFolder) => {
+  const getStatusChip = (meta, isFolder) => {
     if (isFolder) return null;
     const chips = [];
 
     if (SIGN_STATUSES.includes(meta.signStatus)) {
       chips.push(
-        <Badge 
-          key="signChip" 
+        <Badge
+          key="signChip"
           className={
-            meta.signStatus === "pendingSignature" 
+            meta.signStatus === "pendingSignature"
               ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
               : meta.signStatus === "signatureCompleted"
-              ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
-              : "bg-slate-500 hover:bg-slate-600 text-white"
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
+                : "bg-slate-500 hover:bg-slate-600 text-white"
           }
         >
           {statusTextMap[meta.signStatus]}
@@ -3053,14 +2912,14 @@ const getStatusChip = (meta, isFolder) => {
         );
       } else {
         chips.push(
-          <Badge 
+          <Badge
             key="approvalChip"
             className={
               meta.authStatus === "pendingApproval"
                 ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
                 : meta.authStatus === "approvalCompleted"
-                ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
-                : "bg-slate-500 hover:bg-slate-600 text-white"
+                  ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
+                  : "bg-slate-500 hover:bg-slate-600 text-white"
             }
           >
             {approvalStatusTextMap[meta.authStatus]}
@@ -3071,14 +2930,14 @@ const getStatusChip = (meta, isFolder) => {
 
     if (INVOICE_LOCK_STATUSES.includes(meta.lockInvoiceStatus)) {
       chips.push(
-        <Badge 
+        <Badge
           key="invoiceLockChip"
           className={
             meta.lockInvoiceStatus === "pendingpayment"
               ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
               : meta.lockInvoiceStatus === "paymentcompleted"
-              ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
-              : "bg-slate-500 hover:bg-slate-600 text-white"
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
+                : "bg-slate-500 hover:bg-slate-600 text-white"
           }
         >
           {invoiceStatusTextMap[meta.lockInvoiceStatus]}
@@ -3123,163 +2982,6 @@ const getStatusChip = (meta, isFolder) => {
     return null;
   };
 
-  // const renderTableRows = (items, level = 0, parentPath = "") => {
-  //   const sortedItems = [...items].sort((a, b) => {
-  //     if (a.type === "folder" && b.type !== "folder") return -1;
-  //     if (a.type !== "folder" && b.type === "folder") return 1;
-  //     return a.name.localeCompare(b.name);
-  //   });
-
-  //   return sortedItems.map((item) => {
-  //     const fullPath = item.path;
-  //     const meta = item.meta || {};
-  //     const isFolder = item.type === "folder";
-  //     const { folderCount, fileCount } = isFolder
-  //       ? getFolderCounts(item)
-  //       : { folderCount: 0, fileCount: 0 };
-  //     const isSelected = selectedItems.has(fullPath);
-  //     const isPartiallySelected = isFolder
-  //       ? isFolderPartiallySelected(item)
-  //       : false;
-  //     const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
-
-  //     const handleSafeFileClick = () => {
-  //       if (meta.readOnly) {
-  //         alert("This file is locked and cannot be opened.");
-  //         return;
-  //       }
-  //       if (!isFolder) {
-  //         handleFileClick(fullPath, item.name, meta);
-  //       }
-  //     };
-
-  //     return (
-  //       <React.Fragment key={fullPath}>
-  //         <TableRow className={level % 2 === 0 ? "bg-muted/50" : "bg-background"}>
-  //           <TableCell className="w-[50px] pl-2">
-  //             {isFolder ? (
-  //               <Checkbox
-  //                 checked={isSelected}
-  //                 data-indeterminate={isPartiallySelected}
-  //                 onCheckedChange={() => handleFolderSelect(item)}
-  //               />
-  //             ) : (
-  //               <Checkbox
-  //                 checked={isSelected}
-  //                 onCheckedChange={() => handleSelectItem(fullPath)}
-  //               />
-  //             )}
-  //           </TableCell>
-
-  //           <TableCell style={{ paddingLeft: level * 16 + 8 }}>
-  //             <div className="flex items-center">
-  //               {isFolder ? (
-  //                 <>
-  //                   <Button
-  //                     variant="ghost"
-  //                     size="icon"
-  //                     className="h-6 w-6 mr-1"
-  //                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
-  //                     disabled={meta.readOnly}
-  //                   >
-  //                     {expandedFolders[fullPath] ? (
-  //                       <ChevronDown className="h-4 w-4 text-primary" />
-  //                     ) : (
-  //                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
-  //                     )}
-  //                   </Button>
-  //                   <span
-  //                     className={`ml-0.5 font-medium text-sm cursor-pointer ${
-  //                       meta.readOnly ? "text-muted-foreground" : ""
-  //                     }`}
-  //                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
-  //                   >
-  //                     {item.name}
-  //                     {inheritedNewTag && (
-  //                       <Badge
-  //                         className="ml-1 h-4 text-[0.7rem]"
-  //                         style={{ backgroundColor: inheritedNewTag.tagColour }}
-  //                       >
-  //                         {inheritedNewTag.tagName}
-  //                       </Badge>
-  //                     )}
-  //                     {meta.readOnly && (
-  //                       <span className="ml-1 text-xs text-destructive">
-  //                         (Locked)
-  //                       </span>
-  //                     )}
-  //                   </span>
-  //                 </>
-  //               ) : (
-  //                 <>
-  //                   <span className="mr-1">{getFileIcon(item.name)}</span>
-  //                   <div className="flex flex-col">
-  //                     <span
-  //                       className={`text-sm ${
-  //                         meta.readOnly
-  //                           ? "text-muted-foreground"
-  //                           : "text-primary underline cursor-pointer"
-  //                       }`}
-  //                       onClick={handleSafeFileClick}
-  //                     >
-  //                       {item.name}
-  //                       {meta.readOnly && (
-  //                         <span className="ml-1 text-xs text-destructive">
-  //                           (Locked)
-  //                         </span>
-  //                       )}
-  //                       {meta.tags?.map((tag, index) => (
-  //                         <Badge
-  //                           key={index}
-  //                           className="ml-1 h-4 text-[0.7rem]"
-  //                           style={{ backgroundColor: tag.tagColour || "#e0e0e0" }}
-  //                         >
-  //                           {tag.tagName}
-  //                         </Badge>
-  //                       ))}
-  //                     </span>
-  //                   </div>
-  //                 </>
-  //               )}
-  //             </div>
-  //           </TableCell>
-  //           <TableCell>
-  //             <span className="text-xs text-muted-foreground ml-1">
-  //               ({folderCount} folders, {fileCount} files)
-  //             </span>
-  //           </TableCell>
-  //           <TableCell>
-  //             <div className="mt-0.5">{getStatusChip(meta, isFolder)}</div>
-  //           </TableCell>
-  //           <TableCell>
-  //             <span className="text-xs font-medium">
-  //               {formatUploadedAt(meta.uploadedAt)}
-  //             </span>
-  //           </TableCell>
-  //           <TableCell>
-  //             <span className="text-xs font-medium">{meta.uploadedBy}</span>
-  //           </TableCell>
-  //           <TableCell className="text-right">
-  //             <Button
-  //               variant="ghost"
-  //               size="icon"
-  //               className="h-8 w-8"
-  //               onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
-  //             >
-  //               <MoreVertical className="h-4 w-4" />
-  //             </Button>
-  //           </TableCell>
-  //         </TableRow>
-
-  //         {isFolder &&
-  //           expandedFolders[fullPath] &&
-  //           item.children &&
-  //           item.children.length > 0 &&
-  //           renderTableRows(item.children, level + 1, fullPath)}
-  //       </React.Fragment>
-  //     );
-  //   });
-  // };
 const renderTableRows = (items, level = 0, parentPath = "") => {
   const sortedItems = [...items].sort((a, b) => {
     if (a.type === "folder" && b.type !== "folder") return -1;
@@ -3302,9 +3004,7 @@ const renderTableRows = (items, level = 0, parentPath = "") => {
       ? isFolderPartiallySelected(item)
       : false;
 
-    const inheritedNewTag = isFolder
-      ? findNewSystemTag(item)
-      : null;
+    const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
 
     const handleSafeFileClick = () => {
       if (meta.readOnly) {
@@ -3319,182 +3019,538 @@ const renderTableRows = (items, level = 0, parentPath = "") => {
 
     return (
       <React.Fragment key={fullPath}>
-        <tr
-          className={`border-b transition-colors hover:bg-gray-50 ${
-            level % 2 === 0 ? "bg-gray-50/60" : "bg-white"
-          }`}
+        <TableRow
+          className={`
+            group
+            border-b
+            border-slate-200/70
+            transition-all
+            duration-200
+            hover:bg-slate-50/80
+
+            ${
+              isSelected
+                ? "bg-blue-50/70"
+                : level % 2 === 0
+                ? "bg-white"
+                : "bg-slate-50/40"
+            }
+          `}
         >
           {/* Checkbox */}
-          <td className="w-[50px] px-2 py-3 align-middle">
-            {isFolder ? (
-              <Checkbox
-                checked={isSelected}
-                data-indeterminate={isPartiallySelected}
-                onCheckedChange={() => handleFolderSelect(item)}
-              />
-            ) : (
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => handleSelectItem(fullPath)}
-              />
-            )}
-          </td>
+          <TableCell className="w-[52px] px-4 py-3 align-middle">
+            <div className="flex items-center justify-center">
+              {isFolder ? (
+                <Checkbox
+                  checked={isSelected}
+                  data-indeterminate={isPartiallySelected}
+                  onCheckedChange={() => handleFolderSelect(item)}
+                  className="border-slate-300"
+                />
+              ) : (
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => handleSelectItem(fullPath)}
+                  className="border-slate-300"
+                />
+              )}
+            </div>
+          </TableCell>
 
           {/* Name */}
-          <td
+          <TableCell
             className="py-3 pr-3 align-middle"
-            style={{ paddingLeft: `${level * 16 + 8}px` }}
+            style={{ paddingLeft: `${level * 20 + 12}px` }}
           >
             <div className="flex items-center">
               {isFolder ? (
                 <>
-                  <button
+                  <Button
                     type="button"
-                    className="mr-1 flex h-6 w-6 items-center justify-center rounded-md hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    variant="ghost"
+                    size="icon"
+                    className="
+                      mr-2
+                      h-7
+                      w-7
+                      rounded-lg
+                      text-slate-500
+                      hover:bg-slate-200/70
+                      hover:text-slate-800
+                    "
                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
                     disabled={meta.readOnly}
                   >
                     {expandedFolders[fullPath] ? (
                       <ChevronDown className="h-4 w-4 text-blue-600" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-gray-500" />
+                      <ChevronRight className="h-4 w-4" />
                     )}
-                  </button>
+                  </Button>
 
-                  <span
-                    className={`ml-0.5 cursor-pointer text-sm font-medium ${
-                      meta.readOnly
-                        ? "text-gray-400"
-                        : "text-gray-800 hover:text-blue-600"
-                    }`}
+                  <div
+                    className="
+                      flex
+                      cursor-pointer
+                      items-center
+                      gap-2
+                    "
                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
                   >
-                    {item.name}
+                    <div
+                      className="
+                        flex
+                        h-9
+                        w-9
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-blue-100
+                        text-blue-600
+                        shadow-sm
+                      "
+                    >
+                      <FolderIcon className="h-4 w-4" />
+                    </div>
 
-                    {inheritedNewTag && (
-                      <span
-                        className="ml-1 inline-flex h-4 items-center rounded px-1.5 text-[0.7rem] font-medium text-white"
-                        style={{
-                          backgroundColor:
-                            inheritedNewTag.tagColour,
-                        }}
-                      >
-                        {inheritedNewTag.tagName}
-                      </span>
-                    )}
+                    <div className="flex flex-col">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`
+                            text-sm
+                            font-semibold
+                            transition-colors
 
-                    {meta.readOnly && (
-                      <span className="ml-1 text-xs text-red-500">
-                        (Locked)
+                            ${
+                              meta.readOnly
+                                ? "text-slate-400"
+                                : "text-slate-800 group-hover:text-blue-600"
+                            }
+                          `}
+                        >
+                          {item.name}
+                        </span>
+
+                        {meta.readOnly && (
+                          <Badge
+                            variant="destructive"
+                            className="rounded-md text-[10px]"
+                          >
+                            Locked
+                          </Badge>
+                        )}
+
+                        {inheritedNewTag && (
+                          <Badge
+                            className="
+                              h-5
+                              rounded-md
+                              px-1.5
+                              text-[10px]
+                              font-semibold
+                              text-white
+                            "
+                            style={{
+                              backgroundColor:
+                                inheritedNewTag.tagColour,
+                            }}
+                          >
+                            {inheritedNewTag.tagName}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <span className="text-xs text-slate-500">
+                        {folderCount} folders • {fileCount} files
                       </span>
-                    )}
-                  </span>
+                    </div>
+                  </div>
                 </>
               ) : (
-                <>
-                  <span className="mr-2 flex items-center">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="
+                      flex
+                      h-9
+                      w-9
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-slate-100
+                      shadow-sm
+                    "
+                  >
                     {getFileIcon(item.name)}
-                  </span>
+                  </div>
 
                   <div className="flex flex-col">
-                    <span
-                      className={`text-sm ${
-                        meta.readOnly
-                          ? "text-gray-400"
-                          : "cursor-pointer text-blue-600 underline"
-                      }`}
-                      onClick={handleSafeFileClick}
-                    >
-                      {item.name}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        className={`
+                          text-left
+                          text-sm
+                          font-medium
+                          transition-colors
+
+                          ${
+                            meta.readOnly
+                              ? "cursor-not-allowed text-slate-400"
+                              : "text-blue-600 hover:text-blue-700 hover:underline"
+                          }
+                        `}
+                        onClick={handleSafeFileClick}
+                      >
+                        {item.name}
+                      </button>
 
                       {meta.readOnly && (
-                        <span className="ml-1 text-xs text-red-500">
-                          (Locked)
-                        </span>
+                        <Badge
+                          variant="destructive"
+                          className="rounded-md text-[10px]"
+                        >
+                          Locked
+                        </Badge>
                       )}
 
                       {meta.tags?.map((tag, index) => (
-                        <span
+                        <Badge
                           key={index}
-                          className="ml-1 inline-flex h-4 items-center rounded px-1.5 text-[0.7rem] font-medium text-white"
+                          className="
+                            h-5
+                            rounded-md
+                            px-1.5
+                            text-[10px]
+                            font-semibold
+                            text-white
+                          "
                           style={{
                             backgroundColor:
-                              tag.tagColour || "#e0e0e0",
+                              tag.tagColour || "#64748b",
                           }}
                         >
                           {tag.tagName}
-                        </span>
+                        </Badge>
                       ))}
+                    </div>
+
+                    <span className="text-xs text-slate-500">
+                      File document
                     </span>
                   </div>
-                </>
+                </div>
               )}
             </div>
-          </td>
+          </TableCell>
 
-          {/* Counts */}
-          <td className="px-3 py-3 align-middle">
-            <span className="text-xs text-gray-500">
-              ({folderCount} folders, {fileCount} files)
-            </span>
-          </td>
+          {/* Content */}
+          <TableCell className="px-3 py-3 align-middle">
+            <div
+              className="
+                inline-flex
+                items-center
+                rounded-full
+                border
+                border-slate-200
+                bg-slate-100
+                px-3
+                py-1
+                text-xs
+                font-medium
+                text-slate-700
+              "
+            >
+              {folderCount} folders • {fileCount} files
+            </div>
+          </TableCell>
 
           {/* Status */}
-          <td className="px-3 py-3 align-middle">
-            <div className="mt-0.5">
+          <TableCell className="px-3 py-3 align-middle">
+            <div className="flex items-center">
               {getStatusChip(meta, isFolder)}
             </div>
-          </td>
+          </TableCell>
 
-          {/* Uploaded At */}
-          <td className="px-3 py-3 align-middle">
-            <span className="text-xs font-medium text-gray-700">
-              {formatUploadedAt(meta.uploadedAt)}
-            </span>
-          </td>
+          {/* Uploaded */}
+          <TableCell className="px-3 py-3 align-middle">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-slate-700">
+                {formatUploadedAt(meta.uploadedAt)}
+              </span>
 
-          {/* Uploaded By */}
-          <td className="px-3 py-3 align-middle">
-            <span className="text-xs font-medium text-gray-700">
-              {meta.uploadedBy}
-            </span>
-          </td>
+              {/* <span className="text-xs text-slate-500">
+                Uploaded date
+              </span> */}
+            </div>
+          </TableCell>
+
+          {/* User */}
+          <TableCell className="px-3 py-3 align-middle">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8 border border-slate-200">
+                <AvatarFallback className="bg-slate-100 text-xs font-semibold text-slate-700">
+                  {meta.uploadedBy
+                    ?.split(" ")
+                    ?.map((n) => n[0])
+                    ?.join("")
+                    ?.slice(0, 2)
+                    ?.toUpperCase() || "S"}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-slate-700">
+                  {meta.uploadedBy || "system"}
+                </span>
+
+                {/* <span className="text-xs text-slate-500">
+                  Uploaded by
+                </span> */}
+              </div>
+            </div>
+          </TableCell>
 
           {/* Actions */}
-          <td className="px-3 py-3 text-right align-middle">
-            <button
-              type="button"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-200"
-              onClick={(e) =>
-                handleMenuOpen(e, { ...item, fullPath })
-              }
-            >
-              <MoreVertical className="h-4 w-4" />
-            </button>
-          </td>
-        </tr>
+          <TableCell className="px-3 py-3 text-right align-middle">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="
+                    h-9
+                    w-9
+                    rounded-xl
+                    text-slate-500
+                    transition-all
+                    hover:bg-slate-200/70
+                    hover:text-slate-800
+                  "
+                  onClick={(e) =>
+                    handleMenuOpen(e, { ...item, fullPath })
+                  }
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
 
         {isFolder &&
           expandedFolders[fullPath] &&
           item.children &&
           item.children.length > 0 &&
-          renderTableRows(
-            item.children,
-            level + 1,
-            fullPath
-          )}
+          renderTableRows(item.children, level + 1, fullPath)}
       </React.Fragment>
     );
   });
 };
-return (
-  <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-    <div className="mx-auto w-full max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
-      
-      {/* TOP ACTION BAR */}
-      <div className="mx-auto mb-6 max-w-[1200px]">
-        <div
-          className="
+
+
+
+  // const renderTableRows = (items, level = 0, parentPath = "") => {
+  //   const sortedItems = [...items].sort((a, b) => {
+  //     if (a.type === "folder" && b.type !== "folder") return -1;
+  //     if (a.type !== "folder" && b.type === "folder") return 1;
+  //     return a.name.localeCompare(b.name);
+  //   });
+
+  //   return sortedItems.map((item) => {
+  //     const fullPath = item.path;
+  //     const meta = item.meta || {};
+  //     const isFolder = item.type === "folder";
+
+  //     const { folderCount, fileCount } = isFolder
+  //       ? getFolderCounts(item)
+  //       : { folderCount: 0, fileCount: 0 };
+
+  //     const isSelected = selectedItems.has(fullPath);
+
+  //     const isPartiallySelected = isFolder
+  //       ? isFolderPartiallySelected(item)
+  //       : false;
+
+  //     const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
+
+  //     const handleSafeFileClick = () => {
+  //       if (meta.readOnly) {
+  //         alert("This file is locked and cannot be opened.");
+  //         return;
+  //       }
+
+  //       if (!isFolder) {
+  //         handleFileClick(fullPath, item.name, meta);
+  //       }
+  //     };
+
+  //     return (
+  //       <React.Fragment key={fullPath}>
+  //         <tr
+  //           className={`border-b transition-colors hover:bg-gray-50 ${
+  //             level % 2 === 0 ? "bg-gray-50/60" : "bg-white"
+  //           }`}
+  //         >
+  //           {/* Checkbox */}
+  //           <td className="w-[50px] px-2 py-3 align-middle">
+  //             {isFolder ? (
+  //               <Checkbox
+  //                 checked={isSelected}
+  //                 data-indeterminate={isPartiallySelected}
+  //                 onCheckedChange={() => handleFolderSelect(item)}
+  //               />
+  //             ) : (
+  //               <Checkbox
+  //                 checked={isSelected}
+  //                 onCheckedChange={() => handleSelectItem(fullPath)}
+  //               />
+  //             )}
+  //           </td>
+
+  //           {/* Name */}
+  //           <td
+  //             className="py-3 pr-3 align-middle"
+  //             style={{ paddingLeft: `${level * 16 + 8}px` }}
+  //           >
+  //             <div className="flex items-center">
+  //               {isFolder ? (
+  //                 <>
+  //                   <button
+  //                     type="button"
+  //                     className="mr-1 flex h-6 w-6 items-center justify-center rounded-md hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+  //                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
+  //                     disabled={meta.readOnly}
+  //                   >
+  //                     {expandedFolders[fullPath] ? (
+  //                       <ChevronDown className="h-4 w-4 text-blue-600" />
+  //                     ) : (
+  //                       <ChevronRight className="h-4 w-4 text-gray-500" />
+  //                     )}
+  //                   </button>
+
+  //                   <span
+  //                     className={`ml-0.5 cursor-pointer text-sm font-medium ${
+  //                       meta.readOnly
+  //                         ? "text-gray-400"
+  //                         : "text-gray-800 hover:text-blue-600"
+  //                     }`}
+  //                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
+  //                   >
+  //                     {item.name}
+
+  //                     {inheritedNewTag && (
+  //                       <span
+  //                         className="ml-1 inline-flex h-4 items-center rounded px-1.5 text-[0.7rem] font-medium text-white"
+  //                         style={{
+  //                           backgroundColor: inheritedNewTag.tagColour,
+  //                         }}
+  //                       >
+  //                         {inheritedNewTag.tagName}
+  //                       </span>
+  //                     )}
+
+  //                     {meta.readOnly && (
+  //                       <span className="ml-1 text-xs text-red-500">
+  //                         (Locked)
+  //                       </span>
+  //                     )}
+  //                   </span>
+  //                 </>
+  //               ) : (
+  //                 <>
+  //                   <span className="mr-2 flex items-center">
+  //                     {getFileIcon(item.name)}
+  //                   </span>
+
+  //                   <div className="flex flex-col">
+  //                     <span
+  //                       className={`text-sm ${
+  //                         meta.readOnly
+  //                           ? "text-gray-400"
+  //                           : "cursor-pointer text-blue-600 underline"
+  //                       }`}
+  //                       onClick={handleSafeFileClick}
+  //                     >
+  //                       {item.name}
+
+  //                       {meta.readOnly && (
+  //                         <span className="ml-1 text-xs text-red-500">
+  //                           (Locked)
+  //                         </span>
+  //                       )}
+
+  //                       {meta.tags?.map((tag, index) => (
+  //                         <span
+  //                           key={index}
+  //                           className="ml-1 inline-flex h-4 items-center rounded px-1.5 text-[0.7rem] font-medium text-white"
+  //                           style={{
+  //                             backgroundColor: tag.tagColour || "#e0e0e0",
+  //                           }}
+  //                         >
+  //                           {tag.tagName}
+  //                         </span>
+  //                       ))}
+  //                     </span>
+  //                   </div>
+  //                 </>
+  //               )}
+  //             </div>
+  //           </td>
+
+  //           {/* Counts */}
+  //           <td className="px-3 py-3 align-middle">
+  //             <span className="text-xs text-gray-500">
+  //               ({folderCount} folders, {fileCount} files)
+  //             </span>
+  //           </td>
+
+  //           {/* Status */}
+  //           <td className="px-3 py-3 align-middle">
+  //             <div className="mt-0.5">{getStatusChip(meta, isFolder)}</div>
+  //           </td>
+
+  //           {/* Uploaded At */}
+  //           <td className="px-3 py-3 align-middle">
+  //             <span className="text-xs font-medium text-gray-700">
+  //               {formatUploadedAt(meta.uploadedAt)}
+  //             </span>
+  //           </td>
+
+  //           {/* Uploaded By */}
+  //           <td className="px-3 py-3 align-middle">
+  //             <span className="text-xs font-medium text-gray-700">
+  //               {meta.uploadedBy}
+  //             </span>
+  //           </td>
+
+  //           {/* Actions */}
+  //           <td className="px-3 py-3 text-right align-middle">
+  //             <button
+  //               type="button"
+  //               className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-200"
+  //               onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
+  //             >
+  //               <MoreVertical className="h-4 w-4" />
+  //             </button>
+  //           </td>
+  //         </tr>
+
+  //         {isFolder &&
+  //           expandedFolders[fullPath] &&
+  //           item.children &&
+  //           item.children.length > 0 &&
+  //           renderTableRows(item.children, level + 1, fullPath)}
+  //       </React.Fragment>
+  //     );
+  //   });
+  // };
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="mx-auto w-full max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
+        {/* TOP ACTION BAR */}
+        <div className="mx-auto mb-6 max-w-[1200px]">
+          <div
+            className="
             rounded-2xl
             border
             border-gray-200
@@ -3502,11 +3558,11 @@ return (
             p-4
             shadow-sm
           "
-        >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-[700px]">
-            <Button
-              variant="default"
-              className="
+          >
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-[700px]">
+              <Button
+                variant="default"
+                className="
                 h-11
                 rounded-xl
                 bg-slate-900
@@ -3516,18 +3572,18 @@ return (
                 hover:bg-slate-800
                 hover:shadow-md
               "
-              onClick={() => {
-                setNewFolderDrawerOpen(true);
-                handleMenuClose();
-              }}
-            >
-              <FolderIcon className="mr-2 h-4 w-4" />
-              Create Folder
-            </Button>
+                onClick={() => {
+                  setNewFolderDrawerOpen(true);
+                  handleMenuClose();
+                }}
+              >
+                <FolderIcon className="mr-2 h-4 w-4" />
+                Create Folder
+              </Button>
 
-            <Button
-              variant="default"
-              className="
+              <Button
+                variant="default"
+                className="
                 h-11
                 rounded-xl
                 bg-blue-600
@@ -3537,15 +3593,15 @@ return (
                 hover:bg-blue-700
                 hover:shadow-md
               "
-              onClick={() => setFileUploadDrawerOpen(true)}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              Upload File
-            </Button>
+                onClick={() => setFileUploadDrawerOpen(true)}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload File
+              </Button>
 
-            <Button
-              variant="default"
-              className="
+              <Button
+                variant="default"
+                className="
                 h-11
                 rounded-xl
                 bg-emerald-600
@@ -3555,18 +3611,18 @@ return (
                 hover:bg-emerald-700
                 hover:shadow-md
               "
-              onClick={() => setFolderUploaDrawerOpen(true)}
-            >
-              <FolderUp className="mr-2 h-4 w-4" />
-              Upload Folder
-            </Button>
+                onClick={() => setFolderUploaDrawerOpen(true)}
+              >
+                <FolderUp className="mr-2 h-4 w-4" />
+                Upload Folder
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* BULK TOOLBAR */}
-        {selectedItems.size > 0 && (
-          <div
-            className="
+          {/* BULK TOOLBAR */}
+          {selectedItems.size > 0 && (
+            <div
+              className="
               mt-5
               rounded-2xl
               border
@@ -3576,11 +3632,11 @@ return (
               shadow-sm
               backdrop-blur
             "
-          >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className="
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="
                     flex
                     h-9
                     w-9
@@ -3592,154 +3648,154 @@ return (
                     text-sm
                     font-semibold
                   "
-                >
-                  {selectedItems.size}
+                  >
+                    {selectedItems.size}
+                  </div>
+
+                  <span className="text-sm font-semibold text-slate-700">
+                    item(s) selected
+                  </span>
                 </div>
 
-                <span className="text-sm font-semibold text-slate-700">
-                  item(s) selected
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setBulkMoveDrawerOpen(true)}
-                  disabled={bulkOperationLoading}
-                  className="
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBulkMoveDrawerOpen(true)}
+                    disabled={bulkOperationLoading}
+                    className="
                     rounded-xl
                     border-gray-300
                     bg-white
                     hover:bg-gray-100
                   "
-                >
-                  <Move className="mr-1 h-4 w-4" />
-                  Move
-                </Button>
+                  >
+                    <Move className="mr-1 h-4 w-4" />
+                    Move
+                  </Button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setBulkLockDialogOpen(true)}
-                  disabled={bulkOperationLoading}
-                  className="
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBulkLockDialogOpen(true)}
+                    disabled={bulkOperationLoading}
+                    className="
                     rounded-xl
                     border-gray-300
                     bg-white
                     hover:bg-gray-100
                   "
-                >
-                  <Lock className="mr-1 h-4 w-4" />
-                  Lock/Unlock
-                </Button>
+                  >
+                    <Lock className="mr-1 h-4 w-4" />
+                    Lock/Unlock
+                  </Button>
 
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleBulkTrash}
-                  disabled={bulkOperationLoading}
-                  className="rounded-xl"
-                >
-                  <Trash2 className="mr-1 h-4 w-4" />
-                  Delete
-                </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkTrash}
+                    disabled={bulkOperationLoading}
+                    className="rounded-xl"
+                  >
+                    <Trash2 className="mr-1 h-4 w-4" />
+                    Delete
+                  </Button>
 
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleBulkDownload}
-                  disabled={bulkOperationLoading}
-                  className="
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleBulkDownload}
+                    disabled={bulkOperationLoading}
+                    className="
                     rounded-xl
                     bg-slate-900
                     hover:bg-slate-800
                   "
-                >
-                  <Download className="mr-1 h-4 w-4" />
-                  Download
-                </Button>
+                  >
+                    <Download className="mr-1 h-4 w-4" />
+                    Download
+                  </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedItems(new Set())}
-                  disabled={bulkOperationLoading}
-                  className="rounded-xl hover:bg-white"
-                >
-                  Clear Selection
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedItems(new Set())}
+                    disabled={bulkOperationLoading}
+                    className="rounded-xl hover:bg-white"
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* DRAWERS */}
-        <FileUploadDrawer
-          isOpen={fileUploadDrawerOpen}
-          onClose={() => setFileUploadDrawerOpen(false)}
-          folderTree={folderTree}
-          fetchFolderTree={() => fetchFolderTree(accountId)}
-          accountId={accountId}
-          selectedFolderForMenu={selectedFolderForMenu}
-        />
+          {/* DRAWERS */}
+          <FileUploadDrawer
+            isOpen={fileUploadDrawerOpen}
+            onClose={() => setFileUploadDrawerOpen(false)}
+            folderTree={folderTree}
+            fetchFolderTree={() => fetchFolderTree(accountId)}
+            accountId={accountId}
+            selectedFolderForMenu={selectedFolderForMenu}
+          />
 
-        <CreateFolderDrawer
-          isOpen={newFolderDrawerOpen}
-          onClose={() => {
-            setNewFolderDrawerOpen(false);
-          }}
-          folderTree={folderTree}
-          fetchFolderTree={() => fetchFolderTree(accountId)}
-          accountId={accountId}
-          selectedFolderForMenu={selectedFolderForMenu}
-        />
+          <CreateFolderDrawer
+            isOpen={newFolderDrawerOpen}
+            onClose={() => {
+              setNewFolderDrawerOpen(false);
+            }}
+            folderTree={folderTree}
+            fetchFolderTree={() => fetchFolderTree(accountId)}
+            accountId={accountId}
+            selectedFolderForMenu={selectedFolderForMenu}
+          />
 
-        <FolderUploadDrawer
-          isOpen={folderUploaDrawerOpen}
-          onClose={() => setFolderUploaDrawerOpen(false)}
-          folderTree={folderTree}
-          fetchFolderTree={() => fetchFolderTree(accountId)}
-          selectedFolderForMenu={selectedFolderForMenu}
-        />
+          <FolderUploadDrawer
+            isOpen={folderUploaDrawerOpen}
+            onClose={() => setFolderUploaDrawerOpen(false)}
+            folderTree={folderTree}
+            fetchFolderTree={() => fetchFolderTree(accountId)}
+            selectedFolderForMenu={selectedFolderForMenu}
+          />
 
-        <MoveDrawer
-          isOpen={moveDrawerOpen}
-          onClose={() => {
-            setMoveDrawerOpen(false);
-          }}
-          folderTree={folderTree}
-          fetchFolderTree={() => fetchFolderTree(accountId)}
-          selectedFolderForMenu={selectedFolderForMenu}
-        />
+          <MoveDrawer
+            isOpen={moveDrawerOpen}
+            onClose={() => {
+              setMoveDrawerOpen(false);
+            }}
+            folderTree={folderTree}
+            fetchFolderTree={() => fetchFolderTree(accountId)}
+            selectedFolderForMenu={selectedFolderForMenu}
+          />
 
-        <RenameDrawer
-          isOpen={renameDrawer}
-          onClose={() => {
-            SetRenameDrawer(false);
-          }}
-          folderTree={folderTree}
-          fetchFolderTree={() => fetchFolderTree(accountId)}
-          selectedFolderForMenu={selectedFolderForMenu}
-        />
+          <RenameDrawer
+            isOpen={renameDrawer}
+            onClose={() => {
+              SetRenameDrawer(false);
+            }}
+            folderTree={folderTree}
+            fetchFolderTree={() => fetchFolderTree(accountId)}
+            selectedFolderForMenu={selectedFolderForMenu}
+          />
 
-        <MoveDrawer
-          isOpen={bulkMoveDrawerOpen}
-          onClose={() => setBulkMoveDrawerOpen(false)}
-          folderTree={folderTree}
-          fetchFolderTree={fetchFolderTree}
-          isBulkOperation={true}
-          selectedPaths={Array.from(selectedItems)}
-          onMoveComplete={(targetPath) => {
-            console.log("Bulk move completed to:", targetPath);
-            setSelectedItems(new Set());
-          }}
-        />
-      </div>
+          <MoveDrawer
+            isOpen={bulkMoveDrawerOpen}
+            onClose={() => setBulkMoveDrawerOpen(false)}
+            folderTree={folderTree}
+            fetchFolderTree={fetchFolderTree}
+            isBulkOperation={true}
+            selectedPaths={Array.from(selectedItems)}
+            onMoveComplete={(targetPath) => {
+              console.log("Bulk move completed to:", targetPath);
+              setSelectedItems(new Set());
+            }}
+          />
+        </div>
 
-      {/* DOCUMENT EXPLORER */}
-      <div
-        className="
+        {/* DOCUMENT EXPLORER */}
+        <div
+          className="
           overflow-hidden
           rounded-3xl
           border
@@ -3748,10 +3804,10 @@ return (
           shadow-xl
           shadow-gray-100
         "
-      >
-        {/* HEADER */}
-        <div
-          className="
+        >
+          {/* HEADER */}
+          <div
+            className="
             flex
             items-center
             justify-between
@@ -3763,10 +3819,10 @@ return (
             px-6
             py-5
           "
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="
                 flex
                 h-11
                 w-11
@@ -3777,28 +3833,28 @@ return (
                 text-white
                 shadow-md
               "
-            >
-              <FolderIcon className="h-5 w-5" />
-            </div>
+              >
+                <FolderIcon className="h-5 w-5" />
+              </div>
 
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Document Explorer
-              </h2>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  Document Explorer
+                </h2>
 
-              <p className="text-sm text-slate-500">
-                Manage folders, files, approvals and signatures
-              </p>
+                <p className="text-sm text-slate-500">
+                  Manage folders, files, approvals and signatures
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* TABLE */}
-        <div className="overflow-auto">
-          {folderTree && folderTree.length > 0 ? (
-            <table className="w-full border-collapse">
-              <thead
-                className="
+          {/* TABLE */}
+          <div className="overflow-auto">
+            {folderTree && folderTree.length > 0 ? (
+              <table className="w-full border-collapse">
+                <thead
+                  className="
                   sticky
                   top-0
                   z-20
@@ -3806,50 +3862,50 @@ return (
                   border-gray-200
                   bg-gray-50
                 "
-              >
-                <tr>
-                  <th className="w-[50px] px-4 py-4 text-left">
-                    <Checkbox
-                      checked={selectAll}
-                      data-indeterminate={
-                        selectedItems.size > 0 && !selectAll
-                      }
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </th>
+                >
+                  <tr>
+                    <th className="w-[50px] px-4 py-4 text-left">
+                      <Checkbox
+                        checked={selectAll}
+                        data-indeterminate={
+                          selectedItems.size > 0 && !selectAll
+                        }
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </th>
 
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-                    Name
-                  </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
+                      Name
+                    </th>
 
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-                    Content
-                  </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
+                      Content
+                    </th>
 
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-                    Status
-                  </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
+                      Status
+                    </th>
 
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-                    Uploaded
-                  </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
+                      Uploaded
+                    </th>
 
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-                    User
-                  </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
+                      User
+                    </th>
 
-                  <th className="px-4 py-4 text-right text-sm font-semibold text-slate-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+                    <th className="px-4 py-4 text-right text-sm font-semibold text-slate-700">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
 
-              <tbody>{renderTableRows(folderTree)}</tbody>
-            </table>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-24">
-              <div
-                className="
+                <tbody>{renderTableRows(folderTree)}</tbody>
+              </table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-24">
+                <div
+                  className="
                   mb-4
                   flex
                   h-20
@@ -3859,37 +3915,38 @@ return (
                   rounded-full
                   bg-gray-100
                 "
-              >
-                <FolderIcon className="h-10 w-10 text-gray-400" />
+                >
+                  <FolderIcon className="h-10 w-10 text-gray-400" />
+                </div>
+
+                <h3 className="text-lg font-semibold text-slate-700">
+                  No folders or files found
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Upload files or create folders to get started
+                </p>
               </div>
+            )}
+          </div>
 
-              <h3 className="text-lg font-semibold text-slate-700">
-                No folders or files found
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Upload files or create folders to get started
-              </p>
-            </div>
-          )}
         </div>
-      </div>
-{/* ==================== CONTEXT MENU ==================== */}
-{menuAnchorEl && selectedFolderForMenu && (
-  <div
-    className="fixed inset-0 z-[9999]"
-    onClick={handleMenuClose}
-    onContextMenu={(e) => {
-      e.preventDefault();
-      handleMenuClose();
-    }}
-  >
-    {/* BACKDROP */}
-    <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
+        {/* ==================== CONTEXT MENU ==================== */}
+        {/* {menuAnchorEl && selectedFolderForMenu && (
+          <div
+            className="fixed inset-0 z-[9999]"
+            onClick={handleMenuClose}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              handleMenuClose();
+            }}
+          >
+          
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
 
-    {/* MENU */}
-   <div
-  className="
+            
+            <div
+              className="
     absolute
     z-[10000]
     w-[220px]
@@ -3900,421 +3957,363 @@ return (
     bg-white
     shadow-[0_20px_70px_rgba(0,0,0,0.18)]
   "
-      style={{
-        top:
-          menuAnchorEl.getBoundingClientRect().bottom +
-          window.scrollY +
-          8,
-        left:
-          menuAnchorEl.getBoundingClientRect().left +
-          window.scrollX -
-          230,
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* HEADER */}
-      {/* <div
-        className="
-          border-b
-          border-gray-100
-          bg-gradient-to-r
-          from-slate-50
-          to-gray-100
-          px-3
-          py-3
-        "
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="
-              flex
-              h-9
-              w-9
-              items-center
-              justify-center
-              rounded-xl
-              bg-blue-600
-              text-white
-            "
-          >
-            {selectedFolderForMenu?.type === "folder" ? (
-              <FolderIcon className="h-5 w-5" />
-            ) : (
-              <FileText className="h-5 w-5" />
-            )}
-          </div>
+              style={{
+                top:
+                  menuAnchorEl.getBoundingClientRect().bottom +
+                  window.scrollY +
+                  8,
+                left:
+                  menuAnchorEl.getBoundingClientRect().left +
+                  window.scrollX -
+                  230,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              
+              <div className="max-h-[380px] overflow-y-auto p-2">
+                {(() => {
+                  const item = selectedFolderForMenu;
+                  const isFolder = item.type === "folder";
+                  const isLocked = item?.meta?.readOnly === true;
 
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-slate-800">
-              {selectedFolderForMenu?.name}
-            </h3>
+                  const path = item.path.toLowerCase();
 
-            <p className="text-xs text-slate-500">
-              {selectedFolderForMenu?.type === "folder"
-                ? "Folder Options"
-                : "File Options"}
-            </p>
-          </div>
-        </div>
-      </div> */}
+                  let docType = "client";
 
-      {/* MENU ITEMS */}
-      <div className="max-h-[380px] overflow-y-auto p-2">
-        {(() => {
-          const item = selectedFolderForMenu;
-          const isFolder = item.type === "folder";
-          const isLocked = item?.meta?.readOnly === true;
+                  if (path.includes("firm")) docType = "firm";
+                  if (path.includes("private")) docType = "private";
 
-          const path = item.path.toLowerCase();
+                  const PROTECTED_FOLDERS = [
+                    "Client Uploaded Documents",
+                    "Firm Documents Shared with Client",
+                    "Private",
+                  ];
 
-          let docType = "client";
+                  const isProtectedFolder =
+                    isFolder && PROTECTED_FOLDERS.includes(item.name);
 
-          if (path.includes("firm")) docType = "firm";
-          if (path.includes("private")) docType = "private";
+                  const menuItems = [];
 
-          const PROTECTED_FOLDERS = [
-            "Client Uploaded Documents",
-            "Firm Documents Shared with Client",
-            "Private",
-          ];
+                 
+                  if (isFolder) {
+                  
+                    if (docType === "client") {
+                      menuItems.push(
+                        {
+                          icon: <FolderIcon className="h-4 w-4" />,
+                          label: "New Folder",
+                          action: () => setNewFolderDrawerOpen(true),
+                        },
+                        {
+                          icon: <Pencil className="h-4 w-4" />,
+                          label: "Edit",
+                          action: () => SetRenameDrawer(true),
+                        },
+                        {
+                          icon: <Move className="h-4 w-4" />,
+                          label: "Move",
+                          action: () => setMoveDrawerOpen(true),
+                        },
+                        {
+                          icon: <Trash2 className="h-4 w-4" />,
+                          label: "Delete",
+                          action: () => trashItem(item),
+                          disabled: isProtectedFolder,
+                          danger: true,
+                        },
+                        {
+                          icon: <Download className="h-4 w-4" />,
+                          label: "Download",
+                          action: () => handleDownload(item),
+                        },
+                        {
+                          icon: <Upload className="h-4 w-4" />,
+                          label: "New File",
+                          action: () => setFileUploadDrawerOpen(true),
+                        },
+                        {
+                          icon: <FolderUp className="h-4 w-4" />,
+                          label: "Upload Folder",
+                          action: () => setFolderUploaDrawerOpen(true),
+                        },
+                        {
+                          icon: isLocked ? (
+                            <Unlock className="h-4 w-4" />
+                          ) : (
+                            <Lock className="h-4 w-4" />
+                          ),
+                          label: isLocked ? "Unlock" : "Lock",
+                          action: () => toggleReadOnly(item),
+                        },
+                      );
+                    } else if (docType === "firm") {
+                      
+                      menuItems.push(
+                        {
+                          icon: <FolderIcon className="h-4 w-4" />,
+                          label: "New Folder",
+                          action: () => setNewFolderDrawerOpen(true),
+                        },
+                        {
+                          icon: <Pencil className="h-4 w-4" />,
+                          label: "Edit",
+                          action: () => SetRenameDrawer(true),
+                        },
+                        {
+                          icon: <Move className="h-4 w-4" />,
+                          label: "Move",
+                          action: () => setMoveDrawerOpen(true),
+                        },
+                        {
+                          icon: <Upload className="h-4 w-4" />,
+                          label: "New File",
+                          action: () => setFileUploadDrawerOpen(true),
+                        },
+                        {
+                          icon: <Download className="h-4 w-4" />,
+                          label: "Download",
+                          action: () => handleDownload(item),
+                        },
+                        {
+                          icon: <FolderUp className="h-4 w-4" />,
+                          label: "Upload Folder",
+                          action: () => setFolderUploaDrawerOpen(true),
+                        },
+                        {
+                          icon: <Trash2 className="h-4 w-4" />,
+                          label: "Delete",
+                          action: () => trashItem(item),
+                          disabled: isProtectedFolder,
+                          danger: true,
+                        },
+                      );
+                    } else if (docType === "private") {
+                     
+                      menuItems.push(
+                        {
+                          icon: <FolderIcon className="h-4 w-4" />,
+                          label: "New Folder",
+                          action: () => setNewFolderDrawerOpen(true),
+                        },
+                        {
+                          icon: <Upload className="h-4 w-4" />,
+                          label: "New File",
+                          action: () => setFileUploadDrawerOpen(true),
+                        },
+                        {
+                          icon: <Move className="h-4 w-4" />,
+                          label: "Move",
+                          action: () => setMoveDrawerOpen(true),
+                        },
+                        {
+                          icon: <Pencil className="h-4 w-4" />,
+                          label: "Edit",
+                          action: () => SetRenameDrawer(true),
+                        },
+                        {
+                          icon: <Trash2 className="h-4 w-4" />,
+                          label: "Delete",
+                          action: () => trashItem(item),
+                          disabled: isProtectedFolder,
+                          danger: true,
+                        },
+                        {
+                          icon: <Download className="h-4 w-4" />,
+                          label: "Download",
+                          action: () => handleDownload(item),
+                        },
+                      );
+                    }
+                  } else {
+                    
+                    if (docType === "client") {
+                      menuItems.push(
+                        {
+                          icon: <Pencil className="h-4 w-4" />,
+                          label: "Edit",
+                          action: () => SetRenameDrawer(true),
+                        },
+                        {
+                          icon: <Move className="h-4 w-4" />,
+                          label: "Move",
+                          action: () => setMoveDrawerOpen(true),
+                        },
+                        {
+                          icon: isLocked ? (
+                            <Unlock className="h-4 w-4" />
+                          ) : (
+                            <Lock className="h-4 w-4" />
+                          ),
+                          label: isLocked ? "Unlock" : "Lock",
+                          action: () => toggleReadOnly(item),
+                        },
+                        {
+                          icon: <Trash2 className="h-4 w-4" />,
+                          label: "Delete",
+                          action: () => trashItem(item),
+                          danger: true,
+                        },
+                        {
+                          icon: <Download className="h-4 w-4" />,
+                          label: "Download",
+                          action: () => handleDownload(item),
+                        },
+                      );
+                    } else if (docType === "firm") {
+                     
+                      const currentStatus =
+                        item.meta?.signStatus || "sendForSignature";
 
-          const isProtectedFolder =
-            isFolder && PROTECTED_FOLDERS.includes(item.name);
+                      const approvalStatus =
+                        item.meta?.authStatus || "sendForApproval";
 
-          const menuItems = [];
+                      const invoiceStatus = item.meta?.lockInvoiceStatus;
 
-          /* ====================== FOLDERS ====================== */
-          if (isFolder) {
-            /* CLIENT FOLDER */
-            if (docType === "client") {
-              menuItems.push(
-                {
-                  icon: <FolderIcon className="h-4 w-4" />,
-                  label: "New Folder",
-                  action: () => setNewFolderDrawerOpen(true),
-                },
-                {
-                  icon: <Pencil className="h-4 w-4" />,
-                  label: "Edit",
-                  action: () => SetRenameDrawer(true),
-                },
-                {
-                  icon: <Move className="h-4 w-4" />,
-                  label: "Move",
-                  action: () => setMoveDrawerOpen(true),
-                },
-                {
-                  icon: <Trash2 className="h-4 w-4" />,
-                  label: "Delete",
-                  action: () => trashItem(item),
-                  disabled: isProtectedFolder,
-                  danger: true,
-                },
-                {
-                  icon: <Download className="h-4 w-4" />,
-                  label: "Download",
-                  action: () => handleDownload(item),
-                },
-                {
-                  icon: <Upload className="h-4 w-4" />,
-                  label: "New File",
-                  action: () => setFileUploadDrawerOpen(true),
-                },
-                {
-                  icon: <FolderUp className="h-4 w-4" />,
-                  label: "Upload Folder",
-                  action: () => setFolderUploaDrawerOpen(true),
-                },
-                {
-                  icon: isLocked ? (
-                    <Unlock className="h-4 w-4" />
-                  ) : (
-                    <Lock className="h-4 w-4" />
-                  ),
-                  label: isLocked ? "Unlock" : "Lock",
-                  action: () => toggleReadOnly(item),
-                }
-              );
-            }
+                      const isSignatureDisabled =
+                        currentStatus === "pendingSignature" ||
+                        currentStatus === "signatureCompleted";
 
-            /* FIRM FOLDER */
-            else if (docType === "firm") {
-              menuItems.push(
-                {
-                  icon: <FolderIcon className="h-4 w-4" />,
-                  label: "New Folder",
-                  action: () => setNewFolderDrawerOpen(true),
-                },
-                {
-                  icon: <Pencil className="h-4 w-4" />,
-                  label: "Edit",
-                  action: () => SetRenameDrawer(true),
-                },
-                {
-                  icon: <Move className="h-4 w-4" />,
-                  label: "Move",
-                  action: () => setMoveDrawerOpen(true),
-                },
-                {
-                  icon: <Upload className="h-4 w-4" />,
-                  label: "New File",
-                  action: () => setFileUploadDrawerOpen(true),
-                },
-                {
-                  icon: <Download className="h-4 w-4" />,
-                  label: "Download",
-                  action: () => handleDownload(item),
-                },
-                {
-                  icon: <FolderUp className="h-4 w-4" />,
-                  label: "Upload Folder",
-                  action: () => setFolderUploaDrawerOpen(true),
-                },
-                {
-                  icon: <Trash2 className="h-4 w-4" />,
-                  label: "Delete",
-                  action: () => trashItem(item),
-                  disabled: isProtectedFolder,
-                  danger: true,
-                }
-              );
-            }
+                      const isApprovalCompleted =
+                        approvalStatus === "approvalCompleted";
 
-            /* PRIVATE FOLDER */
-            else if (docType === "private") {
-              menuItems.push(
-                {
-                  icon: <FolderIcon className="h-4 w-4" />,
-                  label: "New Folder",
-                  action: () => setNewFolderDrawerOpen(true),
-                },
-                {
-                  icon: <Upload className="h-4 w-4" />,
-                  label: "New File",
-                  action: () => setFileUploadDrawerOpen(true),
-                },
-                {
-                  icon: <Move className="h-4 w-4" />,
-                  label: "Move",
-                  action: () => setMoveDrawerOpen(true),
-                },
-                {
-                  icon: <Pencil className="h-4 w-4" />,
-                  label: "Edit",
-                  action: () => SetRenameDrawer(true),
-                },
-                {
-                  icon: <Trash2 className="h-4 w-4" />,
-                  label: "Delete",
-                  action: () => trashItem(item),
-                  disabled: isProtectedFolder,
-                  danger: true,
-                },
-                {
-                  icon: <Download className="h-4 w-4" />,
-                  label: "Download",
-                  action: () => handleDownload(item),
-                }
-              );
-            }
-          }
+                      const isApprovalCanceled =
+                        approvalStatus === "canceledApproval";
 
-          /* ====================== FILES ====================== */
-          else {
-            /* CLIENT FILE */
-            if (docType === "client") {
-              menuItems.push(
-                {
-                  icon: <Pencil className="h-4 w-4" />,
-                  label: "Edit",
-                  action: () => SetRenameDrawer(true),
-                },
-                {
-                  icon: <Move className="h-4 w-4" />,
-                  label: "Move",
-                  action: () => setMoveDrawerOpen(true),
-                },
-                {
-                  icon: isLocked ? (
-                    <Unlock className="h-4 w-4" />
-                  ) : (
-                    <Lock className="h-4 w-4" />
-                  ),
-                  label: isLocked ? "Unlock" : "Lock",
-                  action: () => toggleReadOnly(item),
-                },
-                {
-                  icon: <Trash2 className="h-4 w-4" />,
-                  label: "Delete",
-                  action: () => trashItem(item),
-                  danger: true,
-                },
-                {
-                  icon: <Download className="h-4 w-4" />,
-                  label: "Download",
-                  action: () => handleDownload(item),
-                }
-              );
-            }
+                      let invoiceLabel = "Lock Invoice";
 
-            /* FIRM FILE */
-            else if (docType === "firm") {
-              const currentStatus =
-                item.meta?.signStatus || "sendForSignature";
+                      if (invoiceStatus === "pendingpayment") {
+                        invoiceLabel = "Unlock Invoice";
+                      }
 
-              const approvalStatus =
-                item.meta?.authStatus || "sendForApproval";
+                      if (
+                        invoiceStatus === "paymentcompleted" ||
+                        !invoiceStatus
+                      ) {
+                        invoiceLabel = "Lock Invoice";
+                      }
 
-              const invoiceStatus =
-                item.meta?.lockInvoiceStatus;
+                      menuItems.push(
+                        {
+                          icon: <Pencil className="h-4 w-4" />,
+                          label: "Edit",
+                          action: () => SetRenameDrawer(true),
+                        },
+                        {
+                          icon: <Move className="h-4 w-4" />,
+                          label: "Move",
+                          action: () => setMoveDrawerOpen(true),
+                        },
+                      );
 
-              const isSignatureDisabled =
-                currentStatus === "pendingSignature" ||
-                currentStatus === "signatureCompleted";
+                      if (currentStatus === "pendingSignature") {
+                        menuItems.push({
+                          icon: <XCircle className="h-4 w-4" />,
+                          label: "Cancel Signature Request",
+                          action: () => cancelSignature(item),
+                        });
+                      } else {
+                        menuItems.push({
+                          icon: <PenTool className="h-4 w-4" />,
+                          label: statusTextMap[currentStatus],
+                          action: () => toggleSignStatus(item),
+                          disabled: isSignatureDisabled,
+                        });
+                      }
 
-              const isApprovalCompleted =
-                approvalStatus === "approvalCompleted";
+                      if (approvalStatus === "sendForApproval") {
+                        menuItems.push({
+                          icon: <Stamp className="h-4 w-4" />,
+                          label: "Send For Approval",
+                          action: () => toggleApprovalStatus(item),
+                        });
+                      }
 
-              const isApprovalCanceled =
-                approvalStatus === "canceledApproval";
+                      if (approvalStatus === "pendingApproval") {
+                        menuItems.push({
+                          icon: <XCircle className="h-4 w-4" />,
+                          label: "Cancel Approval Request",
+                          action: () => handleCancelApproval(item),
+                        });
+                      }
 
-              let invoiceLabel = "Lock Invoice";
+                      if (isApprovalCompleted) {
+                        menuItems.push({
+                          icon: <Stamp className="h-4 w-4" />,
+                          label: "Approved",
+                          disabled: true,
+                        });
+                      }
 
-              if (invoiceStatus === "pendingpayment") {
-                invoiceLabel = "Unlock Invoice";
-              }
+                      if (isApprovalCanceled) {
+                        menuItems.push({
+                          icon: <Stamp className="h-4 w-4" />,
+                          label: "Approval Canceled",
+                          disabled: true,
+                        });
+                      }
 
-              if (
-                invoiceStatus === "paymentcompleted" ||
-                !invoiceStatus
-              ) {
-                invoiceLabel = "Lock Invoice";
-              }
+                      menuItems.push({
+                        icon:
+                          invoiceStatus === "pendingpayment" ? (
+                            <Unlock className="h-4 w-4" />
+                          ) : (
+                            <Lock className="h-4 w-4" />
+                          ),
+                        label: invoiceLabel,
+                        action: () => toggleInvoiceLock(item),
+                      });
 
-              menuItems.push(
-                {
-                  icon: <Pencil className="h-4 w-4" />,
-                  label: "Edit",
-                  action: () => SetRenameDrawer(true),
-                },
-                {
-                  icon: <Move className="h-4 w-4" />,
-                  label: "Move",
-                  action: () => setMoveDrawerOpen(true),
-                }
-              );
+                      menuItems.push(
+                        {
+                          icon: <Trash2 className="h-4 w-4" />,
+                          label: "Delete",
+                          action: () => trashItem(item),
+                          danger: true,
+                        },
+                        {
+                          icon: <Download className="h-4 w-4" />,
+                          label: "Download",
+                          action: () => handleDownload(item),
+                        },
+                      );
+                    } else if (docType === "private") {
+                      
+                      menuItems.push(
+                        {
+                          icon: <Pencil className="h-4 w-4" />,
+                          label: "Edit",
+                          action: () => SetRenameDrawer(true),
+                        },
+                        {
+                          icon: <Trash2 className="h-4 w-4" />,
+                          label: "Delete",
+                          action: () => trashItem(item),
+                          danger: true,
+                        },
+                        {
+                          icon: <Download className="h-4 w-4" />,
+                          label: "Download",
+                          action: () => handleDownload(item),
+                        },
+                        {
+                          icon: <Move className="h-4 w-4" />,
+                          label: "Move",
+                          action: () => setMoveDrawerOpen(true),
+                        },
+                      );
+                    }
+                  }
 
-              if (currentStatus === "pendingSignature") {
-                menuItems.push({
-                  icon: <XCircle className="h-4 w-4" />,
-                  label: "Cancel Signature Request",
-                  action: () => cancelSignature(item),
-                });
-              } else {
-                menuItems.push({
-                  icon: <PenTool className="h-4 w-4" />,
-                  label: statusTextMap[currentStatus],
-                  action: () => toggleSignStatus(item),
-                  disabled: isSignatureDisabled,
-                });
-              }
-
-              if (approvalStatus === "sendForApproval") {
-                menuItems.push({
-                  icon: <Stamp className="h-4 w-4" />,
-                  label: "Send For Approval",
-                  action: () => toggleApprovalStatus(item),
-                });
-              }
-
-              if (approvalStatus === "pendingApproval") {
-                menuItems.push({
-                  icon: <XCircle className="h-4 w-4" />,
-                  label: "Cancel Approval Request",
-                  action: () => handleCancelApproval(item),
-                });
-              }
-
-              if (isApprovalCompleted) {
-                menuItems.push({
-                  icon: <Stamp className="h-4 w-4" />,
-                  label: "Approved",
-                  disabled: true,
-                });
-              }
-
-              if (isApprovalCanceled) {
-                menuItems.push({
-                  icon: <Stamp className="h-4 w-4" />,
-                  label: "Approval Canceled",
-                  disabled: true,
-                });
-              }
-
-              menuItems.push({
-                icon:
-                  invoiceStatus === "pendingpayment" ? (
-                    <Unlock className="h-4 w-4" />
-                  ) : (
-                    <Lock className="h-4 w-4" />
-                  ),
-                label: invoiceLabel,
-                action: () => toggleInvoiceLock(item),
-              });
-
-              menuItems.push(
-                {
-                  icon: <Trash2 className="h-4 w-4" />,
-                  label: "Delete",
-                  action: () => trashItem(item),
-                  danger: true,
-                },
-                {
-                  icon: <Download className="h-4 w-4" />,
-                  label: "Download",
-                  action: () => handleDownload(item),
-                }
-              );
-            }
-
-            /* PRIVATE FILE */
-            else if (docType === "private") {
-              menuItems.push(
-                {
-                  icon: <Pencil className="h-4 w-4" />,
-                  label: "Edit",
-                  action: () => SetRenameDrawer(true),
-                },
-                {
-                  icon: <Trash2 className="h-4 w-4" />,
-                  label: "Delete",
-                  action: () => trashItem(item),
-                  danger: true,
-                },
-                {
-                  icon: <Download className="h-4 w-4" />,
-                  label: "Download",
-                  action: () => handleDownload(item),
-                },
-                {
-                  icon: <Move className="h-4 w-4" />,
-                  label: "Move",
-                  action: () => setMoveDrawerOpen(true),
-                }
-              );
-            }
-          }
-
-          return menuItems.map(
-            ({ icon, label, action, disabled, danger }) => (
-              <button
-                key={label}
-                disabled={disabled}
-                onClick={() => {
-                  action?.();
-                  handleMenuClose();
-                }}
-                className={`
+                  return menuItems.map(
+                    ({ icon, label, action, disabled, danger }) => (
+                      <button
+                        key={label}
+                        disabled={disabled}
+                        onClick={() => {
+                          action?.();
+                          handleMenuClose();
+                        }}
+                        className={`
                   group
                   mb-1
                   flex
@@ -4349,9 +4348,9 @@ return (
                       `
                   }
                 `}
-              >
-                <div
-                  className={`
+                      >
+                        <div
+                          className={`
                     flex
                     h-8
                     w-8
@@ -4374,25 +4373,462 @@ return (
                         `
                     }
                   `}
-                >
-                  {icon}
-                </div>
+                        >
+                          {icon}
+                        </div>
 
-                <span className="flex-1 text-left">
-                  {label}
-                </span>
-              </button>
-            )
-          );
-        })()}
-      </div>
-    </div>
-  </div>
+                        <span className="flex-1 text-left">{label}</span>
+                      </button>
+                    ),
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        )} */}
+        {/* ==================== CONTEXT MENU ==================== */}
+{selectedFolderForMenu && (
+  <DropdownMenu
+    open={!!menuAnchorEl}
+    onOpenChange={(open) => {
+      if (!open) handleMenuClose();
+    }}
+  >
+    <DropdownMenuTrigger asChild>
+      <div
+        style={{
+          position: "fixed",
+          top: menuAnchorEl
+            ? menuAnchorEl.getBoundingClientRect().bottom +
+              window.scrollY +
+              8
+            : 0,
+          left: menuAnchorEl
+            ? menuAnchorEl.getBoundingClientRect().left +
+              window.scrollX -
+              230
+            : 0,
+          width: 1,
+          height: 1,
+        }}
+      />
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent
+      align="start"
+      sideOffset={4}
+      className="
+        z-[10000]
+        w-[240px]
+        rounded-2xl
+        border
+        border-gray-200
+        bg-white/95
+        p-2
+        shadow-[0_20px_70px_rgba(0,0,0,0.18)]
+        backdrop-blur-xl
+      "
+    >
+      {(() => {
+        const item = selectedFolderForMenu;
+        const isFolder = item.type === "folder";
+        const isLocked = item?.meta?.readOnly === true;
+
+        const path = item.path.toLowerCase();
+
+        let docType = "client";
+
+        if (path.includes("firm")) docType = "firm";
+        if (path.includes("private")) docType = "private";
+
+        const PROTECTED_FOLDERS = [
+          "Client Uploaded Documents",
+          "Firm Documents Shared with Client",
+          "Private",
+        ];
+
+        const isProtectedFolder =
+          isFolder && PROTECTED_FOLDERS.includes(item.name);
+
+        const menuItems = [];
+
+        /* ====================== FOLDERS ====================== */
+        if (isFolder) {
+          /* CLIENT FOLDER */
+          if (docType === "client") {
+            menuItems.push(
+              {
+                icon: <FolderIcon className="h-4 w-4" />,
+                label: "New Folder",
+                action: () => setNewFolderDrawerOpen(true),
+              },
+              {
+                icon: <Pencil className="h-4 w-4" />,
+                label: "Edit",
+                action: () => SetRenameDrawer(true),
+              },
+              {
+                icon: <Move className="h-4 w-4" />,
+                label: "Move",
+                action: () => setMoveDrawerOpen(true),
+              },
+              {
+                icon: <Trash2 className="h-4 w-4" />,
+                label: "Delete",
+                action: () => trashItem(item),
+                disabled: isProtectedFolder,
+                danger: true,
+              },
+              {
+                icon: <Download className="h-4 w-4" />,
+                label: "Download",
+                action: () => handleDownload(item),
+              },
+              {
+                icon: <Upload className="h-4 w-4" />,
+                label: "New File",
+                action: () => setFileUploadDrawerOpen(true),
+              },
+              {
+                icon: <FolderUp className="h-4 w-4" />,
+                label: "Upload Folder",
+                action: () => setFolderUploaDrawerOpen(true),
+              },
+              {
+                icon: isLocked ? (
+                  <Unlock className="h-4 w-4" />
+                ) : (
+                  <Lock className="h-4 w-4" />
+                ),
+                label: isLocked ? "Unlock" : "Lock",
+                action: () => toggleReadOnly(item),
+              },
+            );
+          } else if (docType === "firm") {
+            /* FIRM FOLDER */
+            menuItems.push(
+              {
+                icon: <FolderIcon className="h-4 w-4" />,
+                label: "New Folder",
+                action: () => setNewFolderDrawerOpen(true),
+              },
+              {
+                icon: <Pencil className="h-4 w-4" />,
+                label: "Edit",
+                action: () => SetRenameDrawer(true),
+              },
+              {
+                icon: <Move className="h-4 w-4" />,
+                label: "Move",
+                action: () => setMoveDrawerOpen(true),
+              },
+              {
+                icon: <Upload className="h-4 w-4" />,
+                label: "New File",
+                action: () => setFileUploadDrawerOpen(true),
+              },
+              {
+                icon: <Download className="h-4 w-4" />,
+                label: "Download",
+                action: () => handleDownload(item),
+              },
+              {
+                icon: <FolderUp className="h-4 w-4" />,
+                label: "Upload Folder",
+                action: () => setFolderUploaDrawerOpen(true),
+              },
+              {
+                icon: <Trash2 className="h-4 w-4" />,
+                label: "Delete",
+                action: () => trashItem(item),
+                disabled: isProtectedFolder,
+                danger: true,
+              },
+            );
+          } else if (docType === "private") {
+            /* PRIVATE FOLDER */
+            menuItems.push(
+              {
+                icon: <FolderIcon className="h-4 w-4" />,
+                label: "New Folder",
+                action: () => setNewFolderDrawerOpen(true),
+              },
+              {
+                icon: <Upload className="h-4 w-4" />,
+                label: "New File",
+                action: () => setFileUploadDrawerOpen(true),
+              },
+              {
+                icon: <Move className="h-4 w-4" />,
+                label: "Move",
+                action: () => setMoveDrawerOpen(true),
+              },
+              {
+                icon: <Pencil className="h-4 w-4" />,
+                label: "Edit",
+                action: () => SetRenameDrawer(true),
+              },
+              {
+                icon: <Trash2 className="h-4 w-4" />,
+                label: "Delete",
+                action: () => trashItem(item),
+                disabled: isProtectedFolder,
+                danger: true,
+              },
+              {
+                icon: <Download className="h-4 w-4" />,
+                label: "Download",
+                action: () => handleDownload(item),
+              },
+            );
+          }
+        } else {
+          /* ====================== FILES ====================== */
+          if (docType === "client") {
+            menuItems.push(
+              {
+                icon: <Pencil className="h-4 w-4" />,
+                label: "Edit",
+                action: () => SetRenameDrawer(true),
+              },
+              {
+                icon: <Move className="h-4 w-4" />,
+                label: "Move",
+                action: () => setMoveDrawerOpen(true),
+              },
+              {
+                icon: isLocked ? (
+                  <Unlock className="h-4 w-4" />
+                ) : (
+                  <Lock className="h-4 w-4" />
+                ),
+                label: isLocked ? "Unlock" : "Lock",
+                action: () => toggleReadOnly(item),
+              },
+              {
+                icon: <Trash2 className="h-4 w-4" />,
+                label: "Delete",
+                action: () => trashItem(item),
+                danger: true,
+              },
+              {
+                icon: <Download className="h-4 w-4" />,
+                label: "Download",
+                action: () => handleDownload(item),
+              },
+            );
+          } else if (docType === "firm") {
+            const currentStatus =
+              item.meta?.signStatus || "sendForSignature";
+
+            const approvalStatus =
+              item.meta?.authStatus || "sendForApproval";
+
+            const invoiceStatus = item.meta?.lockInvoiceStatus;
+
+            const isSignatureDisabled =
+              currentStatus === "pendingSignature" ||
+              currentStatus === "signatureCompleted";
+
+            const isApprovalCompleted =
+              approvalStatus === "approvalCompleted";
+
+            const isApprovalCanceled =
+              approvalStatus === "canceledApproval";
+
+            let invoiceLabel = "Lock Invoice";
+
+            if (invoiceStatus === "pendingpayment") {
+              invoiceLabel = "Unlock Invoice";
+            }
+
+            if (
+              invoiceStatus === "paymentcompleted" ||
+              !invoiceStatus
+            ) {
+              invoiceLabel = "Lock Invoice";
+            }
+
+            menuItems.push(
+              {
+                icon: <Pencil className="h-4 w-4" />,
+                label: "Edit",
+                action: () => SetRenameDrawer(true),
+              },
+              {
+                icon: <Move className="h-4 w-4" />,
+                label: "Move",
+                action: () => setMoveDrawerOpen(true),
+              },
+            );
+
+            if (currentStatus === "pendingSignature") {
+              menuItems.push({
+                icon: <XCircle className="h-4 w-4" />,
+                label: "Cancel Signature Request",
+                action: () => cancelSignature(item),
+              });
+            } else {
+              menuItems.push({
+                icon: <PenTool className="h-4 w-4" />,
+                label: statusTextMap[currentStatus],
+                action: () => toggleSignStatus(item),
+                disabled: isSignatureDisabled,
+              });
+            }
+
+            if (approvalStatus === "sendForApproval") {
+              menuItems.push({
+                icon: <Stamp className="h-4 w-4" />,
+                label: "Send For Approval",
+                action: () => toggleApprovalStatus(item),
+              });
+            }
+
+            if (approvalStatus === "pendingApproval") {
+              menuItems.push({
+                icon: <XCircle className="h-4 w-4" />,
+                label: "Cancel Approval Request",
+                action: () => handleCancelApproval(item),
+              });
+            }
+
+            if (isApprovalCompleted) {
+              menuItems.push({
+                icon: <Stamp className="h-4 w-4" />,
+                label: "Approved",
+                disabled: true,
+              });
+            }
+
+            if (isApprovalCanceled) {
+              menuItems.push({
+                icon: <Stamp className="h-4 w-4" />,
+                label: "Approval Canceled",
+                disabled: true,
+              });
+            }
+
+            menuItems.push({
+              icon:
+                invoiceStatus === "pendingpayment" ? (
+                  <Unlock className="h-4 w-4" />
+                ) : (
+                  <Lock className="h-4 w-4" />
+                ),
+              label: invoiceLabel,
+              action: () => toggleInvoiceLock(item),
+            });
+
+            menuItems.push(
+              {
+                icon: <Trash2 className="h-4 w-4" />,
+                label: "Delete",
+                action: () => trashItem(item),
+                danger: true,
+              },
+              {
+                icon: <Download className="h-4 w-4" />,
+                label: "Download",
+                action: () => handleDownload(item),
+              },
+            );
+          } else if (docType === "private") {
+            menuItems.push(
+              {
+                icon: <Pencil className="h-4 w-4" />,
+                label: "Edit",
+                action: () => SetRenameDrawer(true),
+              },
+              {
+                icon: <Trash2 className="h-4 w-4" />,
+                label: "Delete",
+                action: () => trashItem(item),
+                danger: true,
+              },
+              {
+                icon: <Download className="h-4 w-4" />,
+                label: "Download",
+                action: () => handleDownload(item),
+              },
+              {
+                icon: <Move className="h-4 w-4" />,
+                label: "Move",
+                action: () => setMoveDrawerOpen(true),
+              },
+            );
+          }
+        }
+
+        return menuItems.map(
+          ({ icon, label, action, disabled, danger }) => (
+            <DropdownMenuItem
+              key={label}
+              disabled={disabled}
+              onClick={() => {
+                action?.();
+                handleMenuClose();
+              }}
+              className={`
+                group
+                flex
+                cursor-pointer
+                items-center
+                gap-3
+                rounded-xl
+                px-3
+                py-2.5
+                text-sm
+                font-medium
+                outline-none
+                transition-all
+
+                ${
+                  danger
+                    ? `
+                      text-red-600
+                      focus:bg-red-50
+                      data-[highlighted]:bg-red-50
+                    `
+                    : `
+                      text-slate-700
+                      focus:bg-gray-100
+                      data-[highlighted]:bg-gray-100
+                    `
+                }
+              `}
+            >
+              <div
+                className={`
+                  flex
+                  h-8
+                  w-8
+                  items-center
+                  justify-center
+                  rounded-lg
+
+                  ${
+                    danger
+                      ? "bg-red-100 text-red-600"
+                      : "bg-gray-100 text-slate-600"
+                  }
+                `}
+              >
+                {icon}
+              </div>
+
+              <span className="flex-1">{label}</span>
+            </DropdownMenuItem>
+          ),
+        );
+      })()}
+    </DropdownMenuContent>
+  </DropdownMenu>
 )}
-      {/* FILE VIEWER DIALOG */}
-      <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
-        <DialogContent
-          className="
+        {/* FILE VIEWER DIALOG */}
+        <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
+          <DialogContent
+            className="
             w-[96vw]
             max-w-[1800px]
             h-[94vh]
@@ -4406,9 +4842,9 @@ return (
             flex
             flex-col
           "
-        >
-          <DialogHeader
-            className="
+          >
+            <DialogHeader
+              className="
               flex
               flex-row
               items-center
@@ -4419,26 +4855,26 @@ return (
               px-6
               py-5
             "
-          >
-            <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-              {selectedFileName}
-            </DialogTitle>
-          </DialogHeader>
+            >
+              <DialogTitle className="truncate text-lg font-semibold text-slate-800">
+                {selectedFileName}
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="flex-1 overflow-hidden bg-gray-100">
-            <iframe
-              src={selectedFileUrl}
-              title="File Preview"
-              className="h-full w-full border-0"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+            <div className="flex-1 overflow-hidden bg-gray-100">
+              <iframe
+                src={selectedFileUrl}
+                title="File Preview"
+                className="h-full w-full border-0"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      {/* WORD VIEWER */}
-      <Dialog open={openWordDialog} onOpenChange={setOpenWordDialog}>
-        <DialogContent
-          className="
+        {/* WORD VIEWER */}
+        <Dialog open={openWordDialog} onOpenChange={setOpenWordDialog}>
+          <DialogContent
+            className="
             w-[96vw]
             max-w-[1800px]
             h-[94vh]
@@ -4452,29 +4888,29 @@ return (
             flex
             flex-col
           "
-        >
-          <DialogHeader className="border-b border-gray-200 bg-gray-50 px-6 py-5">
-            <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-              {selectedFileName}
-            </DialogTitle>
-          </DialogHeader>
+          >
+            <DialogHeader className="border-b border-gray-200 bg-gray-50 px-6 py-5">
+              <DialogTitle className="truncate text-lg font-semibold text-slate-800">
+                {selectedFileName}
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="flex-1 overflow-hidden bg-gray-100">
-            <iframe
-              src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                selectedFileUrl
-              )}`}
-              className="h-full w-full border-0"
-              title="Word Viewer"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+            <div className="flex-1 overflow-hidden bg-gray-100">
+              <iframe
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                  selectedFileUrl,
+                )}`}
+                className="h-full w-full border-0"
+                title="Word Viewer"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      {/* TEXT VIEWER */}
-      <Dialog open={openTextDialog} onOpenChange={setOpenTextDialog}>
-        <DialogContent
-          className="
+        {/* TEXT VIEWER */}
+        <Dialog open={openTextDialog} onOpenChange={setOpenTextDialog}>
+          <DialogContent
+            className="
             w-[92vw]
             max-w-6xl
             h-[88vh]
@@ -4486,15 +4922,15 @@ return (
             flex
             flex-col
           "
-        >
-          <DialogHeader className="border-b border-gray-200 pb-4">
-            <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-              {selectedFileName}
-            </DialogTitle>
-          </DialogHeader>
+          >
+            <DialogHeader className="border-b border-gray-200 pb-4">
+              <DialogTitle className="truncate text-lg font-semibold text-slate-800">
+                {selectedFileName}
+              </DialogTitle>
+            </DialogHeader>
 
-          <ScrollArea
-            className="
+            <ScrollArea
+              className="
               mt-4
               flex-1
               rounded-2xl
@@ -4503,18 +4939,18 @@ return (
               bg-gray-50
               p-5
             "
-          >
-            <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700">
-              {textContent}
-            </pre>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+            >
+              <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700">
+                {textContent}
+              </pre>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
 
-      {/* EXCEL VIEWER */}
-      <Dialog open={openExcelDialog} onOpenChange={setOpenExcelDialog}>
-        <DialogContent
-          className="
+        {/* EXCEL VIEWER */}
+        <Dialog open={openExcelDialog} onOpenChange={setOpenExcelDialog}>
+          <DialogContent
+            className="
             w-[96vw]
             max-w-[1800px]
             h-[94vh]
@@ -4528,1165 +4964,212 @@ return (
             flex
             flex-col
           "
-        >
-          <DialogHeader className="border-b border-gray-200 bg-gray-50 px-6 py-5">
-            <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-              {selectedFileName}
-            </DialogTitle>
-          </DialogHeader>
+          >
+            <DialogHeader className="border-b border-gray-200 bg-gray-50 px-6 py-5">
+              <DialogTitle className="truncate text-lg font-semibold text-slate-800">
+                {selectedFileName}
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="flex-1 overflow-hidden bg-gray-100">
-            <iframe
-              src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                selectedFileUrl
-              )}`}
-              className="h-full w-full border-0"
-              title="Excel Viewer"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-{/* LOCK/UNLOCK */}
-            <Dialog open={bulkLockDialogOpen} onOpenChange={setBulkLockDialogOpen}>
-         <DialogContent className="sm:max-w-md">
-           <DialogHeader>
-             <DialogTitle className="text-xl">Lock/Unlock Selected Items</DialogTitle>
-             <DialogDescription className="text-base mt-2">
-               Do you want to lock or unlock the {selectedItems.size} selected
-               item(s)?
-             </DialogDescription>
-           </DialogHeader>
-           <div className="flex justify-end gap-3 mt-6">
-             <Button variant="outline" onClick={() => setBulkLockDialogOpen(false)}>
-               Cancel
-             </Button>
-             <Button
-              variant="outline"
-              onClick={() => handleBulkLock("unlock")}
-              disabled={bulkOperationLoading}
-            >
-              Unlock
-            </Button>
-            <Button
-              onClick={() => handleBulkLock("lock")}
-              variant="default"
-              disabled={bulkOperationLoading}
-            >
-              Lock
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* APPROVAL */}
-            <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Request Approval</DialogTitle>
-            <DialogDescription>
-              Send an approval request for this document
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="description" className="text-sm font-medium mb-2 block">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Type a short description or note..."
-              rows={4}
-              className="resize-none"
-            />
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={handleCloseDialog}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRequestApproval}
-              disabled={!description.trim() || sending}
-            >
-              {sending ? "Sending..." : "Send"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      {/* SIGNATURE */}
- <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-   <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col">
-     <DialogHeader className="p-6 pb-0">
-       <DialogTitle className="text-xl">
-         {selectedFolderForMenu?.name || "Document"}
-      </DialogTitle>
-
-     </DialogHeader>
-    
-     <div className="flex-1 overflow-auto p-6 pt-2">
-                  {token && showBuilderFor && (
-              <DocusealBuilder
-                token={token}
-                customCss={customCss}
-                onComplete={() => {
-                  console.log("DocuSeal finished sending document");
-                  setShowBuilderFor(null);
-                  setOpenDialog(false);
-                }}
+            <div className="flex-1 overflow-hidden bg-gray-100">
+              <iframe
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                  selectedFileUrl,
+                )}`}
+                className="h-full w-full border-0"
+                title="Excel Viewer"
               />
-            )}
-    </div>
-  </DialogContent>
-</Dialog>
-{/* INVOICE LOCK */}
-      <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Select Invoices To Lock</DialogTitle>
-            <DialogDescription>
-              Choose invoices to associate with this document
-            </DialogDescription>
-          </DialogHeader>
-          <div className="overflow-auto flex-1">
-            {invoiceList.length === 0 && (
-              <div className="text-center text-muted-foreground p-8">
-                No invoices found
-              </div>
-            )}
-            <div className="overflow-x-auto mt-1">
-              <Table>
-                <TableHeader className="sticky top-0 bg-background">
-                  <TableRow>
-                    <TableHead className="w-[60px]">Select</TableHead>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoiceList.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        No invoices found.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    invoiceList.map((inv) => {
-                      const id = inv._id;
-                      const checked = selectedInvoices.includes(id);
-
-                      return (
-                        <TableRow
-                          key={id}
-                          className={`cursor-pointer hover:bg-muted/50 transition-colors ${
-                            checked ? "bg-primary/5" : ""
-                          }`}
-                          onClick={() => {
-                            setSelectedInvoices((prev) => {
-                              const updated = prev.includes(id)
-                                ? prev.filter((x) => x !== id)
-                                : [...prev, id];
-                              console.log("Selected invoices:", updated);
-                              return updated;
-                            });
-                          }}
-                        >
-                          <TableCell>
-                            <Checkbox checked={checked} />
-                          </TableCell>
-                          <TableCell className="font-medium">{inv.invoicenumber}</TableCell>
-                          <TableCell>{inv.description || "—"}</TableCell>
-                          <TableCell>
-                            {new Date(inv.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            ₹{inv.summary?.total?.toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
             </div>
-          </div>
-          <DialogFooter className="mt-4 pt-4 border-t">
-            <Button variant="outline" onClick={() => setInvoiceDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Lock Invoice</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  </div>
-);
-//   return (
-//     <div className="container mx-auto p-6 max-w-7xl">
-//       {/* Action Buttons */}
-//       <div className="max-w-[1000px] mx-auto">
-//         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-[600px] w-full mx-auto mb-6">
-//           <Button
-//             variant="default"
-//             className="w-full shadow-sm hover:shadow-md transition-shadow"
-//             onClick={() => {
-//               setNewFolderDrawerOpen(true);
-//               handleMenuClose();
-//             }}
-//           >
-//             <FolderIcon className="mr-2 h-4 w-4" />
-//             Create Folder
-//           </Button>
+          </DialogContent>
+        </Dialog>
 
-//           <Button
-//             variant="default"
-//             className="w-full shadow-sm hover:shadow-md transition-shadow"
-//             onClick={() => setFileUploadDrawerOpen(true)}
-//           >
-//             <Upload className="mr-2 h-4 w-4" />
-//             Upload File
-//           </Button>
-
-//           <Button
-//             variant="default"
-//             className="w-full shadow-sm hover:shadow-md transition-shadow"
-//             onClick={() => setFolderUploaDrawerOpen(true)}
-//           >
-//             <FolderUp className="mr-2 h-4 w-4" />
-//             Upload Folder
-//           </Button>
-//         </div>
-
-//         {/* Bulk Operations Toolbar */}
-//         {selectedItems.size > 0 && (
-//           <Card className="mb-6 bg-primary/5 border-primary/20 shadow-md">
-//             <CardContent className="p-4">
-//               <div className="flex items-center justify-between flex-wrap gap-3">
-//                 <span className="font-semibold text-sm">
-//                   {selectedItems.size} item(s) selected
-//                 </span>
-
-//                 <div className="flex gap-2 flex-wrap">
-//                   <Button
-//                     variant="outline"
-//                     size="sm"
-//                     onClick={() => setBulkMoveDrawerOpen(true)}
-//                     disabled={bulkOperationLoading}
-//                     className="shadow-sm"
-//                   >
-//                     <Move className="mr-1 h-4 w-4" />
-//                     Move
-//                   </Button>
-
-//                   <Button
-//                     variant="outline"
-//                     size="sm"
-//                     onClick={() => setBulkLockDialogOpen(true)}
-//                     disabled={bulkOperationLoading}
-//                     className="shadow-sm"
-//                   >
-//                     <Lock className="mr-1 h-4 w-4" />
-//                     Lock/Unlock
-//                   </Button>
-
-//                   <Button
-//                     variant="destructive"
-//                     size="sm"
-//                     onClick={handleBulkTrash}
-//                     disabled={bulkOperationLoading}
-//                     className="shadow-sm"
-//                   >
-//                     <Trash2 className="mr-1 h-4 w-4" />
-//                     Delete
-//                   </Button>
-
-//                   <Button
-//                     variant="default"
-//                     size="sm"
-//                     onClick={handleBulkDownload}
-//                     disabled={bulkOperationLoading}
-//                     className="shadow-sm"
-//                   >
-//                     <Download className="mr-1 h-4 w-4" />
-//                     Download
-//                   </Button>
-
-//                   <Button
-//                     variant="ghost"
-//                     size="sm"
-//                     onClick={() => setSelectedItems(new Set())}
-//                     disabled={bulkOperationLoading}
-//                   >
-//                     Clear Selection
-//                   </Button>
-//                 </div>
-//               </div>
-//             </CardContent>
-//           </Card>
-//         )}
-
-//         {/* Drawers - Keep as is */}
-//         <FileUploadDrawer
-//           isOpen={fileUploadDrawerOpen}
-//           onClose={() => setFileUploadDrawerOpen(false)}
-//           folderTree={folderTree}
-//           fetchFolderTree={() => fetchFolderTree(accountId)}
-//           accountId={accountId}
-//           selectedFolderForMenu={selectedFolderForMenu}
-//         />
-
-//         <CreateFolderDrawer
-//           isOpen={newFolderDrawerOpen}
-//           onClose={() => {
-//             setNewFolderDrawerOpen(false);
-//           }}
-//           folderTree={folderTree}
-//           fetchFolderTree={() => fetchFolderTree(accountId)}
-//           accountId={accountId}
-//           selectedFolderForMenu={selectedFolderForMenu}
-//         />
-
-//         <FolderUploadDrawer
-//           isOpen={folderUploaDrawerOpen}
-//           onClose={() => setFolderUploaDrawerOpen(false)}
-//           folderTree={folderTree}
-//           fetchFolderTree={() => fetchFolderTree(accountId)}
-//           selectedFolderForMenu={selectedFolderForMenu}
-//         />
-
-//         <MoveDrawer
-//           isOpen={moveDrawerOpen}
-//           onClose={() => {
-//             setMoveDrawerOpen(false);
-//           }}
-//           folderTree={folderTree}
-//           fetchFolderTree={() => fetchFolderTree(accountId)}
-//           selectedFolderForMenu={selectedFolderForMenu}
-//         />
-
-//         <RenameDrawer
-//           isOpen={renameDrawer}
-//           onClose={() => {
-//             SetRenameDrawer(false);
-//           }}
-//           folderTree={folderTree}
-//           fetchFolderTree={() => fetchFolderTree(accountId)}
-//           selectedFolderForMenu={selectedFolderForMenu}
-//         />
-
-//         <MoveDrawer
-//           isOpen={bulkMoveDrawerOpen}
-//           onClose={() => setBulkMoveDrawerOpen(false)}
-//           folderTree={folderTree}
-//           fetchFolderTree={fetchFolderTree}
-//           isBulkOperation={true}
-//           selectedPaths={Array.from(selectedItems)}
-//           onMoveComplete={(targetPath) => {
-//             console.log("Bulk move completed to:", targetPath);
-//             setSelectedItems(new Set());
-//           }}
-//         />
-//       </div>
-
-//       {/* Folder Explorer */}
-//       <Card className="mt-6 shadow-lg border-0">
-//         <CardHeader className="border-b bg-muted/30">
-//           <CardTitle className="text-xl font-semibold flex items-center gap-2">
-//             <FolderIcon className="h-5 w-5 text-primary" />
-//             Folder Explorer
-//           </CardTitle>
-//         </CardHeader>
-//         <CardContent className="p-0">
-//           {folderTree && folderTree.length > 0 ? (
-//             <div className="overflow-auto rounded-lg">
-//               <Table>
-//                 <TableHeader className="bg-muted/50">
-//                   <TableRow className="border-b-2">
-//                     <TableHead className="w-[50px]">
-//                       <Checkbox
-//                         checked={selectAll}
-//                         data-indeterminate={selectedItems.size > 0 && !selectAll}
-//                         onCheckedChange={handleSelectAll}
-//                       />
-//                     </TableHead>
-//                     <TableHead className="font-semibold">Name</TableHead>
-//                     <TableHead className="font-semibold">Content</TableHead>
-//                     <TableHead className="font-semibold">Status</TableHead>
-//                     <TableHead className="font-semibold">Uploaded</TableHead>
-//                     <TableHead className="font-semibold">User</TableHead>
-//                     <TableHead className="text-right font-semibold">Actions</TableHead>
-//                   </TableRow>
-//                 </TableHeader>
-//                 <TableBody>{renderTableRows(folderTree)}</TableBody>
-//               </Table>
-//             </div>
-//           ) : (
-//             <div className="p-8 text-center text-muted-foreground">
-//               <FolderIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-//               <p>No folders or files found</p>
-//             </div>
-//           )}
-//         </CardContent>
-//       </Card>
-
-//       {/* Bulk Lock Dialog */}
-//       <Dialog open={bulkLockDialogOpen} onOpenChange={setBulkLockDialogOpen}>
-//         <DialogContent className="sm:max-w-md">
-//           <DialogHeader>
-//             <DialogTitle className="text-xl">Lock/Unlock Selected Items</DialogTitle>
-//             <DialogDescription className="text-base mt-2">
-//               Do you want to lock or unlock the {selectedItems.size} selected
-//               item(s)?
-//             </DialogDescription>
-//           </DialogHeader>
-//           <div className="flex justify-end gap-3 mt-6">
-//             <Button variant="outline" onClick={() => setBulkLockDialogOpen(false)}>
-//               Cancel
-//             </Button>
-//             <Button
-//               variant="outline"
-//               onClick={() => handleBulkLock("unlock")}
-//               disabled={bulkOperationLoading}
-//             >
-//               Unlock
-//             </Button>
-//             <Button
-//               onClick={() => handleBulkLock("lock")}
-//               variant="default"
-//               disabled={bulkOperationLoading}
-//             >
-//               Lock
-//             </Button>
-//           </div>
-//         </DialogContent>
-//       </Dialog>
-
-//       {/* Docuseal Dialog */}
-//       {/* <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-//         <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0">
-//           <DialogHeader className="p-6 pb-0">
-//             <DialogTitle className="text-xl">{selectedFolderForMenu?.name || "Document"}</DialogTitle>
-//           </DialogHeader>
-//           <div className="overflow-auto flex-1 min-h-0 p-6 pt-2">
-//             {token && showBuilderFor && (
-//               <DocusealBuilder
-//                 token={token}
-//                   customCss={customCss}
-//                 onComplete={() => {
-//                   console.log("DocuSeal finished sending document");
-//                   setShowBuilderFor(null);
-//                   setOpenDialog(false);
-//                 }}
-//               />
-//             )}
-//           </div>
-//           <Button
-//             variant="ghost"
-//             size="icon"
-//             className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
-//             onClick={() => setOpenDialog(false)}
-//           >
-//             <X className="h-4 w-4" />
-//             <span className="sr-only">Close</span>
-//           </Button>
-//         </DialogContent>
-//       </Dialog> */}
-// <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-//   <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col">
-//     <DialogHeader className="p-6 pb-0">
-//       <DialogTitle className="text-xl">
-//         {selectedFolderForMenu?.name || "Document"}
-//       </DialogTitle>
-//       {/* <Button
-//         variant="ghost"
-//         size="icon"
-//         className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
-//         onClick={() => {
-//           setOpenDialog(false);
-//           setShowBuilderFor(null);
-//           setToken("");
-//         }}
-//       >
-//         <X className="h-4 w-4" />
-//         <span className="sr-only">Close</span>
-//       </Button> */}
-//     </DialogHeader>
-    
-//     <div className="flex-1 overflow-auto p-6 pt-2">
-//                  {token && showBuilderFor && (
-//               <DocusealBuilder
-//                 token={token}
-//                 customCss={customCss}
-//                 onComplete={() => {
-//                   console.log("DocuSeal finished sending document");
-//                   setShowBuilderFor(null);
-//                   setOpenDialog(false);
-//                 }}
-//               />
-//             )}
-//     </div>
-//   </DialogContent>
-// </Dialog>
-//       {/* Approval Dialog */}
-      // <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
-      //   <DialogContent className="sm:max-w-lg">
-      //     <DialogHeader>
-      //       <DialogTitle className="text-xl">Request Approval</DialogTitle>
-      //       <DialogDescription>
-      //         Send an approval request for this document
-      //       </DialogDescription>
-      //     </DialogHeader>
-      //     <div className="py-4">
-      //       <Label htmlFor="description" className="text-sm font-medium mb-2 block">
-      //         Description
-      //       </Label>
-      //       <Textarea
-      //         id="description"
-      //         value={description}
-      //         onChange={(e) => setDescription(e.target.value)}
-      //         placeholder="Type a short description or note..."
-      //         rows={4}
-      //         className="resize-none"
-      //       />
-      //     </div>
-      //     <DialogFooter className="gap-2">
-      //       <Button variant="outline" onClick={handleCloseDialog}>
-      //         Cancel
-      //       </Button>
-      //       <Button
-      //         onClick={handleRequestApproval}
-      //         disabled={!description.trim() || sending}
-      //       >
-      //         {sending ? "Sending..." : "Send"}
-      //       </Button>
-      //     </DialogFooter>
-      //   </DialogContent>
-      // </Dialog>
-
-//       {/* Context Menu */}
-      // {menuAnchorEl && selectedFolderForMenu && (
-      //   <div
-      //     className="fixed inset-0 z-50"
-      //     onClick={handleMenuClose}
-      //     onContextMenu={(e) => {
-      //       e.preventDefault();
-      //       handleMenuClose();
-      //     }}
-      //   >
-      //     <div
-      //       className="absolute z-50 min-w-[200px] rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg"
-      //       style={{
-      //         top: menuAnchorEl.getBoundingClientRect().bottom,
-      //         left: menuAnchorEl.getBoundingClientRect().left,
-      //       }}
-      //     >
-      //       {(() => {
-      //         const item = selectedFolderForMenu;
-      //         const isFolder = item.type === "folder";
-      //         const isLocked = item?.meta?.readOnly === true;
-
-      //         const path = item.path.toLowerCase();
-      //         let docType = "client";
-      //         if (path.includes("firm")) docType = "firm";
-      //         if (path.includes("private")) docType = "private";
-      //         const PROTECTED_FOLDERS = [
-      //           "Client Uploaded Documents",
-      //           "Firm Documents Shared with Client",
-      //           "Private",
-      //         ];
-      //         const isProtectedFolder =
-      //           isFolder && PROTECTED_FOLDERS.includes(item.name);
-
-      //         const menuItems = [];
-
-      //         if (isFolder) {
-      //           if (docType === "client") {
-      //             menuItems.push(
-      //               {
-      //                 icon: <FolderIcon className="mr-2 h-4 w-4" />,
-      //                 label: "New Folder",
-      //                 action: () => setNewFolderDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Edit",
-      //                 action: () => SetRenameDrawer(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Move",
-      //                 action: () => setMoveDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Trash2 className="mr-2 h-4 w-4" />,
-      //                 label: "Delete",
-      //                 action: () => trashItem(item),
-      //                 disabled: isProtectedFolder,
-      //               },
-      //               {
-      //                 icon: <Download className="mr-2 h-4 w-4" />,
-      //                 label: "Download",
-      //                 action: () => handleDownload(item),
-      //               },
-      //               {
-      //                 icon: <Upload className="mr-2 h-4 w-4" />,
-      //                 label: "New File",
-      //                 action: () => setFileUploadDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <FolderUp className="mr-2 h-4 w-4" />,
-      //                 label: "Upload Folder",
-      //                 action: () => setFolderUploaDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: isLocked ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />,
-      //                 label: isLocked ? "Unlock" : "Lock",
-      //                 action: () => toggleReadOnly(item),
-      //               },
-      //             );
-      //           } else if (docType === "firm") {
-      //             menuItems.push(
-      //               {
-      //                 icon: <FolderIcon className="mr-2 h-4 w-4" />,
-      //                 label: "New Folder",
-      //                 action: () => setNewFolderDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Edit",
-      //                 action: () => SetRenameDrawer(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Move",
-      //                 action: () => setMoveDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Upload className="mr-2 h-4 w-4" />,
-      //                 label: "New File",
-      //                 action: () => setFileUploadDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Download className="mr-2 h-4 w-4" />,
-      //                 label: "Download",
-      //                 action: () => handleDownload(item),
-      //               },
-      //               {
-      //                 icon: <FolderUp className="mr-2 h-4 w-4" />,
-      //                 label: "Upload Folder",
-      //                 action: () => setFolderUploaDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Trash2 className="mr-2 h-4 w-4" />,
-      //                 label: "Delete",
-      //                 action: () => trashItem(item),
-      //                 disabled: isProtectedFolder,
-      //               },
-      //             );
-      //           } else if (docType === "private") {
-      //             menuItems.push(
-      //               {
-      //                 icon: <FolderIcon className="mr-2 h-4 w-4" />,
-      //                 label: "New Folder",
-      //                 action: () => setNewFolderDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Upload className="mr-2 h-4 w-4" />,
-      //                 label: "New File",
-      //                 action: () => setFileUploadDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Move",
-      //                 action: () => setMoveDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Edit",
-      //                 action: () => SetRenameDrawer(true),
-      //               },
-      //               {
-      //                 icon: <Trash2 className="mr-2 h-4 w-4" />,
-      //                 label: "Delete",
-      //                 action: () => trashItem(item),
-      //                 disabled: isProtectedFolder,
-      //               },
-      //               {
-      //                 icon: <Download className="mr-2 h-4 w-4" />,
-      //                 label: "Download",
-      //                 action: () => handleDownload(item),
-      //               },
-      //             );
-      //           }
-      //         } else {
-      //           if (docType === "client") {
-      //             menuItems.push(
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Edit",
-      //                 action: () => SetRenameDrawer(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Move",
-      //                 action: () => setMoveDrawerOpen(true),
-      //               },
-      //               {
-      //                 icon: isLocked ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />,
-      //                 label: isLocked ? "Unlock" : "Lock",
-      //                 action: () => toggleReadOnly(item),
-      //               },
-      //               {
-      //                 icon: <Trash2 className="mr-2 h-4 w-4" />,
-      //                 label: "Delete",
-      //                 action: () => trashItem(item),
-      //               },
-      //               {
-      //                 icon: <Download className="mr-2 h-4 w-4" />,
-      //                 label: "Download",
-      //                 action: () => handleDownload(item),
-      //               },
-      //             );
-      //           } else if (docType === "firm") {
-      //             const currentStatus =
-      //               item.meta?.signStatus || "sendForSignature";
-      //             const approvalStatus =
-      //               item.meta?.authStatus || "sendForApproval";
-      //             const invoiceStatus = item.meta?.lockInvoiceStatus;
-
-      //             const isSignatureDisabled =
-      //               currentStatus === "pendingSignature" ||
-      //               currentStatus === "signatureCompleted";
-
-      //             const isApprovalCompleted =
-      //               approvalStatus === "approvalCompleted";
-      //             const isApprovalCanceled =
-      //               approvalStatus === "canceledApproval";
-
-      //             let invoiceLabel = "Lock Invoice";
-      //             if (invoiceStatus === "pendingpayment")
-      //               invoiceLabel = "Unlock Invoice";
-      //             if (invoiceStatus === "paymentcompleted" || !invoiceStatus)
-      //               invoiceLabel = "Lock Invoice";
-
-      //             menuItems.push(
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Edit",
-      //                 action: () => SetRenameDrawer(true),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Move",
-      //                 action: () => setMoveDrawerOpen(true),
-      //               },
-      //             );
-
-      //             if (currentStatus === "pendingSignature") {
-      //               menuItems.push({
-      //                 icon: <XCircle className="mr-2 h-4 w-4" />,
-      //                 label: "Cancel Signature Request",
-      //                 action: () => cancelSignature(item),
-      //               });
-      //             } else {
-      //               menuItems.push({
-      //                 icon: <PenTool className="mr-2 h-4 w-4" size={16} />,
-      //                 label: statusTextMap[currentStatus],
-      //                 action: () => toggleSignStatus(item),
-      //                 disabled: isSignatureDisabled,
-      //               });
-      //             }
-
-      //             if (approvalStatus === "sendForApproval") {
-      //               menuItems.push({
-      //                 icon: <Stamp className="mr-2 h-4 w-4" size={16} />,
-      //                 label: "Send For Approval",
-      //                 action: () => toggleApprovalStatus(item),
-      //               });
-      //             }
-
-      //             if (approvalStatus === "pendingApproval") {
-      //               menuItems.push({
-      //                 icon: <XCircle className="mr-2 h-4 w-4" />,
-      //                 label: "Cancel Approval Request",
-      //                 action: () => handleCancelApproval(item),
-      //               });
-      //             }
-
-      //             if (isApprovalCompleted) {
-      //               menuItems.push({
-      //                 icon: <Stamp className="mr-2 h-4 w-4" size={16} />,
-      //                 label: "Approved",
-      //                 disabled: true,
-      //               });
-      //             }
-
-      //             if (isApprovalCanceled) {
-      //               menuItems.push({
-      //                 icon: <Stamp className="mr-2 h-4 w-4" size={16} />,
-      //                 label: "Approval Canceled",
-      //                 disabled: true,
-      //               });
-      //             }
-
-      //             menuItems.push({
-      //               icon: invoiceStatus === "pendingpayment" ? (
-      //                 <Unlock className="mr-2 h-4 w-4" />
-      //               ) : (
-      //                 <Lock className="mr-2 h-4 w-4" />
-      //               ),
-      //               label: invoiceLabel,
-      //               action: () => toggleInvoiceLock(item),
-      //             });
-
-      //             menuItems.push({
-      //               icon: <Trash2 className="mr-2 h-4 w-4" />,
-      //               label: "Delete",
-      //               action: () => trashItem(item),
-      //             });
-      //             menuItems.push({
-      //               icon: <Download className="mr-2 h-4 w-4" />,
-      //               label: "Download",
-      //               action: () => handleDownload(item),
-      //             });
-      //           } else if (docType === "private") {
-      //             menuItems.push(
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Edit",
-      //                 action: () => SetRenameDrawer(true),
-      //               },
-      //               {
-      //                 icon: <Trash2 className="mr-2 h-4 w-4" />,
-      //                 label: "Delete",
-      //                 action: () => trashItem(item),
-      //               },
-      //               {
-      //                 icon: <Download className="mr-2 h-4 w-4" />,
-      //                 label: "Download",
-      //                 action: () => handleDownload(item),
-      //               },
-      //               {
-      //                 icon: <Move className="mr-2 h-4 w-4" />,
-      //                 label: "Move",
-      //                 action: () => setMoveDrawerOpen(true),
-      //               },
-      //             );
-      //           }
-      //         }
-
-      //         return menuItems.map(({ icon, label, action, disabled }) => (
-      //           <button
-      //             key={label}
-      //             className={`flex w-full items-center rounded-sm px-2 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground ${
-      //               disabled
-      //                 ? "cursor-not-allowed opacity-50"
-      //                 : "cursor-pointer"
-      //             }`}
-      //             disabled={disabled}
-      //             onClick={() => {
-      //               action?.();
-      //               handleMenuClose();
-      //             }}
-      //           >
-      //             {icon}
-      //             {label}
-      //           </button>
-      //         ));
-      //       })()}
-      //     </div>
-      //   </div>
-      // )}
-
-//       {/* Invoice Dialog */}
-      <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Select Invoices To Lock</DialogTitle>
-            <DialogDescription>
-              Choose invoices to associate with this document
-            </DialogDescription>
-          </DialogHeader>
-          <div className="overflow-auto flex-1">
-            {invoiceList.length === 0 && (
-              <div className="text-center text-muted-foreground p-8">
-                No invoices found
-              </div>
-            )}
-            <div className="overflow-x-auto mt-1">
-              <Table>
-                <TableHeader className="sticky top-0 bg-background">
-                  <TableRow>
-                    <TableHead className="w-[60px]">Select</TableHead>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoiceList.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        No invoices found.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    invoiceList.map((inv) => {
-                      const id = inv._id;
-                      const checked = selectedInvoices.includes(id);
-
-                      return (
-                        <TableRow
-                          key={id}
-                          className={`cursor-pointer hover:bg-muted/50 transition-colors ${
-                            checked ? "bg-primary/5" : ""
-                          }`}
-                          onClick={() => {
-                            setSelectedInvoices((prev) => {
-                              const updated = prev.includes(id)
-                                ? prev.filter((x) => x !== id)
-                                : [...prev, id];
-                              console.log("Selected invoices:", updated);
-                              return updated;
-                            });
-                          }}
-                        >
-                          <TableCell>
-                            <Checkbox checked={checked} />
-                          </TableCell>
-                          <TableCell className="font-medium">{inv.invoicenumber}</TableCell>
-                          <TableCell>{inv.description || "—"}</TableCell>
-                          <TableCell>
-                            {new Date(inv.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            ₹{inv.summary?.total?.toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
+        {/* LOCK/UNLOCK */}
+        <Dialog open={bulkLockDialogOpen} onOpenChange={setBulkLockDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                Lock/Unlock Selected Items
+              </DialogTitle>
+              <DialogDescription className="text-base mt-2">
+                Do you want to lock or unlock the {selectedItems.size} selected
+                item(s)?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setBulkLockDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleBulkLock("unlock")}
+                disabled={bulkOperationLoading}
+              >
+                Unlock
+              </Button>
+              <Button
+                onClick={() => handleBulkLock("lock")}
+                variant="default"
+                disabled={bulkOperationLoading}
+              >
+                Lock
+              </Button>
             </div>
-          </div>
-          <DialogFooter className="mt-4 pt-4 border-t">
-            <Button variant="outline" onClick={() => setInvoiceDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Lock Invoice</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+        {/* APPROVAL */}
+        <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-xl">Request Approval</DialogTitle>
+              <DialogDescription>
+                Send an approval request for this document
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label
+                htmlFor="description"
+                className="text-sm font-medium mb-2 block"
+              >
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Type a short description or note..."
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={handleCloseDialog}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRequestApproval}
+                disabled={!description.trim() || sending}
+              >
+                {sending ? "Sending..." : "Send"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {/* SIGNATURE */}
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col">
+            <DialogHeader className="p-6 pb-0">
+              <DialogTitle className="text-xl">
+                {selectedFolderForMenu?.name || "Document"}
+              </DialogTitle>
+            </DialogHeader>
 
-//       {/* File Viewer Dialog */}
-//       {/* <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
-//         <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0">
-//           <DialogHeader className="p-6 pb-0">
-//             <DialogTitle className="text-xl truncate">{selectedFileName}</DialogTitle>
-//           </DialogHeader>
-//           <div className="flex-1 min-h-0 bg-muted rounded-b-lg overflow-hidden">
-//             <iframe
-//               src={selectedFileUrl}
-//               title="File Preview"
-//               className="w-full h-full border-0"
-//             />
-//           </div>
-//           <Button
-//             variant="ghost"
-//             size="icon"
-//             className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
-//             onClick={() => setOpenFileViewer(false)}
-//           >
-//             <X className="h-4 w-4" />
-//             <span className="sr-only">Close</span>
-//           </Button>
-//         </DialogContent>
-//       </Dialog> */}
+            <div className="flex-1 overflow-auto p-6 pt-2">
+              {token && showBuilderFor && (
+                <DocusealBuilder
+                  token={token}
+                  customCss={customCss}
+                  onComplete={() => {
+                    console.log("DocuSeal finished sending document");
+                    setShowBuilderFor(null);
+                    setOpenDialog(false);
+                  }}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+        {/* INVOICE LOCK */}
+        <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+          <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                Select Invoices To Lock
+              </DialogTitle>
+              <DialogDescription>
+                Choose invoices to associate with this document
+              </DialogDescription>
+            </DialogHeader>
+            <div className="overflow-auto flex-1">
+              {invoiceList.length === 0 && (
+                <div className="text-center text-muted-foreground p-8">
+                  No invoices found
+                </div>
+              )}
+              <div className="overflow-x-auto mt-1">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background">
+                    <TableRow>
+                      <TableHead className="w-[60px]">Select</TableHead>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Created At</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoiceList.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">
+                          No invoices found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      invoiceList.map((inv) => {
+                        const id = inv._id;
+                        const checked = selectedInvoices.includes(id);
 
-//       {/* Word Viewer Dialog */}
-//       {/* <Dialog open={openWordDialog} onOpenChange={setOpenWordDialog}>
-//         <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh]">
-//           <DialogHeader>
-//             <DialogTitle className="text-xl truncate">{selectedFileName}</DialogTitle>
-//           </DialogHeader>
-//           <div className="flex-1 min-h-0">
-//             <iframe
-//               src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedFileUrl)}`}
-//               className="w-full h-[600px] border-0 rounded-lg"
-//               title="Word Viewer"
-//             />
-//           </div>
-//         </DialogContent>
-//       </Dialog> */}
-
-//       {/* Text Viewer Dialog */}
-//       {/* <Dialog open={openTextDialog} onOpenChange={setOpenTextDialog}>
-//         <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
-//           <DialogHeader>
-//             <DialogTitle className="text-xl truncate">{selectedFileName}</DialogTitle>
-//           </DialogHeader>
-//           <ScrollArea className="flex-1 border rounded-lg p-4">
-//             <pre className="whitespace-pre-wrap font-mono text-sm">
-//               {textContent}
-//             </pre>
-//           </ScrollArea>
-//         </DialogContent>
-//       </Dialog> */}
-
-//       {/* Excel Viewer Dialog */}
-//       {/* <Dialog open={openExcelDialog} onOpenChange={setOpenExcelDialog}>
-//         <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh]">
-//           <DialogHeader>
-//             <DialogTitle className="text-xl truncate">{selectedFileName}</DialogTitle>
-//           </DialogHeader>
-//           <div className="flex-1 min-h-0">
-//             <iframe
-//               src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedFileUrl)}`}
-//               className="w-full h-[600px] border-0 rounded-lg"
-//               title="Excel Viewer"
-//             />
-//           </div>
-//         </DialogContent>
-//       </Dialog> */}
-
-//       {/* File Viewer Dialog */}
-// <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
-//   <DialogContent
-//     className="
-//       w-[95vw]
-//       max-w-7xl
-//       h-[92vh]
-//       p-0
-//       flex
-//       flex-col
-//       top-[50%]
-//       left-[50%]
-//       translate-x-[-50%]
-//       translate-y-[-50%]
-//     "
-//   >
-//     <DialogHeader className="p-6 pb-0">
-//       <DialogTitle className="text-xl truncate">
-//         {selectedFileName}
-//       </DialogTitle>
-//     </DialogHeader>
-
-//     <div className="flex-1 overflow-hidden bg-muted rounded-b-xl">
-//       <iframe
-//         src={selectedFileUrl}
-//         title="File Preview"
-//         className="w-full h-full border-0"
-//       />
-//     </div>
-
-//     {/* <Button
-//       variant="ghost"
-//       size="icon"
-//       className="absolute right-4 top-4 z-50"
-//       onClick={() => setOpenFileViewer(false)}
-//     >
-//       <X className="h-4 w-4" />
-//     </Button> */}
-//   </DialogContent>
-// </Dialog>
-
-// {/* Word Viewer Dialog */}
-// <Dialog open={openWordDialog} onOpenChange={setOpenWordDialog}>
-//   <DialogContent
-//     className="
-//       w-[95vw]
-//       max-w-7xl
-//       h-[92vh]
-//       flex
-//       flex-col
-//       top-[50%]
-//       left-[50%]
-//       translate-x-[-50%]
-//       translate-y-[-50%]
-//     "
-//   >
-//     <DialogHeader>
-//       <DialogTitle className="text-xl truncate">
-//         {selectedFileName}
-//       </DialogTitle>
-//     </DialogHeader>
-
-//     <div className="flex-1 overflow-hidden">
-//       <iframe
-//         src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-//           selectedFileUrl
-//         )}`}
-//         className="w-full h-full border-0 rounded-lg"
-//         title="Word Viewer"
-//       />
-//     </div>
-//   </DialogContent>
-// </Dialog>
-
-// {/* Text Viewer Dialog */}
-// <Dialog open={openTextDialog} onOpenChange={setOpenTextDialog}>
-//   <DialogContent
-//     className="
-//       w-[90vw]
-//       max-w-5xl
-//       h-[85vh]
-//       flex
-//       flex-col
-//       top-[50%]
-//       left-[50%]
-//       translate-x-[-50%]
-//       translate-y-[-50%]
-//     "
-//   >
-//     <DialogHeader>
-//       <DialogTitle className="text-xl truncate">
-//         {selectedFileName}
-//       </DialogTitle>
-//     </DialogHeader>
-
-//     <ScrollArea className="flex-1 border rounded-lg p-4">
-//       <pre className="whitespace-pre-wrap font-mono text-sm">
-//         {textContent}
-//       </pre>
-//     </ScrollArea>
-//   </DialogContent>
-// </Dialog>
-
-// {/* Excel Viewer Dialog */}
-// <Dialog open={openExcelDialog} onOpenChange={setOpenExcelDialog}>
-//   <DialogContent
-//     className="
-//       w-[95vw]
-//       max-w-7xl
-//       h-[92vh]
-//       flex
-//       flex-col
-//       top-[50%]
-//       left-[50%]
-//       translate-x-[-50%]
-//       translate-y-[-50%]
-//     "
-//   >
-//     <DialogHeader>
-//       <DialogTitle className="text-xl truncate">
-//         {selectedFileName}
-//       </DialogTitle>
-//     </DialogHeader>
-
-//     <div className="flex-1 overflow-hidden">
-//       <iframe
-//         src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-//           selectedFileUrl
-//         )}`}
-//         className="w-full h-full border-0 rounded-lg"
-//         title="Excel Viewer"
-//       />
-//     </div>
-//   </DialogContent>
-// </Dialog>
-//     </div>
-//   );
+                        return (
+                          <TableRow
+                            key={id}
+                            className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                              checked ? "bg-primary/5" : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedInvoices((prev) => {
+                                const updated = prev.includes(id)
+                                  ? prev.filter((x) => x !== id)
+                                  : [...prev, id];
+                                console.log("Selected invoices:", updated);
+                                return updated;
+                              });
+                            }}
+                          >
+                            <TableCell>
+                              <Checkbox checked={checked} />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {inv.invoicenumber}
+                            </TableCell>
+                            <TableCell>{inv.description || "—"}</TableCell>
+                            <TableCell>
+                              {new Date(inv.createdAt).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              ₹{inv.summary?.total?.toLocaleString()}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+            <DialogFooter className="mt-4 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setInvoiceDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSubmit}>Lock Invoice</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
 };

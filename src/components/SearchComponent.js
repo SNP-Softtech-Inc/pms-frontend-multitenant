@@ -396,7 +396,7 @@ const SearchComponent = () => {
         const isTeamMember = user?.role === "team_member";
 
         const accountPromise = isTeamMember
-          ? accountsAPI.getAccountsByTeamMember({
+          ? accountsAPI.getAccountsByTeamMemberName ({
               active: true,
               search: debouncedQuery,
             })

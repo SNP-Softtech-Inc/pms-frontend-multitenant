@@ -183,7 +183,7 @@ const cleanSubjectText = (subject = "") => {
 };
 
   const buildAccountLink = (mongoId) => {
-    return `/clients/accounts/accountsdash/overview/${mongoId}`;
+    return `/admin/clients/accounts/accountsdash/overview/${mongoId}`;
   };
   const markThreadAsRead = async (threadId) => {
     try {

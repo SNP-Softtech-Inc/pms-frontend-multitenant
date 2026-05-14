@@ -549,7 +549,7 @@ const USER_URL = process.env.REACT_APP_AUTH_USER;
 const handleConnectGmail = async () => {
   try {
     // Save email sync value first
-    await updateUserEmailSync(emailsync);
+    // await updateUserEmailSync(emailsync);
 
     // JWT token from login
     const token = localStorage.getItem("token");

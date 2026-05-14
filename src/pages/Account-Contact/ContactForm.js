@@ -207,14 +207,6 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
     console.log("New contacts needing activation:", newActivationContacts);
     console.log("New activation emails:", newActivationEmails);
 
-    // if (newActivationContacts.length > 0) {
-    //   // Show personalization dialog only for NEW contacts
-    //   setPendingSubmit(true);
-    //   setPersonalizationDialogOpen(true);
-    // } else {
-    //   // No NEW contacts need activation, submit directly without message
-    //   await onSubmit(event, "");
-    // }
     if (newActivationContacts.length > 0) {
       // Show personalization dialog only for NEW contacts
       setPendingSubmit(true);

@@ -194,7 +194,7 @@ const Dashboard = () => {
                 // Hide Firm Settings inside Settings
                 if (
                   newItem.label === "Settings" &&
-                  subItem.label === "Firm Settings"
+                  subItem.label === "Firm Settings" 
                 )
                   return false;
 

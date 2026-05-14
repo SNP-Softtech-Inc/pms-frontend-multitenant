@@ -117,7 +117,7 @@ const ForgotPassword = () => {
         try {
             await authAPI.forgotPassword({
                 email,
-                url: `${ADMIN_URL}admin/reset-password`,
+                url: `${ADMIN_URL}/admin/reset-password`,
             });
 
             toast.success("Reset link sent to email");
