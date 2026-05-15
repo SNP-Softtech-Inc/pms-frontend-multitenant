@@ -329,14 +329,7 @@
 // export default FileUploadDrawer;
 
 import React, { useState, useEffect } from "react";
-import {
-  FaFilePdf,
-  FaFileWord,
-  FaFileExcel,
-  FaFileImage,
-  FaFileAlt,
-} from "react-icons/fa";
-import { AiFillFileUnknown } from "react-icons/ai";
+
 import { toast } from "react-toastify";
 import { useAuth } from "../../../../context/AuthContext";
 import { accountDocsAPI, invoiceAPI } from "../../../../services/api";
@@ -360,7 +353,7 @@ const FileUploadDrawer = ({
   accountId,
 }) => {
   const { user } = useAuth();
-
+const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
@@ -451,6 +444,8 @@ const FileUploadDrawer = ({
 
   const performUpload = async () => {
     try {
+       setUploading(true);
+
       const formData = new FormData();
 
       files.forEach((file) => formData.append("files", file));
@@ -468,7 +463,9 @@ const FileUploadDrawer = ({
     } catch (err) {
       console.error(err);
       toast.error("Upload failed");
-    }
+    }finally {
+    setUploading(false);
+  }
   };
 
   if (!isOpen) return null;
@@ -553,9 +550,16 @@ const FileUploadDrawer = ({
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleUpload} className="flex-1">
+            {/* <Button onClick={handleUpload} className="flex-1">
               Upload
-            </Button>
+            </Button> */}
+            <Button
+  onClick={handleUpload}
+  className="flex-1"
+  disabled={uploading}
+>
+  {uploading ? "Uploading..." : "Upload"}
+</Button>
           </div>
         </div>
       </div>

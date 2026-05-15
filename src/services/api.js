@@ -1166,8 +1166,13 @@ export const accountDocsAPI = {
   // ================= DOCUMENT STATES =================
 
   // New tagged docs
-  getNewTaggedDocs: () =>
-    folderManagementApi.get("/accounts/docs/documents/new-tagged"),
+  // getNewTaggedDocs: () =>
+  //   folderManagementApi.get("/accounts/docs/documents/new-tagged"),
+  getNewTaggedDocs: (config) =>
+  folderManagementApi.get(
+    "/accounts/docs/documents/new-tagged",
+    config
+  ),
 
   // Pending approvals
   getPendingApprovals: () =>

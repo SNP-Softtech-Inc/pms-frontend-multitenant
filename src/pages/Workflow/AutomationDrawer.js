@@ -798,7 +798,7 @@ const AutomationDrawer = ({
 
         case "TaskTemplate":
           const taskRes = await templateAPI.getTaskTemplateById(templateId);
-          return taskRes.data.taskTemplate?.templatename || "Unknown Task Template";
+          return taskRes.data.data?.templatename || "Unknown Task Template";
 
         case "InvoiceTemplate":
           const invoiceRes = await templateAPI.getInvoiceTemplateById(templateId);

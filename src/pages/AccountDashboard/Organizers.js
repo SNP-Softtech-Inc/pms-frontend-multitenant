@@ -597,31 +597,64 @@ const Organizers = () => {
       },
     });
   };
+const handleBulkDelete = () => {
+  const selectedRows = table
+    .getSelectedRowModel()
+    .rows.map((row) => row.original);
 
-  const handleBulkDelete = () => {
-    const selectedIds = Object.keys(rowSelection);
-    if (selectedIds.length === 0) {
-      toast.warning("Select items first");
-      return;
-    }
+  const selectedIds = selectedRows.map((row) => row._id);
 
-    confirm({
-      title: "Delete Selected Items",
-      description: `Are you sure you want to delete ${selectedIds.length} selected items?`,
-      onConfirm: async () => {
-        try {
-          await Promise.all(
-            selectedIds.map((id) => organizerAPI.deleteOrganizerAccountWise(id))
-          );
-          toast.success("Deleted");
-          setRowSelection({});
-          fetchOrganizerTemplates();
-        } catch {
-          toast.error("Bulk delete failed");
-        }
-      },
-    });
-  };
+  if (selectedIds.length === 0) {
+    toast.warning("Select items first");
+    return;
+  }
+
+  confirm({
+    title: "Delete Selected Items",
+    description: `Are you sure you want to delete ${selectedIds.length} selected items?`,
+    onConfirm: async () => {
+      try {
+        await Promise.all(
+          selectedIds.map((id) =>
+            organizerAPI.deleteOrganizerAccountWise(id)
+          )
+        );
+
+        toast.success("Deleted");
+
+        setRowSelection({});
+        fetchOrganizerTemplates();
+      } catch (error) {
+        console.log(error);
+        toast.error("Bulk delete failed");
+      }
+    },
+  });
+};
+  // const handleBulkDelete = () => {
+  //   const selectedIds = Object.keys(rowSelection);
+  //   if (selectedIds.length === 0) {
+  //     toast.warning("Select items first");
+  //     return;
+  //   }
+
+  //   confirm({
+  //     title: "Delete Selected Items",
+  //     description: `Are you sure you want to delete ${selectedIds.length} selected items?`,
+  //     onConfirm: async () => {
+  //       try {
+  //         await Promise.all(
+  //           selectedIds.map((id) => organizerAPI.deleteOrganizerAccountWise(id))
+  //         );
+  //         toast.success("Deleted");
+  //         setRowSelection({});
+  //         fetchOrganizerTemplates();
+  //       } catch {
+  //         toast.error("Bulk delete failed");
+  //       }
+  //     },
+  //   });
+  // };
 
   // ================= RENAME =================
   const handleRenameConfirm = async () => {
