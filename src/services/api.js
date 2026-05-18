@@ -1239,9 +1239,9 @@ export const chatAPI = {
   getChatsByAccount: (accountId) =>
     chatApi.get(`/chats/chatsaccountwise/chatlistbyaccount/${accountId}`),
 
-  getChatsByAccountAndStatus: (accountId, isactive) =>
+  getChatsByAccountAndStatus: (accountId, isactive,role) =>
     chatApi.get(
-      `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}`,
+      `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}?role=${role}`,
     ),
   createChat: (data) => chatApi.post("/chats/chatsaccountwise", data),
 
@@ -1252,7 +1252,9 @@ export const chatAPI = {
 
   updateChat: (id, data) =>
     chatApi.patch(`/chats/chatsaccountwise/${id}`, data),
-
+  // ✅ NEW
+  deleteChatForAdmin: (id) =>
+    chatApi.put(`/chats/delete-chat-for-admin/${id}`),
   // ================= MESSAGES =================
 
   updateMessage: (data) =>

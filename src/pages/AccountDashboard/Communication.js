@@ -447,7 +447,7 @@ console.log("chat list by account",chatList)
     try {
       const res = await chatAPI.getChatsByAccountAndStatus(
         accId,
-        active
+        active,"admin"
       );
       setChatList(res.data.chataccountwise || []);
     } catch (error) {
@@ -512,26 +512,60 @@ console.log("chat list by account",chatList)
 
   const isChatSelected = (id) => selectedChatIds.includes(id);
 
-  const handleBulkDelete = () => {
-    confirm({
-      title: "Delete Chats",
-      description: "Are you sure you want to delete selected chats?",
-      onConfirm: async () => {
-        try {
-          await Promise.all(
-            selectedChatIds.map((id) => chatAPI.deleteChat(id))
-          );
+  // const handleBulkDelete = () => {
+  //   confirm({
+  //     title: "Delete Chats",
+  //     description: "Are you sure you want to delete selected chats?",
+  //     onConfirm: async () => {
+  //       try {
+  //         await Promise.all(
+  //           selectedChatIds.map((id) => chatAPI.deleteChat(id))
+  //         );
 
-          toast.success("Chats deleted");
-          setSelectedChatIds([]);
-          accountwiseChatlist(accountId, isActiveTrue);
-        } catch (error) {
-          toast.error("Delete failed");
+  //         toast.success("Chats deleted");
+  //         setSelectedChatIds([]);
+  //         accountwiseChatlist(accountId, isActiveTrue);
+  //       } catch (error) {
+  //         toast.error("Delete failed");
+  //       }
+  //     },
+  //   });
+  // };
+const handleBulkDelete = () => {
+  confirm({
+    title: "Delete Chats",
+    description: "Are you sure you want to delete selected chats?",
+    onConfirm: async () => {
+      try {
+
+        await Promise.all(
+          selectedChatIds.map((id) =>
+            chatAPI.deleteChatForAdmin(id)
+          )
+        );
+
+        toast.success("Chats deleted");
+
+        setSelectedChatIds([]);
+
+        // remove selected chat if deleted
+        if (
+          selectedChat &&
+          selectedChatIds.includes(selectedChat._id)
+        ) {
+          setSelectedChat(null);
         }
-      },
-    });
-  };
 
+        accountwiseChatlist(accountId, isActiveTrue);
+
+      } catch (error) {
+        console.error(error);
+
+        toast.error("Delete failed");
+      }
+    },
+  });
+};
   const handleArchiveJob = async (id) => {
     try {
       await chatAPI.updateChat(id, { active: !isActiveTrue });

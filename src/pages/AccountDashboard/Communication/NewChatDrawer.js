@@ -449,7 +449,7 @@ const saveChat = async () => {
       accountids: selectedaccount.map((a) => a.value),
       chatsubject: inputText,
       from:username,
-      templatename:selectedtemp.label,
+      templatename:selectedtemp?.label || null,
       description: [
         {
           message: description,

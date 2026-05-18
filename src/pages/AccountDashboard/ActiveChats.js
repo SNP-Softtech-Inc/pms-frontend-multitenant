@@ -22,7 +22,8 @@ const ActiveChats = ({ accountId, setChatsCount }) => {
 
       const res = await chatAPI.getChatsByAccountAndStatus(
         accId,
-        active
+        active,
+        "admin"
       );
 
       const chats = res.data.chataccountwise || [];
