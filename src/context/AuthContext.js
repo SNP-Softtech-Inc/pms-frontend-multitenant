@@ -129,30 +129,69 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ================= AUTO LOGOUT =================
-  const setupAutoLogout = useCallback(
-    (expiryTimestamp) => {
-      if (logoutTimerRef.current) {
-        clearTimeout(logoutTimerRef.current);
-      }
+  // const setupAutoLogout = useCallback(
+  //   (expiryTimestamp) => {
+  //     if (logoutTimerRef.current) {
+  //       clearTimeout(logoutTimerRef.current);
+  //     }
 
-      const timeLeft = expiryTimestamp - new Date().getTime();
+  //     const timeLeft = expiryTimestamp - new Date().getTime();
 
-      if (timeLeft > 0) {
-        logoutTimerRef.current = setTimeout(() => {
+  //     if (timeLeft > 0) {
+  //       logoutTimerRef.current = setTimeout(() => {
+  //         toast.warning("Session expired. Please login again.");
+  //         logout(false);
+  //       }, timeLeft);
+  //     }
+  //   },
+  //   [] // don't depend on logout to avoid re-creating
+  // );
+// ================= AUTO LOGOUT =================
+const setupAutoLogout = useCallback(
+  (expiryTimestamp) => {
+    if (logoutTimerRef.current) {
+      clearTimeout(logoutTimerRef.current);
+    }
+
+    const timeLeft = expiryTimestamp - new Date().getTime();
+
+    if (timeLeft > 0) {
+      logoutTimerRef.current = setTimeout(async () => {
+        try {
           toast.warning("Session expired. Please login again.");
-          logout(false);
-        }, timeLeft);
-      }
-    },
-    [] // don't depend on logout to avoid re-creating
-  );
 
+          // clear all auth data
+          clearAuthData();
+
+          // redirect properly
+          navigationRef.current("/admin/login", {
+            replace: true,
+          });
+        } catch (error) {
+          console.error("Auto logout error:", error);
+        }
+      }, timeLeft);
+    }
+  },
+  [clearAuthData]
+);
   // ================= LOGIN =================
-  const login = async (email, password, expiryTime) => {
+  // const login = async (email, password, expiryTime) => {
+   const login = async (
+  email,
+  password,
+  expiryTime,
+  userId = null
+) => {
     setLoading(true);
     try {
-      const response = await authAPI.login(email, password, expiryTime);
-
+      // const response = await authAPI.login(email, password, expiryTime);
+const response = await authAPI.login({
+  email,
+  password,
+  expiryTime,
+  userId,
+});
       const { token, user, roleData } = response.data;
 
       const expiryTimestamp = calculateExpiry(expiryTime);
@@ -180,6 +219,13 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user };
     } catch (error) {
+      if (error.response?.data?.multipleAccounts) {
+  return {
+    success: false,
+    multipleAccounts: true,
+    users: error.response.data.users,
+  };
+}
       console.error("Login error:", error);
 
       return {
@@ -218,9 +264,10 @@ export const AuthProvider = ({ children }) => {
       clearAuthData();
       setLoading(false);
 
-       setTimeout(() => {
-    navigate("/login", { replace: true });
-  }, 100);
+      //  setTimeout(() => {
+    navigate("/admin/login", { replace: true });
+    
+  // }, 100);
     }
   }, [clearAuthData]);
 

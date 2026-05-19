@@ -14,6 +14,7 @@ const JOBS_URL = process.env.REACT_APP_JOBS;
 const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
 const INTERNAL_CHAT_URL = process.env.REACT_APP_TEAMMATES_CHAT;
 const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
+const ACCOUNT_NOTE = process.env.REACT_APP_ACCOUNT_NOTE;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -98,7 +99,14 @@ const emailSyncApi = axios.create({
   headers:{
     "Content-Type": "application/json",
   }
-})
+});
+const accNoteApi = axios.create({
+  baseURL: ACCOUNT_NOTE,
+  headers:{
+        "Content-Type": "application/json",
+
+  }
+});
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
   // REQUEST INTERCEPTOR (Attach Token)
@@ -171,6 +179,7 @@ attachInterceptors(jobsApi);
 attachInterceptors(accountTasksApi);
 attachInterceptors(internalChatApi);
 attachInterceptors(emailSyncApi);
+attachInterceptors(accNoteApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -184,9 +193,17 @@ export const authAPI = {
   registerTeamMember: (data) =>
     authUserApi.post("/api/auth/register/team-member", data),
 
+  // // Login
+  // login: (email, password, expiryTime) =>
+  //   authUserApi.post("/api/auth/login", { email, password, expiryTime }),
   // Login
-  login: (email, password, expiryTime) =>
-    authUserApi.post("/api/auth/login", { email, password, expiryTime }),
+login: ({ email, password, expiryTime, userId }) =>
+  authUserApi.post("/api/auth/login", {
+    email,
+    password,
+    expiryTime,
+    userId,
+  }),
 
   getUsersByEmail: (email) =>
     authUserApi.post("/api/auth/get-users", { email }),
@@ -1606,4 +1623,30 @@ export const emailSyncAPI = {
       threadId,
       archived,
     }),
+};
+// ================= ACCOUNT NOTE APIs =================
+export const accountNoteAPI = {
+  // Create Note
+  createNote: (data) =>
+    accNoteApi.post("/account/notes/", data),
+
+  // Get All Notes
+  getAllNotes: () =>
+    accNoteApi.get("/account/notes/"),
+
+  // Get Single Note
+  getNoteById: (id) =>
+    accNoteApi.get(`/account/notes/${id}`),
+
+  // Update Note
+  updateNote: (id, data) =>
+    accNoteApi.patch(`/account/notes/${id}`, data),
+
+  // Delete Note
+  deleteNote: (id) =>
+    accNoteApi.delete(`/account/notes/${id}`),
+
+  // Get Notes By Account Id
+  getNotesByAccountId: (accountId) =>
+    accNoteApi.get(`/account/notes/account/${accountId}`),
 };

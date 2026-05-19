@@ -692,163 +692,1027 @@ const handleBulkDelete = () => {
   const handleClosePreview = () => {
     setShowForm(false);
   };
- const handleDownload = async (organizer) => {
-    if (!organizer) return;
-console.log("download oragnizer",organizer)
-    // ------------------ CLEAN TEXT FUNCTION ------------------
-    const stripHtml = (html) => {
-      if (!html) return "";
+  const handleDownload = async (organizer) => {
+  if (!organizer) return;
 
-      let text = html;
+  console.log("download organizer", organizer);
 
-      // remove spaced-out html tags:  < p > , < / b r >
-      text = text.replace(/<\s*\/?\s*[^>]*\s*>/g, " ");
+  const pdf = new jsPDF("p", "pt", "a4");
 
-      // remove normal html tags
-      text = text.replace(/<[^>]+>/g, " ");
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // decode html entities
-      const textarea = document.createElement("textarea");
-      textarea.innerHTML = text;
-      text = textarea.value;
+  // =====================================================
+  // COLORS
+  // =====================================================
+  const dark = [25, 32, 56];
+  const gray = [225, 230, 235];
+  const textGray = [70, 70, 70];
 
-      // remove weird MS Word / non-ASCII garbage characters
-      text = text.replace(/[^\x00-\x7F]+/g, " ");
+  let y = 40;
+  let pageNo = 1;
 
-      // remove control characters
-      text = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, " ");
+  // =====================================================
+  // CLEAN HTML
+  // =====================================================
+  const stripHtml = (html) => {
+    if (!html) return "";
 
-      // fix letter separated text like: W e l c o m e
-      text = text.replace(/(\w)\s(?=\w)/g, "$1");
+    let text = html;
 
-      // collapse extra spaces and line breaks
-      text = text.replace(/\s+/g, " ").trim();
+    text = text.replace(/<[^>]+>/g, " ");
 
-      return text;
-    };
+    const textarea = document.createElement("textarea");
 
-    // ------------------ PDF INIT ------------------
-    const pdf = new jsPDF("p", "pt", "a4");
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    textarea.innerHTML = text;
 
-    let y = 40;
+    text = textarea.value;
 
-    // ------------------ TITLE ------------------
-    pdf.setFontSize(16);
-    pdf.text(organizer?.organizerName || "Organizer", 40, y);
-    y += 25;
+    text = text.replace(/\s+/g, " ").trim();
 
-    // ------------------ LOOP SECTIONS ------------------
-    for (const section of organizer?.sections || []) {
-      if (!section) continue;
+    return text;
+  };
 
-      // add new page if needed
-      if (y > pageHeight - 80) {
-        pdf.addPage();
-        y = 40;
+  // =====================================================
+  // FOOTER
+  // =====================================================
+  const addFooter = () => {
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    pdf.setTextColor(120);
+
+    pdf.text(
+      `Page ${pageNo}`,
+      pageWidth / 2,
+      pageHeight - 20,
+      {
+        align: "center",
+      }
+    );
+  };
+
+  // =====================================================
+  // HEADER
+  // =====================================================
+  const drawHeader = () => {
+    // Organizer Name
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+    pdf.setTextColor(...dark);
+
+    const organizerTitle =
+      organizer?.organizerName ||
+      "Individual Tax Organizer";
+
+    const titleLines =
+      pdf.splitTextToSize(
+        organizerTitle,
+        pageWidth - 160
+      );
+
+    pdf.text(titleLines, 40, y);
+
+    // Progress Count
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(14);
+
+    pdf.text(
+      `${organizer?.sections?.length || 0} / ${
+        organizer?.sections?.length || 0
+      }`,
+      pageWidth - 80,
+      y
+    );
+
+    y += titleLines.length * 24;
+
+    // Client Name
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+
+    pdf.text(
+      organizer?.accountid?.accountName?.toUpperCase() ||
+        "CLIENT NAME",
+      40,
+      y
+    );
+
+    y += 18;
+
+    // Divider
+    pdf.setDrawColor(...dark);
+    pdf.setLineWidth(1);
+
+    pdf.line(
+      40,
+      y,
+      pageWidth - 40,
+      y
+    );
+
+    y += 35;
+  };
+
+  // =====================================================
+  // PAGE BREAK
+  // =====================================================
+  const checkPageBreak = (
+    spaceNeeded = 80
+  ) => {
+    if (
+      y + spaceNeeded >
+      pageHeight - 60
+    ) {
+      addFooter();
+
+      pdf.addPage();
+
+      pageNo++;
+
+      y = 40;
+
+      drawHeader();
+    }
+  };
+
+  // =====================================================
+  // FIRST HEADER
+  // =====================================================
+  drawHeader();
+
+  // =====================================================
+  // LOOP SECTIONS
+  // =====================================================
+  for (const section of organizer?.sections ||
+    []) {
+    if (!section) continue;
+
+    // avoid section title at bottom
+    checkPageBreak(120);
+
+    // =====================================================
+    // SECTION TITLE
+    // =====================================================
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
+    pdf.setTextColor(...dark);
+
+    const sectionName =
+      section?.name || "Section";
+
+    const sectionCount = `${
+      section?.formElements?.length || 0
+    } / ${
+      section?.formElements?.length || 0
+    }`;
+
+    // available width for title
+    const titleWidth =
+      pageWidth - 170;
+
+    // split long titles
+    const titleLines =
+      pdf.splitTextToSize(
+        sectionName,
+        titleWidth
+      );
+
+    // draw title
+    pdf.text(titleLines, 40, y);
+
+    // draw count
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+
+    pdf.text(
+      sectionCount,
+      pageWidth - 70,
+      y
+    );
+
+    // dynamic section height
+    const sectionHeight =
+      titleLines.length * 20;
+
+    y += sectionHeight;
+
+    // divider
+    pdf.setDrawColor(...gray);
+
+    pdf.line(
+      40,
+      y,
+      pageWidth - 40,
+      y
+    );
+
+    y += 20;
+
+    // =====================================================
+    // LOOP ELEMENTS
+    // =====================================================
+    for (const el of section?.formElements ||
+      []) {
+      if (!el) continue;
+
+      // =====================================================
+      // SKIP TEXT EDITOR
+      // =====================================================
+      if (
+        el.type === "Text Editor" ||
+        el.type === "texteditor" ||
+        el.type === "textEditor"
+      ) {
+        continue;
       }
 
-      // section title
-      pdf.setFontSize(14);
-      pdf.text(section?.name || "Section", 40, y);
-      y += 20;
+      const question =
+        stripHtml(el.text || "");
 
-      // ------------------ LOOP FORM ELEMENTS ------------------
-      for (const el of section?.formElements || []) {
-        if (!el) continue;
+      let answer = "-";
 
-        // skip unanswered elements
-        if (
-          !el.textvalue &&
-          !el.files?.length &&
-          !el.imageUrl &&
-          !el.images?.length
-        ) {
-          continue;
-        }
+      // =====================================================
+      // ANSWER TYPES
+      // =====================================================
+      if (el.textvalue) {
+        answer = stripHtml(
+          el.textvalue
+        );
+      } else if (
+        el.files?.length
+      ) {
+        answer = el.files
+          .map(
+            (f) =>
+              f?.name || "File"
+          )
+          .join(", ");
+      } else if (
+        el.imageUrl ||
+        el.images?.length
+      ) {
+        answer = "Image Attached";
+      }
 
-        // page break protection
-        if (y > pageHeight - 120) {
-          pdf.addPage();
-          y = 40;
-        }
+      // skip empty rows
+      if (
+        !question &&
+        !answer &&
+        !el.files?.length &&
+        !el.images?.length &&
+        !el.imageUrl
+      ) {
+        continue;
+      }
 
-        // question
-        pdf.setFontSize(12);
-        pdf.text(`Q: ${stripHtml(el.text || "")}`, 40, y);
-        y += 16;
+      // =====================================================
+      // SPLIT TEXT
+      // =====================================================
+      const qLines =
+        pdf.splitTextToSize(
+          question,
+          260
+        );
 
-        // ------------------ TEXT ANSWER ------------------
-        if (el.textvalue) {
-          const cleanAnswer = stripHtml(el.textvalue);
+      const aLines =
+        pdf.splitTextToSize(
+          answer,
+          220
+        );
 
-          const textLines = pdf.splitTextToSize(
-            `A: ${cleanAnswer}`,
-            pageWidth - 80,
-          );
-          pdf.text(textLines, 40, y);
-          y += textLines.length * 14;
-        }
+      // =====================================================
+      // ROW HEIGHT
+      // =====================================================
+      const rowHeight =
+        Math.max(
+          qLines.length,
+          aLines.length
+        ) *
+          18 +
+        22;
 
-        // ------------------ IMAGES ------------------
-        if (el.imageUrl || el.images?.length) {
-          const images = el.images || [el.imageUrl];
+      checkPageBreak(
+        rowHeight + 20
+      );
 
-          for (const img of images) {
-            try {
-              const res = await fetch(img, { mode: "cors" });
-              const blob = await res.blob();
+      // =====================================================
+      // ROW DIVIDER
+      // =====================================================
+      pdf.setDrawColor(...gray);
 
-              const reader = new FileReader();
-              await new Promise((resolve) => {
-                reader.onloadend = resolve;
-                reader.readAsDataURL(blob);
-              });
+      pdf.setLineWidth(0.8);
 
-              const imgWidth = 180;
-              const imgHeight = 130;
+      pdf.line(
+        40,
+        y + rowHeight,
+        pageWidth - 40,
+        y + rowHeight
+      );
 
-              if (y > pageHeight - 180) {
-                pdf.addPage();
-                y = 40;
-              }
+      // =====================================================
+      // QUESTION
+      // =====================================================
+      pdf.setFont(
+        "helvetica",
+        "normal"
+      );
 
-              pdf.addImage(reader.result, "JPEG", 40, y, imgWidth, imgHeight);
-              y += imgHeight + 10;
-            } catch (e) {
-              pdf.text("Image could not be loaded", 40, y);
-              y += 14;
-            }
-          }
-        }
+      pdf.setFontSize(11);
 
-        // ------------------ FILE LIST ------------------
-        if (el.files?.length) {
-          pdf.setFontSize(11);
+      pdf.setTextColor(...textGray);
 
-          for (const f of el.files) {
-            const fname = f?.name || "File";
+      pdf.text(
+        qLines,
+        40,
+        y + 16
+      );
 
-            const line = pdf.splitTextToSize(
-              `Attached File: ${fname}`,
-              pageWidth - 80,
+      // =====================================================
+      // ANSWER
+      // =====================================================
+      pdf.setFont(
+        "helvetica",
+        "bold"
+      );
+
+      pdf.setTextColor(...dark);
+
+      pdf.text(
+        aLines,
+        330,
+        y + 16
+      );
+
+      y += rowHeight;
+
+      // =====================================================
+      // FILES
+      // =====================================================
+      if (el.files?.length) {
+        y += 10;
+
+        for (const file of el.files) {
+          checkPageBreak(40);
+
+          const fileName =
+            file?.name || "File";
+
+          const fileLines =
+            pdf.splitTextToSize(
+              `• ${fileName}`,
+              220
             );
 
-            pdf.text(line, 40, y);
-            y += line.length * 14;
-          }
-        }
+          pdf.setFont(
+            "helvetica",
+            "normal"
+          );
 
-        y += 6;
+          pdf.setFontSize(10);
+
+          pdf.setTextColor(
+            ...textGray
+          );
+
+          pdf.text(
+            fileLines,
+            330,
+            y
+          );
+
+          y +=
+            fileLines.length *
+              14 +
+            6;
+        }
       }
 
-      y += 10;
+      // =====================================================
+      // IMAGES
+      // =====================================================
+      const images = [];
+
+      if (el.imageUrl) {
+        images.push(el.imageUrl);
+      }
+
+      if (el.images?.length) {
+        images.push(...el.images);
+      }
+
+      for (const img of images) {
+        try {
+          checkPageBreak(170);
+
+          const res =
+            await fetch(img, {
+              mode: "cors",
+            });
+
+          const blob =
+            await res.blob();
+
+          const reader =
+            new FileReader();
+
+          await new Promise(
+            (resolve) => {
+              reader.onloadend =
+                resolve;
+
+              reader.readAsDataURL(
+                blob
+              );
+            }
+          );
+
+          const imgWidth = 150;
+          const imgHeight = 100;
+
+          pdf.addImage(
+            reader.result,
+            "JPEG",
+            330,
+            y + 10,
+            imgWidth,
+            imgHeight
+          );
+
+          y += imgHeight + 20;
+        } catch (err) {
+          console.log(
+            "Image load failed"
+          );
+        }
+      }
     }
 
-    // ------------------ SAVE PDF ------------------
-    pdf.save(`${organizer?.organizerName || "organizer"}_answers.pdf`);
-  };
+    y += 30;
+  }
+
+  // =====================================================
+  // FINAL FOOTER
+  // =====================================================
+  addFooter();
+
+  // =====================================================
+  // SAVE PDF
+  // =====================================================
+  pdf.save(
+    `${
+      organizer?.organizerName ||
+      "Organizer"
+    }_Report.pdf`
+  );
+};
+//   const handleDownload = async (organizer) => {
+//   if (!organizer) return;
+// console.log("doenload oragnizer",organizer)
+//   const pdf = new jsPDF("p", "pt", "a4");
+
+//   const pageWidth = pdf.internal.pageSize.getWidth();
+//   const pageHeight = pdf.internal.pageSize.getHeight();
+
+//   // ---------------- COLORS ----------------
+//   const dark = [25, 32, 56];
+//   const gray = [225, 230, 235];
+//   const textGray = [70, 70, 70];
+
+//   let y = 40;
+//   let pageNo = 1;
+
+//   // ---------------- CLEAN HTML ----------------
+//   const stripHtml = (html) => {
+//     if (!html) return "";
+
+//     let text = html;
+
+//     text = text.replace(/<[^>]+>/g, " ");
+
+//     const textarea = document.createElement("textarea");
+//     textarea.innerHTML = text;
+//     text = textarea.value;
+
+//     text = text.replace(/\s+/g, " ").trim();
+
+//     return text;
+//   };
+
+//   // ---------------- FOOTER ----------------
+//   const addFooter = () => {
+//     pdf.setFont("helvetica", "normal");
+//     pdf.setFontSize(9);
+//     pdf.setTextColor(120);
+
+//     pdf.text(
+//       `Page ${pageNo}`,
+//       pageWidth / 2,
+//       pageHeight - 20,
+//       {
+//         align: "center",
+//       }
+//     );
+//   };
+
+//   // ---------------- HEADER ----------------
+//   const drawHeader = () => {
+//     // Organizer Title
+//     pdf.setFont("helvetica", "bold");
+//     pdf.setFontSize(22);
+//     pdf.setTextColor(...dark);
+
+//     pdf.text(
+//       organizer?.organizerName || "Individual Tax Organizer",
+//       40,
+//       y
+//     );
+
+//     // Progress
+//     pdf.setFont("helvetica", "normal");
+//     pdf.setFontSize(14);
+
+//     pdf.text(
+//       `${organizer?.sections?.length || 0} / ${
+//         organizer?.sections?.length || 0
+//       }`,
+//       pageWidth - 90,
+//       y
+//     );
+
+//     y += 28;
+
+//     // Client Name
+//     pdf.setFont("helvetica", "bold");
+//     pdf.setFontSize(13);
+
+//     pdf.text(
+//   organizer?.accountid?.accountName?.toUpperCase() ||
+//     "CLIENT NAME",
+//   40,
+//   y
+// );
+
+//     y += 18;
+
+//     // Divider
+//     pdf.setDrawColor(...dark);
+//     pdf.setLineWidth(1);
+
+//     pdf.line(
+//       40,
+//       y,
+//       pageWidth - 40,
+//       y
+//     );
+
+//     y += 35;
+//   };
+
+//   // ---------------- PAGE BREAK ----------------
+//   const checkPageBreak = (spaceNeeded = 80) => {
+//     if (y + spaceNeeded > pageHeight - 60) {
+//       addFooter();
+
+//       pdf.addPage();
+
+//       pageNo++;
+//       y = 40;
+
+//       drawHeader();
+//     }
+//   };
+
+//   // ---------------- FIRST PAGE HEADER ----------------
+//   drawHeader();
+
+//   // ====================================================
+//   // LOOP SECTIONS
+//   // ====================================================
+//   for (const section of organizer?.sections || []) {
+//     if (!section) continue;
+
+//     // avoid section title at page bottom
+//     checkPageBreak(120);
+
+//     // ---------------- SECTION TITLE ----------------
+//     pdf.setFont("helvetica", "bold");
+//     pdf.setFontSize(18);
+//     pdf.setTextColor(...dark);
+
+//     pdf.text(
+//       section?.name || "Section",
+//       40,
+//       y
+//     );
+
+//     // Section Count
+//     pdf.setFont("helvetica", "normal");
+//     pdf.setFontSize(11);
+
+//     pdf.text(
+//       `${section?.formElements?.length || 0} / ${
+//         section?.formElements?.length || 0
+//       }`,
+//       220,
+//       y
+//     );
+
+//     y += 18;
+
+//     // Divider
+//     pdf.setDrawColor(...gray);
+
+//     pdf.line(
+//       40,
+//       y,
+//       pageWidth - 40,
+//       y
+//     );
+
+//     y += 18;
+
+//     // ====================================================
+//     // LOOP FORM ELEMENTS
+//     // ====================================================
+//     for (const el of section?.formElements || []) {
+//       if (!el) continue;
+
+//       // ====================================================
+//       // SKIP TEXT EDITOR ELEMENTS
+//       // ====================================================
+//       if (
+//         el.type === "Text Editor" ||
+//         el.type === "texteditor" ||
+//         el.type === "textEditor"
+//       ) {
+//         continue;
+//       }
+
+//       const question = stripHtml(
+//         el.text || ""
+//       );
+
+//       let answer = "-";
+
+//       // ====================================================
+//       // ANSWER TYPES
+//       // ====================================================
+//       if (el.textvalue) {
+//         answer = stripHtml(el.textvalue);
+//       } else if (el.files?.length) {
+//         answer = el.files
+//           .map((f) => f.name)
+//           .join(", ");
+//       } else if (
+//         el.imageUrl ||
+//         el.images?.length
+//       ) {
+//         answer = "Image Attached";
+//       }
+
+//       // skip empty unanswered fields
+//       if (
+//         !question &&
+//         !answer &&
+//         !el.files?.length &&
+//         !el.images?.length &&
+//         !el.imageUrl
+//       ) {
+//         continue;
+//       }
+
+//       // ====================================================
+//       // ROW HEIGHT
+//       // ====================================================
+//       const qLines = pdf.splitTextToSize(
+//         question,
+//         260
+//       );
+
+//       const aLines = pdf.splitTextToSize(
+//         answer,
+//         220
+//       );
+
+//       const rowHeight =
+//         Math.max(
+//           qLines.length,
+//           aLines.length
+//         ) *
+//           18 +
+//         22;
+
+//       checkPageBreak(rowHeight + 20);
+
+//       // ====================================================
+//       // ROW DIVIDER
+//       // ====================================================
+//       pdf.setDrawColor(...gray);
+//       pdf.setLineWidth(0.8);
+
+//       pdf.line(
+//         40,
+//         y + rowHeight,
+//         pageWidth - 40,
+//         y + rowHeight
+//       );
+
+//       // ====================================================
+//       // QUESTION
+//       // ====================================================
+//       pdf.setFont("helvetica", "normal");
+//       pdf.setFontSize(11);
+//       pdf.setTextColor(...textGray);
+
+//       pdf.text(
+//         qLines,
+//         40,
+//         y + 16
+//       );
+
+//       // ====================================================
+//       // ANSWER
+//       // ====================================================
+//       pdf.setFont("helvetica", "bold");
+//       pdf.setTextColor(...dark);
+
+//       pdf.text(
+//         aLines,
+//         330,
+//         y + 16
+//       );
+
+//       y += rowHeight;
+
+//       // ====================================================
+//       // FILES
+//       // ====================================================
+//       if (el.files?.length) {
+//         y += 10;
+
+//         for (const file of el.files) {
+//           checkPageBreak(40);
+
+//           const fileName =
+//             file?.name || "File";
+
+//           const fileLines =
+//             pdf.splitTextToSize(
+//               `• ${fileName}`,
+//               220
+//             );
+
+//           pdf.setFont(
+//             "helvetica",
+//             "normal"
+//           );
+
+//           pdf.setFontSize(10);
+
+//           pdf.setTextColor(...textGray);
+
+//           pdf.text(
+//             fileLines,
+//             330,
+//             y
+//           );
+
+//           y +=
+//             fileLines.length * 14 +
+//             6;
+//         }
+//       }
+
+//       // ====================================================
+//       // IMAGES
+//       // ====================================================
+//       const images = [];
+
+//       if (el.imageUrl) {
+//         images.push(el.imageUrl);
+//       }
+
+//       if (el.images?.length) {
+//         images.push(...el.images);
+//       }
+
+//       for (const img of images) {
+//         try {
+//           checkPageBreak(170);
+
+//           const res = await fetch(img, {
+//             mode: "cors",
+//           });
+
+//           const blob =
+//             await res.blob();
+
+//           const reader =
+//             new FileReader();
+
+//           await new Promise(
+//             (resolve) => {
+//               reader.onloadend =
+//                 resolve;
+
+//               reader.readAsDataURL(
+//                 blob
+//               );
+//             }
+//           );
+
+//           const imgWidth = 150;
+//           const imgHeight = 100;
+
+//           pdf.addImage(
+//             reader.result,
+//             "JPEG",
+//             330,
+//             y + 10,
+//             imgWidth,
+//             imgHeight
+//           );
+
+//           y += imgHeight + 20;
+//         } catch (err) {
+//           console.log(
+//             "Image load failed"
+//           );
+//         }
+//       }
+//     }
+
+//     y += 30;
+//   }
+
+//   // ---------------- FINAL FOOTER ----------------
+//   addFooter();
+
+//   // ---------------- SAVE PDF ----------------
+//   pdf.save(
+//     `${
+//       organizer?.organizerName ||
+//       "Organizer"
+//     }_Report.pdf`
+//   );
+// };
+//  const handleDownload = async (organizer) => {
+//     if (!organizer) return;
+// console.log("download oragnizer",organizer)
+//     // ------------------ CLEAN TEXT FUNCTION ------------------
+//     const stripHtml = (html) => {
+//       if (!html) return "";
+
+//       let text = html;
+
+//       // remove spaced-out html tags:  < p > , < / b r >
+//       text = text.replace(/<\s*\/?\s*[^>]*\s*>/g, " ");
+
+//       // remove normal html tags
+//       text = text.replace(/<[^>]+>/g, " ");
+
+//       // decode html entities
+//       const textarea = document.createElement("textarea");
+//       textarea.innerHTML = text;
+//       text = textarea.value;
+
+//       // remove weird MS Word / non-ASCII garbage characters
+//       text = text.replace(/[^\x00-\x7F]+/g, " ");
+
+//       // remove control characters
+//       text = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, " ");
+
+//       // fix letter separated text like: W e l c o m e
+//       text = text.replace(/(\w)\s(?=\w)/g, "$1");
+
+//       // collapse extra spaces and line breaks
+//       text = text.replace(/\s+/g, " ").trim();
+
+//       return text;
+//     };
+
+//     // ------------------ PDF INIT ------------------
+//     const pdf = new jsPDF("p", "pt", "a4");
+//     const pageWidth = pdf.internal.pageSize.getWidth();
+//     const pageHeight = pdf.internal.pageSize.getHeight();
+
+//     let y = 40;
+
+//     // ------------------ TITLE ------------------
+//     pdf.setFontSize(16);
+//     pdf.text(organizer?.organizerName || "Organizer", 40, y);
+//     y += 25;
+
+//     // ------------------ LOOP SECTIONS ------------------
+//     for (const section of organizer?.sections || []) {
+//       if (!section) continue;
+
+//       // add new page if needed
+//       if (y > pageHeight - 80) {
+//         pdf.addPage();
+//         y = 40;
+//       }
+
+//       // section title
+//       pdf.setFontSize(14);
+//       pdf.text(section?.name || "Section", 40, y);
+//       y += 20;
+
+//       // ------------------ LOOP FORM ELEMENTS ------------------
+//       for (const el of section?.formElements || []) {
+//         if (!el) continue;
+
+//         // skip unanswered elements
+//         if (
+//           !el.textvalue &&
+//           !el.files?.length &&
+//           !el.imageUrl &&
+//           !el.images?.length
+//         ) {
+//           continue;
+//         }
+
+//         // page break protection
+//         if (y > pageHeight - 120) {
+//           pdf.addPage();
+//           y = 40;
+//         }
+
+//         // question
+//         pdf.setFontSize(12);
+//         pdf.text(`Q: ${stripHtml(el.text || "")}`, 40, y);
+//         y += 16;
+
+//         // ------------------ TEXT ANSWER ------------------
+//         if (el.textvalue) {
+//           const cleanAnswer = stripHtml(el.textvalue);
+
+//           const textLines = pdf.splitTextToSize(
+//             `A: ${cleanAnswer}`,
+//             pageWidth - 80,
+//           );
+//           pdf.text(textLines, 40, y);
+//           y += textLines.length * 14;
+//         }
+
+//         // ------------------ IMAGES ------------------
+//         if (el.imageUrl || el.images?.length) {
+//           const images = el.images || [el.imageUrl];
+
+//           for (const img of images) {
+//             try {
+//               const res = await fetch(img, { mode: "cors" });
+//               const blob = await res.blob();
+
+//               const reader = new FileReader();
+//               await new Promise((resolve) => {
+//                 reader.onloadend = resolve;
+//                 reader.readAsDataURL(blob);
+//               });
+
+//               const imgWidth = 180;
+//               const imgHeight = 130;
+
+//               if (y > pageHeight - 180) {
+//                 pdf.addPage();
+//                 y = 40;
+//               }
+
+//               pdf.addImage(reader.result, "JPEG", 40, y, imgWidth, imgHeight);
+//               y += imgHeight + 10;
+//             } catch (e) {
+//               pdf.text("Image could not be loaded", 40, y);
+//               y += 14;
+//             }
+//           }
+//         }
+
+//         // ------------------ FILE LIST ------------------
+//         if (el.files?.length) {
+//           pdf.setFontSize(11);
+
+//           for (const f of el.files) {
+//             const fname = f?.name || "File";
+
+//             const line = pdf.splitTextToSize(
+//               `Attached File: ${fname}`,
+//               pageWidth - 80,
+//             );
+
+//             pdf.text(line, 40, y);
+//             y += line.length * 14;
+//           }
+//         }
+
+//         y += 6;
+//       }
+
+//       y += 10;
+//     }
+
+//     // ------------------ SAVE PDF ------------------
+//     pdf.save(`${organizer?.organizerName || "organizer"}_answers.pdf`);
+//   };
   // ================= TABLE COLUMNS =================
   const columns = React.useMemo(() => {
     return [

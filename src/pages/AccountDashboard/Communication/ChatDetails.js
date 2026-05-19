@@ -1106,8 +1106,8 @@ const ChatDetails = ({
         })),
       });
       toast.success("Task updated");
-      getsChatDetails();
-      accountwiseChatlist(data, isActiveTrue);
+      // getsChatDetails();
+      // accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
       toast.error("Task update failed");
     }

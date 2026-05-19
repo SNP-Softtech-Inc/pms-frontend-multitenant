@@ -334,7 +334,14 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../../../components/ui/drawer";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "../../../components/ui/dialog";
 const CreateOrganizerUpdate = ({ OrganizerData, onClose }) => {
   const { accountId } = useParams();
 
@@ -566,8 +573,8 @@ const CreateOrganizerUpdate = ({ OrganizerData, onClose }) => {
       </Button>
 
       {/* shadcn/ui Drawer */}
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
-        <DrawerContent className="fixed inset-y-0 right-0 h-full w-full sm:w-[650px]">
+      {/* <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
+        <DrawerContent >
           <div className="flex flex-col h-full">
             <DrawerHeader className="border-b">
               <div className="flex items-center justify-between">
@@ -591,7 +598,33 @@ const CreateOrganizerUpdate = ({ OrganizerData, onClose }) => {
             </DrawerFooter>
           </div>
         </DrawerContent>
-      </Drawer>
+      </Drawer> */}
+      <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+  <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
+    
+    {/* Header */}
+    <DialogHeader className="border-b p-4">
+      <div className="flex items-center justify-between">
+        <DialogTitle>Text Block Content</DialogTitle>
+
+       
+      </div>
+    </DialogHeader>
+
+    {/* Body */}
+    <div className="flex-1 overflow-y-auto p-4">
+      <div dangerouslySetInnerHTML={{ __html: drawerContent }} />
+    </div>
+
+    {/* Footer */}
+    <DialogFooter className="border-t p-4">
+      <DialogClose asChild>
+        <Button variant="outline">Close</Button>
+      </DialogClose>
+    </DialogFooter>
+
+  </DialogContent>
+</Dialog>
     </div>
   );
 };
