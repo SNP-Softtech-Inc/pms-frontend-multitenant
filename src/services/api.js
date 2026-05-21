@@ -321,6 +321,17 @@ updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data)
   updateGroup: (groupId, data) =>
     authUserApi.put(`/api/groups/${groupId}`, data),
   deleteGroup: (groupId) => authUserApi.delete(`/api/groups/groups/${groupId}`),
+
+
+  // ======================= EMAIL SYNC APIs ===============================
+
+// Get notification emails
+getEmailNotifications: () =>
+  authUserApi.get("/api/emailsync/notifications"),
+
+// Get communication emails
+getEmailCommunications: () =>
+  authUserApi.get("/api/emailsync/communications"),
 };
 
 // ================= SIDEBAR APIs =================

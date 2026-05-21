@@ -1201,7 +1201,7 @@ const ChatDetails = ({
           <div className="min-h-[200px] mt-4">
             <Editor onChange={setEditContent} value={editContent} />
           </div>
-          <DialogFooter>
+          <DialogFooter className={"mt-4"}>
             <Button variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
             <Button onClick={handleSaveEdit} disabled={!editContent.trim()}>Save Changes</Button>
           </DialogFooter>
@@ -1266,7 +1266,8 @@ const ChatDetails = ({
 
         <Separator />
 
-        <div className="p-4 h-[35vh] overflow-y-auto">
+        {/* <div className="p-4 h-[35vh] overflow-y-auto"> */}
+        <div>
           {replyTo && (
             <div className="mb-2 p-3 bg-slate-50 border-l-4 border-blue-500 rounded relative">
               <p className="text-xs font-bold mb-1">
