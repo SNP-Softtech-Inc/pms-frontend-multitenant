@@ -945,7 +945,7 @@ return (
 
   <DropdownMenuContent
   align="start"
-  className="w-56 mt-2 rounded-xl overflow-hidden border bg-white shadow-lg animate-in fade-in zoom-in-95"
+  className="w-56 mt-2 rounded-xl overflow-hidden border  shadow-lg animate-in fade-in zoom-in-95"
 >
     {plusMenuItems.length > 0 ? (
       plusMenuItems.map((item, index) => (

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -54,7 +55,7 @@ const SkeletonRows = ({ columns, rows = 8 }) =>
       ))}
     </tr>
   ));
-
+const PAGE_SIZE_STORAGE_KEY = "taskTemplatePageSize";
 export function DataTable({
   columns,
   data,
@@ -71,8 +72,29 @@ export function DataTable({
   const [sorting, setSorting] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
+  // const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
+const [pagination, setPagination] = useState(() => ({
+  pageIndex: 0,
+  pageSize:
+    Number(localStorage.getItem(PAGE_SIZE_STORAGE_KEY)) ||
+    pageSize ||
+    25,
+}));
+useEffect(() => {
+  const savedSize = Number(
+    localStorage.getItem(PAGE_SIZE_STORAGE_KEY)
+  );
 
+  if (
+    savedSize &&
+    savedSize !== pagination.pageSize
+  ) {
+    setPagination((prev) => ({
+      ...prev,
+      pageSize: savedSize,
+    }));
+  }
+}, []);
   const selectionColumn = {
     id: "select",
     header: ({ table }) => (
@@ -126,7 +148,27 @@ export function DataTable({
     },
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange,
-    onPaginationChange: setPagination,
+    // onPaginationChange: setPagination,
+    onPaginationChange: (updater) => {
+  setPagination((old) => {
+    const newPagination =
+      typeof updater === "function"
+        ? updater(old)
+        : updater;
+
+    // SAVE PAGE SIZE
+    if (
+      newPagination.pageSize !== old.pageSize
+    ) {
+      localStorage.setItem(
+        PAGE_SIZE_STORAGE_KEY,
+        newPagination.pageSize.toString()
+      );
+    }
+
+    return newPagination;
+  });
+},
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -232,9 +274,21 @@ export function DataTable({
       <div className="flex items-center justify-between px-4 py-2.5 border-t border-border/40 bg-muted/20">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Rows per page</span>
-          <select
+          {/* <select
             value={table.getState().pagination.pageSize}
-            onChange={(e) => table.setPageSize(Number(e.target.value))}
+            onChange={(e) => table.setPageSize(Number(e.target.value))} */}
+          <select
+  value={pagination.pageSize}
+  onChange={(e) => {
+    const size = Number(e.target.value);
+
+    localStorage.setItem(
+      PAGE_SIZE_STORAGE_KEY,
+      size.toString()
+    );
+
+    table.setPageSize(size);
+  }}
             className="border border-border rounded-md px-2 py-1 bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-ring"
           >
             {[10, 25, 50, 100, 200].map((n) => (

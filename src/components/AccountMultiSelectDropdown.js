@@ -341,7 +341,7 @@ const MultiSelectDropdown = ({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between min-h-[40px] h-auto p-2 rounded-[10px] border-[#ccc] bg-white hover:bg-white"
+            className="w-full justify-between min-h-[40px] h-auto p-2 rounded-[10px] "
           >
             <div className="flex flex-wrap gap-1">
               {value.length > 0 ? (

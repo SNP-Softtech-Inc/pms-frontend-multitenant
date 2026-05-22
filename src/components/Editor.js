@@ -314,7 +314,7 @@ export default function Editor({ initialContent, onChange, value }) {
         modules={modules}
         formats={formats}
         theme="snow"
-        style={{ height: '150px',marginBottom:"20px" }}
+        style={{ height: 'auto',marginBottom:"20px" }}
       />
     </div>
   );

@@ -263,7 +263,7 @@ const MultiSelectDropdown = ({
       <PopoverTrigger asChild>
         <div
           ref={containerRef}
-          className="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-md border bg-white p-2"
+          className="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-md border  p-2"
           onClick={() =>
             setMenuWidth(containerRef.current?.offsetWidth)
           }
@@ -320,7 +320,7 @@ const MultiSelectDropdown = ({
               <div
                 key={option.value}
                 onClick={() => toggle(option.value)}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-gray-100"
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 "
               >
                 <Check
                   className={`h-4 w-4 ${
