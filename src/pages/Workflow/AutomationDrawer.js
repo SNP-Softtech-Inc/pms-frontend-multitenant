@@ -1016,318 +1016,706 @@ const AutomationDrawer = ({
     })
     .filter(Boolean)
     .join(", ");
+return (
+  <div className="fixed inset-0 z-50 overflow-hidden">
+    {/* Backdrop */}
+    <div
+      className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+      onClick={onClose}
+    />
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" 
-        onClick={onClose} 
-      />
+    {/* Drawer */}
+    <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background border-l border-border shadow-2xl flex flex-col">
       
-      {/* Drawer Content */}
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-foreground">Automations for</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="text-sm font-medium text-muted-foreground truncate max-w-[300px]">
-                    {accountNames}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{accountNames}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <button 
-            onClick={onClose} 
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 bg-card">
+        <div className="flex items-center gap-2 min-w-0">
+          <h2 className="text-base font-semibold text-foreground whitespace-nowrap">
+            Automations for
+          </h2>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm font-medium text-muted-foreground truncate max-w-[300px]">
+                  {accountNames}
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent className="bg-popover text-popover-foreground border border-border">
+                <p>{accountNames}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
-        {/* Body */}
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {automations.map((automation, index) => {
-                  const currentTagData = tagData[index] || {};
-                  const templateName = templateData[index] || "Loading...";
+        <button
+          onClick={onClose}
+          className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-                  return (
-                    <div
-                      key={index}
-                      className="border rounded-lg p-4 space-y-3"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`automation-${index}`}
-                          checked={selectedAutomations.includes(index)}
-                          onCheckedChange={(checked) => handleCheckboxChange(index, checked)}
-                        />
+      {/* Body */}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {automations.map((automation, index) => {
+                const currentTagData =
+                  tagData[index] || {};
+
+                const templateName =
+                  templateData[index] ||
+                  "Loading...";
+
+                return (
+                  <div
+                    key={index}
+                    className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-4 transition-colors"
+                  >
+                    {/* Automation Header */}
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        id={`automation-${index}`}
+                        checked={selectedAutomations.includes(
+                          index
+                        )}
+                        onCheckedChange={(
+                          checked
+                        ) =>
+                          handleCheckboxChange(
+                            index,
+                            checked
+                          )
+                        }
+                        className="mt-0.5"
+                      />
+
+                      <div className="flex-1 min-w-0">
                         <Label
                           htmlFor={`automation-${index}`}
-                          className="font-semibold text-base cursor-pointer"
+                          className="text-sm font-semibold text-foreground cursor-pointer"
                         >
                           {automation.type}
                         </Label>
                       </div>
+                    </div>
 
-                      {/* Template Information */}
-                      {automation.selectedtemp && (
-                        <div className="space-y-1">
-                          <span className="text-sm font-medium text-muted-foreground">Template:</span>
-                          <p className="text-sm">{templateName}</p>
+                    {/* Template */}
+                    {automation.selectedtemp && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Template
+                        </span>
+
+                        <p className="text-sm text-foreground">
+                          {templateName}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Add Assignees */}
+                    {automation.type ===
+                      "Update job assignees" &&
+                      automation.addAssignees &&
+                      automation.addAssignees
+                        .length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium uppercase tracking-wide text-green-600 dark:text-green-400">
+                            Add Assignees
+                          </span>
+
+                          <div className="flex flex-wrap gap-2">
+                            {automation.addAssignees.map(
+                              (
+                                assignee,
+                                idx
+                              ) => (
+                                <Badge
+                                  key={idx}
+                                  className="bg-green-500 hover:bg-green-600 text-white border-0"
+                                >
+                                  {assignee.username ||
+                                    assignee.label ||
+                                    "Assignee"}
+                                </Badge>
+                              )
+                            )}
+                          </div>
                         </div>
                       )}
 
-                      {/* Add Assignees Information */}
-                      {automation.type === "Update job assignees" &&
-                        automation.addAssignees &&
-                        automation.addAssignees.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-sm font-medium text-green-600">Add Assignees:</span>
-                            <div className="flex flex-wrap gap-2">
-                              {automation.addAssignees.map((assignee, idx) => (
-                                <Badge
-                                  key={idx}
-                                  className="bg-green-500 hover:bg-green-600 text-white"
-                                >
-                                  {assignee.username || assignee.label || "Assignee"}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                    {/* Remove Assignees */}
+                    {automation.type ===
+                      "Update job assignees" &&
+                      automation.removeAssignees &&
+                      automation.removeAssignees
+                        .length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium uppercase tracking-wide text-red-600 dark:text-red-400">
+                            Remove Assignees
+                          </span>
 
-                      {/* Remove Assignees Information */}
-                      {automation.type === "Update job assignees" &&
-                        automation.removeAssignees &&
-                        automation.removeAssignees.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-sm font-medium text-red-600">Remove Assignees:</span>
-                            <div className="flex flex-wrap gap-2">
-                              {automation.removeAssignees.map((assignee, idx) => (
+                          <div className="flex flex-wrap gap-2">
+                            {automation.removeAssignees.map(
+                              (
+                                assignee,
+                                idx
+                              ) => (
                                 <Badge
                                   key={idx}
                                   variant="outline"
-                                  className="border-red-500 text-red-600 line-through"
+                                  className="border-red-500 text-red-600 dark:text-red-400 line-through bg-transparent"
                                 >
-                                  {assignee.username || assignee.label || "Assignee"}
+                                  {assignee.username ||
+                                    assignee.label ||
+                                    "Assignee"}
                                 </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                      {/* Selected Tags (Condition Tags) */}
-                      {currentTagData.selectedTags &&
-                        currentTagData.selectedTags.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-sm font-medium">Condition Tags:</span>
-                            <div className="flex flex-wrap gap-2">
-                              {currentTagData.selectedTags.map((tag) => (
-                                <Badge
-                                  key={tag._id}
-                                  style={{ backgroundColor: tag.tagColour }}
-                                  className="text-white"
-                                >
-                                  {tag.tagName}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                      {/* Add Tags */}
-                      {automation.type === "Update account tags" &&
-                        currentTagData.addTags &&
-                        currentTagData.addTags.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-sm font-medium text-green-600">Add Tags:</span>
-                            <div className="flex flex-wrap gap-2">
-                              {currentTagData.addTags.map((tag) => (
-                                <Badge
-                                  key={tag._id}
-                                  style={{ backgroundColor: tag.tagColour }}
-                                  className="text-white"
-                                >
-                                  {tag.tagName}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                      {/* Remove Tags */}
-                      {automation.type === "Update account tags" &&
-                        currentTagData.removeTags &&
-                        currentTagData.removeTags.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-sm font-medium text-red-600">Remove Tags:</span>
-                            <div className="flex flex-wrap gap-2">
-                              {currentTagData.removeTags.map((tag) => (
-                                <Badge
-                                  key={tag._id}
-                                  style={{ backgroundColor: tag.tagColour }}
-                                  className="text-white"
-                                >
-                                  {tag.tagName}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                      {/* Client Status Information */}
-                      {/* {automation.type === "Update client-facing job status" && (
-                        <div className="space-y-2">
-                          <span className="text-sm font-medium">Client Status:</span>
-                          <div className="flex items-center gap-2">
-                            {automation.selectedClientStatus && (
-                              <>
-                                <div
-                                  className="w-3 h-3 rounded-full"
-                                  style={{
-                                    backgroundColor:
-                                      clientStatusOptions?.find(
-                                        (opt) => opt.value === automation.selectedClientStatus
-                                      )?.clientfacingColour || "#ccc",
-                                  }}
-                                />
-                                <span className="text-sm">
-                                  {clientStatusOptions?.find(
-                                    (opt) => opt.value === automation.selectedClientStatus
-                                  )?.label ||
-                                    automation.selectedClientStatus ||
-                                    "Not set"}
-                                </span>
-                              </>
+                              )
                             )}
                           </div>
-                          <p className="text-sm">
-                            Visibility:{" "}
+                        </div>
+                      )}
+
+                    {/* Condition Tags */}
+                    {currentTagData.selectedTags &&
+                      currentTagData.selectedTags
+                        .length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Condition Tags
+                          </span>
+
+                          <div className="flex flex-wrap gap-2">
+                            {currentTagData.selectedTags.map(
+                              (tag) => (
+                                <Badge
+                                  key={tag._id}
+                                  style={{
+                                    backgroundColor:
+                                      tag.tagColour,
+                                  }}
+                                  className="text-white border-0"
+                                >
+                                  {tag.tagName}
+                                </Badge>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Add Tags */}
+                    {automation.type ===
+                      "Update account tags" &&
+                      currentTagData.addTags &&
+                      currentTagData.addTags
+                        .length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium uppercase tracking-wide text-green-600 dark:text-green-400">
+                            Add Tags
+                          </span>
+
+                          <div className="flex flex-wrap gap-2">
+                            {currentTagData.addTags.map(
+                              (tag) => (
+                                <Badge
+                                  key={tag._id}
+                                  style={{
+                                    backgroundColor:
+                                      tag.tagColour,
+                                  }}
+                                  className="text-white border-0"
+                                >
+                                  {tag.tagName}
+                                </Badge>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Remove Tags */}
+                    {automation.type ===
+                      "Update account tags" &&
+                      currentTagData.removeTags &&
+                      currentTagData.removeTags
+                        .length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium uppercase tracking-wide text-red-600 dark:text-red-400">
+                            Remove Tags
+                          </span>
+
+                          <div className="flex flex-wrap gap-2">
+                            {currentTagData.removeTags.map(
+                              (tag) => (
+                                <Badge
+                                  key={tag._id}
+                                  style={{
+                                    backgroundColor:
+                                      tag.tagColour,
+                                  }}
+                                  className="text-white border-0"
+                                >
+                                  {tag.tagName}
+                                </Badge>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Client Status */}
+                    {automation.type ===
+                      "Update client-facing job status" && (
+                      <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                        
+                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Client Status
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          {automation.selectedClientStatus && (
+                            <>
+                              <div
+                                className="h-3 w-3 rounded-full border border-border"
+                                style={{
+                                  backgroundColor:
+                                    clientStatusOptions?.find(
+                                      (opt) =>
+                                        opt.value ===
+                                        (
+                                          automation.selectedClientStatus
+                                            ?._id ||
+                                          automation.selectedClientStatus
+                                        )
+                                    )
+                                      ?.clientfacingColour ||
+                                    "#ccc",
+                                }}
+                              />
+
+                              <span className="text-sm text-foreground">
+                                {automation
+                                  .selectedClientStatus
+                                  ?.clientfacingName ||
+                                  clientStatusOptions?.find(
+                                    (opt) =>
+                                      opt.value ===
+                                      (
+                                        automation
+                                          .selectedClientStatus
+                                          ?._id ||
+                                        automation.selectedClientStatus
+                                      )
+                                  )?.label ||
+                                  "Not set"}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                          Visibility:{" "}
+                          <span className="font-medium text-foreground">
                             {automation.status
                               ? "Visible to client"
                               : "Hidden from client"}
-                          </p>
-                          {automation.statusDescription && (
-                            <p className="text-sm text-muted-foreground">
-                              Description: {automation.statusDescription}
+                          </span>
+                        </p>
+
+                        {(automation.statusDescription ||
+                          automation.clientDescription) && (
+                          <div className="space-y-1">
+                            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              Description
+                            </span>
+
+                            <p className="text-sm text-foreground leading-relaxed">
+                              {automation.statusDescription ||
+                                automation.clientDescription}
                             </p>
-                          )}
-                        </div>
-                      )} */}
-{/* Client Status Information */}
-{automation.type === "Update client-facing job status" && (
-  <div className="space-y-2">
-    <span className="text-sm font-medium">Client Status:</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-    <div className="flex items-center gap-2">
-      {automation.selectedClientStatus && (
-        <>
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{
-              backgroundColor:
-                clientStatusOptions?.find(
-                  (opt) =>
-                    opt.value ===
-                    (automation.selectedClientStatus?._id ||
-                      automation.selectedClientStatus)
-                )?.clientfacingColour || "#ccc",
-            }}
-          />
+                    {/* Warning */}
+                    {automation.type ===
+                      "Update account tags" && (
+                      <Alert
+                        variant="destructive"
+                        className="border-red-500/30 bg-red-500/10 dark:bg-red-950/30"
+                      >
+                        <AlertCircle className="h-4 w-4" />
 
-          <span className="text-sm">
-            {automation.selectedClientStatus?.clientfacingName ||
-              clientStatusOptions?.find(
-                (opt) =>
-                  opt.value ===
-                  (automation.selectedClientStatus?._id ||
-                    automation.selectedClientStatus)
-              )?.label ||
-              "Not set"}
-          </span>
-        </>
-      )}
-    </div>
-
-    <p className="text-sm">
-      Visibility:{" "}
-      {automation.status
-        ? "Visible to client"
-        : "Hidden from client"}
-    </p>
-
-    {(automation.statusDescription ||
-      automation.clientDescription) && (
-      <p className="text-sm text-muted-foreground">
-        Description:{" "}
-        {automation.statusDescription ||
-          automation.clientDescription}
-      </p>
-    )}
-  </div>
-)}
-                      {/* Warning for Account Tags Automation */}
-                      {automation.type === "Update account tags" && (
-                        <Alert variant="destructive" className="mt-2">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>
-                            This automation can affect conditions for automations below
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t shrink-0">
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (setDrawerOpen) setDrawerOpen(false);
-              onClose();
-            }}
-            disabled={isProcessing}
-          >
-            Close
-          </Button>
-          <Button
-            onClick={handleMove}
-            disabled={isProcessing}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {isProcessing ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Processing...
-              </>
-            ) : (
-              "Move"
-            )}
-          </Button>
+                        <AlertDescription>
+                          This automation can affect
+                          conditions for automations
+                          below
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
+      </ScrollArea>
+
+      {/* Footer */}
+      <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0 bg-card">
+        
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (setDrawerOpen)
+              setDrawerOpen(false);
+
+            onClose();
+          }}
+          disabled={isProcessing}
+        >
+          Close
+        </Button>
+
+        <Button
+          onClick={handleMove}
+          disabled={isProcessing}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          {isProcessing ? (
+            <>
+              <div className="mr-2 h-4 w-4 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Move"
+          )}
+        </Button>
       </div>
     </div>
-  );
+  </div>
+);
+//   return (
+//     <div className="fixed inset-0 z-50 overflow-hidden">
+//       {/* Backdrop */}
+//       <div 
+//         className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" 
+//         onClick={onClose} 
+//       />
+      
+//       {/* Drawer Content */}
+//       <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
+//         {/* Header */}
+//         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
+//           <div className="flex items-center gap-2">
+//             <h2 className="text-base font-semibold text-foreground">Automations for</h2>
+//             <TooltipProvider>
+//               <Tooltip>
+//                 <TooltipTrigger asChild>
+//                   <span className="text-sm font-medium text-muted-foreground truncate max-w-[300px]">
+//                     {accountNames}
+//                   </span>
+//                 </TooltipTrigger>
+//                 <TooltipContent>
+//                   <p>{accountNames}</p>
+//                 </TooltipContent>
+//               </Tooltip>
+//             </TooltipProvider>
+//           </div>
+//           <button 
+//             onClick={onClose} 
+//             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+//           >
+//             <X className="h-4 w-4" />
+//           </button>
+//         </div>
+
+//         {/* Body */}
+//         <ScrollArea className="flex-1">
+//           <div className="p-4 space-y-4">
+//             {loading ? (
+//               <div className="flex justify-center py-8">
+//                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+//               </div>
+//             ) : (
+//               <div className="space-y-4">
+//                 {automations.map((automation, index) => {
+//                   const currentTagData = tagData[index] || {};
+//                   const templateName = templateData[index] || "Loading...";
+
+//                   return (
+//                     <div
+//                       key={index}
+//                       className="border rounded-lg p-4 space-y-3"
+//                     >
+//                       <div className="flex items-center space-x-2">
+//                         <Checkbox
+//                           id={`automation-${index}`}
+//                           checked={selectedAutomations.includes(index)}
+//                           onCheckedChange={(checked) => handleCheckboxChange(index, checked)}
+//                         />
+//                         <Label
+//                           htmlFor={`automation-${index}`}
+//                           className="font-semibold text-base cursor-pointer"
+//                         >
+//                           {automation.type}
+//                         </Label>
+//                       </div>
+
+//                       {/* Template Information */}
+//                       {automation.selectedtemp && (
+//                         <div className="space-y-1">
+//                           <span className="text-sm font-medium text-muted-foreground">Template:</span>
+//                           <p className="text-sm">{templateName}</p>
+//                         </div>
+//                       )}
+
+//                       {/* Add Assignees Information */}
+//                       {automation.type === "Update job assignees" &&
+//                         automation.addAssignees &&
+//                         automation.addAssignees.length > 0 && (
+//                           <div className="space-y-2">
+//                             <span className="text-sm font-medium text-green-600">Add Assignees:</span>
+//                             <div className="flex flex-wrap gap-2">
+//                               {automation.addAssignees.map((assignee, idx) => (
+//                                 <Badge
+//                                   key={idx}
+//                                   className="bg-green-500 hover:bg-green-600 text-white"
+//                                 >
+//                                   {assignee.username || assignee.label || "Assignee"}
+//                                 </Badge>
+//                               ))}
+//                             </div>
+//                           </div>
+//                         )}
+
+//                       {/* Remove Assignees Information */}
+//                       {automation.type === "Update job assignees" &&
+//                         automation.removeAssignees &&
+//                         automation.removeAssignees.length > 0 && (
+//                           <div className="space-y-2">
+//                             <span className="text-sm font-medium text-red-600">Remove Assignees:</span>
+//                             <div className="flex flex-wrap gap-2">
+//                               {automation.removeAssignees.map((assignee, idx) => (
+//                                 <Badge
+//                                   key={idx}
+//                                   variant="outline"
+//                                   className="border-red-500 text-red-600 line-through"
+//                                 >
+//                                   {assignee.username || assignee.label || "Assignee"}
+//                                 </Badge>
+//                               ))}
+//                             </div>
+//                           </div>
+//                         )}
+
+//                       {/* Selected Tags (Condition Tags) */}
+//                       {currentTagData.selectedTags &&
+//                         currentTagData.selectedTags.length > 0 && (
+//                           <div className="space-y-2">
+//                             <span className="text-sm font-medium">Condition Tags:</span>
+//                             <div className="flex flex-wrap gap-2">
+//                               {currentTagData.selectedTags.map((tag) => (
+//                                 <Badge
+//                                   key={tag._id}
+//                                   style={{ backgroundColor: tag.tagColour }}
+//                                   className="text-white"
+//                                 >
+//                                   {tag.tagName}
+//                                 </Badge>
+//                               ))}
+//                             </div>
+//                           </div>
+//                         )}
+
+//                       {/* Add Tags */}
+//                       {automation.type === "Update account tags" &&
+//                         currentTagData.addTags &&
+//                         currentTagData.addTags.length > 0 && (
+//                           <div className="space-y-2">
+//                             <span className="text-sm font-medium text-green-600">Add Tags:</span>
+//                             <div className="flex flex-wrap gap-2">
+//                               {currentTagData.addTags.map((tag) => (
+//                                 <Badge
+//                                   key={tag._id}
+//                                   style={{ backgroundColor: tag.tagColour }}
+//                                   className="text-white"
+//                                 >
+//                                   {tag.tagName}
+//                                 </Badge>
+//                               ))}
+//                             </div>
+//                           </div>
+//                         )}
+
+//                       {/* Remove Tags */}
+//                       {automation.type === "Update account tags" &&
+//                         currentTagData.removeTags &&
+//                         currentTagData.removeTags.length > 0 && (
+//                           <div className="space-y-2">
+//                             <span className="text-sm font-medium text-red-600">Remove Tags:</span>
+//                             <div className="flex flex-wrap gap-2">
+//                               {currentTagData.removeTags.map((tag) => (
+//                                 <Badge
+//                                   key={tag._id}
+//                                   style={{ backgroundColor: tag.tagColour }}
+//                                   className="text-white"
+//                                 >
+//                                   {tag.tagName}
+//                                 </Badge>
+//                               ))}
+//                             </div>
+//                           </div>
+//                         )}
+
+//                       {/* Client Status Information */}
+//                       {/* {automation.type === "Update client-facing job status" && (
+//                         <div className="space-y-2">
+//                           <span className="text-sm font-medium">Client Status:</span>
+//                           <div className="flex items-center gap-2">
+//                             {automation.selectedClientStatus && (
+//                               <>
+//                                 <div
+//                                   className="w-3 h-3 rounded-full"
+//                                   style={{
+//                                     backgroundColor:
+//                                       clientStatusOptions?.find(
+//                                         (opt) => opt.value === automation.selectedClientStatus
+//                                       )?.clientfacingColour || "#ccc",
+//                                   }}
+//                                 />
+//                                 <span className="text-sm">
+//                                   {clientStatusOptions?.find(
+//                                     (opt) => opt.value === automation.selectedClientStatus
+//                                   )?.label ||
+//                                     automation.selectedClientStatus ||
+//                                     "Not set"}
+//                                 </span>
+//                               </>
+//                             )}
+//                           </div>
+//                           <p className="text-sm">
+//                             Visibility:{" "}
+//                             {automation.status
+//                               ? "Visible to client"
+//                               : "Hidden from client"}
+//                           </p>
+//                           {automation.statusDescription && (
+//                             <p className="text-sm text-muted-foreground">
+//                               Description: {automation.statusDescription}
+//                             </p>
+//                           )}
+//                         </div>
+//                       )} */}
+// {/* Client Status Information */}
+// {automation.type === "Update client-facing job status" && (
+//   <div className="space-y-2">
+//     <span className="text-sm font-medium">Client Status:</span>
+
+//     <div className="flex items-center gap-2">
+//       {automation.selectedClientStatus && (
+//         <>
+//           <div
+//             className="w-3 h-3 rounded-full"
+//             style={{
+//               backgroundColor:
+//                 clientStatusOptions?.find(
+//                   (opt) =>
+//                     opt.value ===
+//                     (automation.selectedClientStatus?._id ||
+//                       automation.selectedClientStatus)
+//                 )?.clientfacingColour || "#ccc",
+//             }}
+//           />
+
+//           <span className="text-sm">
+//             {automation.selectedClientStatus?.clientfacingName ||
+//               clientStatusOptions?.find(
+//                 (opt) =>
+//                   opt.value ===
+//                   (automation.selectedClientStatus?._id ||
+//                     automation.selectedClientStatus)
+//               )?.label ||
+//               "Not set"}
+//           </span>
+//         </>
+//       )}
+//     </div>
+
+//     <p className="text-sm">
+//       Visibility:{" "}
+//       {automation.status
+//         ? "Visible to client"
+//         : "Hidden from client"}
+//     </p>
+
+//     {(automation.statusDescription ||
+//       automation.clientDescription) && (
+//       <p className="text-sm text-muted-foreground">
+//         Description:{" "}
+//         {automation.statusDescription ||
+//           automation.clientDescription}
+//       </p>
+//     )}
+//   </div>
+// )}
+//                       {/* Warning for Account Tags Automation */}
+//                       {automation.type === "Update account tags" && (
+//                         <Alert variant="destructive" className="mt-2">
+//                           <AlertCircle className="h-4 w-4" />
+//                           <AlertDescription>
+//                             This automation can affect conditions for automations below
+//                           </AlertDescription>
+//                         </Alert>
+//                       )}
+//                     </div>
+//                   );
+//                 })}
+//               </div>
+//             )}
+//           </div>
+//         </ScrollArea>
+
+//         {/* Footer */}
+//         <div className="flex items-center justify-end gap-3 px-5 py-4 border-t shrink-0">
+//           <Button
+//             variant="outline"
+//             onClick={() => {
+//               if (setDrawerOpen) setDrawerOpen(false);
+//               onClose();
+//             }}
+//             disabled={isProcessing}
+//           >
+//             Close
+//           </Button>
+//           <Button
+//             onClick={handleMove}
+//             disabled={isProcessing}
+//             className="bg-primary text-primary-foreground hover:bg-primary/90"
+//           >
+//             {isProcessing ? (
+//               <>
+//                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+//                 Processing...
+//               </>
+//             ) : (
+//               "Move"
+//             )}
+//           </Button>
+//         </div>
+//       </div>
+//     </div>
+//   );
 };
 
 export default AutomationDrawer;

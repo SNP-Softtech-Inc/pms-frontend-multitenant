@@ -280,84 +280,245 @@ const TagsMultiSelectDropDown = ({
     .filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
     .filter((o) => !value.some((v) => v.value === o.value));
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div
-          ref={containerRef}
-          className="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-md border  p-2"
-          onClick={() => {
-            setMenuWidth(containerRef.current?.offsetWidth);
-          }}
-        >
-          <div className="flex flex-wrap gap-1">
-            {value.length > 0 ? (
-              value.map((item) => (
-                <Badge
-                  key={item.value}
-                  style={{ backgroundColor: item.colour }}
-                  className="text-white text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSelect(item.value);
+
+    return (
+  <Popover open={open} onOpenChange={setOpen}>
+    <PopoverTrigger asChild>
+      <div
+        ref={containerRef}
+        className="
+          flex min-h-10 w-full cursor-pointer items-center justify-between
+          rounded-xl border border-border bg-background
+          px-3 py-2
+          transition-all duration-200
+          hover:border-primary/40
+          hover:bg-accent/40
+          focus-within:ring-2 focus-within:ring-ring
+        "
+        onClick={() => {
+          setMenuWidth(containerRef.current?.offsetWidth);
+        }}
+      >
+        {/* Selected Values */}
+        <div className="flex flex-wrap gap-1.5">
+          {value.length > 0 ? (
+            value.map((item) => (
+              <Badge
+                key={item.value}
+                style={{
+                  backgroundColor: item.colour,
+                }}
+                className="
+                  flex items-center gap-1
+                  rounded-md
+                  text-white
+                  border border-white/10
+                  hover:opacity-90
+                  transition-all duration-150
+                  text-xs font-medium
+                  shadow-sm
+                "
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(item.value);
+                }}
+              >
+                {item.label}
+
+                <X className="h-3 w-3 cursor-pointer" />
+              </Badge>
+            ))
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              {placeholder}
+            </span>
+          )}
+        </div>
+
+        {/* Right Icons */}
+        <div className="flex items-center gap-2 text-muted-foreground">
+          {value.length > 0 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearAll();
+              }}
+              className="
+                rounded-sm p-0.5
+                hover:bg-muted
+                hover:text-foreground
+                transition-colors
+              "
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+
+          {open ? (
+            <ChevronUp className="h-4 w-4 transition-transform" />
+          ) : (
+            <ChevronDown className="h-4 w-4 transition-transform" />
+          )}
+        </div>
+      </div>
+    </PopoverTrigger>
+
+    <PopoverContent
+      align="start"
+      className="
+        p-3
+        border border-border
+        bg-popover
+        text-popover-foreground
+        shadow-xl
+        rounded-xl
+      "
+      style={{ width: menuWidth || "auto" }}
+    >
+      {/* Search */}
+      <Input
+        placeholder="Search..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="
+          mb-3
+          bg-background
+          border-border
+          text-foreground
+          placeholder:text-muted-foreground
+          focus-visible:ring-ring
+        "
+      />
+
+      {/* Options */}
+      <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
+        {filtered.length > 0 ? (
+          filtered.map((option) => {
+            const isSelected = value.some(
+              (v) => v.value === option.value
+            );
+
+            return (
+              <div
+                key={option.value}
+                onClick={() => toggleSelect(option.value)}
+                className={`
+                  flex cursor-pointer items-center gap-3
+                  rounded-lg px-3 py-2
+                  transition-all duration-150
+                  ${
+                    isSelected
+                      ? "bg-primary/10 border border-primary/20"
+                      : "hover:bg-accent"
+                  }
+                `}
+              >
+                <div
+                  className="
+                    flex items-center justify-center
+                    rounded-md px-2 py-1
+                    text-xs font-medium text-white
+                    shadow-sm
+                  "
+                  style={{
+                    backgroundColor: option.colour,
                   }}
                 >
-                  {item.label}
-                  <X className="ml-1 h-3 w-3" />
-                </Badge>
-              ))
-            ) : (
-              <span className="text-sm text-gray-400">{placeholder}</span>
-            )}
+                  {option.label}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="py-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              No results found
+            </p>
           </div>
-
-          <div className="flex items-center gap-1">
-            {value.length > 0 && (
-              <X className="h-4 w-4" onClick={clearAll} />
-            )}
-            {open ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </div>
-        </div>
-      </PopoverTrigger>
-
-      <PopoverContent
-        className="p-2"
-        style={{ width: menuWidth || "auto" }}
-      >
-        <Input
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mb-2"
-        />
-
-     <div className="max-h-60 overflow-auto space-y-1">
-  {filtered.length > 0 ? (
-    filtered.map((option) => (
-      <div
-        key={option.value}
-        onClick={() => toggleSelect(option.value)}
-        className="flex cursor-pointer items-center px-2 py-1 hover:bg-gray-100"
-      >
-        <span
-          className="text-xs text-white rounded px-2 py-1"
-          style={{ backgroundColor: option.colour }}
-        >
-          {option.label}
-        </span>
+        )}
       </div>
-    ))
-  ) : (
-    <p className="text-sm text-gray-400">No results found</p>
-  )}
-</div>
-      </PopoverContent>
-    </Popover>
-  );
+    </PopoverContent>
+  </Popover>
+);
+//   return (
+//     <Popover open={open} onOpenChange={setOpen}>
+//       <PopoverTrigger asChild>
+//         <div
+//           ref={containerRef}
+//           className="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-md border  p-2"
+//           onClick={() => {
+//             setMenuWidth(containerRef.current?.offsetWidth);
+//           }}
+//         >
+//           <div className="flex flex-wrap gap-1">
+//             {value.length > 0 ? (
+//               value.map((item) => (
+//                 <Badge
+//                   key={item.value}
+//                   style={{ backgroundColor: item.colour }}
+//                   className="text-white text-xs"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     toggleSelect(item.value);
+//                   }}
+//                 >
+//                   {item.label}
+//                   <X className="ml-1 h-3 w-3" />
+//                 </Badge>
+//               ))
+//             ) : (
+//               <span className="text-sm text-gray-400">{placeholder}</span>
+//             )}
+//           </div>
+
+//           <div className="flex items-center gap-1">
+//             {value.length > 0 && (
+//               <X className="h-4 w-4" onClick={clearAll} />
+//             )}
+//             {open ? (
+//               <ChevronUp className="h-4 w-4" />
+//             ) : (
+//               <ChevronDown className="h-4 w-4" />
+//             )}
+//           </div>
+//         </div>
+//       </PopoverTrigger>
+
+//       <PopoverContent
+//         className="p-2"
+//         style={{ width: menuWidth || "auto" }}
+//       >
+//         <Input
+//           placeholder="Search..."
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//           className="mb-2"
+//         />
+
+//      <div className="max-h-60 overflow-auto space-y-1">
+//   {filtered.length > 0 ? (
+//     filtered.map((option) => (
+//       <div
+//         key={option.value}
+//         onClick={() => toggleSelect(option.value)}
+//         className="flex cursor-pointer items-center px-2 py-1 hover:bg-gray-100"
+//       >
+//         <span
+//           className="text-xs text-white rounded px-2 py-1"
+//           style={{ backgroundColor: option.colour }}
+//         >
+//           {option.label}
+//         </span>
+//       </div>
+//     ))
+//   ) : (
+//     <p className="text-sm text-gray-400">No results found</p>
+//   )}
+// </div>
+//       </PopoverContent>
+//     </Popover>
+//   );
 };
 
 export default TagsMultiSelectDropDown;

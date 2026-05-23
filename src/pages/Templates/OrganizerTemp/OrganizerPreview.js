@@ -550,52 +550,126 @@ const OrganizerPreview = ({
       onActiveStepChange(activeStep + 1);
     }
   };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[90vw] h-[90vh] overflow-y-auto p-0">
-        <div className="p-6">
+return (
+  <Dialog open={open} onOpenChange={onClose}>
+    <DialogContent
+      className="
+        max-w-[95vw]
+        xl:max-w-6xl
+        h-[92vh]
+        p-0
+        overflow-hidden
+        flex
+        flex-col
+        border-border
+        bg-background
+        text-foreground
+        shadow-2xl
+        rounded-3xl
+      "
+    >
+      {/* Scrollable Area */}
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+        <div className="p-6 md:p-8">
           {/* Header Section */}
-          <div className="flex justify-between items-center mb-6 pb-4 border-b">
+          <div
+            className="
+              flex flex-col sm:flex-row
+              sm:items-center
+              sm:justify-between
+              gap-4
+              mb-8
+              pb-5
+              border-b border-border
+            "
+          >
             <div>
-              <h3 className="font-bold text-lg">Preview mode</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="font-bold text-2xl text-foreground tracking-tight">
+                Preview mode
+              </h3>
+
+              <p className="text-sm text-muted-foreground mt-1">
                 The client sees your organizer like this
               </p>
             </div>
-            {/* <Button variant="ghost" onClick={onClose}>
+
+            {/* <Button variant="outline" onClick={onClose}>
               Back to edit
             </Button> */}
           </div>
 
           {/* Organizer Name */}
-          <h2 className="text-xl mb-4">{organizerName}</h2>
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
+              {organizerName}
+            </h2>
+          </div>
 
           {/* Section Selector */}
-          <div className="mb-4">
-            <Select value={activeStep.toString()} onValueChange={handleDropdownChange}>
-              <SelectTrigger className="w-full">
+          <div className="mb-6">
+            <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Sections
+            </Label>
+
+            <Select
+              value={activeStep.toString()}
+              onValueChange={handleDropdownChange}
+            >
+              <SelectTrigger
+                className="
+                  w-full
+                  h-12
+                  rounded-2xl
+                  border-border
+                  bg-card
+                  text-foreground
+                  shadow-sm
+                "
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+
+              <SelectContent
+                className="
+                  rounded-2xl
+                  border-border
+                  bg-popover
+                  text-popover-foreground
+                "
+              >
                 {visibleSections.map((section, index) => {
-                  const visibleElements = section.formElements.filter(
-                    (el) => shouldShowElement(el, section.id)
-                  );
+                  const visibleElements =
+                    section.formElements.filter((el) =>
+                      shouldShowElement(el, section.id)
+                    );
 
-                  const answeredCount = visibleElements.reduce(
-                    (count, element) => {
-                      const key = `${section.id}_${element.text}`;
-                      return count + (answeredElements[key] ? 1 : 0);
-                    },
-                    0
-                  );
+                  const answeredCount =
+                    visibleElements.reduce(
+                      (count, element) => {
+                        const key = `${section.id}_${element.text}`;
 
-                  const totalVisibleElements = visibleElements.length;
+                        return (
+                          count +
+                          (answeredElements[key]
+                            ? 1
+                            : 0)
+                        );
+                      },
+                      0
+                    );
+
+                  const totalVisibleElements =
+                    visibleElements.length;
 
                   return (
-                    <SelectItem key={section.id} value={index.toString()}>
-                      {section.text} ({answeredCount}/{totalVisibleElements})
+                    <SelectItem
+                      key={section.id}
+                      value={index.toString()}
+                      className="rounded-xl"
+                    >
+                      {section.text} (
+                      {answeredCount}/
+                      {totalVisibleElements})
                     </SelectItem>
                   );
                 })}
@@ -604,36 +678,91 @@ const OrganizerPreview = ({
           </div>
 
           {/* Progress Bar */}
-          <div className="mb-6">
-            <Progress value={((activeStep + 1) / totalSteps) * 100} className="h-2" />
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">
+                Progress
+              </span>
+
+              <span className="text-sm font-medium text-foreground">
+                {activeStep + 1}/{totalSteps}
+              </span>
+            </div>
+
+            <Progress
+              value={
+                ((activeStep + 1) /
+                  totalSteps) *
+                100
+              }
+              className="h-2 rounded-full"
+            />
           </div>
 
           {/* Content Area */}
           <div className="max-w-4xl mx-auto">
             {visibleSections.map(
               (section, sectionIndex) =>
-                sectionIndex === activeStep && (
-                  <div key={section.id} className="space-y-6">
+                sectionIndex ===
+                  activeStep && (
+                  <div
+                    key={section.id}
+                    className="
+                      rounded-3xl
+                      border border-border
+                      bg-card
+                      shadow-sm
+                      p-6 md:p-8
+                      space-y-7
+                    "
+                  >
+                    {/* Section Title */}
+                    <div className="pb-5 border-b border-border">
+                      <h3 className="text-2xl font-semibold text-card-foreground">
+                        {section.text}
+                      </h3>
+                    </div>
+
+                    {/* Elements */}
                     {section.formElements.map(
                       (element) =>
-                        shouldShowElement(element, section.id) && (
-                          <div key={`${section.id}_${element.id}`} className="space-y-2">
-                            {/* Text Editor Type */}
-                            {element.type === "Text Editor" && (
-                              <div className="py-4">
-                                <p className="text-gray-700">
-                                  {stripHtmlTags(element.text)}
+                        shouldShowElement(
+                          element,
+                          section.id
+                        ) && (
+                          <div
+                            key={`${section.id}_${element.id}`}
+                            className="space-y-3"
+                          >
+                            {/* Text Editor */}
+                            {element.type ===
+                              "Text Editor" && (
+                              <div
+                                className="
+                                  rounded-2xl
+                                  border border-border
+                                  bg-muted/40
+                                  p-5
+                                "
+                              >
+                                <p className="text-foreground leading-7">
+                                  {stripHtmlTags(
+                                    element.text
+                                  )}
                                 </p>
                               </div>
                             )}
 
-                            {/* Free Entry & Email Type */}
-                            {(element.type === "Free Entry" ||
-                              element.type === "Email") && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Free Entry & Email */}
+                            {(element.type ===
+                              "Free Entry" ||
+                              element.type ===
+                                "Email") && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
+
                                 <Textarea
                                   placeholder={`${element.type} Answer`}
                                   value={
@@ -648,18 +777,26 @@ const OrganizerPreview = ({
                                       section.id
                                     )
                                   }
-                                  className="resize-none"
-                                  rows={3}
+                                  rows={4}
+                                  className="
+                                    resize-none
+                                    rounded-2xl
+                                    border-border
+                                    bg-background
+                                    text-foreground
+                                  "
                                 />
                               </div>
                             )}
 
-                            {/* Number Type */}
-                            {element.type === "Number" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Number */}
+                            {element.type ===
+                              "Number" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
+
                                 <Input
                                   type="text"
                                   inputMode="numeric"
@@ -676,145 +813,199 @@ const OrganizerPreview = ({
                                         /\D/g,
                                         ""
                                       );
+
                                     onInputChange(
                                       {
                                         target: {
-                                          value: numericValue,
+                                          value:
+                                            numericValue,
                                         },
                                       },
                                       element.text,
                                       section.id
                                     );
                                   }}
+                                  className="
+                                    h-12
+                                    rounded-2xl
+                                    border-border
+                                    bg-background
+                                  "
                                 />
                               </div>
                             )}
 
-                            {/* Radio Buttons Type */}
-                            {element.type === "Radio Buttons" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Radio Buttons */}
+                            {element.type ===
+                              "Radio Buttons" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
-                                <div className="flex gap-2 flex-wrap">
-                                  {element.options.map((option) => (
-                                    <Button
-                                      key={option.text}
-                                      variant={
-                                        radioValues[
-                                          `${section.id}_${element.text}`
-                                        ] === option.text
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      onClick={() =>
-                                        onRadioChange(
-                                          option.text,
-                                          element.text,
-                                          section.id
-                                        )
-                                      }
-                                    >
-                                      {option.text}
-                                    </Button>
-                                  ))}
+
+                                <div className="flex gap-3 flex-wrap">
+                                  {element.options.map(
+                                    (option) => (
+                                      <Button
+                                        key={
+                                          option.text
+                                        }
+                                        variant={
+                                          radioValues[
+                                            `${section.id}_${element.text}`
+                                          ] ===
+                                          option.text
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        className="rounded-xl"
+                                        onClick={() =>
+                                          onRadioChange(
+                                            option.text,
+                                            element.text,
+                                            section.id
+                                          )
+                                        }
+                                      >
+                                        {option.text}
+                                      </Button>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )}
 
-                            {/* Checkboxes Type */}
-                            {element.type === "Checkboxes" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Checkboxes */}
+                            {element.type ===
+                              "Checkboxes" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
-                                <div className="flex gap-2 flex-wrap">
-                                  {element.options.map((option) => (
-                                    <Button
-                                      key={option.text}
-                                      variant={
-                                        checkboxValues[
-                                          `${section.id}_${element.text}`
-                                        ]?.[option.text]
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      onClick={() =>
-                                        onCheckboxChange(
-                                          option.text,
-                                          element.text,
-                                          section.id
-                                        )
-                                      }
-                                    >
-                                      {option.text}
-                                    </Button>
-                                  ))}
+
+                                <div className="flex gap-3 flex-wrap">
+                                  {element.options.map(
+                                    (option) => (
+                                      <Button
+                                        key={
+                                          option.text
+                                        }
+                                        variant={
+                                          checkboxValues[
+                                            `${section.id}_${element.text}`
+                                          ]?.[
+                                            option.text
+                                          ]
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        className="rounded-xl"
+                                        onClick={() =>
+                                          onCheckboxChange(
+                                            option.text,
+                                            element.text,
+                                            section.id
+                                          )
+                                        }
+                                      >
+                                        {option.text}
+                                      </Button>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )}
 
-                            {/* Yes/No Type */}
-                            {element.type === "Yes/No" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Yes/No */}
+                            {element.type ===
+                              "Yes/No" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
-                                <div className="flex gap-2">
-                                  {element.options.map((option) => (
-                                    <Button
-                                      key={option.text}
-                                      variant={
-                                        selectedYesNoValues[
-                                          `${section.id}_${element.text}`
-                                        ] === option.text
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      onClick={() =>
-                                        onYesNoChange(
-                                          option.text,
-                                          element.text,
-                                          section.id
-                                        )
-                                      }
-                                    >
-                                      {option.text}
-                                    </Button>
-                                  ))}
+
+                                <div className="flex gap-3">
+                                  {element.options.map(
+                                    (option) => (
+                                      <Button
+                                        key={
+                                          option.text
+                                        }
+                                        variant={
+                                          selectedYesNoValues[
+                                            `${section.id}_${element.text}`
+                                          ] ===
+                                          option.text
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        className="rounded-xl min-w-[100px]"
+                                        onClick={() =>
+                                          onYesNoChange(
+                                            option.text,
+                                            element.text,
+                                            section.id
+                                          )
+                                        }
+                                      >
+                                        {option.text}
+                                      </Button>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )}
 
-                            {/* Dropdown Type */}
-                            {element.type === "Dropdown" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Dropdown */}
+                            {element.type ===
+                              "Dropdown" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
+
                                 <Select
                                   value={
                                     selectedDropdownValues[
                                       `${section.id}_${element.text}`
                                     ] || ""
                                   }
-                                  onValueChange={(value) =>
+                                  onValueChange={(
+                                    value
+                                  ) =>
                                     onDropdownValueChange(
-                                      { target: { value } },
+                                      {
+                                        target: {
+                                          value,
+                                        },
+                                      },
                                       element.text,
                                       section.id
                                     )
                                   }
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger
+                                    className="
+                                      h-12
+                                      rounded-2xl
+                                      border-border
+                                      bg-background
+                                    "
+                                  >
                                     <SelectValue placeholder="Select an option" />
                                   </SelectTrigger>
-                                  <SelectContent>
+
+                                  <SelectContent className="rounded-2xl">
                                     {element.options.map(
                                       (option) => (
                                         <SelectItem
-                                          key={option.text}
-                                          value={option.text}
+                                          key={
+                                            option.text
+                                          }
+                                          value={
+                                            option.text
+                                          }
+                                          className="rounded-xl"
                                         >
                                           {option.text}
                                         </SelectItem>
@@ -825,34 +1016,57 @@ const OrganizerPreview = ({
                               </div>
                             )}
 
-                            {/* Date Type */}
-                            {element.type === "Date" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* Date */}
+                            {element.type ===
+                              "Date" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
+
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <Button
-                                      variant={"outline"}
+                                      variant="outline"
                                       className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !startDate && "text-muted-foreground"
+                                        `
+                                          w-full
+                                          h-12
+                                          justify-start
+                                          text-left
+                                          font-normal
+                                          rounded-2xl
+                                          border-border
+                                        `,
+                                        !startDate &&
+                                          "text-muted-foreground"
                                       )}
                                     >
                                       <CalendarIcon className="mr-2 h-4 w-4" />
+
                                       {startDate ? (
-                                        format(startDate, "MM/dd/yyyy")
+                                        format(
+                                          startDate,
+                                          "MM/dd/yyyy"
+                                        )
                                       ) : (
-                                        <span>Pick a date</span>
+                                        <span>
+                                          Pick a
+                                          date
+                                        </span>
                                       )}
                                     </Button>
                                   </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
+
+                                  <PopoverContent className="w-auto p-0 rounded-2xl border-border bg-popover">
                                     <Calendar
                                       mode="single"
-                                      selected={startDate}
-                                      onSelect={onStartDateChange}
+                                      selected={
+                                        startDate
+                                      }
+                                      onSelect={
+                                        onStartDateChange
+                                      }
                                       initialFocus
                                     />
                                   </PopoverContent>
@@ -860,12 +1074,14 @@ const OrganizerPreview = ({
                               </div>
                             )}
 
-                            {/* File Upload Type */}
-                            {element.type === "File Upload" && (
-                              <div>
-                                <Label className="text-lg mb-2 block">
+                            {/* File Upload */}
+                            {element.type ===
+                              "File Upload" && (
+                              <div className="space-y-3">
+                                <Label className="text-base font-semibold text-foreground">
                                   {element.text}
                                 </Label>
+
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -873,12 +1089,23 @@ const OrganizerPreview = ({
                                         <Input
                                           disabled
                                           placeholder="Add Document"
-                                          className="cursor-not-allowed opacity-50"
+                                          className="
+                                            h-12
+                                            rounded-2xl
+                                            cursor-not-allowed
+                                            opacity-60
+                                            border-border
+                                          "
                                         />
                                       </div>
                                     </TooltipTrigger>
+
                                     <TooltipContent>
-                                      <p>Unavailable in preview mode</p>
+                                      <p>
+                                        Unavailable
+                                        in preview
+                                        mode
+                                      </p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
@@ -887,32 +1114,413 @@ const OrganizerPreview = ({
                           </div>
                         )
                     )}
+
+                    {/* Navigation Buttons */}
+                    <div
+                      className="
+                        mt-10
+                        pt-6
+                        border-t border-border
+                        flex items-center justify-between
+                      "
+                    >
+                      <Button
+                        disabled={
+                          activeStep === 0
+                        }
+                        onClick={handleBack}
+                        variant="outline"
+                        className="rounded-2xl px-6"
+                      >
+                        Back
+                      </Button>
+
+                      <Button
+                        onClick={handleNext}
+                        disabled={
+                          activeStep ===
+                          totalSteps - 1
+                        }
+                        className="
+                          rounded-2xl
+                          px-6
+                          shadow-md
+                        "
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 )
             )}
-
-            {/* Navigation Buttons */}
-            <div className="mt-8 flex gap-3 items-center">
-              <Button
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                variant="default"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={handleNext}
-                disabled={activeStep === totalSteps - 1}
-                variant="default"
-              >
-                Next
-              </Button>
-            </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+  // return (
+  //   <Dialog open={open} onOpenChange={onClose}>
+  //     <DialogContent className="max-w-[90vw] h-[90vh] overflow-y-auto p-0">
+  //       <div className="p-6">
+  //         {/* Header Section */}
+  //         <div className="flex justify-between items-center mb-6 pb-4 border-b">
+  //           <div>
+  //             <h3 className="font-bold text-lg">Preview mode</h3>
+  //             <p className="text-sm text-gray-500">
+  //               The client sees your organizer like this
+  //             </p>
+  //           </div>
+  //           {/* <Button variant="ghost" onClick={onClose}>
+  //             Back to edit
+  //           </Button> */}
+  //         </div>
+
+  //         {/* Organizer Name */}
+  //         <h2 className="text-xl mb-4">{organizerName}</h2>
+
+  //         {/* Section Selector */}
+  //         <div className="mb-4">
+  //           <Select value={activeStep.toString()} onValueChange={handleDropdownChange}>
+  //             <SelectTrigger className="w-full">
+  //               <SelectValue />
+  //             </SelectTrigger>
+  //             <SelectContent>
+  //               {visibleSections.map((section, index) => {
+  //                 const visibleElements = section.formElements.filter(
+  //                   (el) => shouldShowElement(el, section.id)
+  //                 );
+
+  //                 const answeredCount = visibleElements.reduce(
+  //                   (count, element) => {
+  //                     const key = `${section.id}_${element.text}`;
+  //                     return count + (answeredElements[key] ? 1 : 0);
+  //                   },
+  //                   0
+  //                 );
+
+  //                 const totalVisibleElements = visibleElements.length;
+
+  //                 return (
+  //                   <SelectItem key={section.id} value={index.toString()}>
+  //                     {section.text} ({answeredCount}/{totalVisibleElements})
+  //                   </SelectItem>
+  //                 );
+  //               })}
+  //             </SelectContent>
+  //           </Select>
+  //         </div>
+
+  //         {/* Progress Bar */}
+  //         <div className="mb-6">
+  //           <Progress value={((activeStep + 1) / totalSteps) * 100} className="h-2" />
+  //         </div>
+
+  //         {/* Content Area */}
+  //         <div className="max-w-4xl mx-auto">
+  //           {visibleSections.map(
+  //             (section, sectionIndex) =>
+  //               sectionIndex === activeStep && (
+  //                 <div key={section.id} className="space-y-6">
+  //                   {section.formElements.map(
+  //                     (element) =>
+  //                       shouldShowElement(element, section.id) && (
+  //                         <div key={`${section.id}_${element.id}`} className="space-y-2">
+  //                           {/* Text Editor Type */}
+  //                           {element.type === "Text Editor" && (
+  //                             <div className="py-4">
+  //                               <p className="text-gray-700">
+  //                                 {stripHtmlTags(element.text)}
+  //                               </p>
+  //                             </div>
+  //                           )}
+
+  //                           {/* Free Entry & Email Type */}
+  //                           {(element.type === "Free Entry" ||
+  //                             element.type === "Email") && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <Textarea
+  //                                 placeholder={`${element.type} Answer`}
+  //                                 value={
+  //                                   inputValues[
+  //                                     `${section.id}_${element.text}`
+  //                                   ] || ""
+  //                                 }
+  //                                 onChange={(e) =>
+  //                                   onInputChange(
+  //                                     e,
+  //                                     element.text,
+  //                                     section.id
+  //                                   )
+  //                                 }
+  //                                 className="resize-none"
+  //                                 rows={3}
+  //                               />
+  //                             </div>
+  //                           )}
+
+  //                           {/* Number Type */}
+  //                           {element.type === "Number" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <Input
+  //                                 type="text"
+  //                                 inputMode="numeric"
+  //                                 pattern="[0-9]*"
+  //                                 placeholder={`${element.type} Answer`}
+  //                                 value={
+  //                                   inputValues[
+  //                                     `${section.id}_${element.text}`
+  //                                   ] || ""
+  //                                 }
+  //                                 onChange={(e) => {
+  //                                   const numericValue =
+  //                                     e.target.value.replace(
+  //                                       /\D/g,
+  //                                       ""
+  //                                     );
+  //                                   onInputChange(
+  //                                     {
+  //                                       target: {
+  //                                         value: numericValue,
+  //                                       },
+  //                                     },
+  //                                     element.text,
+  //                                     section.id
+  //                                   );
+  //                                 }}
+  //                               />
+  //                             </div>
+  //                           )}
+
+  //                           {/* Radio Buttons Type */}
+  //                           {element.type === "Radio Buttons" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <div className="flex gap-2 flex-wrap">
+  //                                 {element.options.map((option) => (
+  //                                   <Button
+  //                                     key={option.text}
+  //                                     variant={
+  //                                       radioValues[
+  //                                         `${section.id}_${element.text}`
+  //                                       ] === option.text
+  //                                         ? "default"
+  //                                         : "outline"
+  //                                     }
+  //                                     onClick={() =>
+  //                                       onRadioChange(
+  //                                         option.text,
+  //                                         element.text,
+  //                                         section.id
+  //                                       )
+  //                                     }
+  //                                   >
+  //                                     {option.text}
+  //                                   </Button>
+  //                                 ))}
+  //                               </div>
+  //                             </div>
+  //                           )}
+
+  //                           {/* Checkboxes Type */}
+  //                           {element.type === "Checkboxes" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <div className="flex gap-2 flex-wrap">
+  //                                 {element.options.map((option) => (
+  //                                   <Button
+  //                                     key={option.text}
+  //                                     variant={
+  //                                       checkboxValues[
+  //                                         `${section.id}_${element.text}`
+  //                                       ]?.[option.text]
+  //                                         ? "default"
+  //                                         : "outline"
+  //                                     }
+  //                                     onClick={() =>
+  //                                       onCheckboxChange(
+  //                                         option.text,
+  //                                         element.text,
+  //                                         section.id
+  //                                       )
+  //                                     }
+  //                                   >
+  //                                     {option.text}
+  //                                   </Button>
+  //                                 ))}
+  //                               </div>
+  //                             </div>
+  //                           )}
+
+  //                           {/* Yes/No Type */}
+  //                           {element.type === "Yes/No" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <div className="flex gap-2">
+  //                                 {element.options.map((option) => (
+  //                                   <Button
+  //                                     key={option.text}
+  //                                     variant={
+  //                                       selectedYesNoValues[
+  //                                         `${section.id}_${element.text}`
+  //                                       ] === option.text
+  //                                         ? "default"
+  //                                         : "outline"
+  //                                     }
+  //                                     onClick={() =>
+  //                                       onYesNoChange(
+  //                                         option.text,
+  //                                         element.text,
+  //                                         section.id
+  //                                       )
+  //                                     }
+  //                                   >
+  //                                     {option.text}
+  //                                   </Button>
+  //                                 ))}
+  //                               </div>
+  //                             </div>
+  //                           )}
+
+  //                           {/* Dropdown Type */}
+  //                           {element.type === "Dropdown" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <Select
+  //                                 value={
+  //                                   selectedDropdownValues[
+  //                                     `${section.id}_${element.text}`
+  //                                   ] || ""
+  //                                 }
+  //                                 onValueChange={(value) =>
+  //                                   onDropdownValueChange(
+  //                                     { target: { value } },
+  //                                     element.text,
+  //                                     section.id
+  //                                   )
+  //                                 }
+  //                               >
+  //                                 <SelectTrigger>
+  //                                   <SelectValue placeholder="Select an option" />
+  //                                 </SelectTrigger>
+  //                                 <SelectContent>
+  //                                   {element.options.map(
+  //                                     (option) => (
+  //                                       <SelectItem
+  //                                         key={option.text}
+  //                                         value={option.text}
+  //                                       >
+  //                                         {option.text}
+  //                                       </SelectItem>
+  //                                     )
+  //                                   )}
+  //                                 </SelectContent>
+  //                               </Select>
+  //                             </div>
+  //                           )}
+
+  //                           {/* Date Type */}
+  //                           {element.type === "Date" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <Popover>
+  //                                 <PopoverTrigger asChild>
+  //                                   <Button
+  //                                     variant={"outline"}
+  //                                     className={cn(
+  //                                       "w-full justify-start text-left font-normal",
+  //                                       !startDate && "text-muted-foreground"
+  //                                     )}
+  //                                   >
+  //                                     <CalendarIcon className="mr-2 h-4 w-4" />
+  //                                     {startDate ? (
+  //                                       format(startDate, "MM/dd/yyyy")
+  //                                     ) : (
+  //                                       <span>Pick a date</span>
+  //                                     )}
+  //                                   </Button>
+  //                                 </PopoverTrigger>
+  //                                 <PopoverContent className="w-auto p-0">
+  //                                   <Calendar
+  //                                     mode="single"
+  //                                     selected={startDate}
+  //                                     onSelect={onStartDateChange}
+  //                                     initialFocus
+  //                                   />
+  //                                 </PopoverContent>
+  //                               </Popover>
+  //                             </div>
+  //                           )}
+
+  //                           {/* File Upload Type */}
+  //                           {element.type === "File Upload" && (
+  //                             <div>
+  //                               <Label className="text-lg mb-2 block">
+  //                                 {element.text}
+  //                               </Label>
+  //                               <TooltipProvider>
+  //                                 <Tooltip>
+  //                                   <TooltipTrigger asChild>
+  //                                     <div className="relative w-full">
+  //                                       <Input
+  //                                         disabled
+  //                                         placeholder="Add Document"
+  //                                         className="cursor-not-allowed opacity-50"
+  //                                       />
+  //                                     </div>
+  //                                   </TooltipTrigger>
+  //                                   <TooltipContent>
+  //                                     <p>Unavailable in preview mode</p>
+  //                                   </TooltipContent>
+  //                                 </Tooltip>
+  //                               </TooltipProvider>
+  //                             </div>
+  //                           )}
+  //                         </div>
+  //                       )
+  //                   )}
+  //                 </div>
+  //               )
+  //           )}
+
+  //           {/* Navigation Buttons */}
+  //           <div className="mt-8 flex gap-3 items-center">
+  //             <Button
+  //               disabled={activeStep === 0}
+  //               onClick={handleBack}
+  //               variant="default"
+  //             >
+  //               Back
+  //             </Button>
+  //             <Button
+  //               onClick={handleNext}
+  //               disabled={activeStep === totalSteps - 1}
+  //               variant="default"
+  //             >
+  //               Next
+  //             </Button>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </DialogContent>
+  //   </Dialog>
+  // );
 };
 
 export default OrganizerPreview;

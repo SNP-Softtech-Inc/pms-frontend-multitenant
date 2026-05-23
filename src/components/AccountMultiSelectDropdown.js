@@ -332,88 +332,263 @@ const MultiSelectDropdown = ({
   };
 
   const clearSelection = () => onChange?.([]);
+return (
+  <div style={{ width }} className="mt-2">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div
+          className="
+            flex min-h-10 w-full cursor-pointer items-center justify-between
+            rounded-xl border border-border bg-background
+            px-3 py-2
+            transition-all duration-200
+            hover:border-primary/40
+            hover:bg-accent/40
+            focus-within:ring-2 focus-within:ring-ring
+          "
+        >
+          {/* Selected Values */}
+          <div className="flex flex-wrap gap-1.5">
+            {value.length > 0 ? (
+              value.map((item) => (
+                <Badge
+                  key={item.value}
+                  className="
+                    flex items-center gap-1
+                    rounded-md
+                    bg-primary/10
+                    text-primary
+                    border border-primary/20
+                    hover:bg-primary/20
+                    transition-colors
+                    text-xs font-medium
+                  "
+                >
+                  {item.label}
 
-  return (
-    <div style={{ width }} className="mt-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between min-h-[40px] h-auto p-2 rounded-[10px] "
-          >
-            <div className="flex flex-wrap gap-1">
-              {value.length > 0 ? (
-                value.map((item) => (
-                  <Badge
-                    key={item.value}
-                    variant="secondary"
-                    className="text-[11px] font-normal rounded-full px-2 py-0 flex items-center gap-1"
-                  >
-                    {item.label}
-                    <X
-                      className="h-3 w-3 cursor-pointer opacity-50 hover:opacity-100"
-                      onClick={(e) => handleUnselect(e, item.value)}
-                    />
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-muted-foreground font-normal">
-                  {placeholder}
-                </span>
-              )}
-            </div>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
+                  <X
+                    className="
+                      h-3 w-3 cursor-pointer
+                      opacity-70 hover:opacity-100
+                    "
+                    onClick={(e) =>
+                      handleUnselect(e, item.value)
+                    }
+                  />
+                </Badge>
+              ))
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                {placeholder}
+              </span>
+            )}
+          </div>
 
-        <PopoverContent className="p-0" style={{ width: "var(--radix-popover-trigger-width)" }}>
-          <Command>
-            <CommandInput placeholder="Search..." />
-            <CommandList className="max-h-[300px]">
-              {loading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : (
-                <>
-                  <CommandEmpty>No results found.</CommandEmpty>
-                  <CommandGroup>
-                    {options.map((option) => {
-                      const isSelected = value.some((v) => v.value === option.value);
-                      return (
-                        <CommandItem
-                          key={option.value}
-                          onSelect={() => handleSelect(option.value)}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <Checkbox checked={isSelected} />
-                          <span>{option.label}</span>
-                        </CommandItem>
+          {/* Right Icon */}
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-70" />
+          </div>
+        </div>
+      </PopoverTrigger>
+
+      <PopoverContent
+        align="start"
+        className="
+          p-3
+          border border-border
+          bg-popover
+          text-popover-foreground
+          shadow-xl
+          rounded-xl
+        "
+        style={{
+          width:
+            "var(--radix-popover-trigger-width)",
+        }}
+      >
+        <Command className="bg-transparent">
+          {/* Search */}
+          <CommandInput
+            placeholder="Search..."
+            className="
+              mb-3
+              border border-border
+              bg-background
+              text-foreground
+              placeholder:text-muted-foreground
+              focus-visible:ring-ring
+            "
+          />
+
+          {/* Options */}
+          <CommandList className="max-h-[300px] overflow-y-auto pr-1">
+            {loading ? (
+              <div className="flex items-center justify-center p-5">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                  No results found.
+                </CommandEmpty>
+
+                <CommandGroup className="space-y-1">
+                  {options.map((option) => {
+                    const isSelected =
+                      value.some(
+                        (v) =>
+                          v.value === option.value
                       );
-                    })}
-                  </CommandGroup>
-                </>
-              )}
 
-              {value.length > 0 && (
-                <>
-                  <div className="h-[1px] bg-border my-1" />
-                  <CommandItem
-                    onSelect={clearSelection}
-                    className="justify-center text-red-500 font-medium cursor-pointer focus:bg-red-50 focus:text-red-500"
-                  >
-                    Clear selection
-                  </CommandItem>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        onSelect={() =>
+                          handleSelect(
+                            option.value
+                          )
+                        }
+                        className={`
+                          flex cursor-pointer items-center gap-3
+                          rounded-lg px-3 py-2
+                          transition-all duration-150
+                          ${
+                            isSelected
+                              ? "bg-primary/10 border border-primary/20"
+                              : "hover:bg-accent"
+                          }
+                        `}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          className="
+                            border-border
+                            data-[state=checked]:bg-primary
+                            data-[state=checked]:border-primary
+                          "
+                        />
+
+                        <span className="text-sm font-medium text-foreground">
+                          {option.label}
+                        </span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </>
+            )}
+
+            {/* Clear Selection */}
+            {value.length > 0 && (
+              <>
+                <div className="h-px bg-border my-2" />
+
+                <CommandItem
+                  onSelect={clearSelection}
+                  className="
+                    justify-center
+                    rounded-lg
+                    py-2
+                    text-sm
+                    font-medium
+                    text-destructive
+                    cursor-pointer
+                    transition-colors
+                    hover:bg-destructive/10
+                    focus:bg-destructive/10
+                  "
+                >
+                  Clear selection
+                </CommandItem>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  </div>
+);
+  // return (
+  //   <div style={{ width }} className="mt-2">
+  //     <Popover open={open} onOpenChange={setOpen}>
+  //       <PopoverTrigger asChild>
+  //         <Button
+  //           variant="outline"
+  //           role="combobox"
+  //           aria-expanded={open}
+  //           className="w-full justify-between min-h-[40px] h-auto p-2 rounded-[10px] "
+  //         >
+  //           <div className="flex flex-wrap gap-1">
+  //             {value.length > 0 ? (
+  //               value.map((item) => (
+  //                 <Badge
+  //                   key={item.value}
+  //                   variant="secondary"
+  //                   className="text-[11px] font-normal rounded-full px-2 py-0 flex items-center gap-1"
+  //                 >
+  //                   {item.label}
+  //                   <X
+  //                     className="h-3 w-3 cursor-pointer opacity-50 hover:opacity-100"
+  //                     onClick={(e) => handleUnselect(e, item.value)}
+  //                   />
+  //                 </Badge>
+  //               ))
+  //             ) : (
+  //               <span className="text-muted-foreground font-normal">
+  //                 {placeholder}
+  //               </span>
+  //             )}
+  //           </div>
+  //           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+  //         </Button>
+  //       </PopoverTrigger>
+
+  //       <PopoverContent className="p-0" style={{ width: "var(--radix-popover-trigger-width)" }}>
+  //         <Command>
+  //           <CommandInput placeholder="Search..." />
+  //           <CommandList className="max-h-[300px]">
+  //             {loading ? (
+  //               <div className="flex items-center justify-center p-4">
+  //                 <Loader2 className="h-4 w-4 animate-spin" />
+  //               </div>
+  //             ) : (
+  //               <>
+  //                 <CommandEmpty>No results found.</CommandEmpty>
+  //                 <CommandGroup>
+  //                   {options.map((option) => {
+  //                     const isSelected = value.some((v) => v.value === option.value);
+  //                     return (
+  //                       <CommandItem
+  //                         key={option.value}
+  //                         onSelect={() => handleSelect(option.value)}
+  //                         className="flex items-center gap-2 cursor-pointer"
+  //                       >
+  //                         <Checkbox checked={isSelected} />
+  //                         <span>{option.label}</span>
+  //                       </CommandItem>
+  //                     );
+  //                   })}
+  //                 </CommandGroup>
+  //               </>
+  //             )}
+
+  //             {value.length > 0 && (
+  //               <>
+  //                 <div className="h-[1px] bg-border my-1" />
+  //                 <CommandItem
+  //                   onSelect={clearSelection}
+  //                   className="justify-center text-red-500 font-medium cursor-pointer focus:bg-red-50 focus:text-red-500"
+  //                 >
+  //                   Clear selection
+  //                 </CommandItem>
+  //               </>
+  //             )}
+  //           </CommandList>
+  //         </Command>
+  //       </PopoverContent>
+  //     </Popover>
+  //   </div>
+  // );
 };
 
 export default MultiSelectDropdown;

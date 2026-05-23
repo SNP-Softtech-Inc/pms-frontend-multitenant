@@ -985,62 +985,173 @@ const LineItemsAndSummary = ({
       onSubtotalChange(value);
     }
   };
+return (
+  <div className="w-full space-y-6">
+    {/* Line Items Header */}
+    <div className="space-y-1">
+      <h4 className="text-base font-semibold text-foreground">
+        {lineItemsTitle}
+      </h4>
 
-  return (
-    <div className="w-full">
-      {/* Line Items Section */}
-      <div className="mb-4">
-        <h4 className="text-base font-semibold text-foreground">{lineItemsTitle}</h4>
-        <p className="text-sm text-muted-foreground mt-1">{lineItemsSubtitle}</p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {lineItemsSubtitle}
+      </p>
+    </div>
 
-      {/* Line Items Table */}
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+    {/* Table Wrapper */}
+    <div
+      className="
+        overflow-hidden rounded-2xl
+        border border-border
+        bg-card
+        shadow-sm
+      "
+    >
+      <div className="overflow-x-auto">
         <table className="w-full text-sm">
+          {/* Header */}
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="sticky left-0 bg-muted/50 px-3 py-2 text-left font-medium text-muted-foreground" style={{ minWidth: 180 }}>
-                Product/Service
+            <tr
+              className="
+                border-b border-border
+                bg-muted/40
+                backdrop-blur
+              "
+            >
+              <th
+                className="
+                  sticky left-0 z-10
+                  bg-muted/40
+                  px-4 py-3
+                  text-left text-xs font-semibold
+                  uppercase tracking-wide
+                  text-muted-foreground
+                "
+                style={{ minWidth: 200 }}
+              >
+                Product / Service
               </th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground" style={{ minWidth: 140 }}>
+
+              <th
+                className="
+                  px-4 py-3
+                  text-left text-xs font-semibold
+                  uppercase tracking-wide
+                  text-muted-foreground
+                "
+                style={{ minWidth: 160 }}
+              >
                 Description
               </th>
-              <th className="px-3 py-2 text-right font-medium text-muted-foreground" style={{ minWidth: 90 }}>
+
+              <th
+                className="
+                  px-4 py-3
+                  text-right text-xs font-semibold
+                  uppercase tracking-wide
+                  text-muted-foreground
+                "
+                style={{ minWidth: 100 }}
+              >
                 Rate
               </th>
-              <th className="px-3 py-2 text-right font-medium text-muted-foreground" style={{ minWidth: 60 }}>
+
+              <th
+                className="
+                  px-4 py-3
+                  text-right text-xs font-semibold
+                  uppercase tracking-wide
+                  text-muted-foreground
+                "
+                style={{ minWidth: 70 }}
+              >
                 Qty
               </th>
-              <th className="px-3 py-2 text-right font-medium text-muted-foreground" style={{ minWidth: 90 }}>
+
+              <th
+                className="
+                  px-4 py-3
+                  text-right text-xs font-semibold
+                  uppercase tracking-wide
+                  text-muted-foreground
+                "
+                style={{ minWidth: 110 }}
+              >
                 Amount
               </th>
-              <th className="px-3 py-2 text-center font-medium text-muted-foreground" style={{ minWidth: 48 }}>
+
+              <th
+                className="
+                  px-4 py-3
+                  text-center text-xs font-semibold
+                  uppercase tracking-wide
+                  text-muted-foreground
+                "
+                style={{ minWidth: 70 }}
+              >
                 Tax
               </th>
-              <th className="px-3 py-2 w-10" />
-              <th className="px-3 py-2 w-10" />
-             </tr>
+
+              <th className="w-12 px-2 py-3" />
+              <th className="w-12 px-2 py-3" />
+            </tr>
           </thead>
+
+          {/* Body */}
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={8}
+                  className="
+                    px-6 py-12
+                    text-center
+                    text-sm text-muted-foreground
+                  "
+                >
                   No items added yet
                 </td>
               </tr>
             ) : (
               rows.map((row, index) => (
-                <tr key={row.id || index} className="border-b border-border last:border-0">
-                  <td className="sticky left-0 bg-card px-2 py-1.5" style={{ minWidth: 200 }}>
+                <tr
+                  key={row.id || index}
+                  className="
+                    border-b border-border/60
+                    transition-colors
+                    hover:bg-accent/40
+                    last:border-0
+                  "
+                >
+                  {/* Product / Service */}
+                  <td
+                    className="
+                      sticky left-0 z-[1]
+                      bg-card
+                      px-3 py-2
+                    "
+                    style={{ minWidth: 200 }}
+                  >
                     <ServiceCombobox
                       options={serviceoptions}
-                      value={row.productName || ''}
-                      placeholder={row.isDiscount ? 'Reason for discount' : 'Product or Service'}
+                      value={row.productName || ""}
+                      placeholder={
+                        row.isDiscount
+                          ? "Reason for discount"
+                          : "Product or Service"
+                      }
                       onChange={(newValue) => {
                         let formatted = null;
+
                         if (typeof newValue === "string") {
-                          formatted = { label: newValue, value: newValue };
-                        } else if (newValue && newValue.inputValue) {
+                          formatted = {
+                            label: newValue,
+                            value: newValue,
+                          };
+                        } else if (
+                          newValue &&
+                          newValue.inputValue
+                        ) {
                           formatted = {
                             label: newValue.inputValue,
                             value: newValue.inputValue,
@@ -1048,56 +1159,149 @@ const LineItemsAndSummary = ({
                         } else if (newValue) {
                           formatted = newValue;
                         }
-                        onServiceChange && onServiceChange(index, formatted);
+
+                        onServiceChange &&
+                          onServiceChange(index, formatted);
                       }}
-                      onInputChange={(text) => handleServiceInputChange(text, index)}
+                      onInputChange={(text) =>
+                        handleServiceInputChange(text, index)
+                      }
                       isOpen={openServiceDropdown === index}
-                      onOpenChange={(isOpen) => setOpenServiceDropdown(isOpen ? index : null)}
+                      onOpenChange={(isOpen) =>
+                        setOpenServiceDropdown(
+                          isOpen ? index : null
+                        )
+                      }
                     />
-                   </td>
-                  <td className="px-2 py-1.5" style={{ minWidth: 140 }}>
+                  </td>
+
+                  {/* Description */}
+                  <td
+                    className="px-3 py-2"
+                    style={{ minWidth: 160 }}
+                  >
                     <input
                       type="text"
                       name="description"
-                      value={row.description || ''}
-                      onChange={(e) => onInputChange && onInputChange(index, e)}
-                      className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                      value={row.description || ""}
+                      onChange={(e) =>
+                        onInputChange &&
+                        onInputChange(index, e)
+                      }
                       placeholder="Description"
+                      className="
+                        w-full rounded-lg
+                        border border-transparent
+                        bg-transparent
+                        px-2 py-1.5
+                        text-sm text-foreground
+                        outline-none
+                        transition-all
+                        placeholder:text-muted-foreground
+                        hover:bg-accent/30
+                        focus:border-border
+                        focus:bg-background
+                        focus:ring-2 focus:ring-ring/40
+                      "
                     />
-                   </td>
-                  <td className="px-2 py-1.5 text-right" style={{ minWidth: 90 }}>
+                  </td>
+
+                  {/* Rate */}
+                  <td
+                    className="px-3 py-2"
+                    style={{ minWidth: 100 }}
+                  >
                     <input
                       type="text"
                       name="rate"
-                      value={row.rate || ''}
-                      onChange={(e) => onInputChange && onInputChange(index, e)}
-                      className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm text-right outline-none focus:ring-1 focus:ring-ring"
+                      value={row.rate || ""}
+                      onChange={(e) =>
+                        onInputChange &&
+                        onInputChange(index, e)
+                      }
                       placeholder="0.00"
+                      className="
+                        w-full rounded-lg
+                        border border-transparent
+                        bg-transparent
+                        px-2 py-1.5
+                        text-right text-sm text-foreground
+                        outline-none
+                        transition-all
+                        placeholder:text-muted-foreground
+                        hover:bg-accent/30
+                        focus:border-border
+                        focus:bg-background
+                        focus:ring-2 focus:ring-ring/40
+                      "
                     />
-                   </td>
-                  <td className="px-2 py-1.5 text-right" style={{ minWidth: 60 }}>
+                  </td>
+
+                  {/* Qty */}
+                  <td
+                    className="px-3 py-2"
+                    style={{ minWidth: 70 }}
+                  >
                     <input
                       type="text"
                       name="qty"
-                      value={row.qty || ''}
-                      onChange={(e) => onInputChange && onInputChange(index, e)}
-                      className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm text-right outline-none focus:ring-1 focus:ring-ring"
+                      value={row.qty || ""}
+                      onChange={(e) =>
+                        onInputChange &&
+                        onInputChange(index, e)
+                      }
                       placeholder="1"
+                      className="
+                        w-full rounded-lg
+                        border border-transparent
+                        bg-transparent
+                        px-2 py-1.5
+                        text-right text-sm text-foreground
+                        outline-none
+                        transition-all
+                        placeholder:text-muted-foreground
+                        hover:bg-accent/30
+                        focus:border-border
+                        focus:bg-background
+                        focus:ring-2 focus:ring-ring/40
+                      "
                     />
-                   </td>
-                  <td className="px-2 py-1.5 text-sm text-right font-medium" style={{ minWidth: 90 }}>
-                    {row.amount || '0.00'}
-                   </td>
-                  <td className="px-2 py-1.5 text-center">
+                  </td>
+
+                  {/* Amount */}
+                  <td
+                    className="
+                      px-4 py-2
+                      text-right text-sm
+                      font-semibold text-foreground
+                    "
+                    style={{ minWidth: 110 }}
+                  >
+                    {row.amount || "0.00"}
+                  </td>
+
+                  {/* Tax */}
+                  <td className="px-4 py-2 text-center">
                     <input
                       type="checkbox"
                       name="tax"
                       checked={row.tax || false}
-                      onChange={(e) => onInputChange && onInputChange(index, e)}
-                      className="h-4 w-4 rounded border-gray-300"
+                      onChange={(e) =>
+                        onInputChange &&
+                        onInputChange(index, e)
+                      }
+                      className="
+                        h-4 w-4 rounded
+                        border-border
+                        bg-background
+                        text-primary
+                        focus:ring-ring
+                      "
                     />
-                   </td>
-                  <td className="px-1 py-1.5">
+                  </td>
+
+                  {/* Menu */}
+                  <td className="px-1 py-2">
                     <ActionMenu
                       row={row}
                       index={index}
@@ -1110,101 +1314,405 @@ const LineItemsAndSummary = ({
                       onClose={handleMenuClose}
                       menuPosition={menuPosition}
                     />
-                   </td>
-                  <td className="px-1 py-1.5">
+                  </td>
+
+                  {/* Delete */}
+                  <td className="px-1 py-2">
                     <button
                       type="button"
-                      onClick={() => onDeleteRow && onDeleteRow(index)}
-                      className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      onClick={() =>
+                        onDeleteRow &&
+                        onDeleteRow(index)
+                      }
+                      className="
+                        rounded-lg p-2
+                        text-muted-foreground
+                        transition-all
+                        hover:bg-destructive/10
+                        hover:text-destructive
+                      "
                     >
                       <X className="h-4 w-4" />
                     </button>
-                   </td>
-                 </tr>
+                  </td>
+                </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+    </div>
 
-      {/* Add Row Buttons */}
-      {showAddButtons && (
-        <div className="flex items-center gap-4 mt-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onAddRow && onAddRow(false)}
-            className="text-primary hover:text-primary/80"
-          >
-            <Plus className="h-4 w-4 mr-1" /> Line item
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onAddRow && onAddRow(true)}
-            className="text-primary hover:text-primary/80"
-          >
-            <Percent className="h-4 w-4 mr-1" /> Discount
-          </Button>
-        </div>
-      )}
+    {/* Add Buttons */}
+    {showAddButtons && (
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onAddRow && onAddRow(false)}
+          className="
+            rounded-xl
+            border-border
+            bg-background
+            hover:bg-accent
+          "
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Line item
+        </Button>
 
-      {/* Summary Section */}
-      {showSummary && (
-        <div className="mt-6">
-          <h4 className="text-base font-semibold mb-3">{summaryTitle}</h4>
-          <div className="rounded-lg border border-border bg-card overflow-hidden">
-            <div className="grid grid-cols-4 divide-x divide-border">
-              <div className="px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Subtotal
-                </p>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-muted-foreground">$</span>
-                  <input
-                    value={subtotal}
-                    onChange={handleSubtotalChange}
-                    className="w-full rounded border-0 bg-transparent px-0 py-0.5 text-sm font-medium text-foreground outline-none focus:ring-0"
-                  />
-                </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onAddRow && onAddRow(true)}
+          className="
+            rounded-xl
+            border-border
+            bg-background
+            hover:bg-accent
+          "
+        >
+          <Percent className="mr-2 h-4 w-4" />
+          Discount
+        </Button>
+      </div>
+    )}
+
+    {/* Summary */}
+    {showSummary && (
+      <div className="space-y-4">
+        <h4 className="text-base font-semibold text-foreground">
+          {summaryTitle}
+        </h4>
+
+        <div
+          className="
+            overflow-hidden rounded-2xl
+            border border-border
+            bg-card
+            shadow-sm
+          "
+        >
+          <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border">
+            {/* Subtotal */}
+            <div className="space-y-2 px-5 py-4">
+              <p
+                className="
+                  text-[11px] font-semibold uppercase
+                  tracking-wider text-muted-foreground
+                "
+              >
+                Subtotal
+              </p>
+
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">$</span>
+
+                <input
+                  value={subtotal}
+                  onChange={handleSubtotalChange}
+                  className="
+                    w-full bg-transparent
+                    text-sm font-semibold text-foreground
+                    outline-none
+                    placeholder:text-muted-foreground
+                  "
+                />
               </div>
-              <div className="px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Tax Rate
-                </p>
-                <div className="flex items-center gap-1">
-                  <input
-                    value={taxRate}
-                    onChange={handleTaxRateChange}
-                    className="w-full rounded border-0 bg-transparent px-0 py-0.5 text-sm font-medium text-foreground outline-none focus:ring-0"
-                  />
-                  <span className="text-sm text-muted-foreground">%</span>
-                </div>
+            </div>
+
+            {/* Tax Rate */}
+            <div className="space-y-2 px-5 py-4">
+              <p
+                className="
+                  text-[11px] font-semibold uppercase
+                  tracking-wider text-muted-foreground
+                "
+              >
+                Tax Rate
+              </p>
+
+              <div className="flex items-center gap-1">
+                <input
+                  value={taxRate}
+                  onChange={handleTaxRateChange}
+                  className="
+                    w-full bg-transparent
+                    text-sm font-semibold text-foreground
+                    outline-none
+                    placeholder:text-muted-foreground
+                  "
+                />
+
+                <span className="text-muted-foreground">
+                  %
+                </span>
               </div>
-              <div className="px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Tax Total
-                </p>
-                <p className="text-sm font-medium text-foreground">
-                  ${taxTotal?.toFixed(2) || '0.00'}
-                </p>
-              </div>
-              <div className="px-4 py-3 bg-muted/40">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Total
-                </p>
-                <p className="text-sm font-bold text-foreground">
-                  ${totalAmount || '0.00'}
-                </p>
-              </div>
+            </div>
+
+            {/* Tax Total */}
+            <div className="space-y-2 px-5 py-4">
+              <p
+                className="
+                  text-[11px] font-semibold uppercase
+                  tracking-wider text-muted-foreground
+                "
+              >
+                Tax Total
+              </p>
+
+              <p className="text-sm font-semibold text-foreground">
+                ${taxTotal?.toFixed(2) || "0.00"}
+              </p>
+            </div>
+
+            {/* Total */}
+            <div
+              className="
+                space-y-2 px-5 py-4
+                bg-primary/5
+              "
+            >
+              <p
+                className="
+                  text-[11px] font-semibold uppercase
+                  tracking-wider text-muted-foreground
+                "
+              >
+                Total
+              </p>
+
+              <p className="text-lg font-bold text-primary">
+                ${totalAmount || "0.00"}
+              </p>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
+  // return (
+  //   <div className="w-full">
+  //     {/* Line Items Section */}
+  //     <div className="mb-4">
+  //       <h4 className="text-base font-semibold text-foreground">{lineItemsTitle}</h4>
+  //       <p className="text-sm text-muted-foreground mt-1">{lineItemsSubtitle}</p>
+  //     </div>
+
+  //     {/* Line Items Table */}
+  //     <div className="overflow-x-auto rounded-lg border border-border bg-card">
+  //       <table className="w-full text-sm">
+  //         <thead>
+  //           <tr className="border-b border-border bg-muted/50">
+  //             <th className="sticky left-0 bg-muted/50 px-3 py-2 text-left font-medium text-muted-foreground" style={{ minWidth: 180 }}>
+  //               Product/Service
+  //             </th>
+  //             <th className="px-3 py-2 text-left font-medium text-muted-foreground" style={{ minWidth: 140 }}>
+  //               Description
+  //             </th>
+  //             <th className="px-3 py-2 text-right font-medium text-muted-foreground" style={{ minWidth: 90 }}>
+  //               Rate
+  //             </th>
+  //             <th className="px-3 py-2 text-right font-medium text-muted-foreground" style={{ minWidth: 60 }}>
+  //               Qty
+  //             </th>
+  //             <th className="px-3 py-2 text-right font-medium text-muted-foreground" style={{ minWidth: 90 }}>
+  //               Amount
+  //             </th>
+  //             <th className="px-3 py-2 text-center font-medium text-muted-foreground" style={{ minWidth: 48 }}>
+  //               Tax
+  //             </th>
+  //             <th className="px-3 py-2 w-10" />
+  //             <th className="px-3 py-2 w-10" />
+  //            </tr>
+  //         </thead>
+  //         <tbody>
+  //           {rows.length === 0 ? (
+  //             <tr>
+  //               <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
+  //                 No items added yet
+  //               </td>
+  //             </tr>
+  //           ) : (
+  //             rows.map((row, index) => (
+  //               <tr key={row.id || index} className="border-b border-border last:border-0">
+  //                 <td className="sticky left-0 bg-card px-2 py-1.5" style={{ minWidth: 200 }}>
+  //                   <ServiceCombobox
+  //                     options={serviceoptions}
+  //                     value={row.productName || ''}
+  //                     placeholder={row.isDiscount ? 'Reason for discount' : 'Product or Service'}
+  //                     onChange={(newValue) => {
+  //                       let formatted = null;
+  //                       if (typeof newValue === "string") {
+  //                         formatted = { label: newValue, value: newValue };
+  //                       } else if (newValue && newValue.inputValue) {
+  //                         formatted = {
+  //                           label: newValue.inputValue,
+  //                           value: newValue.inputValue,
+  //                         };
+  //                       } else if (newValue) {
+  //                         formatted = newValue;
+  //                       }
+  //                       onServiceChange && onServiceChange(index, formatted);
+  //                     }}
+  //                     onInputChange={(text) => handleServiceInputChange(text, index)}
+  //                     isOpen={openServiceDropdown === index}
+  //                     onOpenChange={(isOpen) => setOpenServiceDropdown(isOpen ? index : null)}
+  //                   />
+  //                  </td>
+  //                 <td className="px-2 py-1.5" style={{ minWidth: 140 }}>
+  //                   <input
+  //                     type="text"
+  //                     name="description"
+  //                     value={row.description || ''}
+  //                     onChange={(e) => onInputChange && onInputChange(index, e)}
+  //                     className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+  //                     placeholder="Description"
+  //                   />
+  //                  </td>
+  //                 <td className="px-2 py-1.5 text-right" style={{ minWidth: 90 }}>
+  //                   <input
+  //                     type="text"
+  //                     name="rate"
+  //                     value={row.rate || ''}
+  //                     onChange={(e) => onInputChange && onInputChange(index, e)}
+  //                     className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm text-right outline-none focus:ring-1 focus:ring-ring"
+  //                     placeholder="0.00"
+  //                   />
+  //                  </td>
+  //                 <td className="px-2 py-1.5 text-right" style={{ minWidth: 60 }}>
+  //                   <input
+  //                     type="text"
+  //                     name="qty"
+  //                     value={row.qty || ''}
+  //                     onChange={(e) => onInputChange && onInputChange(index, e)}
+  //                     className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm text-right outline-none focus:ring-1 focus:ring-ring"
+  //                     placeholder="1"
+  //                   />
+  //                  </td>
+  //                 <td className="px-2 py-1.5 text-sm text-right font-medium" style={{ minWidth: 90 }}>
+  //                   {row.amount || '0.00'}
+  //                  </td>
+  //                 <td className="px-2 py-1.5 text-center">
+  //                   <input
+  //                     type="checkbox"
+  //                     name="tax"
+  //                     checked={row.tax || false}
+  //                     onChange={(e) => onInputChange && onInputChange(index, e)}
+  //                     className="h-4 w-4 rounded border-gray-300"
+  //                   />
+  //                  </td>
+  //                 <td className="px-1 py-1.5">
+  //                   <ActionMenu
+  //                     row={row}
+  //                     index={index}
+  //                     onEditService={onEditService}
+  //                     onDeleteService={onDeleteService}
+  //                     onSaveAsNewService={onSaveAsNewService}
+  //                     onDuplicate={onDuplicate}
+  //                     isOpen={selectedRow === index}
+  //                     onOpen={handleMenuOpen}
+  //                     onClose={handleMenuClose}
+  //                     menuPosition={menuPosition}
+  //                   />
+  //                  </td>
+  //                 <td className="px-1 py-1.5">
+  //                   <button
+  //                     type="button"
+  //                     onClick={() => onDeleteRow && onDeleteRow(index)}
+  //                     className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+  //                   >
+  //                     <X className="h-4 w-4" />
+  //                   </button>
+  //                  </td>
+  //                </tr>
+  //             ))
+  //           )}
+  //         </tbody>
+  //       </table>
+  //     </div>
+
+  //     {/* Add Row Buttons */}
+  //     {showAddButtons && (
+  //       <div className="flex items-center gap-4 mt-3">
+  //         <Button
+  //           type="button"
+  //           variant="ghost"
+  //           size="sm"
+  //           onClick={() => onAddRow && onAddRow(false)}
+  //           className="text-primary hover:text-primary/80"
+  //         >
+  //           <Plus className="h-4 w-4 mr-1" /> Line item
+  //         </Button>
+  //         <Button
+  //           type="button"
+  //           variant="ghost"
+  //           size="sm"
+  //           onClick={() => onAddRow && onAddRow(true)}
+  //           className="text-primary hover:text-primary/80"
+  //         >
+  //           <Percent className="h-4 w-4 mr-1" /> Discount
+  //         </Button>
+  //       </div>
+  //     )}
+
+  //     {/* Summary Section */}
+  //     {showSummary && (
+  //       <div className="mt-6">
+  //         <h4 className="text-base font-semibold mb-3">{summaryTitle}</h4>
+  //         <div className="rounded-lg border border-border bg-card overflow-hidden">
+  //           <div className="grid grid-cols-4 divide-x divide-border">
+  //             <div className="px-4 py-3">
+  //               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+  //                 Subtotal
+  //               </p>
+  //               <div className="flex items-center gap-1">
+  //                 <span className="text-sm text-muted-foreground">$</span>
+  //                 <input
+  //                   value={subtotal}
+  //                   onChange={handleSubtotalChange}
+  //                   className="w-full rounded border-0 bg-transparent px-0 py-0.5 text-sm font-medium text-foreground outline-none focus:ring-0"
+  //                 />
+  //               </div>
+  //             </div>
+  //             <div className="px-4 py-3">
+  //               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+  //                 Tax Rate
+  //               </p>
+  //               <div className="flex items-center gap-1">
+  //                 <input
+  //                   value={taxRate}
+  //                   onChange={handleTaxRateChange}
+  //                   className="w-full rounded border-0 bg-transparent px-0 py-0.5 text-sm font-medium text-foreground outline-none focus:ring-0"
+  //                 />
+  //                 <span className="text-sm text-muted-foreground">%</span>
+  //               </div>
+  //             </div>
+  //             <div className="px-4 py-3">
+  //               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+  //                 Tax Total
+  //               </p>
+  //               <p className="text-sm font-medium text-foreground">
+  //                 ${taxTotal?.toFixed(2) || '0.00'}
+  //               </p>
+  //             </div>
+  //             <div className="px-4 py-3 bg-muted/40">
+  //               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+  //                 Total
+  //               </p>
+  //               <p className="text-sm font-bold text-foreground">
+  //                 ${totalAmount || '0.00'}
+  //               </p>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
 };
 
 // ActionMenu Component with fixed positioning
@@ -1243,75 +1751,206 @@ const ActionMenu = ({
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, [isOpen, onClose]);
+return (
+  <div className="relative">
+    {/* Trigger Button */}
+    <button
+      type="button"
+      onClick={(event) => onOpen(event, index)}
+      className="
+        rounded-lg p-2
+        text-muted-foreground
+        transition-all duration-200
+        hover:bg-accent
+        hover:text-foreground
+        focus:outline-none
+        focus:ring-2 focus:ring-ring/40
+      "
+    >
+      <MoreVertical className="h-4 w-4" />
+    </button>
 
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={(event) => onOpen(event, index)}
-        className="rounded p-1 text-muted-foreground hover:bg-accent transition-colors"
-      >
-        <MoreVertical className="h-4 w-4" />
-      </button>
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={onClose}
-          />
-          <div 
-            ref={menuRef}
-            className="fixed z-50 mt-1 w-48 rounded-lg border border-border bg-card py-1 shadow-lg"
-            style={{
-              top: menuPosition.top + 'px',
-              right: menuPosition.right + 'px'
+    {/* Menu */}
+    {isOpen && (
+      <>
+        {/* Overlay */}
+        <div
+          className="fixed inset-0 z-40"
+          onClick={onClose}
+        />
+
+        {/* Dropdown */}
+        <div
+          ref={menuRef}
+          className="
+            fixed z-50
+            w-56 overflow-hidden
+            rounded-2xl
+            border border-border
+            bg-popover
+            text-popover-foreground
+            shadow-2xl
+            backdrop-blur-xl
+            animate-in fade-in-0 zoom-in-95
+            duration-150
+          "
+          style={{
+            top: `${menuPosition.top}px`,
+            right: `${menuPosition.right}px`,
+          }}
+        >
+          {/* Edit */}
+          <button
+            type="button"
+            onClick={() => {
+              onEditService && onEditService(row, index);
+              onClose();
             }}
+            className="
+              flex w-full items-center
+              px-4 py-3
+              text-left text-sm font-medium
+              text-foreground
+              transition-colors
+              hover:bg-accent
+            "
           >
-            <button
-              type="button"
-              onClick={() => {
-                onEditService && onEditService(row, index);
-                onClose();
-              }}
-              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onDeleteService && onDeleteService(index);
-                onClose();
-              }}
-              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent text-destructive transition-colors"
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onSaveAsNewService && onSaveAsNewService(row);
-                onClose();
-              }}
-              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
-            >
-              Save as new service
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onDuplicate && onDuplicate(index);
-                onClose();
-              }}
-              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
-            >
-              Duplicate
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+            Edit
+          </button>
+
+          {/* Delete */}
+          <button
+            type="button"
+            onClick={() => {
+              onDeleteService && onDeleteService(index);
+              onClose();
+            }}
+            className="
+              flex w-full items-center
+              px-4 py-3
+              text-left text-sm font-medium
+              text-destructive
+              transition-colors
+              hover:bg-destructive/10
+            "
+          >
+            Delete
+          </button>
+
+          {/* Divider */}
+          <div className="mx-2 h-px bg-border" />
+
+          {/* Save as Service */}
+          <button
+            type="button"
+            onClick={() => {
+              onSaveAsNewService &&
+                onSaveAsNewService(row);
+              onClose();
+            }}
+            className="
+              flex w-full items-center
+              px-4 py-3
+              text-left text-sm font-medium
+              text-foreground
+              transition-colors
+              hover:bg-accent
+            "
+          >
+            Save as new service
+          </button>
+
+          {/* Duplicate */}
+          <button
+            type="button"
+            onClick={() => {
+              onDuplicate && onDuplicate(index);
+              onClose();
+            }}
+            className="
+              flex w-full items-center
+              px-4 py-3
+              text-left text-sm font-medium
+              text-foreground
+              transition-colors
+              hover:bg-accent
+            "
+          >
+            Duplicate
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+);
+  // return (
+  //   <div className="relative">
+  //     <button
+  //       type="button"
+  //       onClick={(event) => onOpen(event, index)}
+  //       className="rounded p-1 text-muted-foreground hover:bg-accent transition-colors"
+  //     >
+  //       <MoreVertical className="h-4 w-4" />
+  //     </button>
+  //     {isOpen && (
+  //       <>
+  //         <div
+  //           className="fixed inset-0 z-40"
+  //           onClick={onClose}
+  //         />
+  //         <div 
+  //           ref={menuRef}
+  //           className="fixed z-50 mt-1 w-48 rounded-lg border border-border bg-card py-1 shadow-lg"
+  //           style={{
+  //             top: menuPosition.top + 'px',
+  //             right: menuPosition.right + 'px'
+  //           }}
+  //         >
+  //           <button
+  //             type="button"
+  //             onClick={() => {
+  //               onEditService && onEditService(row, index);
+  //               onClose();
+  //             }}
+  //             className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
+  //           >
+  //             Edit
+  //           </button>
+  //           <button
+  //             type="button"
+  //             onClick={() => {
+  //               onDeleteService && onDeleteService(index);
+  //               onClose();
+  //             }}
+  //             className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent text-destructive transition-colors"
+  //           >
+  //             Delete
+  //           </button>
+  //           <button
+  //             type="button"
+  //             onClick={() => {
+  //               onSaveAsNewService && onSaveAsNewService(row);
+  //               onClose();
+  //             }}
+  //             className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
+  //           >
+  //             Save as new service
+  //           </button>
+  //           <button
+  //             type="button"
+  //             onClick={() => {
+  //               onDuplicate && onDuplicate(index);
+  //               onClose();
+  //             }}
+  //             className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
+  //           >
+  //             Duplicate
+  //           </button>
+  //         </div>
+  //       </>
+  //     )}
+  //   </div>
+  // );
 };
 
 // ServiceCombobox Component with fixed positioning
@@ -1406,46 +2045,135 @@ const ServiceCombobox = ({ options, value, placeholder, onChange, onInputChange,
 useEffect(() => {
   setInputValue(value || "");
 }, [value]);
-  return (
-    <div className="relative w-full" ref={wrapperRef}>
-      <input
-        ref={inputRef}
-        type="text"
-        value={inputValue}
-        onChange={handleInputChange}
-        onFocus={handleInputFocus}
-        placeholder={placeholder}
-        className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-      />
-      {open && filteredOptions.length > 0 && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
-          <div 
-            className="fixed z-50 mt-1 max-h-60 overflow-auto rounded-lg border border-border bg-card py-1 shadow-lg"
-            style={{
-              top: dropdownPosition.top + 'px',
-              left: dropdownPosition.left + 'px',
-              minWidth: '200px'
-            }}
-          >
+return (
+  <div
+    className="relative w-full"
+    ref={wrapperRef}
+  >
+    {/* Input */}
+    <input
+      ref={inputRef}
+      type="text"
+      value={inputValue}
+      onChange={handleInputChange}
+      onFocus={handleInputFocus}
+      placeholder={placeholder}
+      className="
+        w-full rounded-xl
+        border border-transparent
+        bg-transparent
+        px-3 py-2
+        text-sm text-foreground
+        outline-none
+        transition-all duration-200
+        placeholder:text-muted-foreground
+        hover:bg-accent/30
+        focus:border-border
+        focus:bg-background
+        focus:ring-2 focus:ring-ring/40
+      "
+    />
+
+    {/* Dropdown */}
+    {open && filteredOptions.length > 0 && (
+      <>
+        {/* Overlay */}
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setOpen(false)}
+        />
+
+        {/* Menu */}
+        <div
+          className="
+            fixed z-50
+            mt-1
+            max-h-60 overflow-y-auto
+            rounded-2xl
+            border border-border
+            bg-popover
+            p-2
+            text-popover-foreground
+            shadow-2xl
+            backdrop-blur-xl
+            animate-in fade-in-0 zoom-in-95
+            duration-150
+          "
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            minWidth: "220px",
+          }}
+        >
+          <div className="space-y-1">
             {filteredOptions.map((option, idx) => (
               <button
                 key={idx}
                 type="button"
-                className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors whitespace-nowrap"
                 onClick={() => handleSelect(option)}
+                className="
+                  flex w-full items-center
+                  rounded-xl
+                  px-3 py-2
+                  text-left text-sm
+                  text-foreground
+                  transition-all duration-150
+                  hover:bg-accent
+                  focus:bg-accent
+                  whitespace-nowrap
+                "
               >
-                {option.label}
+                <span className="truncate">
+                  {option.label}
+                </span>
               </button>
             ))}
           </div>
-        </>
-      )}
-    </div>
-  );
+        </div>
+      </>
+    )}
+  </div>
+);
+  // return (
+  //   <div className="relative w-full" ref={wrapperRef}>
+  //     <input
+  //       ref={inputRef}
+  //       type="text"
+  //       value={inputValue}
+  //       onChange={handleInputChange}
+  //       onFocus={handleInputFocus}
+  //       placeholder={placeholder}
+  //       className="w-full rounded border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+  //     />
+  //     {open && filteredOptions.length > 0 && (
+  //       <>
+  //         <div
+  //           className="fixed inset-0 z-40"
+  //           onClick={() => setOpen(false)}
+  //         />
+  //         <div 
+  //           className="fixed z-50 mt-1 max-h-60 overflow-auto rounded-lg border border-border bg-card py-1 shadow-lg"
+  //           style={{
+  //             top: dropdownPosition.top + 'px',
+  //             left: dropdownPosition.left + 'px',
+  //             minWidth: '200px'
+  //           }}
+  //         >
+  //           {filteredOptions.map((option, idx) => (
+  //             <button
+  //               key={idx}
+  //               type="button"
+  //               className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors whitespace-nowrap"
+  //               onClick={() => handleSelect(option)}
+  //             >
+  //               {option.label}
+  //             </button>
+  //           ))}
+  //         </div>
+  //       </>
+  //     )}
+  //   </div>
+  // );
 };
 
 export default LineItemsAndSummary;

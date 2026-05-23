@@ -331,27 +331,27 @@ const Dashboard = () => {
     setPlusAnchorEl(null);
   };
  
-return (
+
+  return (
   <>
-    {/* ROOT LAYOUT */}
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      {/* ═════════════════ SIDEBAR ═════════════════ */}
+    {/* ══════════════════════════════════════════════════════
+        ROOT FLEX LAYOUT
+    ══════════════════════════════════════════════════════ */}
+    <div className="flex h-screen bg-background overflow-hidden" style={{ fontFamily: "var(--font-family)" }}>
+      {/* ════════════════════════════════════════════════
+          SIDEBAR PANEL
+      ════════════════════════════════════════════════ */}
       <aside
-        className={`
-          flex flex-col
-          border-r border-border/50
-          bg-card
-          transition-all duration-300
-          ${open ? "w-[250px]" : "w-[72px]"}
-          ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50 shadow-2xl" : ""}
-        `}
+        className={`flex flex-col border-r bg-background transition-all duration-300 
+      ${open ? "w-[240px]" : "w-[70px]"} 
+      ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
       >
-        {/* HEADER */}
+        {/* ── Sidebar Header ───────────────────────── */}
         <div
           onClick={handleDrawerToggle}
           className={cn(
-            "flex h-16 shrink-0 items-center border-b border-border/50 cursor-pointer",
-            open ? "justify-center px-4" : "justify-center px-2",
+            "flex h-16 shrink-0 items-center border-b border-border/40 cursor-pointer",
+            open ? "px-4 justify-center" : "px-2 justify-center",
           )}
         >
           {open ? (
@@ -369,20 +369,13 @@ return (
           )}
         </div>
 
-        {/* MENU */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-2 py-4 space-y-3">
-          {/* MAIN */}
+        {/* ── Sidebar Menu ─────────────────────────── */}
+        <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
+          {/* ───────── MAIN SECTION ───────── */}
           {open && (
-            <p
-              className="
-                px-3
-                text-[11px]
-                font-semibold
-                uppercase
-                tracking-[0.14em]
-                text-muted-foreground/70
-                select-none
-              "
+            <p 
+              className="px-2 font-semibold uppercase tracking-widest text-muted-foreground/50 select-none"
+              style={{ fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)" }}
             >
               Main
             </p>
@@ -393,7 +386,7 @@ return (
 
             return (
               <div key={index}>
-                {/* MAIN ITEM */}
+                {/* Main Item */}
                 <button
                   onClick={() => {
                     if (item.submenu?.length) {
@@ -403,28 +396,22 @@ return (
                       if (!isSmUp) setMobileOpen(false);
                     }
                   }}
-                  className={`
-                    group flex w-full items-center
-                    gap-3 rounded-xl
-                    px-3 py-2.5
-                    text-sm font-medium
-                    transition-all duration-200
-
-                    ${
-                      active
-                        ? "bg-primary/10 text-primary shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                    }
-
-                    ${!open && "justify-center px-2"}
-                  `}
+                  className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 transition
+                  ${
+                    active
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }
+                  ${!open && "justify-center px-2"}
+                `}
+                style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
                 >
-                  <span className="text-lg shrink-0">
+                  <span style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}>
                     {getIcon(item.icon)}
                   </span>
 
                   {open && (
-                    <span className="flex-1 truncate tracking-tight text-left">
+                    <span className="flex-1 text-left truncate">
                       {item.label}
                     </span>
                   )}
@@ -432,15 +419,15 @@ return (
                   {item.submenu?.length > 0 &&
                     open &&
                     (openMenus[index] ? (
-                      <ExpandLess fontSize="small" />
+                      <ExpandLess style={{ fontSize: "var(--text-body)" }} />
                     ) : (
-                      <ExpandMore fontSize="small" />
+                      <ExpandMore style={{ fontSize: "var(--text-body)" }} />
                     ))}
                 </button>
 
-                {/* SUBMENU */}
+                {/* Submenu */}
                 {item.submenu?.length > 0 && openMenus[index] && (
-                  <div className="ml-5 mt-1 border-l border-border/60 pl-3 space-y-1">
+                  <div className="ml-4 mt-1 border-l pl-3 space-y-1">
                     {item.submenu.map((sub, i) => {
                       const subActive = isSubActive(sub.path);
 
@@ -451,29 +438,17 @@ return (
                             navigate(sub.path);
                             if (!isSmUp) setMobileOpen(false);
                           }}
-                          className={`
-                            flex w-full items-center
-                            gap-2.5 rounded-lg
-                            px-3 py-2
-                            text-[13px] font-medium
-                            transition-all duration-200
-
-                            ${
-                              subActive
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                            }
-                          `}
+                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition
+                          ${
+                            subActive
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }
+                        `}
+                        style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
                         >
-                          <span className="text-sm">
-                            {getIcon(sub.icon)}
-                          </span>
-
-                          {open && (
-                            <span className="truncate">
-                              {sub.label}
-                            </span>
-                          )}
+                          <span style={{ fontSize: "var(--text-body)" }}>{getIcon(sub.icon)}</span>
+                          {open && <span>{sub.label}</span>}
                         </button>
                       );
                     })}
@@ -483,21 +458,14 @@ return (
             );
           })}
 
-          {/* DIVIDER */}
-          <div className="h-px bg-border/50 my-3" />
+          {/* ───────── DIVIDER ───────── */}
+          <div className="h-px bg-border/40 my-2" />
 
-          {/* TOOLS */}
+          {/* ───────── TOOLS SECTION ───────── */}
           {open && (
-            <p
-              className="
-                px-3
-                text-[11px]
-                font-semibold
-                uppercase
-                tracking-[0.14em]
-                text-muted-foreground/70
-                select-none
-              "
+            <p 
+              className="px-2 font-semibold uppercase tracking-widest text-muted-foreground/50 select-none"
+              style={{ fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)" }}
             >
               Tools
             </p>
@@ -509,7 +477,7 @@ return (
 
             return (
               <div key={realIndex}>
-                {/* MAIN ITEM */}
+                {/* Main Item */}
                 <button
                   onClick={() => {
                     if (item.submenu?.length) {
@@ -519,28 +487,22 @@ return (
                       if (!isSmUp) setMobileOpen(false);
                     }
                   }}
-                  className={`
-                    group flex w-full items-center
-                    gap-3 rounded-xl
-                    px-3 py-2.5
-                    text-sm font-medium
-                    transition-all duration-200
-
-                    ${
-                      active
-                        ? "bg-primary/10 text-primary shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                    }
-
-                    ${!open && "justify-center px-2"}
-                  `}
+                  className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 transition
+                  ${
+                    active
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }
+                  ${!open && "justify-center px-2"}
+                `}
+                style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
                 >
-                  <span className="text-lg shrink-0">
+                  <span style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}>
                     {getIcon(item.icon)}
                   </span>
 
                   {open && (
-                    <span className="flex-1 truncate tracking-tight text-left">
+                    <span className="flex-1 text-left truncate">
                       {item.label}
                     </span>
                   )}
@@ -548,15 +510,15 @@ return (
                   {item.submenu?.length > 0 &&
                     open &&
                     (openMenus[realIndex] ? (
-                      <ExpandLess fontSize="small" />
+                      <ExpandLess style={{ fontSize: "var(--text-body)" }} />
                     ) : (
-                      <ExpandMore fontSize="small" />
+                      <ExpandMore style={{ fontSize: "var(--text-body)" }} />
                     ))}
                 </button>
 
-                {/* SUBMENU */}
+                {/* Submenu */}
                 {item.submenu?.length > 0 && openMenus[realIndex] && (
-                  <div className="ml-5 mt-1 border-l border-border/60 pl-3 space-y-1">
+                  <div className="ml-4 mt-1 border-l pl-3 space-y-1">
                     {item.submenu.map((sub, i) => {
                       const subActive = isSubActive(sub.path);
 
@@ -567,29 +529,17 @@ return (
                             navigate(sub.path);
                             if (!isSmUp) setMobileOpen(false);
                           }}
-                          className={`
-                            flex w-full items-center
-                            gap-2.5 rounded-lg
-                            px-3 py-2
-                            text-[13px] font-medium
-                            transition-all duration-200
-
-                            ${
-                              subActive
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                            }
-                          `}
+                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition
+                          ${
+                            subActive
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }
+                        `}
+                        style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
                         >
-                          <span className="text-sm">
-                            {getIcon(sub.icon)}
-                          </span>
-
-                          {open && (
-                            <span className="truncate">
-                              {sub.label}
-                            </span>
-                          )}
+                          <span style={{ fontSize: "var(--text-body)" }}>{getIcon(sub.icon)}</span>
+                          {open && <span>{sub.label}</span>}
                         </button>
                       );
                     })}
@@ -601,48 +551,29 @@ return (
         </div>
       </aside>
 
-      {/* ═════════════════ MAIN CONTENT ═════════════════ */}
+      {/* ════════════════════════════════════════════════
+          MAIN CONTENT AREA
+      ════════════════════════════════════════════════ */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* HEADER */}
-        <header
-          className="
-            sticky top-0 z-20
-            flex h-14 items-center justify-between
-            border-b border-border/50
-            bg-background/95
-            backdrop-blur
-            px-4
-          "
-        >
-          {/* LEFT */}
+        {/* ── Header ─────────────────────────────── */}
+        <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
+          {/* Left Section */}
           <div className="flex items-center gap-3">
-            {/* MENU BUTTON */}
+            {/* Menu Toggle */}
             <button
               onClick={handleDrawerToggle}
-              className="
-                rounded-lg p-2
-                text-muted-foreground
-                transition-colors
-                hover:bg-muted
-                hover:text-foreground
-              "
+              className="p-2 rounded-md hover:bg-muted"
+              style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}
             >
               ☰
             </button>
 
-            {/* PLUS MENU */}
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="
-                    flex h-9 w-9 items-center justify-center
-                    rounded-xl
-                    bg-primary
-                    text-primary-foreground
-                    shadow-sm
-                    transition-all
-                    hover:opacity-90
-                  "
+                  className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-white 
+             hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
+                  style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}
                 >
                   +
                 </button>
@@ -650,14 +581,8 @@ return (
 
               <DropdownMenuContent
                 align="start"
-                className="
-                  mt-2 w-56
-                  overflow-hidden
-                  rounded-2xl
-                  border border-border/50
-                  bg-card
-                  shadow-xl
-                "
+                className="w-56 mt-2 rounded-xl overflow-hidden border shadow-lg animate-in fade-in zoom-in-95"
+                style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
               >
                 {plusMenuItems.length > 0 ? (
                   plusMenuItems.map((item, index) => (
@@ -665,105 +590,150 @@ return (
                       key={index}
                       onClick={() => {
                         if (item.label === "Account") handleDrawerOpen();
-                        else if (item.label === "Contact")
-                          handleContactDrawerOpen();
-                        else if (item.label === "Invoice")
-                          setInvoiceDrawer(true);
-                        else if (item.label === "Chat")
-                          handleChatDrawerOpen();
-                        else if (item.label === "Jobs")
-                          handleJobDrawerOpen();
-                        else if (item.label === "Task")
-                          handleTasksDrawerOpen();
+                        else if (item.label === "Contact") handleContactDrawerOpen();
+                        else if (item.label === "Invoice") setInvoiceDrawer(true);
+                        else if (item.label === "Chat") handleChatDrawerOpen();
+                        else if (item.label === "Jobs") handleJobDrawerOpen();
+                        else if (item.label === "Task") handleTasksDrawerOpen();
                         else navigate(item.path);
                       }}
-                      className="
-                        flex items-center gap-3
-                        cursor-pointer
-                        text-sm font-medium
-                        text-foreground
-                      "
+                      className="flex items-center gap-2 cursor-pointer"
                     >
-                      <span className="text-base">
-                        {getIcon(item.icon)}
-                      </span>
-
+                      <span style={{ fontSize: "var(--text-body)" }}>{getIcon(item.icon)}</span>
                       <span>{item.label}</span>
                     </DropdownMenuItem>
                   ))
                 ) : (
-                  <DropdownMenuItem disabled>
-                    No items found
-                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>No items found</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
 
-            {/* SEARCH */}
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <button
+      className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-primary-foreground hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
+      style={{ 
+        fontFamily: "var(--font-family)",
+        fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)",
+        lineHeight: "1"
+      }}
+    >
+      +
+    </button>
+  </DropdownMenuTrigger>
+
+  <DropdownMenuContent
+    align="start"
+    className="w-56 mt-2 rounded-xl overflow-hidden border bg-popover text-popover-foreground shadow-lg animate-in fade-in zoom-in-95"
+    style={{ 
+      fontFamily: "var(--font-family)",
+      fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" 
+    }}
+  >
+    {plusMenuItems.length > 0 ? (
+      plusMenuItems.map((item, index) => (
+        <DropdownMenuItem
+          key={index}
+          onClick={() => {
+            if (item.label === "Account") handleDrawerOpen();
+            else if (item.label === "Contact") handleContactDrawerOpen();
+            else if (item.label === "Invoice") setInvoiceDrawer(true);
+            else if (item.label === "Chat") handleChatDrawerOpen();
+            else if (item.label === "Jobs") handleJobDrawerOpen();
+            else if (item.label === "Task") handleTasksDrawerOpen();
+            else navigate(item.path);
+          }}
+          className="flex items-center gap-2 cursor-pointer text-foreground focus:bg-accent focus:text-accent-foreground"
+        >
+          {/* Synchronized icon sizing wrapped in a styled container */}
+          <span 
+            className="flex items-center justify-center m-0 p-0 text-muted-foreground"
+            style={{ 
+              width: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)", 
+              height: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" 
+            }}
+          >
+            {getIcon(item.icon)}
+          </span>
+          
+          <span style={{ lineHeight: "1.2" }}>{item.label}</span>
+        </DropdownMenuItem>
+      ))
+    ) : (
+      <DropdownMenuItem disabled className="text-muted-foreground">
+        No items found
+      </DropdownMenuItem>
+    )}
+  </DropdownMenuContent>
+</DropdownMenu>
+            {/* Search */}
             <div className="w-[300px]">
               <SearchComponent />
             </div>
           </div>
 
-          {/* RIGHT */}
+          {/* Right Section */}
           <LogoutButton />
         </header>
 
-        {/* CONTENT */}
+        {/* ── Page Content ───────────────────────── */}
         <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
-          <div
-            className="
-              min-h-full
-              rounded-2xl
-              border border-border/50
-              bg-card
-              p-5
-              text-card-foreground
-              shadow-sm
-            "
-          >
+          <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* DRAWERS */}
-      <AccountContactDrawer
-        open={openDrawer}
-        onClose={handleDrawerClose}
-      />
+      {/* ════════════════════════════════════════════════
+          PLUS MENU (ShadCN style)
+      ════════════════════════════════════════════════ */}
+      {plusAnchorEl && (
+        <div 
+          className="fixed top-14 left-[260px] z-50 w-56 rounded-xl border shadow-lg animate-in fade-in zoom-in-95"
+          style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
+        >
+          <div className="p-1">
+            {plusMenuItems.length > 0 ? (
+              plusMenuItems.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (item.label === "Account") handleDrawerOpen();
+                    else if (item.label === "Contact") handleContactDrawerOpen();
+                    else if (item.label === "Invoice") setInvoiceDrawer(true);
+                    else if (item.label === "Chat") handleChatDrawerOpen();
+                    else if (item.label === "Jobs") handleJobDrawerOpen();
+                    else if (item.label === "Task") handleTasksDrawerOpen();
+                    else navigate(item.path);
 
-      <NewContactDrawer
-        open={contactDrawerOpen}
-        onClose={handleContactDrawerClose}
-      />
+                    handlePlusClose();
+                  }}
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 transition"
+                >
+                  <span style={{ fontSize: "var(--text-body)" }}>{getIcon(item.icon)}</span>
+                  <span className="flex-1 text-left">{item.label}</span>
+                </button>
+              ))
+            ) : (
+              <div className="p-3 text-gray-400">No items found</div>
+            )}
+          </div>
+        </div>
+      )}
 
-      <CreateInvoiceDrawer
-        open={invoiceDrawer}
-        onClose={() => setInvoiceDrawer(false)}
-      />
-
-      <NewChatDrawer
-        open={chatDrawerOpen}
-        handleClose={handleChatDrawerClose}
-        accountwiseChatlist={() => {}}
-        data={null}
-        isActiveTrue={true}
-      />
-
-      <JobDrawer
-        open={jobDrawerOpen}
-        onClose={() => setJobDrawerOpen(false)}
-      />
-
-      <TasksDrawer
-        open={tasksDrawerOpen}
-        onClose={() => setTasksDrawerOpen(false)}
-      />
+      {/* ════════════════════════════════════════════════
+          DRAWERS (UNCHANGED)
+      ════════════════════════════════════════════════ */}
+      <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
+      <NewContactDrawer open={contactDrawerOpen} onClose={handleContactDrawerClose} />
+      <CreateInvoiceDrawer open={invoiceDrawer} onClose={() => setInvoiceDrawer(false)} />
+      <NewChatDrawer open={chatDrawerOpen} handleClose={handleChatDrawerClose} accountwiseChatlist={() => {}} data={null} isActiveTrue={true} />
+      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
+      <TasksDrawer open={tasksDrawerOpen} onClose={() => setTasksDrawerOpen(false)} />
     </div>
   </>
 );
-  
 //   return (
 //     <>
 //       {/* ══════════════════════════════════════════════════════

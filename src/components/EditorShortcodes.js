@@ -717,7 +717,7 @@ export default function Editor({ initialContent, onChange }) {
           border-top-left-radius: 0.375rem;
           border-top-right-radius: 0.375rem;
           border-color: #e5e7eb;
-          background-color: #f9fafb;
+         
           position: relative;
           z-index: 10;
         }

@@ -257,96 +257,256 @@ const MultiSelectDropdown = ({
   const filtered = options.filter((o) =>
     o.label.toLowerCase().includes(search.toLowerCase())
   );
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div
-          ref={containerRef}
-          className="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-md border  p-2"
-          onClick={() =>
-            setMenuWidth(containerRef.current?.offsetWidth)
-          }
-        >
-          <div className="flex flex-wrap gap-1">
-            {value.length > 0 ? (
-              value.map((item) => (
-                <Badge
-                  key={item.value}
-                  className="text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggle(item.value);
-                  }}
-                >
-                  {item.label}
-                  <X className="ml-1 h-3 w-3" />
-                </Badge>
-              ))
-            ) : (
-              <span className="text-sm text-gray-400">
-                {placeholder}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1">
-            {value.length > 0 && (
-              <X className="h-4 w-4" onClick={clearAll} />
-            )}
-            {open ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </div>
-        </div>
-      </PopoverTrigger>
-
-      <PopoverContent
-        className="p-2"
-        style={{ width: menuWidth || "auto" }}
+return (
+  <Popover open={open} onOpenChange={setOpen}>
+    <PopoverTrigger asChild>
+      <div
+        ref={containerRef}
+        className="
+          flex min-h-10 w-full cursor-pointer items-center justify-between
+          rounded-xl border border-border bg-background
+          px-3 py-2
+          transition-all duration-200
+          hover:border-primary/40
+          hover:bg-accent/40
+          focus-within:ring-2 focus-within:ring-ring
+        "
+        onClick={() =>
+          setMenuWidth(containerRef.current?.offsetWidth)
+        }
       >
-        <Input
-          placeholder="Search user..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mb-2"
-        />
+        {/* Selected Values */}
+        <div className="flex flex-wrap gap-1.5">
+          {value.length > 0 ? (
+            value.map((item) => (
+              <Badge
+                key={item.value}
+                className="
+                  flex items-center gap-1
+                  rounded-md
+                  bg-primary/10
+                  text-primary
+                  border border-primary/20
+                  hover:bg-primary/20
+                  transition-colors
+                  text-xs font-medium
+                "
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(item.value);
+                }}
+              >
+                {item.label}
 
-        <div className="max-h-60 overflow-auto">
-          {filtered.length > 0 ? (
-            filtered.map((option) => (
+                <X className="h-3 w-3 cursor-pointer" />
+              </Badge>
+            ))
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              {placeholder}
+            </span>
+          )}
+        </div>
+
+        {/* Right Icons */}
+        <div className="flex items-center gap-2 text-muted-foreground">
+          {value.length > 0 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearAll();
+              }}
+              className="
+                rounded-sm p-0.5
+                hover:bg-muted
+                hover:text-foreground
+                transition-colors
+              "
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+
+          {open ? (
+            <ChevronUp className="h-4 w-4 transition-transform" />
+          ) : (
+            <ChevronDown className="h-4 w-4 transition-transform" />
+          )}
+        </div>
+      </div>
+    </PopoverTrigger>
+
+    <PopoverContent
+      align="start"
+      className="
+        p-3
+        border border-border
+        bg-popover
+        text-popover-foreground
+        shadow-xl
+        rounded-xl
+      "
+      style={{ width: menuWidth || "auto" }}
+    >
+      {/* Search */}
+      <Input
+        placeholder="Search user..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="
+          mb-3
+          bg-background
+          border-border
+          text-foreground
+          placeholder:text-muted-foreground
+          focus-visible:ring-ring
+        "
+      />
+
+      {/* Options */}
+      <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
+        {filtered.length > 0 ? (
+          filtered.map((option) => {
+            const isSelected = value.some(
+              (v) => v.value === option.value
+            );
+
+            return (
               <div
                 key={option.value}
                 onClick={() => toggle(option.value)}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 "
+                className={`
+                  flex cursor-pointer items-center gap-3
+                  rounded-lg px-3 py-2
+                  transition-all duration-150
+                  ${
+                    isSelected
+                      ? "bg-primary/10 border border-primary/20"
+                      : "hover:bg-accent"
+                  }
+                `}
               >
                 <Check
-                  className={`h-4 w-4 ${
-                    value.some((v) => v.value === option.value)
-                      ? "opacity-100"
+                  className={`h-4 w-4 shrink-0 transition-opacity ${
+                    isSelected
+                      ? "opacity-100 text-primary"
                       : "opacity-0"
                   }`}
                 />
 
-                <div>
-                  <p className="text-sm">{option.label}</p>
-                  <p className="text-xs text-gray-400">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {option.label}
+                  </p>
+
+                  <p className="truncate text-xs text-muted-foreground">
                     {option.email}
                   </p>
                 </div>
               </div>
-            ))
-          ) : (
-            <p className="text-sm text-gray-400 p-2">
+            );
+          })
+        ) : (
+          <div className="py-6 text-center">
+            <p className="text-sm text-muted-foreground">
               No users found
             </p>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
+          </div>
+        )}
+      </div>
+    </PopoverContent>
+  </Popover>
+);
+  // return (
+  //   <Popover open={open} onOpenChange={setOpen}>
+  //     <PopoverTrigger asChild>
+  //       <div
+  //         ref={containerRef}
+  //         className="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-md border  p-2"
+  //         onClick={() =>
+  //           setMenuWidth(containerRef.current?.offsetWidth)
+  //         }
+  //       >
+  //         <div className="flex flex-wrap gap-1">
+  //           {value.length > 0 ? (
+  //             value.map((item) => (
+  //               <Badge
+  //                 key={item.value}
+  //                 className="text-xs"
+  //                 onClick={(e) => {
+  //                   e.stopPropagation();
+  //                   toggle(item.value);
+  //                 }}
+  //               >
+  //                 {item.label}
+  //                 <X className="ml-1 h-3 w-3" />
+  //               </Badge>
+  //             ))
+  //           ) : (
+  //             <span className="text-sm text-gray-400">
+  //               {placeholder}
+  //             </span>
+  //           )}
+  //         </div>
+
+  //         <div className="flex items-center gap-1">
+  //           {value.length > 0 && (
+  //             <X className="h-4 w-4" onClick={clearAll} />
+  //           )}
+  //           {open ? (
+  //             <ChevronUp className="h-4 w-4" />
+  //           ) : (
+  //             <ChevronDown className="h-4 w-4" />
+  //           )}
+  //         </div>
+  //       </div>
+  //     </PopoverTrigger>
+
+  //     <PopoverContent
+  //       className="p-2"
+  //       style={{ width: menuWidth || "auto" }}
+  //     >
+  //       <Input
+  //         placeholder="Search user..."
+  //         value={search}
+  //         onChange={(e) => setSearch(e.target.value)}
+  //         className="mb-2"
+  //       />
+
+  //       <div className="max-h-60 overflow-auto">
+  //         {filtered.length > 0 ? (
+  //           filtered.map((option) => (
+  //             <div
+  //               key={option.value}
+  //               onClick={() => toggle(option.value)}
+  //               className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 "
+  //             >
+  //               <Check
+  //                 className={`h-4 w-4 ${
+  //                   value.some((v) => v.value === option.value)
+  //                     ? "opacity-100"
+  //                     : "opacity-0"
+  //                 }`}
+  //               />
+
+  //               <div>
+  //                 <p className="text-sm">{option.label}</p>
+  //                 <p className="text-xs text-gray-400">
+  //                   {option.email}
+  //                 </p>
+  //               </div>
+  //             </div>
+  //           ))
+  //         ) : (
+  //           <p className="text-sm text-gray-400 p-2">
+  //             No users found
+  //           </p>
+  //         )}
+  //       </div>
+  //     </PopoverContent>
+  //   </Popover>
+  // );
 };
 
 export default MultiSelectDropdown;

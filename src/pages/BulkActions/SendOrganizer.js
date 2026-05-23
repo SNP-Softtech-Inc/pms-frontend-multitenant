@@ -487,49 +487,138 @@ const SendOrganizer = forwardRef(
     }));
 
     // ================= UI =================
+    // return (
+    //   <div className="space-y-4 p-4">
+
+    //     {/* ACCOUNTS */}
+    //     <div className="space-y-1">
+    //       <Label>Accounts</Label>
+    //       <AccountMultiSelectDropdown
+    //         value={selectedaccount}
+    //         onChange={setSelectedaccount}
+    //       />
+    //     </div>
+
+    //     {/* TEMPLATE */}
+    //     <div className="space-y-1">
+    //       <Label>Organizer Template</Label>
+
+    //       <Select
+    //         value={selectedTemplate}
+    //         onValueChange={handleOrganizerTemplateChange}
+    //       >
+    //         <SelectTrigger>
+    //           <SelectValue placeholder="Select Template" />
+    //         </SelectTrigger>
+
+    //         <SelectContent>
+    //           {templates.map((t) => (
+    //             <SelectItem key={t._id} value={t._id}>
+    //               {t.templatename}
+    //             </SelectItem>
+    //           ))}
+    //         </SelectContent>
+    //       </Select>
+    //     </div>
+
+    //     {/* LOADING */}
+    //     {loading && (
+    //       <div className="flex justify-center">
+    //         <Loader2 className="h-5 w-5 animate-spin" />
+    //       </div>
+    //     )}
+
+    //   </div>
+    // );
     return (
-      <div className="space-y-4 p-4">
+  <div className="space-y-5 p-5 bg-background text-foreground">
+    
+    {/* ACCOUNTS */}
+    <div className="space-y-2">
+      <Label className="text-sm font-medium text-foreground">
+        Accounts
+      </Label>
 
-        {/* ACCOUNTS */}
-        <div className="space-y-1">
-          <Label>Accounts</Label>
-          <AccountMultiSelectDropdown
-            value={selectedaccount}
-            onChange={setSelectedaccount}
-          />
-        </div>
-
-        {/* TEMPLATE */}
-        <div className="space-y-1">
-          <Label>Organizer Template</Label>
-
-          <Select
-            value={selectedTemplate}
-            onValueChange={handleOrganizerTemplateChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Template" />
-            </SelectTrigger>
-
-            <SelectContent>
-              {templates.map((t) => (
-                <SelectItem key={t._id} value={t._id}>
-                  {t.templatename}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* LOADING */}
-        {loading && (
-          <div className="flex justify-center">
-            <Loader2 className="h-5 w-5 animate-spin" />
-          </div>
-        )}
-
+      <div className="rounded-xl border border-border bg-card p-1 transition-colors">
+        <AccountMultiSelectDropdown
+          value={selectedaccount}
+          onChange={setSelectedaccount}
+        />
       </div>
-    );
+    </div>
+
+    {/* TEMPLATE */}
+    <div className="space-y-2">
+      <Label className="text-sm font-medium text-foreground">
+        Organizer Template
+      </Label>
+
+      <Select
+        value={selectedTemplate}
+        onValueChange={
+          handleOrganizerTemplateChange
+        }
+      >
+        <SelectTrigger
+          className="
+            w-full
+            border-border
+            bg-card
+            text-foreground
+            hover:bg-accent/40
+            focus:ring-2
+            focus:ring-ring
+            focus:ring-offset-0
+            transition-colors
+          "
+        >
+          <SelectValue placeholder="Select Template" />
+        </SelectTrigger>
+
+        <SelectContent
+          className="
+            border-border
+            bg-popover
+            text-popover-foreground
+          "
+        >
+          {templates.map((t) => (
+            <SelectItem
+              key={t._id}
+              value={t._id}
+              className="
+                focus:bg-accent
+                focus:text-accent-foreground
+              "
+            >
+              {t.templatename}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    {/* LOADING */}
+    {loading && (
+      <div className="flex items-center justify-center py-4">
+        <div
+          className="
+            flex items-center gap-2
+            rounded-lg
+            border border-border
+            bg-card
+            px-4 py-2
+            text-sm text-muted-foreground
+            shadow-sm
+          "
+        >
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          Loading templates...
+        </div>
+      </div>
+    )}
+  </div>
+);
   }
 );
 

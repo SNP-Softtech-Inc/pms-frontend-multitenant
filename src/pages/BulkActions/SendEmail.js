@@ -1055,86 +1055,198 @@ const SendEmail = forwardRef(
     }));
 
     // ================= UI =================
+    // return (
+    //   <div className="space-y-4 p-4">
+    //     {/* ACCOUNTS */}
+    //     <div className="space-y-1">
+    //       <Label>Accounts</Label>
+    //       <AccountMultiSelectDropdown
+    //         value={selectedaccount}
+    //         onChange={setSelectedaccount}
+    //       />
+    //     </div>
+
+    //     {/* TEMPLATE */}
+    //     <div className="space-y-1">
+    //       <Label>Email Template</Label>
+    //       <select
+    //         className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    //         value={selectedTemplate?.value || ""}
+    //         onChange={(e) => {
+    //           const temp = templates.find(t => t._id === e.target.value);
+    //           if (temp) {
+    //             handleEmailtemp({
+    //               label: temp.templatename,
+    //               value: temp._id,
+    //             });
+    //           }
+    //         }}
+    //       >
+    //         <option value="">Select Template</option>
+    //         {templates.map((t) => (
+    //           <option key={t._id} value={t._id}>
+    //             {t.templatename}
+    //           </option>
+    //         ))}
+    //       </select>
+    //     </div>
+
+    //     {/* FROM */}
+    //     <div className="space-y-1">
+    //       <Label>From</Label>
+    //       <select
+    //         className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    //         value={selecteduser?.value || ""}
+    //         onChange={(e) => {
+    //           const user = userData.find(u => u.value === e.target.value);
+    //           setSelectedUser(user);
+    //         }}
+    //       >
+    //         <option value="">Select Sender</option>
+    //         {userData.map((u) => (
+    //           <option key={u.value} value={u.value}>
+    //             {u.label}
+    //           </option>
+    //         ))}
+    //       </select>
+    //     </div>
+
+    //     {/* SUBJECT with ShortcodeTextField */}
+    //     <ShortcodeTextField
+    //       label="Subject"
+    //       value={inputText}
+    //       onChange={(e) => {
+    //         const { value, selectionStart } = e.target;
+    //         setInputText(value);
+    //         setCursorPosition(selectionStart);
+    //       }}
+    //       inputRef={textFieldRef}
+    //       shortcuts={filteredShortcuts}
+    //       showShortcutDropdown={showDropdown}  // ✅ Pass boolean, not function
+    //       anchorElShortcut={null}  // ✅ Add this prop (can be null for custom positioning)
+    //       onToggleShortcutDropdown={toggleShortcodeDropdown}  // ✅ Function that receives event
+    //       onCloseShortcutDropdown={handleCloseDropdown}
+    //       onAddShortcut={handleJobAddShortcut}
+    //     />
+
+    //     {/* EDITOR */}
+    //     <div className="border rounded-md p-2 mb-11">
+    //       <Editor value={emailBody} onChange={setEmailBody} />
+    //     </div>
+    //   </div>
+    // );
     return (
-      <div className="space-y-4 p-4">
-        {/* ACCOUNTS */}
-        <div className="space-y-1">
-          <Label>Accounts</Label>
-          <AccountMultiSelectDropdown
-            value={selectedaccount}
-            onChange={setSelectedaccount}
-          />
-        </div>
+  <div 
+    className="space-y-4 p-4 text-foreground bg-background"
+    style={{ fontFamily: "var(--font-family)" }}
+  >
+    {/* ACCOUNTS */}
+    <div className="space-y-1">
+      <Label 
+        style={{ 
+          fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
+          fontWeight: "500" 
+        }}
+      >
+        Accounts
+      </Label>
+      <AccountMultiSelectDropdown
+        value={selectedaccount}
+        onChange={setSelectedaccount}
+      />
+    </div>
 
-        {/* TEMPLATE */}
-        <div className="space-y-1">
-          <Label>Email Template</Label>
-          <select
-            className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selectedTemplate?.value || ""}
-            onChange={(e) => {
-              const temp = templates.find(t => t._id === e.target.value);
-              if (temp) {
-                handleEmailtemp({
-                  label: temp.templatename,
-                  value: temp._id,
-                });
-              }
-            }}
-          >
-            <option value="">Select Template</option>
-            {templates.map((t) => (
-              <option key={t._id} value={t._id}>
-                {t.templatename}
-              </option>
-            ))}
-          </select>
-        </div>
+    {/* TEMPLATE */}
+    <div className="space-y-1">
+      <Label 
+        style={{ 
+          fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
+          fontWeight: "500" 
+        }}
+      >
+        Email Template
+      </Label>
+      <select
+        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 bg-background text-foreground border-input focus:ring-ring focus:ring-offset-2 focus:ring-offset-background cursor-pointer"
+        style={{ 
+          fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+          fontFamily: "var(--font-family)"
+        }}
+        value={selectedTemplate?.value || ""}
+        onChange={(e) => {
+          const temp = templates.find(t => t._id === e.target.value);
+          if (temp) {
+            handleEmailtemp({
+              label: temp.templatename,
+              value: temp._id,
+            });
+          }
+        }}
+      >
+        <option value="" className="bg-popover text-muted-foreground">Select Template</option>
+        {templates.map((t) => (
+          <option key={t._id} value={t._id} className="bg-popover text-foreground">
+            {t.templatename}
+          </option>
+        ))}
+      </select>
+    </div>
 
-        {/* FROM */}
-        <div className="space-y-1">
-          <Label>From</Label>
-          <select
-            className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selecteduser?.value || ""}
-            onChange={(e) => {
-              const user = userData.find(u => u.value === e.target.value);
-              setSelectedUser(user);
-            }}
-          >
-            <option value="">Select Sender</option>
-            {userData.map((u) => (
-              <option key={u.value} value={u.value}>
-                {u.label}
-              </option>
-            ))}
-          </select>
-        </div>
+    {/* FROM */}
+    <div className="space-y-1">
+      <Label 
+        style={{ 
+          fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
+          fontWeight: "500" 
+        }}
+      >
+        From
+      </Label>
+      <select
+        className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 bg-background text-foreground border-input focus:ring-ring focus:ring-offset-2 focus:ring-offset-background cursor-pointer"
+        style={{ 
+          fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+          fontFamily: "var(--font-family)"
+        }}
+        value={selecteduser?.value || ""}
+        onChange={(e) => {
+          const user = userData.find(u => u.value === e.target.value);
+          setSelectedUser(user);
+        }}
+      >
+        <option value="" className="bg-popover text-muted-foreground">Select Sender</option>
+        {userData.map((u) => (
+          <option key={u.value} value={u.value} className="bg-popover text-foreground">
+            {u.label}
+          </option>
+        ))}
+      </select>
+    </div>
 
-        {/* SUBJECT with ShortcodeTextField */}
-        <ShortcodeTextField
-          label="Subject"
-          value={inputText}
-          onChange={(e) => {
-            const { value, selectionStart } = e.target;
-            setInputText(value);
-            setCursorPosition(selectionStart);
-          }}
-          inputRef={textFieldRef}
-          shortcuts={filteredShortcuts}
-          showShortcutDropdown={showDropdown}  // ✅ Pass boolean, not function
-          anchorElShortcut={null}  // ✅ Add this prop (can be null for custom positioning)
-          onToggleShortcutDropdown={toggleShortcodeDropdown}  // ✅ Function that receives event
-          onCloseShortcutDropdown={handleCloseDropdown}
-          onAddShortcut={handleJobAddShortcut}
-        />
+    {/* SUBJECT with ShortcodeTextField */}
+    <ShortcodeTextField
+      label="Subject"
+      value={inputText}
+      onChange={(e) => {
+        const { value, selectionStart } = e.target;
+        setInputText(value);
+        setCursorPosition(selectionStart);
+      }}
+      inputRef={textFieldRef}
+      shortcuts={filteredShortcuts}
+      showShortcutDropdown={showDropdown}  // ✅ Pass boolean, not function
+      anchorElShortcut={null}  // ✅ Add this prop (can be null for custom positioning)
+      onToggleShortcutDropdown={toggleShortcodeDropdown}  // ✅ Function that receives event
+      onCloseShortcutDropdown={handleCloseDropdown}
+      onAddShortcut={handleJobAddShortcut}
+    />
 
-        {/* EDITOR */}
-        <div className="border rounded-md p-2 mb-11">
-          <Editor value={emailBody} onChange={setEmailBody} />
-        </div>
-      </div>
-    );
+    {/* EDITOR */}
+    <div className="border border-input rounded-md p-2 mb-11 bg-background text-foreground">
+      <Editor value={emailBody} onChange={setEmailBody} />
+    </div>
+  </div>
+);
   }
 );
 
