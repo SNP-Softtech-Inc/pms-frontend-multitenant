@@ -585,7 +585,7 @@ const handleBulkDelete = () => {
   return (
     <div className="mt-4">
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-4 px-4 py-3 bg-white rounded-lg shadow-sm">
+      <div className="flex justify-between items-center mb-4 px-4 py-3 rounded-lg shadow-sm">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-gray-900">
             Chats & Tasks
@@ -637,9 +637,9 @@ const handleBulkDelete = () => {
       </div>
 
       {/* MAIN */}
-      <div className="flex h-[85vh] gap-3 bg-gray-50 rounded-lg p-1">
+      <div className="flex h-[85vh] gap-3  rounded-lg p-1">
         {/* CHAT LIST */}
-        <ScrollArea className="w-[30%] bg-white rounded-lg shadow-sm">
+        <ScrollArea className="w-[30%]  rounded-lg shadow-sm">
           <div className="space-y-0">
             {chatList.map((chat) => {
               const unread = countUnreadAdminMessages(chat);
@@ -717,7 +717,7 @@ const sender =
         </ScrollArea>
 
         {/* CHAT DETAILS */}
-        <div className="w-[70%] bg-white rounded-lg shadow-sm p-4">
+        <div className="w-[70%]  rounded-lg shadow-sm p-4">
           {selectedChat ? (
             <ChatDetails
               chat={selectedChat}

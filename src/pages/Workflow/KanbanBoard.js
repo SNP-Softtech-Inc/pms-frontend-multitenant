@@ -637,7 +637,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="flex flex-col min-w-[320px] h-[75vh] bg-slate-50 rounded-xl p-4 shadow-sm border border-slate-200"
+                  className="flex flex-col min-w-[320px] h-[75vh]  rounded-xl p-4 shadow-sm border border-slate-200"
                 >
                   {/* Stage Header */}
                   <div className="flex items-center justify-between mb-4 px-1">

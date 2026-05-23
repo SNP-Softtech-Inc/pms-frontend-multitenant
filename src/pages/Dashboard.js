@@ -194,7 +194,7 @@ const Dashboard = () => {
                 // Hide Firm Settings inside Settings
                 if (
                   newItem.label === "Settings" &&
-                  subItem.label === "Firm Settings" 
+                  subItem.label === "Firm Settings"
                 )
                   return false;
 
@@ -235,7 +235,6 @@ const Dashboard = () => {
                 return true;
               });
             }
-
 
             // =========================
             // ✅ REMOVE PARENT ITEMS
@@ -291,7 +290,7 @@ const Dashboard = () => {
 
     fetchPlusMenu();
   }, [user, permissions]);
- 
+
   // Auto open submenu
   useEffect(() => {
     const newOpenMenus = {};
@@ -326,715 +325,413 @@ const Dashboard = () => {
       setMobileOpen(!mobileOpen);
     }
   };
-  const handlePlusClick = (event) => {
-    setPlusAnchorEl(event.currentTarget);
-  };
+
 
   const handlePlusClose = () => {
     setPlusAnchorEl(null);
-
   };
-  const drawerContent = (
-    <Box>
-      {/* HEADER */}
-      <Box
-        sx={{ display: "flex", alignItems: "center", p: 2, cursor: "pointer" }}
-        onClick={handleDrawerToggle}
-      >
-        <Avatar sx={{ bgcolor: "primary.main" }}>S</Avatar>
-        {open && isSmUp && (
-          <Typography sx={{ ml: 1, fontWeight: 600 }}>SNP Admin</Typography>
-        )}
-      </Box>
-
-      <Divider />
-
-      {/* MENU */}
-      <List>
-        {sidebarItems.map((item, index) => {
-          const active = isActive(item.path, item.submenu);
-
-          return (
-            <React.Fragment key={index}>
-              <ListItem disablePadding>
-                <Tooltip title={!open ? item.label : ""} placement="right">
-                  <ListItemButton
-                    onClick={() => {
-                      if (item.submenu?.length > 0) {
-                        handleToggleMenu(index);
-                      } else {
-                        navigate(item.path);
-                        if (!isSmUp) setMobileOpen(false);
-                      }
-                    }}
-                    sx={{
-                      position: "relative",
-                      justifyContent: open ? "initial" : "center",
-                      px: 2,
-                      mx: 1,
-                      borderRadius: 2,
-                      mb: 0.5,
-                      transition: "all 0.2s ease",
-
-                      bgcolor: active ? "rgba(25,118,210,0.08)" : "transparent",
-
-                      color: active ? "primary.main" : "text.primary",
-
-                      "&:hover": {
-                        bgcolor: "rgba(0,0,0,0.04)",
-                      },
-
-                      // LEFT BORDER
-                      "&::before": active
-                        ? {
-                            content: '""',
-                            position: "absolute",
-                            left: 0,
-                            top: 6,
-                            bottom: 6,
-                            width: "4px",
-                            borderRadius: "0 4px 4px 0",
-                            bgcolor: "primary.main",
-                          }
-                        : {},
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 35,
-                        color: active ? "primary.main" : "text.secondary",
-                      }}
-                    >
-                      {getIcon(item.icon)}
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary={item.label}
-                      sx={{
-                        opacity: open ? 1 : 0,
-                        "& .MuiTypography-root": {
-                          fontSize: "0.9rem",
-                          fontWeight: active ? 600 : 500,
-                        },
-                      }}
-                    />
-
-                    {item.submenu?.length > 0 &&
-                      open &&
-                      (openMenus[index] ? <ExpandLess /> : <ExpandMore />)}
-                  </ListItemButton>
-                </Tooltip>
-              </ListItem>
-
-              {/* SUBMENU */}
-              {item.submenu?.length > 0 && (
-                <Collapse in={openMenus[index]} timeout={300} unmountOnExit>
-                  <List component="div" disablePadding>
-                    {item.submenu.map((subItem, subIndex) => {
-                      const subActive = isSubActive(subItem.path);
-
-                      return (
-                        <ListItem key={subIndex} disablePadding>
-                          <Tooltip
-                            title={!open ? subItem.label : ""}
-                            placement="right"
-                          >
-                            <ListItemButton
-                              onClick={() => {
-                                navigate(subItem.path);
-                                if (!isSmUp) setMobileOpen(false);
-                              }}
-                              sx={{
-                                pl: open ? 5 : 2,
-                                mx: 1,
-                                borderRadius: 2,
-                                mb: 0.3,
-                                transition: "all 0.2s ease",
-
-                                bgcolor: subActive
-                                  ? "rgba(25,118,210,0.12)"
-                                  : "transparent",
-
-                                color: subActive
-                                  ? "primary.main"
-                                  : "text.secondary",
-
-                                "&:hover": {
-                                  bgcolor: "rgba(0,0,0,0.04)",
-                                },
-                              }}
-                            >
-                              <ListItemIcon
-                                sx={{
-                                  minWidth: 25,
-                                  color: subActive
-                                    ? "primary.main"
-                                    : "text.secondary",
-                                }}
-                              >
-                                {getIcon(subItem.icon)}
-                              </ListItemIcon>
-
-                              <ListItemText
-                                primary={subItem.label}
-                                sx={{
-                                  "& .MuiTypography-root": {
-                                    fontSize: "0.85rem",
-                                    fontWeight: subActive ? 600 : 400,
-                                  },
-                                }}
-                              />
-                            </ListItemButton>
-                          </Tooltip>
-                        </ListItem>
-                      );
-                    })}
-                  </List>
-                </Collapse>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </List>
-    </Box>
-  );
-
-//   return (
-//     // <Box sx={{ display: "flex", minHeight: "100vh" }}>
-//     //   {/* DRAWER */}
-//     //   {isSmUp ? (
-//     //     <Drawer
-//     //       variant="permanent"
-//     //       sx={{
-//     //         width: open ? drawerWidth : collapsedDrawerWidth,
-//     //         [`& .MuiDrawer-paper`]: {
-//     //           width: open ? drawerWidth : collapsedDrawerWidth,
-//     //           transition: "all 0.3s ease",
-
-//     //           // ✅ FIX START
-//     //           overflowX: "hidden",
-//     //           overflowY: "auto",
-
-//     //           // hide scrollbar (all browsers)
-//     //           scrollbarWidth: "none", // Firefox
-//     //           msOverflowStyle: "none", // IE/Edge
-
-//     //           "&::-webkit-scrollbar": {
-//     //             display: "none", // Chrome/Safari
-//     //           },
-//     //           // ✅ FIX END
-
-//     //           borderRight: "1px solid rgba(0,0,0,0.08)",
-//     //           background: "#fff",
-//     //         },
-//     //       }}
-//     //     >
-//     //       {drawerContent}
-//     //     </Drawer>
-//     //   ) : (
-//     //     <Drawer
-//     //       variant="temporary"
-//     //       open={mobileOpen}
-//     //       onClose={() => setMobileOpen(false)}
-//     //       ModalProps={{ keepMounted: true }}
-//     //       sx={{
-//     //         [`& .MuiDrawer-paper`]: { width: drawerWidth },
-//     //       }}
-//     //     >
-//     //       {drawerContent}
-//     //     </Drawer>
-//     //   )}
-
-//     //   {/* MAIN */}
-//     //   {/* <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}> */}
-//     //   <Box
-//     //     sx={{
-//     //       flexGrow: 1,
-//     //       display: "flex",
-//     //       flexDirection: "column",
-//     //       height: "100vh", // important
-//     //       overflow: "hidden", // prevent full page scroll
-//     //     }}
-//     //   >
-//     //     {/* HEADER */}
-
-//     //     <Box
-//     //       sx={{
-//     //         height: 70,
-//     //         px: 3,
-//     //         display: "flex",
-//     //         justifyContent: "space-between",
-//     //         alignItems: "center",
-//     //         borderBottom: "1px solid",
-//     //         borderColor: "divider",
-//     //         bgcolor: "background.paper",
-
-//     //         position: "sticky", // ✅ key
-//     //         top: 0, // stick to top
-//     //         zIndex: 10, // stay above content
-//     //       }}
-//     //     >
-//     //       {/* Left Section */}
-//     //       <Box display="flex" alignItems="center" gap={2}>
-//     //         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-//     //           Dashboard
-//     //         </Typography>
-
-//     //         <IconButton
-//     //           onClick={handlePlusClick}
-//     //           sx={{
-//     //             bgcolor: "primary.main",
-//     //             color: "white",
-//     //             width: 36,
-//     //             height: 36,
-//     //             "&:hover": {
-//     //               bgcolor: "primary.dark",
-//     //             },
-//     //           }}
-//     //         >
-//     //           <AddIcon fontSize="small" />
-//     //         </IconButton>
-
-//     //         <Box>
-//     //           <SearchComponent />
-//     //         </Box>
-//     //       </Box>
-
-//     //       {/* Right Section */}
-//     //       <LogoutButton size="small" />
-//     //     </Box>
-
-//     //     {/* CONTENT */}
-//     //     <Box sx={{ flexGrow: 1, overflowY: "auto", p: 3 }}>
-//     //       <Box
-//     //         sx={{
-//     //           bgcolor: "background.paper",
-//     //           p: 3,
-//     //           borderRadius: 3,
-//     //           minHeight: "100%",
-//     //           boxShadow: 1,
-//     //         }}
-//     //       >
-//     //         <Outlet />
-//     //       </Box>
-//     //     </Box>
-//     //   </Box>
-
-//     //   {/* LEFT NEW SIDEBAR MENU */}
-//     //   <Menu
-//     //     anchorEl={plusAnchorEl}
-//     //     open={Boolean(plusAnchorEl)}
-//     //     onClose={handlePlusClose}
-//     //     PaperProps={{
-//     //       sx: {
-//     //         mt: 1,
-//     //         borderRadius: 2,
-//     //         minWidth: 200,
-//     //         boxShadow: 3,
-//     //       },
-//     //     }}
-//     //   >
-//     //     {plusMenuItems.length > 0 ? (
-//     //       plusMenuItems.map((item, index) => (
-//     //         <MenuItem
-//     //           key={index}
-//     //           onClick={() => {
-//     //             if (item.label === "Account") {
-//     //               handleDrawerOpen();
-//     //             } else if (item.label === "Contact") {
-//     //               handleContactDrawerOpen();
-//     //             } else if (item.label === "Invoice") {
-//     //               setInvoiceDrawer(true);
-//     //             } else if (item.label === "Chat") {
-//     //               handleChatDrawerOpen(); // ✅ ADD THIS
-//     //             } else if (item.label === "Jobs") {
-//     //               handleJobDrawerOpen();
-//     //             } else if (item.label === "Task") {
-//     //               handleTasksDrawerOpen();
-//     //             } else {
-//     //               navigate(item.path);
-//     //             }
-
-//     //             handlePlusClose();
-//     //           }}
-//     //           sx={{
-//     //             fontSize: "0.9rem",
-//     //             py: 1,
-//     //             display: "flex",
-//     //             alignItems: "center",
-//     //             gap: 1,
-//     //             "&:hover": {
-//     //               bgcolor: "primary.lighter",
-//     //             },
-//     //           }}
-//     //         >
-//     //           <ListItemIcon>{getIcon(item.icon)}</ListItemIcon>
-//     //           <ListItemText primary={item.label} />
-//     //         </MenuItem>
-//     //       ))
-//     //     ) : (
-//     //       <MenuItem disabled>No items found</MenuItem>
-//     //     )}
-//     //   </Menu>
-
-//     //   <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
-//     //   <NewContactDrawer
-//     //     open={contactDrawerOpen}
-//     //     onClose={handleContactDrawerClose}
-//     //   />
-
-//     //   <CreateInvoiceDrawer
-//     //     open={invoiceDrawer}
-//     //     onClose={() => setInvoiceDrawer(false)}
-//     //   />
-//     //   <NewChatDrawer
-//     //     open={chatDrawerOpen}
-//     //     handleClose={handleChatDrawerClose}
-//     //     accountwiseChatlist={() => {}} // pass your function if needed
-//     //     data={null}
-//     //     isActiveTrue={true}
-//     //   />
-//     //   <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
-//     //   <TasksDrawer
-//     //     open={tasksDrawerOpen}
-//     //     onClose={() => setTasksDrawerOpen(false)}
-//     //   />
-//     // </Box>
-
-// );
-
+ 
 return (
   <>
-    {/* ══════════════════════════════════════════════════════
-        ROOT FLEX LAYOUT
-    ══════════════════════════════════════════════════════ */}
-    <div className="flex h-screen bg-background overflow-hidden">
-
-      {/* ════════════════════════════════════════════════
-          SIDEBAR PANEL
-      ════════════════════════════════════════════════ */}
+    {/* ROOT LAYOUT */}
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      {/* ═════════════════ SIDEBAR ═════════════════ */}
       <aside
-        className={`flex flex-col border-r bg-background transition-all duration-300 
-        ${open ? "w-[240px]" : "w-[70px]"} 
-        ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
+        className={`
+          flex flex-col
+          border-r border-border/50
+          bg-card
+          transition-all duration-300
+          ${open ? "w-[250px]" : "w-[72px]"}
+          ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50 shadow-2xl" : ""}
+        `}
       >
-        {/* ── Sidebar Header ───────────────────────── */}
-     <div
-  onClick={handleDrawerToggle}
-  className={cn(
-    "flex h-16 shrink-0 items-center border-b border-border/40 cursor-pointer",
-    open ? "px-4 justify-center" : "px-2 justify-center"
-  )}
->
-  {open ? (
-    <img
-      src={FullLogo}
-      alt="logo"
-      className="h-10 w-auto object-contain"
-    />
-  ) : (
-    <img
-      src={Logo}
-      alt="logo"
-      className="h-8 w-auto object-contain"
-    />
-  )}
-</div>
-
-        {/* ── Sidebar Menu ─────────────────────────── */}
-       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
-
-  {/* ───────── MAIN SECTION ───────── */}
-  {open && (
-    <p className="px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-      Main
-    </p>
-  )}
-
-  {sidebarItems.slice(0, 4).map((item, index) => {   // 👈 adjust count
-    const active = isActive(item.path, item.submenu);
-
-    return (
-      <div key={index}>
-        {/* Main Item */}
-        <button
-          onClick={() => {
-            if (item.submenu?.length) {
-              handleToggleMenu(index);
-            } else {
-              navigate(item.path);
-              if (!isSmUp) setMobileOpen(false);
-            }
-          }}
-          className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition
-            ${
-              active
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }
-            ${!open && "justify-center px-2"}
-          `}
+        {/* HEADER */}
+        <div
+          onClick={handleDrawerToggle}
+          className={cn(
+            "flex h-16 shrink-0 items-center border-b border-border/50 cursor-pointer",
+            open ? "justify-center px-4" : "justify-center px-2",
+          )}
         >
-          <span className="text-lg">{getIcon(item.icon)}</span>
+          {open ? (
+            <img
+              src={FullLogo}
+              alt="logo"
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <img
+              src={Logo}
+              alt="logo"
+              className="h-8 w-auto object-contain"
+            />
+          )}
+        </div>
 
+        {/* MENU */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-2 py-4 space-y-3">
+          {/* MAIN */}
           {open && (
-            <span className="flex-1 text-left truncate">
-              {item.label}
-            </span>
+            <p
+              className="
+                px-3
+                text-[11px]
+                font-semibold
+                uppercase
+                tracking-[0.14em]
+                text-muted-foreground/70
+                select-none
+              "
+            >
+              Main
+            </p>
           )}
 
-          {item.submenu?.length > 0 && open && (
-            openMenus[index]
-              ? <ExpandLess fontSize="small" />
-              : <ExpandMore fontSize="small" />
-          )}
-        </button>
+          {sidebarItems.slice(0, 4).map((item, index) => {
+            const active = isActive(item.path, item.submenu);
 
-        {/* Submenu */}
-        {item.submenu?.length > 0 && openMenus[index] && (
-          <div className="ml-4 mt-1 border-l pl-3 space-y-1">
-            {item.submenu.map((sub, i) => {
-              const subActive = isSubActive(sub.path);
-
-              return (
+            return (
+              <div key={index}>
+                {/* MAIN ITEM */}
                 <button
-                  key={i}
                   onClick={() => {
-                    navigate(sub.path);
-                    if (!isSmUp) setMobileOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
-                    ${
-                      subActive
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    if (item.submenu?.length) {
+                      handleToggleMenu(index);
+                    } else {
+                      navigate(item.path);
+                      if (!isSmUp) setMobileOpen(false);
                     }
+                  }}
+                  className={`
+                    group flex w-full items-center
+                    gap-3 rounded-xl
+                    px-3 py-2.5
+                    text-sm font-medium
+                    transition-all duration-200
+
+                    ${
+                      active
+                        ? "bg-primary/10 text-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                    }
+
+                    ${!open && "justify-center px-2"}
                   `}
                 >
-                  <span>{getIcon(sub.icon)}</span>
-                  {open && <span>{sub.label}</span>}
+                  <span className="text-lg shrink-0">
+                    {getIcon(item.icon)}
+                  </span>
+
+                  {open && (
+                    <span className="flex-1 truncate tracking-tight text-left">
+                      {item.label}
+                    </span>
+                  )}
+
+                  {item.submenu?.length > 0 &&
+                    open &&
+                    (openMenus[index] ? (
+                      <ExpandLess fontSize="small" />
+                    ) : (
+                      <ExpandMore fontSize="small" />
+                    ))}
                 </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  })}
 
-  {/* ───────── DIVIDER ───────── */}
-  <div className="h-px bg-border/40 my-2" />
+                {/* SUBMENU */}
+                {item.submenu?.length > 0 && openMenus[index] && (
+                  <div className="ml-5 mt-1 border-l border-border/60 pl-3 space-y-1">
+                    {item.submenu.map((sub, i) => {
+                      const subActive = isSubActive(sub.path);
 
-  {/* ───────── TOOLS SECTION ───────── */}
-  {open && (
-    <p className="px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-      Tools
-    </p>
-  )}
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            navigate(sub.path);
+                            if (!isSmUp) setMobileOpen(false);
+                          }}
+                          className={`
+                            flex w-full items-center
+                            gap-2.5 rounded-lg
+                            px-3 py-2
+                            text-[13px] font-medium
+                            transition-all duration-200
 
-  {sidebarItems.slice(4).map((item, index) => {   // 👈 remaining items
-    const realIndex = index + 4; // important for submenu state
-    const active = isActive(item.path, item.submenu);
+                            ${
+                              subActive
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                            }
+                          `}
+                        >
+                          <span className="text-sm">
+                            {getIcon(sub.icon)}
+                          </span>
 
-    return (
-      <div key={realIndex}>
-        {/* Main Item */}
-        <button
-          onClick={() => {
-            if (item.submenu?.length) {
-              handleToggleMenu(realIndex);
-            } else {
-              navigate(item.path);
-              if (!isSmUp) setMobileOpen(false);
-            }
-          }}
-          className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition
-            ${
-              active
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }
-            ${!open && "justify-center px-2"}
-          `}
-        >
-          <span className="text-lg">{getIcon(item.icon)}</span>
+                          {open && (
+                            <span className="truncate">
+                              {sub.label}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
+          {/* DIVIDER */}
+          <div className="h-px bg-border/50 my-3" />
+
+          {/* TOOLS */}
           {open && (
-            <span className="flex-1 text-left truncate">
-              {item.label}
-            </span>
+            <p
+              className="
+                px-3
+                text-[11px]
+                font-semibold
+                uppercase
+                tracking-[0.14em]
+                text-muted-foreground/70
+                select-none
+              "
+            >
+              Tools
+            </p>
           )}
 
-          {item.submenu?.length > 0 && open && (
-            openMenus[realIndex]
-              ? <ExpandLess fontSize="small" />
-              : <ExpandMore fontSize="small" />
-          )}
-        </button>
+          {sidebarItems.slice(4).map((item, index) => {
+            const realIndex = index + 4;
+            const active = isActive(item.path, item.submenu);
 
-        {/* Submenu */}
-        {item.submenu?.length > 0 && openMenus[realIndex] && (
-          <div className="ml-4 mt-1 border-l pl-3 space-y-1">
-            {item.submenu.map((sub, i) => {
-              const subActive = isSubActive(sub.path);
-
-              return (
+            return (
+              <div key={realIndex}>
+                {/* MAIN ITEM */}
                 <button
-                  key={i}
                   onClick={() => {
-                    navigate(sub.path);
-                    if (!isSmUp) setMobileOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
-                    ${
-                      subActive
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    if (item.submenu?.length) {
+                      handleToggleMenu(realIndex);
+                    } else {
+                      navigate(item.path);
+                      if (!isSmUp) setMobileOpen(false);
                     }
+                  }}
+                  className={`
+                    group flex w-full items-center
+                    gap-3 rounded-xl
+                    px-3 py-2.5
+                    text-sm font-medium
+                    transition-all duration-200
+
+                    ${
+                      active
+                        ? "bg-primary/10 text-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                    }
+
+                    ${!open && "justify-center px-2"}
                   `}
                 >
-                  <span>{getIcon(sub.icon)}</span>
-                  {open && <span>{sub.label}</span>}
+                  <span className="text-lg shrink-0">
+                    {getIcon(item.icon)}
+                  </span>
+
+                  {open && (
+                    <span className="flex-1 truncate tracking-tight text-left">
+                      {item.label}
+                    </span>
+                  )}
+
+                  {item.submenu?.length > 0 &&
+                    open &&
+                    (openMenus[realIndex] ? (
+                      <ExpandLess fontSize="small" />
+                    ) : (
+                      <ExpandMore fontSize="small" />
+                    ))}
                 </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  })}
-</div>
+
+                {/* SUBMENU */}
+                {item.submenu?.length > 0 && openMenus[realIndex] && (
+                  <div className="ml-5 mt-1 border-l border-border/60 pl-3 space-y-1">
+                    {item.submenu.map((sub, i) => {
+                      const subActive = isSubActive(sub.path);
+
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            navigate(sub.path);
+                            if (!isSmUp) setMobileOpen(false);
+                          }}
+                          className={`
+                            flex w-full items-center
+                            gap-2.5 rounded-lg
+                            px-3 py-2
+                            text-[13px] font-medium
+                            transition-all duration-200
+
+                            ${
+                              subActive
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                            }
+                          `}
+                        >
+                          <span className="text-sm">
+                            {getIcon(sub.icon)}
+                          </span>
+
+                          {open && (
+                            <span className="truncate">
+                              {sub.label}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </aside>
 
-      {/* ════════════════════════════════════════════════
-          MAIN CONTENT AREA
-      ════════════════════════════════════════════════ */}
+      {/* ═════════════════ MAIN CONTENT ═════════════════ */}
       <div className="flex flex-1 flex-col overflow-hidden">
-
-        {/* ── Header ─────────────────────────────── */}
-        <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
-
-          {/* Left Section */}
+        {/* HEADER */}
+        <header
+          className="
+            sticky top-0 z-20
+            flex h-14 items-center justify-between
+            border-b border-border/50
+            bg-background/95
+            backdrop-blur
+            px-4
+          "
+        >
+          {/* LEFT */}
           <div className="flex items-center gap-3">
-            {/* Menu Toggle */}
+            {/* MENU BUTTON */}
             <button
               onClick={handleDrawerToggle}
-              className="p-2 rounded-md hover:bg-muted"
+              className="
+                rounded-lg p-2
+                text-muted-foreground
+                transition-colors
+                hover:bg-muted
+                hover:text-foreground
+              "
             >
               ☰
             </button>
 
-            <h1 className="text-sm font-semibold">Dashboard</h1>
-
-            {/* Plus Button */}
-            {/* <button
-              onClick={handlePlusClick}
-              className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-white hover:opacity-90"
-            >
-              +
-            </button> */}
+            {/* PLUS MENU */}
             <DropdownMenu>
-  <DropdownMenuTrigger asChild>
-   <button
-  className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-white 
-             hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
->
-  +
-</button>
-  </DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="
+                    flex h-9 w-9 items-center justify-center
+                    rounded-xl
+                    bg-primary
+                    text-primary-foreground
+                    shadow-sm
+                    transition-all
+                    hover:opacity-90
+                  "
+                >
+                  +
+                </button>
+              </DropdownMenuTrigger>
 
-  <DropdownMenuContent
-  align="start"
-  className="w-56 mt-2 rounded-xl overflow-hidden border  shadow-lg animate-in fade-in zoom-in-95"
->
-    {plusMenuItems.length > 0 ? (
-      plusMenuItems.map((item, index) => (
-        <DropdownMenuItem
-          key={index}
-          onClick={() => {
-            if (item.label === "Account") handleDrawerOpen();
-            else if (item.label === "Contact") handleContactDrawerOpen();
-            else if (item.label === "Invoice") setInvoiceDrawer(true);
-            else if (item.label === "Chat") handleChatDrawerOpen();
-            else if (item.label === "Jobs") handleJobDrawerOpen();
-            else if (item.label === "Task") handleTasksDrawerOpen();
-            else navigate(item.path);
-          }}
-          className="flex items-center gap-2 cursor-pointer"
-        >
-          <span className="text-base">{getIcon(item.icon)}</span>
-          <span>{item.label}</span>
-        </DropdownMenuItem>
-      ))
-    ) : (
-      <DropdownMenuItem disabled>
-        No items found
-      </DropdownMenuItem>
-    )}
-  </DropdownMenuContent>
-</DropdownMenu>
+              <DropdownMenuContent
+                align="start"
+                className="
+                  mt-2 w-56
+                  overflow-hidden
+                  rounded-2xl
+                  border border-border/50
+                  bg-card
+                  shadow-xl
+                "
+              >
+                {plusMenuItems.length > 0 ? (
+                  plusMenuItems.map((item, index) => (
+                    <DropdownMenuItem
+                      key={index}
+                      onClick={() => {
+                        if (item.label === "Account") handleDrawerOpen();
+                        else if (item.label === "Contact")
+                          handleContactDrawerOpen();
+                        else if (item.label === "Invoice")
+                          setInvoiceDrawer(true);
+                        else if (item.label === "Chat")
+                          handleChatDrawerOpen();
+                        else if (item.label === "Jobs")
+                          handleJobDrawerOpen();
+                        else if (item.label === "Task")
+                          handleTasksDrawerOpen();
+                        else navigate(item.path);
+                      }}
+                      className="
+                        flex items-center gap-3
+                        cursor-pointer
+                        text-sm font-medium
+                        text-foreground
+                      "
+                    >
+                      <span className="text-base">
+                        {getIcon(item.icon)}
+                      </span>
 
-            {/* Search */}
+                      <span>{item.label}</span>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>
+                    No items found
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* SEARCH */}
             <div className="w-[300px]">
               <SearchComponent />
             </div>
           </div>
 
-          {/* Right Section */}
+          {/* RIGHT */}
           <LogoutButton />
         </header>
 
-        {/* ── Page Content ───────────────────────── */}
-        <main className="flex-1 overflow-y-auto p-4">
-          <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
+        {/* CONTENT */}
+        <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
+          <div
+            className="
+              min-h-full
+              rounded-2xl
+              border border-border/50
+              bg-card
+              p-5
+              text-card-foreground
+              shadow-sm
+            "
+          >
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* ════════════════════════════════════════════════
-          PLUS MENU (ShadCN style)
-      ════════════════════════════════════════════════ */}
-      {plusAnchorEl && (
-        <div
-         
-          className="fixed top-14 left-[260px] z-50 w-56 rounded-xl border bg-white shadow-lg animate-in fade-in zoom-in-95"
-        >
-          <div className="p-1">
-            {plusMenuItems.length > 0 ? (
-              plusMenuItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    if (item.label === "Account") handleDrawerOpen();
-                    else if (item.label === "Contact") handleContactDrawerOpen();
-                    else if (item.label === "Invoice") setInvoiceDrawer(true);
-                    else if (item.label === "Chat") handleChatDrawerOpen();
-                    else if (item.label === "Jobs") handleJobDrawerOpen();
-                    else if (item.label === "Task") handleTasksDrawerOpen();
-                    else navigate(item.path);
-
-                    handlePlusClose();
-                  }}
-                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-                >
-                  <span className="text-base">{getIcon(item.icon)}</span>
-                  <span className="flex-1 text-left">{item.label}</span>
-                </button>
-              ))
-            ) : (
-              <div className="p-3 text-sm text-gray-400">
-                No items found
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ════════════════════════════════════════════════
-          DRAWERS (UNCHANGED)
-      ════════════════════════════════════════════════ */}
-      <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
+      {/* DRAWERS */}
+      <AccountContactDrawer
+        open={openDrawer}
+        onClose={handleDrawerClose}
+      />
 
       <NewContactDrawer
         open={contactDrawerOpen}
@@ -1054,7 +751,10 @@ return (
         isActiveTrue={true}
       />
 
-      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
+      <JobDrawer
+        open={jobDrawerOpen}
+        onClose={() => setJobDrawerOpen(false)}
+      />
 
       <TasksDrawer
         open={tasksDrawerOpen}
@@ -1064,6 +764,365 @@ return (
   </>
 );
   
+//   return (
+//     <>
+//       {/* ══════════════════════════════════════════════════════
+//         ROOT FLEX LAYOUT
+//     ══════════════════════════════════════════════════════ */}
+//       <div className="flex h-screen bg-background overflow-hidden">
+//         {/* ════════════════════════════════════════════════
+//           SIDEBAR PANEL
+//       ════════════════════════════════════════════════ */}
+//         <aside
+//           className={`flex flex-col border-r bg-background transition-all duration-300 
+//         ${open ? "w-[240px]" : "w-[70px]"} 
+//         ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
+//         >
+//           {/* ── Sidebar Header ───────────────────────── */}
+//           <div
+//             onClick={handleDrawerToggle}
+//             className={cn(
+//               "flex h-16 shrink-0 items-center border-b border-border/40 cursor-pointer",
+//               open ? "px-4 justify-center" : "px-2 justify-center",
+//             )}
+//           >
+//             {open ? (
+//               <img
+//                 src={FullLogo}
+//                 alt="logo"
+//                 className="h-10 w-auto object-contain"
+//               />
+//             ) : (
+//               <img
+//                 src={Logo}
+//                 alt="logo"
+//                 className="h-8 w-auto object-contain"
+//               />
+//             )}
+//           </div>
+
+//           {/* ── Sidebar Menu ─────────────────────────── */}
+//           <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
+//             {/* ───────── MAIN SECTION ───────── */}
+//             {open && (
+//               <p className="px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
+//                 Main
+//               </p>
+//             )}
+
+//             {sidebarItems.slice(0, 4).map((item, index) => {
+//               // 👈 adjust count
+//               const active = isActive(item.path, item.submenu);
+
+//               return (
+//                 <div key={index}>
+//                   {/* Main Item */}
+//                   <button
+//                     onClick={() => {
+//                       if (item.submenu?.length) {
+//                         handleToggleMenu(index);
+//                       } else {
+//                         navigate(item.path);
+//                         if (!isSmUp) setMobileOpen(false);
+//                       }
+//                     }}
+//                     className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition
+//             ${
+//               active
+//                 ? "bg-primary/10 text-primary font-semibold"
+//                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
+//             }
+//             ${!open && "justify-center px-2"}
+//           `}
+//                   >
+//                     <span className="text-lg">{getIcon(item.icon)}</span>
+
+//                     {open && (
+//                       <span className="flex-1 text-left truncate">
+//                         {item.label}
+//                       </span>
+//                     )}
+
+//                     {item.submenu?.length > 0 &&
+//                       open &&
+//                       (openMenus[index] ? (
+//                         <ExpandLess fontSize="small" />
+//                       ) : (
+//                         <ExpandMore fontSize="small" />
+//                       ))}
+//                   </button>
+
+//                   {/* Submenu */}
+//                   {item.submenu?.length > 0 && openMenus[index] && (
+//                     <div className="ml-4 mt-1 border-l pl-3 space-y-1">
+//                       {item.submenu.map((sub, i) => {
+//                         const subActive = isSubActive(sub.path);
+
+//                         return (
+//                           <button
+//                             key={i}
+//                             onClick={() => {
+//                               navigate(sub.path);
+//                               if (!isSmUp) setMobileOpen(false);
+//                             }}
+//                             className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
+//                     ${
+//                       subActive
+//                         ? "bg-primary/10 text-primary font-medium"
+//                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
+//                     }
+//                   `}
+//                           >
+//                             <span>{getIcon(sub.icon)}</span>
+//                             {open && <span>{sub.label}</span>}
+//                           </button>
+//                         );
+//                       })}
+//                     </div>
+//                   )}
+//                 </div>
+//               );
+//             })}
+
+//             {/* ───────── DIVIDER ───────── */}
+//             <div className="h-px bg-border/40 my-2" />
+
+//             {/* ───────── TOOLS SECTION ───────── */}
+//             {open && (
+//               <p className="px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
+//                 Tools
+//               </p>
+//             )}
+
+//             {sidebarItems.slice(4).map((item, index) => {
+//               // 👈 remaining items
+//               const realIndex = index + 4; // important for submenu state
+//               const active = isActive(item.path, item.submenu);
+
+//               return (
+//                 <div key={realIndex}>
+//                   {/* Main Item */}
+//                   <button
+//                     onClick={() => {
+//                       if (item.submenu?.length) {
+//                         handleToggleMenu(realIndex);
+//                       } else {
+//                         navigate(item.path);
+//                         if (!isSmUp) setMobileOpen(false);
+//                       }
+//                     }}
+//                     className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition
+//             ${
+//               active
+//                 ? "bg-primary/10 text-primary font-semibold"
+//                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
+//             }
+//             ${!open && "justify-center px-2"}
+//           `}
+//                   >
+//                     <span className="text-lg">{getIcon(item.icon)}</span>
+
+//                     {open && (
+//                       <span className="flex-1 text-left truncate">
+//                         {item.label}
+//                       </span>
+//                     )}
+
+//                     {item.submenu?.length > 0 &&
+//                       open &&
+//                       (openMenus[realIndex] ? (
+//                         <ExpandLess fontSize="small" />
+//                       ) : (
+//                         <ExpandMore fontSize="small" />
+//                       ))}
+//                   </button>
+
+//                   {/* Submenu */}
+//                   {item.submenu?.length > 0 && openMenus[realIndex] && (
+//                     <div className="ml-4 mt-1 border-l pl-3 space-y-1">
+//                       {item.submenu.map((sub, i) => {
+//                         const subActive = isSubActive(sub.path);
+
+//                         return (
+//                           <button
+//                             key={i}
+//                             onClick={() => {
+//                               navigate(sub.path);
+//                               if (!isSmUp) setMobileOpen(false);
+//                             }}
+//                             className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
+//                     ${
+//                       subActive
+//                         ? "bg-primary/10 text-primary font-medium"
+//                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
+//                     }
+//                   `}
+//                           >
+//                             <span>{getIcon(sub.icon)}</span>
+//                             {open && <span>{sub.label}</span>}
+//                           </button>
+//                         );
+//                       })}
+//                     </div>
+//                   )}
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         </aside>
+
+//         {/* ════════════════════════════════════════════════
+//           MAIN CONTENT AREA
+//       ════════════════════════════════════════════════ */}
+//         <div className="flex flex-1 flex-col overflow-hidden">
+//           {/* ── Header ─────────────────────────────── */}
+//           <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
+//             {/* Left Section */}
+//             <div className="flex items-center gap-3">
+//               {/* Menu Toggle */}
+//               <button
+//                 onClick={handleDrawerToggle}
+//                 className="p-2 rounded-md hover:bg-muted"
+//               >
+//                 ☰
+//               </button>
+
+//               <DropdownMenu>
+//                 <DropdownMenuTrigger asChild>
+//                   <button
+//                     className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-white 
+//              hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
+//                   >
+//                     +
+//                   </button>
+//                 </DropdownMenuTrigger>
+
+//                 <DropdownMenuContent
+//                   align="start"
+//                   className="w-56 mt-2 rounded-xl overflow-hidden border  shadow-lg animate-in fade-in zoom-in-95"
+//                 >
+//                   {plusMenuItems.length > 0 ? (
+//                     plusMenuItems.map((item, index) => (
+//                       <DropdownMenuItem
+//                         key={index}
+//                         onClick={() => {
+//                           if (item.label === "Account") handleDrawerOpen();
+//                           else if (item.label === "Contact")
+//                             handleContactDrawerOpen();
+//                           else if (item.label === "Invoice")
+//                             setInvoiceDrawer(true);
+//                           else if (item.label === "Chat")
+//                             handleChatDrawerOpen();
+//                           else if (item.label === "Jobs") handleJobDrawerOpen();
+//                           else if (item.label === "Task")
+//                             handleTasksDrawerOpen();
+//                           else navigate(item.path);
+//                         }}
+//                         className="flex items-center gap-2 cursor-pointer"
+//                       >
+//                         <span className="text-base">{getIcon(item.icon)}</span>
+//                         <span>{item.label}</span>
+//                       </DropdownMenuItem>
+//                     ))
+//                   ) : (
+//                     <DropdownMenuItem disabled>No items found</DropdownMenuItem>
+//                   )}
+//                 </DropdownMenuContent>
+//               </DropdownMenu>
+
+//               {/* Search */}
+//               <div className="w-[300px]">
+//                 <SearchComponent />
+//               </div>
+//             </div>
+
+//             {/* Right Section */}
+//             <LogoutButton />
+//           </header>
+
+//           {/* ── Page Content ───────────────────────── */}
+//           {/* <main className="flex-1 overflow-y-auto p-4">
+//             <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
+//               <Outlet />
+//             </div>
+//           </main> */}
+//           <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
+//   <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
+//     <Outlet />
+//   </div>
+// </main>
+//         </div>
+
+//         {/* ════════════════════════════════════════════════
+//           PLUS MENU (ShadCN style)
+//       ════════════════════════════════════════════════ */}
+//         {plusAnchorEl && (
+//           <div className="fixed top-14 left-[260px] z-50 w-56 rounded-xl border  shadow-lg animate-in fade-in zoom-in-95">
+//             <div className="p-1">
+//               {plusMenuItems.length > 0 ? (
+//                 plusMenuItems.map((item, index) => (
+//                   <button
+//                     key={index}
+//                     onClick={() => {
+//                       if (item.label === "Account") handleDrawerOpen();
+//                       else if (item.label === "Contact")
+//                         handleContactDrawerOpen();
+//                       else if (item.label === "Invoice") setInvoiceDrawer(true);
+//                       else if (item.label === "Chat") handleChatDrawerOpen();
+//                       else if (item.label === "Jobs") handleJobDrawerOpen();
+//                       else if (item.label === "Task") handleTasksDrawerOpen();
+//                       else navigate(item.path);
+
+//                       handlePlusClose();
+//                     }}
+//                     className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+//                   >
+//                     <span className="text-base">{getIcon(item.icon)}</span>
+//                     <span className="flex-1 text-left">{item.label}</span>
+//                   </button>
+//                 ))
+//               ) : (
+//                 <div className="p-3 text-sm text-gray-400">No items found</div>
+//               )}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* ════════════════════════════════════════════════
+//           DRAWERS (UNCHANGED)
+//       ════════════════════════════════════════════════ */}
+//         <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
+
+//         <NewContactDrawer
+//           open={contactDrawerOpen}
+//           onClose={handleContactDrawerClose}
+//         />
+
+//         <CreateInvoiceDrawer
+//           open={invoiceDrawer}
+//           onClose={() => setInvoiceDrawer(false)}
+//         />
+
+//         <NewChatDrawer
+//           open={chatDrawerOpen}
+//           handleClose={handleChatDrawerClose}
+//           accountwiseChatlist={() => {}}
+//           data={null}
+//           isActiveTrue={true}
+//         />
+
+//         <JobDrawer
+//           open={jobDrawerOpen}
+//           onClose={() => setJobDrawerOpen(false)}
+//         />
+
+//         <TasksDrawer
+//           open={tasksDrawerOpen}
+//           onClose={() => setTasksDrawerOpen(false)}
+//         />
+//       </div>
+//     </>
+//   );
 };
 
 export default Dashboard;

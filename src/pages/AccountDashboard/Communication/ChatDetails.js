@@ -1288,9 +1288,12 @@ const ChatDetails = ({
             </div>
           )}
           <div className="flex gap-4 items-start">
-            <div className="flex-1">
+            {/* <div className="flex-1">
                <Editor onChange={handleEditorChange} value={editorContent} />
-            </div>
+            </div> */}
+            <div className="flex-1 overflow-visible">
+  <Editor onChange={handleEditorChange} value={editorContent} />
+</div>
             <Button onClick={() => updateChatDescription()} className="mt-auto">Send</Button>
           </div>
         </div>

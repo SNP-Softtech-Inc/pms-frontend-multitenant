@@ -280,18 +280,176 @@ obsidian: {
 },
 
 };
+// ──────────────────────────────────────────────────────────────────────────────
+// ADD THIS BELOW THEMES
+// ──────────────────────────────────────────────────────────────────────────────
 
+const THEME_TYPOGRAPHY = {
+  default: {
+    fontFamily: "'Inter', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "0.95rem",
+    letterSpacing: "-0.02em",
+  },
+
+  violet: {
+    fontFamily: "'Poppins', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2.1rem",
+    bodySize: "0.96rem",
+    letterSpacing: "-0.03em",
+  },
+
+  emerald: {
+    fontFamily: "'Nunito', sans-serif",
+    headingWeight: "800",
+    bodyWeight: "500",
+    headingSize: "2rem",
+    bodySize: "1rem",
+    letterSpacing: "-0.01em",
+  },
+
+  rose: {
+    fontFamily: "'Quicksand', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "500",
+    headingSize: "2rem",
+    bodySize: "0.98rem",
+    letterSpacing: "-0.015em",
+  },
+
+  amber: {
+    fontFamily: "'Manrope', sans-serif",
+    headingWeight: "800",
+    bodyWeight: "500",
+    headingSize: "2.15rem",
+    bodySize: "1rem",
+    letterSpacing: "-0.025em",
+  },
+
+  slate: {
+    fontFamily: "'Roboto', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "0.95rem",
+    letterSpacing: "-0.01em",
+  },
+
+  dark: {
+    fontFamily: "'Inter', sans-serif",
+    headingWeight: "800",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "0.96rem",
+    letterSpacing: "-0.02em",
+  },
+
+  midnight: {
+    fontFamily: "'Space Grotesk', sans-serif",
+    headingWeight: "800",
+    bodyWeight: "500",
+    headingSize: "2.2rem",
+    bodySize: "1rem",
+    letterSpacing: "-0.03em",
+  },
+
+  forest: {
+    fontFamily: "'Merriweather Sans', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "0.97rem",
+    letterSpacing: "-0.015em",
+  },
+
+  crimson: {
+    fontFamily: "'Oswald', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2.2rem",
+    bodySize: "0.96rem",
+    letterSpacing: "-0.02em",
+  },
+
+  arctic: {
+    fontFamily: "'DM Sans', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "0.95rem",
+    letterSpacing: "-0.015em",
+  },
+
+  sand: {
+    fontFamily: "'Lora', serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "1rem",
+    letterSpacing: "-0.01em",
+  },
+
+  grape: {
+    fontFamily: "'Urbanist', sans-serif",
+    headingWeight: "800",
+    bodyWeight: "500",
+    headingSize: "2.1rem",
+    bodySize: "0.98rem",
+    letterSpacing: "-0.03em",
+  },
+
+  copper: {
+    fontFamily: "'Mulish', sans-serif",
+    headingWeight: "700",
+    bodyWeight: "400",
+    headingSize: "2rem",
+    bodySize: "0.96rem",
+    letterSpacing: "-0.015em",
+  },
+
+  obsidian: {
+    fontFamily: "'Sora', sans-serif",
+    headingWeight: "800",
+    bodyWeight: "400",
+    headingSize: "2.1rem",
+    bodySize: "0.96rem",
+    letterSpacing: "-0.025em",
+  },
+};
 const STORAGE_KEY = "app-theme";
 const CUSTOM_KEY  = "app-theme-custom";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 const hsl = (v) => `hsl(${v})`;
 
-function applyVars(vars) {
-  const root = document.documentElement;
-  Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
-}
+// function applyVars(vars) {
+//   const root = document.documentElement;
+//   Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+// }
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE applyVars FUNCTION
+// ──────────────────────────────────────────────────────────────────────────────
 
+function applyVars(vars, typography) {
+  const root = document.documentElement;
+
+  Object.entries(vars).forEach(([k, v]) => {
+    root.style.setProperty(k, v);
+  });
+
+  if (typography) {
+    root.style.setProperty("--font-family", typography.fontFamily);
+    root.style.setProperty("--heading-weight", typography.headingWeight);
+    root.style.setProperty("--body-weight", typography.bodyWeight);
+    root.style.setProperty("--heading-size", typography.headingSize);
+    root.style.setProperty("--body-size", typography.bodySize);
+    root.style.setProperty("--letter-spacing", typography.letterSpacing);
+  }
+}
 function hslToHex(hslStr) {
   try {
     const [h, s, l] = hslStr.trim().split(/\s+/).map(parseFloat);
@@ -359,7 +517,49 @@ function MiniPreview({ vars }) {
 }
 
 // ─── Theme selection tile ─────────────────────────────────────────────────────
-function ThemeCard({ id, theme, isActive, onSelect, onMouseEnter, onMouseLeave }) {
+// function ThemeCard({ id, theme, isActive, onSelect, onMouseEnter, onMouseLeave }) {
+//   return (
+//     <button
+//       onClick={() => onSelect(id)}
+//       onMouseEnter={() => onMouseEnter(id)}
+//       onMouseLeave={onMouseLeave}
+//       className={[
+//         "relative text-left rounded-xl border-2 p-3 w-full transition-all duration-150",
+//         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+//         isActive
+//           ? "border-primary shadow-md"
+//           : "border-border hover:border-primary/40 hover:shadow-sm",
+//       ].join(" ")}
+//       style={{ background: hsl(theme.vars["--card"]) }}
+//     >
+//       {isActive && (
+//         <span className="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full"
+//           style={{ background: hsl(theme.vars["--primary"]) }}>
+//           <Check className="w-3 h-3" style={{ color: hsl(theme.vars["--primary-foreground"]) }} />
+//         </span>
+//       )}
+//       <MiniPreview vars={theme.vars} />
+//       <p className="text-xs font-semibold" style={{ color: hsl(theme.vars["--foreground"]) }}>
+//         {theme.emoji} {theme.label}
+//       </p>
+//       <p className="text-[10px] mt-0.5" style={{ color: hsl(theme.vars["--muted-foreground"]) }}>
+//         {theme.description}
+//       </p>
+//     </button>
+//   );
+// }
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE ThemeCard
+// ──────────────────────────────────────────────────────────────────────────────
+
+function ThemeCard({
+  id,
+  theme,
+  isActive,
+  onSelect,
+  onMouseEnter,
+  onMouseLeave,
+}) {
   return (
     <button
       onClick={() => onSelect(id)}
@@ -375,22 +575,81 @@ function ThemeCard({ id, theme, isActive, onSelect, onMouseEnter, onMouseLeave }
       style={{ background: hsl(theme.vars["--card"]) }}
     >
       {isActive && (
-        <span className="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full"
-          style={{ background: hsl(theme.vars["--primary"]) }}>
-          <Check className="w-3 h-3" style={{ color: hsl(theme.vars["--primary-foreground"]) }} />
+        <span
+          className="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full"
+          style={{
+            background: hsl(theme.vars["--primary"]),
+          }}
+        >
+          <Check
+            className="w-3 h-3"
+            style={{
+              color: hsl(
+                theme.vars["--primary-foreground"]
+              ),
+            }}
+          />
         </span>
       )}
+
       <MiniPreview vars={theme.vars} />
-      <p className="text-xs font-semibold" style={{ color: hsl(theme.vars["--foreground"]) }}>
+
+      {/* Typography Preview */}
+      <div className="space-y-1 mt-2 mb-2">
+        <h4
+          style={{
+            color: hsl(theme.vars["--foreground"]),
+            fontFamily:
+              THEME_TYPOGRAPHY[id]?.fontFamily,
+            fontWeight:
+              THEME_TYPOGRAPHY[id]?.headingWeight,
+            fontSize: "0.9rem",
+            letterSpacing:
+              THEME_TYPOGRAPHY[id]?.letterSpacing,
+          }}
+        >
+          Dashboard Heading
+        </h4>
+
+        <p
+          style={{
+            color: hsl(
+              theme.vars["--muted-foreground"]
+            ),
+            fontFamily:
+              THEME_TYPOGRAPHY[id]?.fontFamily,
+            fontWeight:
+              THEME_TYPOGRAPHY[id]?.bodyWeight,
+            fontSize: "0.72rem",
+            lineHeight: 1.5,
+          }}
+        >
+          Preview of body text style and readability.
+        </p>
+      </div>
+
+      <p
+        className="text-xs font-semibold"
+        style={{
+          color: hsl(theme.vars["--foreground"]),
+        }}
+      >
         {theme.emoji} {theme.label}
       </p>
-      <p className="text-[10px] mt-0.5" style={{ color: hsl(theme.vars["--muted-foreground"]) }}>
+
+      <p
+        className="text-[10px] mt-0.5"
+        style={{
+          color: hsl(
+            theme.vars["--muted-foreground"]
+          ),
+        }}
+      >
         {theme.description}
       </p>
     </button>
   );
 }
-
 // ─── Custom colour editor rows ────────────────────────────────────────────────
 const EDITABLE_VARS = [
   { key: "--primary",          label: "Primary / Button" },
@@ -471,41 +730,118 @@ export default function ThemeSettings() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Apply persisted theme immediately on mount
-  useEffect(() => {
-    const savedCustom = (() => {
-      try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)); } catch { return null; }
-    })();
-    const base = THEMES[localStorage.getItem(STORAGE_KEY)]?.vars ?? THEMES.default.vars;
-    applyVars(savedCustom ?? base);
-  }, []);
+  // useEffect(() => {
+  //   const savedCustom = (() => {
+  //     try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)); } catch { return null; }
+  //   })();
+  //   const base = THEMES[localStorage.getItem(STORAGE_KEY)]?.vars ?? THEMES.default.vars;
+  //   applyVars(savedCustom ?? base);
+  // }, []);
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE MOUNT useEffect
+// ──────────────────────────────────────────────────────────────────────────────
 
+useEffect(() => {
+  const savedCustom = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(CUSTOM_KEY));
+    } catch {
+      return null;
+    }
+  })();
+
+  const savedTheme = localStorage.getItem(STORAGE_KEY) || "default";
+
+  const base =
+    THEMES[savedTheme]?.vars ?? THEMES.default.vars;
+
+  applyVars(
+    savedCustom ?? base,
+    THEME_TYPOGRAPHY[savedTheme]
+  );
+}, []);
   const committedVars = THEMES[activeKey]?.vars ?? THEMES.default.vars;
   const isDirty = customVars !== null;
 
-  const handleMouseEnter = useCallback((key) => {
-    applyVars(THEMES[key].vars);
-  }, []);
+  // const handleMouseEnter = useCallback((key) => {
+  //   applyVars(THEMES[key].vars);
+  // }, []);
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE handleMouseEnter
+// ──────────────────────────────────────────────────────────────────────────────
 
-  const handleMouseLeave = useCallback(() => {
-    applyVars(customVars ?? committedVars);
-  }, [customVars, committedVars]);
+const handleMouseEnter = useCallback((key) => {
+  applyVars(
+    THEMES[key].vars,
+    THEME_TYPOGRAPHY[key]
+  );
+}, []);
 
-  const handleSelectPreset = (key) => {
-    setActiveKey(key);
-    setCustomVars(null);
-    applyVars(THEMES[key].vars);
-  };
+  // const handleMouseLeave = useCallback(() => {
+  //   applyVars(customVars ?? committedVars);
+  // }, [customVars, committedVars]);
 
-  const handleCustomChange = (vars) => {
-    setCustomVars(vars);
-    applyVars(vars);
-  };
+  // ──────────────────────────────────────────────────────────────────────────────
+// UPDATE handleMouseLeave
+// ──────────────────────────────────────────────────────────────────────────────
 
-  const handleResetCustom = () => {
-    setCustomVars(null);
-    applyVars(committedVars);
-  };
+const handleMouseLeave = useCallback(() => {
+  applyVars(
+    customVars ?? committedVars,
+    THEME_TYPOGRAPHY[activeKey]
+  );
+}, [customVars, committedVars, activeKey]);
+  // const handleSelectPreset = (key) => {
+  //   setActiveKey(key);
+  //   setCustomVars(null);
+  //   applyVars(THEMES[key].vars);
+  // };
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE handleSelectPreset
+// ──────────────────────────────────────────────────────────────────────────────
 
+const handleSelectPreset = (key) => {
+  setActiveKey(key);
+  setCustomVars(null);
+
+  applyVars(
+    THEMES[key].vars,
+    THEME_TYPOGRAPHY[key]
+  );
+};
+  // const handleCustomChange = (vars) => {
+  //   setCustomVars(vars);
+  //   applyVars(vars);
+  // };
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE handleCustomChange
+// ──────────────────────────────────────────────────────────────────────────────
+
+const handleCustomChange = (vars) => {
+  setCustomVars(vars);
+
+  applyVars(
+    vars,
+    THEME_TYPOGRAPHY[activeKey]
+  );
+};
+
+  // const handleResetCustom = () => {
+  //   setCustomVars(null);
+  //   applyVars(committedVars);
+  // };
+// ──────────────────────────────────────────────────────────────────────────────
+// UPDATE handleResetCustom
+// ──────────────────────────────────────────────────────────────────────────────
+
+const handleResetCustom = () => {
+  setCustomVars(null);
+
+  applyVars(
+    committedVars,
+    THEME_TYPOGRAPHY[activeKey]
+  );
+};
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, activeKey);
     if (customVars) {

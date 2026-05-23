@@ -126,7 +126,7 @@ const restoreMutation = useMutation({
         Delete ({selected.length})
       </Button>
 
-      <TableContainer component={Paper}>
+      <TableContainer >
         <Table>
           <TableHead>
             <TableRow>

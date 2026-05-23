@@ -307,7 +307,7 @@ export default function Editor({ initialContent, onChange, value }) {
   };
 
   return (
-    <div className="quill-wrapper-container border-red-900">
+    <div className="quill-wrapper-container">
       <ReactQuill
         value={value !== undefined ? value : editorContent}
         onChange={handleChange}
