@@ -560,13 +560,43 @@ const Dashboard = () => {
           {/* Left Section */}
           <div className="flex items-center gap-3">
             {/* Menu Toggle */}
-            <button
+            {/* <button
               onClick={handleDrawerToggle}
               className="p-2 rounded-md hover:bg-muted"
               style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}
             >
               ☰
-            </button>
+            </button> */}
+            <button
+  onClick={handleDrawerToggle}
+  className="
+    group
+    flex items-center justify-center
+    w-10 h-10
+    rounded-xl
+    border border-border
+    bg-card
+    text-foreground
+    hover:bg-accent
+    hover:text-primary
+    hover:border-primary/40
+    hover:shadow-md
+    transition-all duration-200
+    active:scale-95
+    focus:outline-none
+    focus:ring-2
+    focus:ring-ring
+  "
+  style={{
+    fontSize:
+      "calc(var(--text-heading-sub, 1rem) * parseFloat(var(--font-scale)) / 100)",
+    fontFamily: "var(--font-family)",
+  }}
+>
+  <span className="group-hover:scale-110 transition-transform duration-200">
+    ☰
+  </span>
+</button>
 
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>

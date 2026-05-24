@@ -660,7 +660,7 @@ import { ScrollArea } from "../../components/ui/scroll-area";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Loader, X } from "lucide-react";
 import { useConfirm } from "../../components/ConfirmDialogContext";
-
+import { ShieldCheck } from "lucide-react";
 const AccountDetails = () => {
   const { accountId } = useParams();
   const { user } = useAuth();
@@ -1018,7 +1018,7 @@ const AccountDetails = () => {
           </div>
 
           {/* Contact rows */}
-          <div className="divide-y divide-border">
+          {/* <div className="divide-y divide-border">
             {account.contacts?.length > 0 ? (
               account.contacts.map((c) => (
                 <div key={c.contact._id} className="grid grid-cols-[1fr_auto] items-center px-5 py-3 hover:bg-muted/50 transition-colors">
@@ -1079,7 +1079,230 @@ const AccountDetails = () => {
                 </Button>
               </div>
             )}
+          </div> */}
+          <div className="space-y-2">
+  {account.contacts?.length > 0 ? (
+    account.contacts.map((c) => (
+      <div
+        key={c.contact._id}
+        className="
+          group
+          rounded-2xl
+          border border-border/50
+          bg-background/70
+          backdrop-blur-sm
+
+          transition-all duration-200
+
+          hover:border-border
+          hover:bg-muted/30
+          hover:shadow-sm
+        "
+      >
+        <div
+          className="
+            grid grid-cols-[1fr_auto]
+            items-center gap-4
+            px-5 py-4
+          "
+        >
+          {/* Contact Info */}
+          <div className="min-w-0">
+            <span
+              title={
+                user?.role === "team_member" &&
+                user?.manageContacts === false
+                  ? "You don't have permission to edit contacts"
+                  : ""
+              }
+              className={`
+                block truncate
+                font-medium
+                transition-colors duration-200
+
+                ${
+                  user?.role === "team_member" &&
+                  user?.manageContacts === false
+                    ? "text-muted-foreground cursor-not-allowed opacity-60"
+                    : "text-foreground cursor-pointer hover:text-primary"
+                }
+              `}
+              style={{
+                fontFamily: "var(--font-family)",
+                fontSize:
+                  "calc(0.92rem * var(--font-scale, 100) / 100)",
+              }}
+              onClick={() => {
+                if (
+                  user?.role === "team_member" &&
+                  user?.manageContacts === false
+                )
+                  return;
+
+                handleOpenContactEditDrawer(c);
+              }}
+            >
+              {c.contact.contactName}
+            </span>
+
+            <span
+              className="
+                mt-1 block truncate
+                text-muted-foreground
+              "
+              style={{
+                fontFamily: "var(--font-family)",
+                fontSize:
+                  "calc(0.76rem * var(--font-scale, 100) / 100)",
+              }}
+            >
+              {c.contact.email || "—"}
+            </span>
           </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-4 sm:gap-5">
+            {/* Login */}
+            <div className="flex flex-col items-center gap-1">
+              <span
+                className="text-[10px] text-muted-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.62rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                Login
+              </span>
+
+              <Switch
+                checked={c.canLogin}
+                onCheckedChange={() => handleSwitchClick(c)}
+                className="
+                  data-[state=checked]:bg-primary
+                  data-[state=unchecked]:bg-muted-foreground/30
+                "
+              />
+            </div>
+
+            {/* Notify */}
+            <div className="flex flex-col items-center gap-1">
+              <span
+                className="text-[10px] text-muted-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.62rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                Notify
+              </span>
+
+              <Switch
+                checked={c.canNotify}
+                onCheckedChange={() => handleNotifyToggle(c)}
+                className="
+                  data-[state=checked]:bg-primary
+                  data-[state=unchecked]:bg-muted-foreground/30
+                "
+              />
+            </div>
+
+            {/* Email Sync */}
+            <div className="flex flex-col items-center gap-1">
+              <span
+                className="text-[10px] text-muted-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.62rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                Sync
+              </span>
+
+              <Switch
+                checked={c.canEmailSync}
+                onCheckedChange={() => handleEmailSyncToggle(c)}
+                className="
+                  data-[state=checked]:bg-primary
+                  data-[state=unchecked]:bg-muted-foreground/30
+                "
+              />
+            </div>
+
+            {/* Menu */}
+            <div className="ml-1">
+              <MenuDropdown
+                contact={c}
+                onUnlink={handleUnlinkContact}
+                onResetPassword={handleResetPassword}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div
+      className="
+        flex flex-col items-center justify-center
+        rounded-2xl
+        border border-dashed border-border/60
+        bg-muted/10
+        py-14 px-6
+        text-center
+      "
+    >
+      <div
+        className="
+          mb-4 flex h-12 w-12 items-center justify-center
+          rounded-full bg-muted
+        "
+      >
+        <Users className="h-5 w-5 text-muted-foreground" />
+      </div>
+
+      <p
+        className="font-medium text-foreground"
+        style={{
+          fontFamily: "var(--font-family)",
+          fontSize:
+            "calc(0.92rem * var(--font-scale, 100) / 100)",
+        }}
+      >
+        No contacts linked
+      </p>
+
+      <p
+        className="mt-1 text-muted-foreground"
+        style={{
+          fontFamily: "var(--font-family)",
+          fontSize:
+            "calc(0.76rem * var(--font-scale, 100) / 100)",
+        }}
+      >
+        Add or link contacts to this account.
+      </p>
+
+      <Button
+        type="button"
+        onClick={() => setAddContactDrawerOpen(true)}
+        variant="outline"
+        size="sm"
+        className="
+          mt-5
+          rounded-xl
+          border-border/60
+          hover:bg-muted/50
+        "
+        style={{
+          fontSize:
+            "calc(0.82rem * var(--font-scale, 100) / 100)",
+        }}
+      >
+        Add Contact
+      </Button>
+    </div>
+  )}
+</div>
         </div>
       </div>
 
@@ -1094,7 +1317,7 @@ const AccountDetails = () => {
       />
 
       {/* Confirm access change modal */}
-      <Dialog open={dialogOpen} onOpenChange={handleCancelToggle}>
+      {/* <Dialog open={dialogOpen} onOpenChange={handleCancelToggle}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Access Change</DialogTitle>
@@ -1113,10 +1336,161 @@ const AccountDetails = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
+<Dialog open={dialogOpen} onOpenChange={handleCancelToggle}>
+  <DialogContent
+    className="
+      sm:max-w-md
+      rounded-3xl
+      border border-border/50
+      bg-background/95
+      backdrop-blur-xl
+      shadow-2xl
+      p-0 overflow-hidden
+    "
+    style={{
+      fontFamily: "var(--font-family)",
+    }}
+  >
+    {/* Header */}
+    <DialogHeader
+      className="
+        px-6 pt-6 pb-4
+        border-b border-border/40
+        space-y-2
+      "
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="
+            flex h-11 w-11 shrink-0 items-center justify-center
+            rounded-2xl
+            bg-primary/10
+            border border-primary/20
+          "
+        >
+          <ShieldCheck className="h-5 w-5 text-primary" />
+        </div>
 
+        <div className="space-y-1">
+          <DialogTitle
+            className="
+              text-base font-semibold tracking-tight
+              text-foreground
+            "
+            style={{
+              fontSize:
+                "calc(1rem * var(--font-scale, 100) / 100)",
+            }}
+          >
+            Confirm Access Change
+          </DialogTitle>
+
+          <DialogDescription
+            className="
+              text-sm leading-relaxed
+              text-muted-foreground
+            "
+            style={{
+              fontSize:
+                "calc(0.84rem * var(--font-scale, 100) / 100)",
+            }}
+          >
+            {newCanLoginValue
+              ? `Grant portal login access to ${selectedContact?.contact.email}?`
+              : `Remove portal login access from ${selectedContact?.contact.email}?`}
+          </DialogDescription>
+        </div>
+      </div>
+    </DialogHeader>
+
+    {/* Body */}
+    <div className="px-6 py-5">
+      <div
+        className="
+          rounded-2xl
+          border border-border/50
+          bg-muted/30
+          px-4 py-3
+        "
+      >
+        <p
+          className="text-xs font-medium text-muted-foreground mb-1"
+          style={{
+            fontSize:
+              "calc(0.72rem * var(--font-scale, 100) / 100)",
+          }}
+        >
+          CONTACT EMAIL
+        </p>
+
+        <p
+          className="text-sm font-medium text-foreground break-all"
+          style={{
+            fontSize:
+              "calc(0.88rem * var(--font-scale, 100) / 100)",
+          }}
+        >
+          {selectedContact?.contact.email}
+        </p>
+      </div>
+    </div>
+
+    {/* Footer */}
+    <DialogFooter
+      className="
+        px-6 py-4
+        border-t border-border/40
+        bg-muted/10
+        flex-row justify-end gap-2
+      "
+    >
+     <Button
+  variant="outline"
+  onClick={handleCancelToggle}
+  className="
+    rounded-xl
+    border-border/60
+    bg-background
+    text-foreground
+
+    hover:bg-muted/60
+    hover:text-foreground
+
+    dark:bg-background/80
+    dark:border-border/70
+    dark:text-foreground
+    dark:hover:bg-muted/50
+
+    transition-all duration-200
+  "
+  style={{
+    fontSize:
+      "calc(0.84rem * var(--font-scale, 100) / 100)",
+  }}
+>
+  Cancel
+</Button>
+
+      <Button
+        onClick={handleConfirmToggle}
+        className="
+          rounded-xl
+          shadow-sm
+          transition-all duration-200
+        "
+        style={{
+          fontSize:
+            "calc(0.84rem * var(--font-scale, 100) / 100)",
+        }}
+      >
+        Confirm
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
       {/* Add Contact drawer */}
-      <Drawer open={addContactDrawerOpen} onOpenChange={setAddContactDrawerOpen} direction="right">
+      {/* <Drawer open={addContactDrawerOpen} onOpenChange={setAddContactDrawerOpen} direction="right">
         <DrawerContent className="w-full sm:max-w-[480px] right-0 top-0 left-auto mt-0 rounded-none">
           <DrawerHeader className="border-b border-border">
             <div className="flex items-center justify-between">
@@ -1183,8 +1557,311 @@ const AccountDetails = () => {
             </div>
           </DrawerFooter>
         </DrawerContent>
-      </Drawer>
+      </Drawer> */}
+<Drawer
+  open={addContactDrawerOpen}
+  onOpenChange={setAddContactDrawerOpen}
+  direction="right"
+>
+  <DrawerContent
+    className="
+      w-full sm:max-w-[500px]
+      right-0 top-0 left-auto mt-0 rounded-none
+      border-l border-border/50
+      bg-background/95 backdrop-blur-xl
+      shadow-2xl
+      flex flex-col
+    "
+    style={{
+      fontFamily: "var(--font-family)",
+    }}
+  >
+    {/* Header */}
+    <DrawerHeader
+      className="
+        border-b border-border/50
+        px-6 py-5
+        bg-background/80
+        backdrop-blur-md
+      "
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <DrawerTitle
+            className="
+              text-base font-semibold tracking-tight
+              text-foreground
+            "
+            style={{
+              fontSize:
+                "calc(1rem * var(--font-scale, 100) / 100)",
+            }}
+          >
+            Add Contacts to Account
+          </DrawerTitle>
 
+          <p
+            className="text-xs text-muted-foreground"
+            style={{
+              fontSize:
+                "calc(0.78rem * var(--font-scale, 100) / 100)",
+            }}
+          >
+            Search and link existing contacts to this account.
+          </p>
+        </div>
+
+        <DrawerClose asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="
+              h-9 w-9 rounded-xl
+              text-muted-foreground
+              hover:bg-muted/70
+              hover:text-foreground
+              transition-all duration-200
+            "
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DrawerClose>
+      </div>
+    </DrawerHeader>
+
+    {/* Search */}
+    <div
+      className="
+        px-6 py-4
+        border-b border-border/40
+        bg-muted/20
+      "
+    >
+      <div className="relative">
+        <Input
+          type="text"
+          placeholder="Search by name or email..."
+          value={contactSearch}
+          onChange={(e) => setContactSearch(e.target.value)}
+          className="
+            h-11 rounded-2xl
+            border-border/60
+            bg-background/80
+            shadow-sm
+            px-4
+
+            transition-all duration-200
+
+            focus-visible:ring-2
+            focus-visible:ring-primary/20
+            focus-visible:border-primary/40
+
+            dark:bg-background/60
+            dark:border-border/50
+          "
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(0.92rem * var(--font-scale, 100) / 100)",
+          }}
+        />
+      </div>
+    </div>
+
+    {/* Contact List */}
+    <ScrollArea className="flex-1 h-[calc(100vh-220px)]">
+      <div className="px-3 py-3 space-y-2">
+        {filteredAvailableContacts.map((c) => {
+          const isSelected = selectedContacts.some(
+            (s) => s._id === c._id
+          );
+
+          return (
+            <label
+              key={c._id}
+              className={`
+                group flex items-start gap-3
+                rounded-2xl border
+                px-4 py-3
+                cursor-pointer
+                transition-all duration-200
+
+                ${
+                  isSelected
+                    ? "border-primary/30 bg-primary/5 shadow-sm"
+                    : "border-border/50 bg-background/70 hover:bg-muted/40 hover:border-border"
+                }
+              `}
+            >
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedContacts((prev) => [...prev, c]);
+                  } else {
+                    setSelectedContacts((prev) =>
+                      prev.filter((s) => s._id !== c._id)
+                    );
+                  }
+                }}
+                className="mt-0.5"
+              />
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p
+                    className="
+                      text-sm font-medium
+                      text-foreground truncate
+                    "
+                    style={{
+                      fontSize:
+                        "calc(0.9rem * var(--font-scale, 100) / 100)",
+                    }}
+                  >
+                    {c.contactName}
+                  </p>
+
+                  {isSelected && (
+                    <span
+                      className="
+                        inline-flex items-center
+                        rounded-full
+                        border border-primary/20
+                        bg-primary/10
+                        px-2 py-0.5
+                        text-[10px] font-medium
+                        text-primary
+                      "
+                    >
+                      Selected
+                    </span>
+                  )}
+                </div>
+
+                <p
+                  className="
+                    mt-1 text-xs
+                    text-muted-foreground truncate
+                  "
+                  style={{
+                    fontSize:
+                      "calc(0.75rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  {c.email}
+                </p>
+              </div>
+            </label>
+          );
+        })}
+
+        {filteredAvailableContacts.length === 0 && (
+          <div
+            className="
+              flex flex-col items-center justify-center
+              py-14 text-center
+            "
+          >
+            <div
+              className="
+                mb-3 flex h-12 w-12 items-center justify-center
+                rounded-full bg-muted
+              "
+            >
+              <X className="h-5 w-5 text-muted-foreground" />
+            </div>
+
+            <p
+              className="text-sm font-medium text-foreground"
+              style={{
+                fontSize:
+                  "calc(0.9rem * var(--font-scale, 100) / 100)",
+              }}
+            >
+              No contacts found
+            </p>
+
+            <p
+              className="mt-1 text-xs text-muted-foreground"
+              style={{
+                fontSize:
+                  "calc(0.75rem * var(--font-scale, 100) / 100)",
+              }}
+            >
+              Try searching with another name or email.
+            </p>
+          </div>
+        )}
+      </div>
+    </ScrollArea>
+
+    {/* Footer */}
+    <DrawerFooter
+      className="
+        border-t border-border/50
+        bg-background/80 backdrop-blur-md
+        px-6 py-4
+      "
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs text-muted-foreground">
+          {selectedContacts.length > 0 ? (
+            <span>
+              {selectedContacts.length} contact
+              {selectedContacts.length !== 1 ? "s" : ""} selected
+            </span>
+          ) : (
+            <span>Select contacts to continue</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAddContactDrawerOpen(false);
+              setSelectedContacts([]);
+              setContactSearch("");
+            }}
+            className="
+              rounded-xl
+              border-border/60
+              hover:bg-muted/50
+            "
+            style={{
+              fontSize:
+                "calc(0.84rem * var(--font-scale, 100) / 100)",
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            onClick={handleLinkContacts}
+            disabled={selectedContacts.length === 0}
+            className="
+              rounded-xl
+              shadow-sm
+              transition-all duration-200
+            "
+            style={{
+              fontSize:
+                "calc(0.84rem * var(--font-scale, 100) / 100)",
+            }}
+          >
+            Link{" "}
+            {selectedContacts.length > 0
+              ? `${selectedContacts.length} `
+              : ""}
+            Contact
+            {selectedContacts.length !== 1 ? "s" : ""}
+          </Button>
+        </div>
+      </div>
+    </DrawerFooter>
+  </DrawerContent>
+</Drawer>
       {/* Contact Edit Drawer */}
       <NewContactDrawer
         open={contactEditDrawerOpen}

@@ -471,8 +471,8 @@ for (let contact of selectedContacts) {
     <div className="max-w-3xl mx-auto mt-4">
       {/* Stepper */}
       {/* Step header */}
-      <SheetHeader className="px-0 pb-4 border-b border-border/40 space-y-3">
-        {/* Step breadcrumb */}
+      {/* <SheetHeader className="px-0 pb-4 border-b border-border/40 space-y-3">
+     
         <div className="flex items-center gap-2">
           {steps.map((label, index) => (
             <React.Fragment key={label}>
@@ -508,10 +508,152 @@ for (let contact of selectedContacts) {
         <SheetDescription className="text-xs text-muted-foreground">
           {stepDescription}
         </SheetDescription>
-      </SheetHeader>
+      </SheetHeader> */}
+<SheetHeader
+  className="
+    relative
+    px-5
+    py-5
+    rounded-2xl
+    border
+    border-border/60
+    bg-card/80
+    backdrop-blur-xl
+    shadow-sm
+    space-y-4
+    overflow-hidden
+  "
+>
+  {/* Soft gradient glow */}
+  <div
+    className="
+      absolute
+      inset-0
+      bg-gradient-to-r
+      from-primary/5
+      via-transparent
+      to-primary/5
+      pointer-events-none
+    "
+  />
 
+  {/* Step breadcrumb */}
+  <div className="relative flex items-center gap-2">
+    {steps.map((label, index) => (
+      <React.Fragment key={label}>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Step Circle */}
+          <div
+            className={[
+              `
+              relative
+              flex items-center justify-center
+              rounded-full
+              text-xs font-semibold
+              transition-all duration-300
+              border
+              shadow-sm
+            `,
+              index < activeStep
+                ? `
+                  bg-primary
+                  text-primary-foreground
+                  border-primary
+                `
+                : index === activeStep
+                ? `
+                  bg-primary
+                  text-primary-foreground
+                  border-primary
+                  ring-4 ring-primary/20
+                  scale-105
+                `
+                : `
+                  bg-muted
+                  text-muted-foreground
+                  border-border
+                `,
+            ].join(" ")}
+            style={{
+              width:
+                "calc(1.9rem * parseFloat(var(--font-scale)) / 100)",
+              height:
+                "calc(1.9rem * parseFloat(var(--font-scale)) / 100)",
+              fontFamily: "var(--font-family)",
+            }}
+          >
+            {index < activeStep ? (
+              <Check
+                className="w-3.5 h-3.5"
+                strokeWidth={2.5}
+              />
+            ) : (
+              index + 1
+            )}
+          </div>
+
+          {/* Step Label */}
+          <SheetTitle
+            className={[
+              `
+              text-sm
+              font-medium
+              leading-none
+              transition-colors duration-200
+              `,
+              index <= activeStep
+                ? "text-foreground"
+                : "text-muted-foreground",
+            ].join(" ")}
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(0.9rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            {label}
+          </SheetTitle>
+        </div>
+
+        {/* Connector */}
+        {index < steps.length - 1 && (
+          <div
+            className={[
+              `
+              flex-1
+              h-[2px]
+              rounded-full
+              transition-all duration-300
+            `,
+              index < activeStep
+                ? "bg-primary"
+                : "bg-border",
+            ].join(" ")}
+          />
+        )}
+      </React.Fragment>
+    ))}
+  </div>
+
+  {/* Description */}
+  <SheetDescription
+    className="
+      relative
+      text-xs
+      leading-relaxed
+      text-muted-foreground
+    "
+    style={{
+      fontFamily: "var(--font-family)",
+      fontSize:
+        "calc(0.75rem * parseFloat(var(--font-scale)) / 100)",
+    }}
+  >
+    {stepDescription}
+  </SheetDescription>
+</SheetHeader>
       {/* Content */}
-      <Card className="border rounded-lg">
+      <Card className="border rounded-lg mt-6">
         <CardContent className="p-6">
           {activeStep === 0 && (
             <AccountForm

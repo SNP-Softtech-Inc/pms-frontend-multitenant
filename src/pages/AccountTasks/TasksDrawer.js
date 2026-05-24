@@ -867,329 +867,722 @@ console.log("gets task details by task id",template)
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+  <div className="fixed inset-0 z-50 overflow-hidden">
 
-      {/* Drawer */}
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-          <h2 className="text-base font-semibold text-foreground">
-            Create Task
-          </h2>
+    {/* Overlay */}
+    <div
+      className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+      onClick={onClose}
+    />
 
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    {/* Drawer */}
+    <div className="
+      absolute right-0 top-0 h-full w-full sm:w-[650px]
+      bg-background text-foreground
+      shadow-xl flex flex-col
+      border-l border-border
+    ">
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
-          <div className="flex flex-col gap-5">
-            {/* Account */}
-            <SingleSelectDropdown
-              value={selectedAccount}
-              onChange={setSelectedAccount}
-            />
+      {/* Header */}
+      <div className="
+        flex items-center justify-between px-5 py-4
+        border-b border-border shrink-0
+      ">
+        <h2 className="text-base font-semibold text-foreground">
+          Create Task
+        </h2>
 
-            {/* Job */}
-            {/* Job */}
-<div>
-  <Label className="text-sm font-medium">
-    Select Job
-  </Label>
+        <button
+          onClick={onClose}
+          className="
+            p-1 rounded-md
+            text-muted-foreground
+            hover:text-foreground hover:bg-accent
+            transition-colors
+          "
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-  <Select
-    value={
-      selectedJob
-        ? String(selectedJob.value)
-        : undefined
-    }
-    onValueChange={(value) => {
-      const selected = jobsoptions.find(
-        (job) =>
-          String(job.value) === String(value),
-      );
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex flex-col gap-5">
 
-      console.log("SELECTED JOB", selected);
+          {/* Account */}
+          <SingleSelectDropdown
+            value={selectedAccount}
+            onChange={setSelectedAccount}
+          />
 
-      setSelectedJob(selected || null);
-    }}
-    disabled={!selectedAccount?.value}
-  >
-    <SelectTrigger className="mt-1 w-full">
-      <SelectValue placeholder="Select Job" />
-    </SelectTrigger>
+          {/* Job */}
+          <div>
+            <Label className="text-sm font-medium text-foreground">
+              Select Job
+            </Label>
 
-    <SelectContent className="w-[550px]">
-      {Object.entries(
-        jobsoptions.reduce((acc, job) => {
-          if (!acc[job.group]) {
-            acc[job.group] = [];
-          }
+            <Select
+              value={selectedJob ? String(selectedJob.value) : undefined}
+              onValueChange={(value) => {
+                const selected = jobsoptions.find(
+                  (job) => String(job.value) === String(value)
+                );
 
-          acc[job.group].push(job);
+                setSelectedJob(selected || null);
+              }}
+              disabled={!selectedAccount?.value}
+            >
+              <SelectTrigger className="
+                mt-1 w-full
+                bg-background border-border
+                text-foreground
+                hover:bg-accent
+              ">
+                <SelectValue placeholder="Select Job" />
+              </SelectTrigger>
 
-          return acc;
-        }, {}),
-      ).map(([group, items]) => (
-        <div key={group}>
-          {/* Group Heading */}
-          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            {group}
+              <SelectContent className="
+                w-[550px]
+                bg-card border border-border
+              ">
+                {Object.entries(
+                  jobsoptions.reduce((acc, job) => {
+                    if (!acc[job.group]) acc[job.group] = [];
+                    acc[job.group].push(job);
+                    return acc;
+                  }, {})
+                ).map(([group, items]) => (
+                  <div key={group}>
+
+                    {/* Group Heading */}
+                    <div className="
+                      px-3 py-2 text-xs font-semibold
+                      text-muted-foreground uppercase tracking-wide
+                    ">
+                      {group}
+                    </div>
+
+                    {/* Items */}
+                    {items.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={String(option.value)}
+                        className="min-h-[50px] py-2 text-foreground"
+                      >
+                        <div className="break-words whitespace-normal leading-5 pr-6">
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Items */}
-          {items.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={String(option.value)}
-              className="min-h-[50px] items-start py-2"
+          {/* Template */}
+          <div>
+            <Label className="text-sm font-medium text-foreground">
+              Select Template
+            </Label>
+
+            <Select
+              value={selectedtemp?.value || ""}
+              onValueChange={(value) => {
+                const selected =
+                  taskTemplateOptions.find((t) => t.value === value) || null;
+                handletemp(selected);
+              }}
             >
-              <div className="break-words whitespace-normal leading-5 pr-6">
-                {option.label}
-              </div>
-            </SelectItem>
-          ))}
-        </div>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
+              <SelectTrigger className="
+                mt-1
+                bg-background border-border
+                text-foreground
+                hover:bg-accent
+              ">
+                <SelectValue placeholder="Select Template" />
+              </SelectTrigger>
 
-            {/* Template */}
-            <div>
-              <Label className="text-sm font-medium">Select Template</Label>
+              <SelectContent className="bg-card border border-border">
+                {taskTemplateOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-foreground"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <Select
-                value={selectedtemp?.value || ""}
-                onValueChange={(value) => {
-                  const selected =
-                    taskTemplateOptions.find((temp) => temp.value === value) ||
-                    null;
-
-                  handletemp(selected);
-                }}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select Template" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {taskTemplateOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {/* Status + Assignee */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Status
-                onStatusChange={handleStatusChange}
-                selectedStatus={status}
-              />
-
-              <MultiSelectDropdown
-                value={selectedUser}
-                onChange={handleUserChange}
-                placeholder="Assignees"
-              />
-
-              <Priority
-                onPriorityChange={handlePriorityChange}
-                selectedPriority={priority}
-              />
-
-              <Input
-                size="small"
-                fullWidth
-                value={templatename}
-                placeholder="Task Name"
-                onChange={(e) => settemplatename(e.target.value)}
-              />
-            </div>
-
-            {/* Editor */}
-            <Editor onChange={handleEditorChange} value={description} />
-
-            {/* Tags */}
-            <TagsMultiSelectDropDown
-              value={selectedTags}
-              onChange={handleTagsChange}
-              placeholder="Tags"
+          {/* Status + Assignee */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Status
+              onStatusChange={handleStatusChange}
+              selectedStatus={status}
             />
 
-            {/* Dates */}
-            {/* Dates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Start Date */}
-              <div>
-                <Label className="text-sm font-medium">Start Date</Label>
+            <MultiSelectDropdown
+              value={selectedUser}
+              onChange={handleUserChange}
+              placeholder="Assignees"
+            />
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal mt-1",
-                        !startDate && "text-muted-foreground",
-                      )}
-                    >
-                      {startDate ? (
-                        startDate.format("MM/DD/YYYY")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
+            <Priority
+              onPriorityChange={handlePriorityChange}
+              selectedPriority={priority}
+            />
 
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate ? startDate.toDate() : undefined}
-                      onSelect={(date) =>
-                        date && handleStartDateChange(dayjs(date))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            <Input
+              value={templatename}
+              placeholder="Task Name"
+              onChange={(e) => settemplatename(e.target.value)}
+              className="
+                bg-background border-border
+                text-foreground
+                focus:ring-primary
+              "
+            />
+          </div>
 
-              {/* Due Date */}
-              <div>
-                <Label className="text-sm font-medium">Due Date</Label>
+          {/* Editor */}
+          <Editor onChange={handleEditorChange} value={description} />
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal mt-1",
-                        !dueDate && "text-muted-foreground",
-                      )}
-                    >
-                      {dueDate ? (
-                        dueDate.format("MM/DD/YYYY")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
+          {/* Tags */}
+          <TagsMultiSelectDropDown
+            value={selectedTags}
+            onChange={handleTagsChange}
+            placeholder="Tags"
+          />
 
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dueDate ? dueDate.toDate() : undefined}
-                      onSelect={(date) =>
-                        date && handleDueDateChange(dayjs(date))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          {/* Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Start Date */}
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Start Date
+              </Label>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="
+                      w-full justify-start text-left font-normal mt-1
+                      border-border bg-background text-foreground
+                      hover:bg-accent
+                    "
+                  >
+                    {startDate ? (
+                      startDate.format("MM/DD/YYYY")
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Pick a date
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="bg-card border border-border">
+                  <Calendar
+                    mode="single"
+                    selected={startDate ? startDate.toDate() : undefined}
+                    onSelect={(date) =>
+                      date && handleStartDateChange(dayjs(date))
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
-            {/* Subtasks */}
-            <div className="border border-border rounded-xl p-4 bg-background">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Subtasks</h3>
+            {/* Due Date */}
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Due Date
+              </Label>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="
+                      w-full justify-start text-left font-normal mt-1
+                      border-border bg-background text-foreground
+                      hover:bg-accent
+                    "
+                  >
+                    {dueDate ? (
+                      dueDate.format("MM/DD/YYYY")
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Pick a date
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="bg-card border border-border">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate ? dueDate.toDate() : undefined}
+                    onSelect={(date) =>
+                      date && handleDueDateChange(dayjs(date))
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Subtasks */}
+          <div className="border border-border rounded-xl p-4 bg-card">
+
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-foreground">
+                Subtasks
+              </h3>
+
+              <button
+                type="button"
+                onClick={() => setSubtaskSwitch(!SubtaskSwitch)}
+                className={`
+                  relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                  ${SubtaskSwitch ? "bg-primary" : "bg-muted"}
+                `}
+              >
+                <span
+                  className={`
+                    inline-block h-4 w-4 transform rounded-full bg-background transition-transform
+                    ${SubtaskSwitch ? "translate-x-6" : "translate-x-1"}
+                  `}
+                />
+              </button>
+            </div>
+
+            {SubtaskSwitch && (
+              <div className="mt-4 space-y-3">
+
+                {subtasks.map((s) => (
+                  <div key={s.id} className="flex items-center gap-2">
+
+                    <input
+                      type="checkbox"
+                      checked={checkedSubtasks.includes(s.id)}
+                      onChange={() => handleCheckboxChange(s.id)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+
+                    <Input
+                      value={s.text}
+                      onChange={(e) =>
+                        setSubtasks((prev) =>
+                          prev.map((p) =>
+                            p.id === s.id
+                              ? { ...p, text: e.target.value }
+                              : p
+                          )
+                        )
+                      }
+                      className="bg-background border-border text-foreground"
+                    />
+
+                    <button
+                      onClick={() => handleDeleteSubtask(s.id)}
+                      className="
+                        p-2 rounded-md
+                        text-muted-foreground
+                        hover:bg-accent
+                      "
+                    >
+                      <RiDeleteBin6Line size={18} />
+                    </button>
+
+                  </div>
+                ))}
 
                 <button
-                  type="button"
-                  onClick={() => setSubtaskSwitch(!SubtaskSwitch)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    SubtaskSwitch ? "bg-primary" : "bg-muted"
-                  }`}
+                  onClick={handleAddSubtask}
+                  className="
+                    h-9 px-4 text-sm font-medium
+                    border border-border rounded-lg
+                    hover:bg-accent transition-colors
+                  "
                 >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      SubtaskSwitch ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
+                  Add Subtask
                 </button>
+
               </div>
-
-              {SubtaskSwitch && (
-                <div className="mt-4 space-y-3">
-                  {subtasks.map((s) => (
-                    <div key={s.id} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={checkedSubtasks.includes(s.id)}
-                        onChange={() => handleCheckboxChange(s.id)}
-                        className="h-4 w-4 rounded border-border"
-                      />
-
-                      <Input
-                        size="small"
-                        fullWidth
-                        value={s.text}
-                        onChange={(e) =>
-                          setSubtasks((prev) =>
-                            prev.map((p) =>
-                              p.id === s.id
-                                ? {
-                                    ...p,
-                                    text: e.target.value,
-                                  }
-                                : p,
-                            ),
-                          )
-                        }
-                      />
-
-                      <button
-                        onClick={() => handleDeleteSubtask(s.id)}
-                        className="p-2 rounded-md hover:bg-muted text-muted-foreground"
-                      >
-                        <RiDeleteBin6Line size={18} />
-                      </button>
-                    </div>
-                  ))}
-
-                  <button
-                    onClick={handleAddSubtask}
-                    className="h-9 px-4 text-sm font-medium border border-border rounded-lg hover:bg-muted transition-colors"
-                  >
-                    Add Subtask
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
-          <button
-            onClick={onClose}
-            className="h-9 px-4 text-sm font-medium border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleCreateTask}
-            disabled={saving}
-            className="h-9 px-4 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
         </div>
       </div>
+
+      {/* Footer */}
+      <div className="
+        flex items-center justify-end gap-3 px-5 py-4
+        border-t border-border shrink-0
+        bg-background
+      ">
+
+        <button
+          onClick={onClose}
+          className="
+            h-9 px-4 text-sm font-medium
+            border border-border rounded-lg
+            text-foreground hover:bg-accent
+          "
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleCreateTask}
+          disabled={saving}
+          className="
+            h-9 px-4 text-sm font-medium
+            bg-primary text-primary-foreground
+            rounded-lg hover:bg-primary/90
+            transition-colors disabled:opacity-50
+          "
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+
+      </div>
+
     </div>
-  );
+  </div>
+);
+//   return (
+//     <div className="fixed inset-0 z-50 overflow-hidden">
+//       {/* Overlay */}
+//       <div
+//         className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+//         onClick={onClose}
+//       />
+
+//       {/* Drawer */}
+//       <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
+//         {/* Header */}
+//         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+//           <h2 className="text-base font-semibold text-foreground">
+//             Create Task
+//           </h2>
+
+//           <button
+//             onClick={onClose}
+//             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+//           >
+//             <X className="h-4 w-4" />
+//           </button>
+//         </div>
+
+//         {/* Content */}
+//         <div className="flex-1 overflow-y-auto p-5">
+//           <div className="flex flex-col gap-5">
+//             {/* Account */}
+//             <SingleSelectDropdown
+//               value={selectedAccount}
+//               onChange={setSelectedAccount}
+//             />
+
+//             {/* Job */}
+//             {/* Job */}
+// <div>
+//   <Label className="text-sm font-medium">
+//     Select Job
+//   </Label>
+
+//   <Select
+//     value={
+//       selectedJob
+//         ? String(selectedJob.value)
+//         : undefined
+//     }
+//     onValueChange={(value) => {
+//       const selected = jobsoptions.find(
+//         (job) =>
+//           String(job.value) === String(value),
+//       );
+
+//       console.log("SELECTED JOB", selected);
+
+//       setSelectedJob(selected || null);
+//     }}
+//     disabled={!selectedAccount?.value}
+//   >
+//     <SelectTrigger className="mt-1 w-full">
+//       <SelectValue placeholder="Select Job" />
+//     </SelectTrigger>
+
+//     <SelectContent className="w-[550px]">
+//       {Object.entries(
+//         jobsoptions.reduce((acc, job) => {
+//           if (!acc[job.group]) {
+//             acc[job.group] = [];
+//           }
+
+//           acc[job.group].push(job);
+
+//           return acc;
+//         }, {}),
+//       ).map(([group, items]) => (
+//         <div key={group}>
+//           {/* Group Heading */}
+//           <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+//             {group}
+//           </div>
+
+//           {/* Items */}
+//           {items.map((option) => (
+//             <SelectItem
+//               key={option.value}
+//               value={String(option.value)}
+//               className="min-h-[50px] items-start py-2"
+//             >
+//               <div className="break-words whitespace-normal leading-5 pr-6">
+//                 {option.label}
+//               </div>
+//             </SelectItem>
+//           ))}
+//         </div>
+//       ))}
+//     </SelectContent>
+//   </Select>
+// </div>
+
+//             {/* Template */}
+//             <div>
+//               <Label className="text-sm font-medium">Select Template</Label>
+
+//               <Select
+//                 value={selectedtemp?.value || ""}
+//                 onValueChange={(value) => {
+//                   const selected =
+//                     taskTemplateOptions.find((temp) => temp.value === value) ||
+//                     null;
+
+//                   handletemp(selected);
+//                 }}
+//               >
+//                 <SelectTrigger className="mt-1">
+//                   <SelectValue placeholder="Select Template" />
+//                 </SelectTrigger>
+
+//                 <SelectContent>
+//                   {taskTemplateOptions.map((option) => (
+//                     <SelectItem key={option.value} value={option.value}>
+//                       {option.label}
+//                     </SelectItem>
+//                   ))}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//             {/* Status + Assignee */}
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               <Status
+//                 onStatusChange={handleStatusChange}
+//                 selectedStatus={status}
+//               />
+
+//               <MultiSelectDropdown
+//                 value={selectedUser}
+//                 onChange={handleUserChange}
+//                 placeholder="Assignees"
+//               />
+
+//               <Priority
+//                 onPriorityChange={handlePriorityChange}
+//                 selectedPriority={priority}
+//               />
+
+//               <Input
+//                 size="small"
+//                 fullWidth
+//                 value={templatename}
+//                 placeholder="Task Name"
+//                 onChange={(e) => settemplatename(e.target.value)}
+//               />
+//             </div>
+
+//             {/* Editor */}
+//             <Editor onChange={handleEditorChange} value={description} />
+
+//             {/* Tags */}
+//             <TagsMultiSelectDropDown
+//               value={selectedTags}
+//               onChange={handleTagsChange}
+//               placeholder="Tags"
+//             />
+
+//             {/* Dates */}
+//             {/* Dates */}
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               {/* Start Date */}
+//               <div>
+//                 <Label className="text-sm font-medium">Start Date</Label>
+
+//                 <Popover>
+//                   <PopoverTrigger asChild>
+//                     <Button
+//                       variant="outline"
+//                       className={cn(
+//                         "w-full justify-start text-left font-normal mt-1",
+//                         !startDate && "text-muted-foreground",
+//                       )}
+//                     >
+//                       {startDate ? (
+//                         startDate.format("MM/DD/YYYY")
+//                       ) : (
+//                         <span>Pick a date</span>
+//                       )}
+//                     </Button>
+//                   </PopoverTrigger>
+
+//                   <PopoverContent className="w-auto p-0" align="start">
+//                     <Calendar
+//                       mode="single"
+//                       selected={startDate ? startDate.toDate() : undefined}
+//                       onSelect={(date) =>
+//                         date && handleStartDateChange(dayjs(date))
+//                       }
+//                       initialFocus
+//                     />
+//                   </PopoverContent>
+//                 </Popover>
+//               </div>
+
+//               {/* Due Date */}
+//               <div>
+//                 <Label className="text-sm font-medium">Due Date</Label>
+
+//                 <Popover>
+//                   <PopoverTrigger asChild>
+//                     <Button
+//                       variant="outline"
+//                       className={cn(
+//                         "w-full justify-start text-left font-normal mt-1",
+//                         !dueDate && "text-muted-foreground",
+//                       )}
+//                     >
+//                       {dueDate ? (
+//                         dueDate.format("MM/DD/YYYY")
+//                       ) : (
+//                         <span>Pick a date</span>
+//                       )}
+//                     </Button>
+//                   </PopoverTrigger>
+
+//                   <PopoverContent className="w-auto p-0" align="start">
+//                     <Calendar
+//                       mode="single"
+//                       selected={dueDate ? dueDate.toDate() : undefined}
+//                       onSelect={(date) =>
+//                         date && handleDueDateChange(dayjs(date))
+//                       }
+//                       initialFocus
+//                     />
+//                   </PopoverContent>
+//                 </Popover>
+//               </div>
+//             </div>
+
+//             {/* Subtasks */}
+//             <div className="border border-border rounded-xl p-4 bg-background">
+//               <div className="flex items-center justify-between">
+//                 <h3 className="text-sm font-medium">Subtasks</h3>
+
+//                 <button
+//                   type="button"
+//                   onClick={() => setSubtaskSwitch(!SubtaskSwitch)}
+//                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+//                     SubtaskSwitch ? "bg-primary" : "bg-muted"
+//                   }`}
+//                 >
+//                   <span
+//                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+//                       SubtaskSwitch ? "translate-x-6" : "translate-x-1"
+//                     }`}
+//                   />
+//                 </button>
+//               </div>
+
+//               {SubtaskSwitch && (
+//                 <div className="mt-4 space-y-3">
+//                   {subtasks.map((s) => (
+//                     <div key={s.id} className="flex items-center gap-2">
+//                       <input
+//                         type="checkbox"
+//                         checked={checkedSubtasks.includes(s.id)}
+//                         onChange={() => handleCheckboxChange(s.id)}
+//                         className="h-4 w-4 rounded border-border"
+//                       />
+
+//                       <Input
+//                         size="small"
+//                         fullWidth
+//                         value={s.text}
+//                         onChange={(e) =>
+//                           setSubtasks((prev) =>
+//                             prev.map((p) =>
+//                               p.id === s.id
+//                                 ? {
+//                                     ...p,
+//                                     text: e.target.value,
+//                                   }
+//                                 : p,
+//                             ),
+//                           )
+//                         }
+//                       />
+
+//                       <button
+//                         onClick={() => handleDeleteSubtask(s.id)}
+//                         className="p-2 rounded-md hover:bg-muted text-muted-foreground"
+//                       >
+//                         <RiDeleteBin6Line size={18} />
+//                       </button>
+//                     </div>
+//                   ))}
+
+//                   <button
+//                     onClick={handleAddSubtask}
+//                     className="h-9 px-4 text-sm font-medium border border-border rounded-lg hover:bg-muted transition-colors"
+//                   >
+//                     Add Subtask
+//                   </button>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Footer */}
+//         <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
+//           <button
+//             onClick={onClose}
+//             className="h-9 px-4 text-sm font-medium border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
+//           >
+//             Cancel
+//           </button>
+
+//           <button
+//             onClick={handleCreateTask}
+//             disabled={saving}
+//             className="h-9 px-4 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+//           >
+//             {saving ? "Saving..." : "Save"}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
 };
 
 export default TasksDrawer;

@@ -677,195 +677,423 @@ const AccountKanbanBoard = ({ isActive = true }) => {
   };
 
   return (
-    <div className="p-6">
-      {/* BOARD */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex flex-col gap-6">
-          {pipelines.map((p) => {
-            const stages = pipelineMeta?.[p.pipelineId]?.stages || [];
+  <div className="p-6 bg-background text-foreground">
 
-            return (
-              <div key={p.pipelineId} className="mb-5">
-                {/* PIPELINE TITLE */}
-                <h2 className="font-bold text-lg mb-3 text-foreground">
-                  {p.pipelineName}
-                </h2>
+    {/* BOARD */}
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex flex-col gap-6">
 
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {stages.map((stage) => (
-                    <Droppable droppableId={stage._id} key={stage._id}>
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                          className="flex flex-col min-w-[320px] h-[75vh] rounded-xl p-4 shadow-sm border border-slate-200"
-                        >
-                          {/* STAGE HEADER */}
-                          <div className="flex items-center justify-between mb-4 px-1">
-                            <h3 className="font-semibold text-slate-700">
-                              {stage.name}
-                            </h3>
+        {pipelines.map((p) => {
+          const stages = pipelineMeta?.[p.pipelineId]?.stages || [];
 
-                            <Badge variant="secondary" className="rounded-full">
-                              {grouped?.[p.pipelineId]?.[stage._id]?.length || 0}
-                            </Badge>
-                          </div>
+          return (
+            <div key={p.pipelineId} className="mb-6">
 
-                          {/* JOBS */}
-                          <ScrollArea className="flex-grow pr-3">
-                            <div className="flex flex-col gap-3">
-                              {(grouped?.[p.pipelineId]?.[stage._id] || []).map(
-                                (job, index) => {
-                                  const priority = priorityConfig[job.Priority] || {
-                                    border: "border-l-slate-300",
-                                    bg: "bg-slate-200",
-                                    text: "text-white",
-                                  };
+              {/* PIPELINE TITLE */}
+              <h2 className="text-lg font-semibold mb-3 text-foreground tracking-tight">
+                {p.pipelineName}
+              </h2>
 
-                                  return (
-                                    <Draggable
-                                      key={job.id}
-                                      draggableId={job.id}
-                                      index={index}
-                                    >
-                                      {(provided, snapshot) => (
-                                        <Card
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                          onClick={() => handleEditOpen(job.id)}
-                                          onMouseEnter={() =>
-                                            setHoveredJobId(job.id)
-                                          }
-                                          onMouseLeave={() =>
-                                            setHoveredJobId(null)
-                                          }
-                                          className={`
-                                            relative cursor-grab transition-all border-l-4 shadow-sm
-                                            ${priority.border}
-                                            ${
-                                              snapshot.isDragging
-                                                ? "bg-blue-50 rotate-1 shadow-lg"
-                                                : "bg-white hover:shadow-md"
-                                            }
-                                          `}
-                                        >
-                                          <CardContent className="p-4 space-y-2">
-                                            {/* DELETE BUTTON */}
-                                            {hoveredJobId === job.id && (
-                                              <TooltipProvider>
-                                                <Tooltip>
-                                                  <TooltipTrigger asChild>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="absolute top-2 right-2 h-8 w-8 text-destructive hover:bg-destructive/10"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        confirm({
-                                                          title: "Delete Job",
-                                                          description:
-                                                            "Are you sure you want to delete this job?",
-                                                          onConfirm: () =>
-                                                            deleteMutation.mutate(
-                                                              job.id
-                                                            ),
-                                                        });
-                                                      }}
-                                                    >
-                                                      <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                  </TooltipTrigger>
-                                                  <TooltipContent>
-                                                    Delete Job
-                                                  </TooltipContent>
-                                                </Tooltip>
-                                              </TooltipProvider>
-                                            )}
+              <div className="flex gap-4 overflow-x-auto pb-2">
 
-                                            {/* CONTENT */}
-                                            <p className="font-bold text-slate-900 leading-tight">
-                                              {truncateText(job.Name, 20)}
-                                            </p>
+                {stages.map((stage) => (
+                  <Droppable droppableId={stage._id} key={stage._id}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="
+                          flex flex-col min-w-[320px] h-[75vh]
+                          rounded-xl
+                          border border-border
+                          bg-card
+                          shadow-sm
+                          hover:shadow-md
+                          transition-all
+                          p-4
+                        "
+                      >
 
-                                            <p className="text-sm text-slate-600 font-medium">
-                                              {job.Account?.join(", ")}
-                                            </p>
+                        {/* STAGE HEADER */}
+                        <div className="flex items-center justify-between mb-4 px-1">
+                          <h3 className="font-semibold text-foreground">
+                            {stage.name}
+                          </h3>
 
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                              <User className="h-3 w-3" />
-                                              {job.JobAssignee?.join(", ") ||
-                                                "Unassigned"}
-                                            </div>
-
-                                            <p className="text-xs text-slate-500 italic">
-                                              {truncateText(job.Description, 50)}
-                                            </p>
-
-                                            {/* PRIORITY CHIP */}
-                                            <Badge
-                                              className={`${priority.bg} ${priority.text} border-none font-bold`}
-                                            >
-                                              {priority.label || job.Priority}
-                                            </Badge>
-
-                                            <div className="grid grid-cols-1 gap-1 pt-2">
-                                              <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                                                <Calendar className="h-3 w-3" />
-                                                {dayjs(job.StartDate).format(
-                                                  "DD MMM"
-                                                )}
-                                              </div>
-                                              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                                                <Clock className="h-3 w-3" />
-                                                {dayjs(job.DueDate).format(
-                                                  "DD MMM"
-                                                )}
-                                              </div>
-                                              <div className="flex items-center gap-1.5 text-[10px] text-primary/60">
-                                                <RefreshCw className="h-3 w-3" />
-                                                {dayjs(job.updatedAt).fromNow()}
-                                              </div>
-                                            </div>
-                                          </CardContent>
-                                        </Card>
-                                      )}
-                                    </Draggable>
-                                  );
-                                }
-                              )}
-                              {provided.placeholder}
-                            </div>
-                          </ScrollArea>
+                          <Badge
+                            variant="secondary"
+                            className="rounded-full bg-muted text-muted-foreground"
+                          >
+                            {grouped?.[p.pipelineId]?.[stage._id]?.length || 0}
+                          </Badge>
                         </div>
-                      )}
-                    </Droppable>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </DragDropContext>
 
-      {/* DRAWERS */}
-      <EditJobDrawer
-        open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setEditJobId(null);
-        }}
-        jobId={editJobId}
-      />
-      <MoveAutomationDrawer
-        open={automationDrawerOpen}
-        onClose={() => setAutomationDrawerOpen(false)}
-        automations={selectedAutomationData?.automations || []}
-        jobId={selectedAutomationData?.jobId}
-        stageId={selectedAutomationData?.stageId}
-      />
-    </div>
-  );
+                        {/* JOBS */}
+                        <ScrollArea className="flex-grow pr-2">
+                          <div className="flex flex-col gap-3">
+
+                            {(grouped?.[p.pipelineId]?.[stage._id] || []).map(
+                              (job, index) => {
+                                const priority = priorityConfig[job.Priority] || {
+                                  border: "border-l-border",
+                                  bg: "bg-muted",
+                                  text: "text-foreground",
+                                };
+
+                                return (
+                                  <Draggable
+                                    key={job.id}
+                                    draggableId={job.id}
+                                    index={index}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <Card
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        onClick={() => handleEditOpen(job.id)}
+                                        onMouseEnter={() => setHoveredJobId(job.id)}
+                                        onMouseLeave={() => setHoveredJobId(null)}
+                                        className={`
+                                          relative cursor-grab
+                                          border-l-4
+                                          border-border
+                                          bg-card
+                                          text-card-foreground
+                                          transition-all
+                                          rounded-lg
+
+                                          ${
+                                            snapshot.isDragging
+                                              ? "bg-accent/40 shadow-lg rotate-1"
+                                              : "hover:bg-accent/20 hover:shadow-md"
+                                          }
+
+                                          ${priority.border}
+                                        `}
+                                      >
+                                        <CardContent className="p-4 space-y-2">
+
+                                          {/* DELETE BUTTON */}
+                                          {hoveredJobId === job.id && (
+                                            <TooltipProvider>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="
+                                                      absolute top-2 right-2
+                                                      h-8 w-8
+                                                      text-destructive
+                                                      hover:bg-destructive/10
+                                                    "
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      confirm({
+                                                        title: "Delete Job",
+                                                        description:
+                                                          "Are you sure you want to delete this job?",
+                                                        onConfirm: () =>
+                                                          deleteMutation.mutate(job.id),
+                                                      });
+                                                    }}
+                                                  >
+                                                    <Trash2 className="h-4 w-4" />
+                                                  </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                  Delete Job
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider>
+                                          )}
+
+                                          {/* CONTENT */}
+                                          <p className="font-semibold text-card-foreground leading-tight">
+                                            {truncateText(job.Name, 20)}
+                                          </p>
+
+                                          <p className="text-sm text-muted-foreground">
+                                            {job.Account?.join(", ")}
+                                          </p>
+
+                                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                            <User className="h-3 w-3" />
+                                            {job.JobAssignee?.join(", ") ||
+                                              "Unassigned"}
+                                          </div>
+
+                                          <p className="text-xs text-muted-foreground italic">
+                                            {truncateText(job.Description, 50)}
+                                          </p>
+
+                                          {/* PRIORITY CHIP */}
+                                          <Badge
+                                            className={`
+                                              ${priority.bg}
+                                              ${priority.text}
+                                              border-none font-semibold
+                                            `}
+                                          >
+                                            {priority.label || job.Priority}
+                                          </Badge>
+
+                                          {/* DATES */}
+                                          <div className="grid grid-cols-1 gap-1 pt-2">
+
+                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                              <Calendar className="h-3 w-3" />
+                                              {dayjs(job.StartDate).format("DD MMM")}
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                              <Clock className="h-3 w-3" />
+                                              {dayjs(job.DueDate).format("DD MMM")}
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 text-[10px] text-primary">
+                                              <RefreshCw className="h-3 w-3" />
+                                              {dayjs(job.updatedAt).fromNow()}
+                                            </div>
+
+                                          </div>
+
+                                        </CardContent>
+                                      </Card>
+                                    )}
+                                  </Draggable>
+                                );
+                              }
+                            )}
+
+                            {provided.placeholder}
+                          </div>
+                        </ScrollArea>
+
+                      </div>
+                    )}
+                  </Droppable>
+                ))}
+
+              </div>
+            </div>
+          );
+        })}
+
+      </div>
+    </DragDropContext>
+
+    {/* DRAWERS */}
+    <EditJobDrawer
+      open={drawerOpen}
+      onClose={() => {
+        setDrawerOpen(false);
+        setEditJobId(null);
+      }}
+      jobId={editJobId}
+    />
+
+    <MoveAutomationDrawer
+      open={automationDrawerOpen}
+      onClose={() => setAutomationDrawerOpen(false)}
+      automations={selectedAutomationData?.automations || []}
+      jobId={selectedAutomationData?.jobId}
+      stageId={selectedAutomationData?.stageId}
+    />
+  </div>
+);
+
+  // return (
+  //   <div className="p-6">
+  //     {/* BOARD */}
+  //     <DragDropContext onDragEnd={onDragEnd}>
+  //       <div className="flex flex-col gap-6">
+  //         {pipelines.map((p) => {
+  //           const stages = pipelineMeta?.[p.pipelineId]?.stages || [];
+
+  //           return (
+  //             <div key={p.pipelineId} className="mb-5">
+  //               {/* PIPELINE TITLE */}
+  //               <h2 className="font-bold text-lg mb-3 text-foreground">
+  //                 {p.pipelineName}
+  //               </h2>
+
+  //               <div className="flex gap-4 overflow-x-auto pb-2">
+  //                 {stages.map((stage) => (
+  //                   <Droppable droppableId={stage._id} key={stage._id}>
+  //                     {(provided) => (
+  //                       <div
+  //                         ref={provided.innerRef}
+  //                         {...provided.droppableProps}
+  //                         className="flex flex-col min-w-[320px] h-[75vh] rounded-xl p-4 shadow-sm border border-slate-200"
+  //                       >
+  //                         {/* STAGE HEADER */}
+  //                         <div className="flex items-center justify-between mb-4 px-1">
+  //                           <h3 className="font-semibold text-slate-700">
+  //                             {stage.name}
+  //                           </h3>
+
+  //                           <Badge variant="secondary" className="rounded-full">
+  //                             {grouped?.[p.pipelineId]?.[stage._id]?.length || 0}
+  //                           </Badge>
+  //                         </div>
+
+  //                         {/* JOBS */}
+  //                         <ScrollArea className="flex-grow pr-3">
+  //                           <div className="flex flex-col gap-3">
+  //                             {(grouped?.[p.pipelineId]?.[stage._id] || []).map(
+  //                               (job, index) => {
+  //                                 const priority = priorityConfig[job.Priority] || {
+  //                                   border: "border-l-slate-300",
+  //                                   bg: "bg-slate-200",
+  //                                   text: "text-white",
+  //                                 };
+
+  //                                 return (
+  //                                   <Draggable
+  //                                     key={job.id}
+  //                                     draggableId={job.id}
+  //                                     index={index}
+  //                                   >
+  //                                     {(provided, snapshot) => (
+  //                                       <Card
+  //                                         ref={provided.innerRef}
+  //                                         {...provided.draggableProps}
+  //                                         {...provided.dragHandleProps}
+  //                                         onClick={() => handleEditOpen(job.id)}
+  //                                         onMouseEnter={() =>
+  //                                           setHoveredJobId(job.id)
+  //                                         }
+  //                                         onMouseLeave={() =>
+  //                                           setHoveredJobId(null)
+  //                                         }
+  //                                         className={`
+  //                                           relative cursor-grab transition-all border-l-4 shadow-sm
+  //                                           ${priority.border}
+  //                                           ${
+  //                                             snapshot.isDragging
+  //                                               ? "bg-blue-50 rotate-1 shadow-lg"
+  //                                               : "bg-white hover:shadow-md"
+  //                                           }
+  //                                         `}
+  //                                       >
+  //                                         <CardContent className="p-4 space-y-2">
+  //                                           {/* DELETE BUTTON */}
+  //                                           {hoveredJobId === job.id && (
+  //                                             <TooltipProvider>
+  //                                               <Tooltip>
+  //                                                 <TooltipTrigger asChild>
+  //                                                   <Button
+  //                                                     variant="ghost"
+  //                                                     size="icon"
+  //                                                     className="absolute top-2 right-2 h-8 w-8 text-destructive hover:bg-destructive/10"
+  //                                                     onClick={(e) => {
+  //                                                       e.stopPropagation();
+  //                                                       confirm({
+  //                                                         title: "Delete Job",
+  //                                                         description:
+  //                                                           "Are you sure you want to delete this job?",
+  //                                                         onConfirm: () =>
+  //                                                           deleteMutation.mutate(
+  //                                                             job.id
+  //                                                           ),
+  //                                                       });
+  //                                                     }}
+  //                                                   >
+  //                                                     <Trash2 className="h-4 w-4" />
+  //                                                   </Button>
+  //                                                 </TooltipTrigger>
+  //                                                 <TooltipContent>
+  //                                                   Delete Job
+  //                                                 </TooltipContent>
+  //                                               </Tooltip>
+  //                                             </TooltipProvider>
+  //                                           )}
+
+  //                                           {/* CONTENT */}
+  //                                           <p className="font-bold text-slate-900 leading-tight">
+  //                                             {truncateText(job.Name, 20)}
+  //                                           </p>
+
+  //                                           <p className="text-sm text-slate-600 font-medium">
+  //                                             {job.Account?.join(", ")}
+  //                                           </p>
+
+  //                                           <div className="flex items-center gap-1.5 text-xs text-slate-500">
+  //                                             <User className="h-3 w-3" />
+  //                                             {job.JobAssignee?.join(", ") ||
+  //                                               "Unassigned"}
+  //                                           </div>
+
+  //                                           <p className="text-xs text-slate-500 italic">
+  //                                             {truncateText(job.Description, 50)}
+  //                                           </p>
+
+  //                                           {/* PRIORITY CHIP */}
+  //                                           <Badge
+  //                                             className={`${priority.bg} ${priority.text} border-none font-bold`}
+  //                                           >
+  //                                             {priority.label || job.Priority}
+  //                                           </Badge>
+
+  //                                           <div className="grid grid-cols-1 gap-1 pt-2">
+  //                                             <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+  //                                               <Calendar className="h-3 w-3" />
+  //                                               {dayjs(job.StartDate).format(
+  //                                                 "DD MMM"
+  //                                               )}
+  //                                             </div>
+  //                                             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+  //                                               <Clock className="h-3 w-3" />
+  //                                               {dayjs(job.DueDate).format(
+  //                                                 "DD MMM"
+  //                                               )}
+  //                                             </div>
+  //                                             <div className="flex items-center gap-1.5 text-[10px] text-primary/60">
+  //                                               <RefreshCw className="h-3 w-3" />
+  //                                               {dayjs(job.updatedAt).fromNow()}
+  //                                             </div>
+  //                                           </div>
+  //                                         </CardContent>
+  //                                       </Card>
+  //                                     )}
+  //                                   </Draggable>
+  //                                 );
+  //                               }
+  //                             )}
+  //                             {provided.placeholder}
+  //                           </div>
+  //                         </ScrollArea>
+  //                       </div>
+  //                     )}
+  //                   </Droppable>
+  //                 ))}
+  //               </div>
+  //             </div>
+  //           );
+  //         })}
+  //       </div>
+  //     </DragDropContext>
+
+  //     {/* DRAWERS */}
+  //     <EditJobDrawer
+  //       open={drawerOpen}
+  //       onClose={() => {
+  //         setDrawerOpen(false);
+  //         setEditJobId(null);
+  //       }}
+  //       jobId={editJobId}
+  //     />
+  //     <MoveAutomationDrawer
+  //       open={automationDrawerOpen}
+  //       onClose={() => setAutomationDrawerOpen(false)}
+  //       automations={selectedAutomationData?.automations || []}
+  //       jobId={selectedAutomationData?.jobId}
+  //       stageId={selectedAutomationData?.stageId}
+  //     />
+  //   </div>
+  // );
 };
 
 export default AccountKanbanBoard;

@@ -302,38 +302,14 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../../components/ui/card";
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../../../components/ui/collapsible";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-import { Input } from "../../../components/ui/input";
+
 import { Label } from "../../../components/ui/label";
-import { Textarea } from "../../../components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "../../../components/ui/drawer";
 import {
   Dialog,
   DialogContent,
@@ -432,201 +408,409 @@ const CreateOrganizerUpdate = ({ OrganizerData, onClose }) => {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2 mb-4">
-        <Switch
-          id="show-conditional"
-          checked={showConditional}
-          onCheckedChange={setShowConditional}
-        />
-        <Label htmlFor="show-conditional">Show Hidden Questions</Label>
-      </div>
+  <div className="space-y-6">
 
-      {filteredSections.length > 0 ? (
-        filteredSections.map((section) => (
-          <Collapsible
-            key={section.id}
-            open={expandedSections.includes(section.id)}
-            onOpenChange={() => handleToggleSection(section.id)}
-            className="border rounded-lg"
-          >
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center flex-1">
-                <CollapsibleTrigger asChild>
-                  <div className="flex items-center flex-1 cursor-pointer">
-                    <span className="text-sm font-medium">
-                      {section.text}
-                      {section.sectionsettings?.conditional && showConditional && (
-                        <span className="italic text-gray-500 text-xs ml-2">
+    {/* TOP SWITCH */}
+    <div className="flex items-center gap-3 mb-4">
+      <Switch
+        id="show-conditional"
+        checked={showConditional}
+        onCheckedChange={setShowConditional}
+      />
+      <Label
+        htmlFor="show-conditional"
+        className="text-sm font-medium text-foreground"
+      >
+        Show Hidden Questions
+      </Label>
+    </div>
+
+    {/* SECTIONS */}
+    {filteredSections.length > 0 ? (
+      filteredSections.map((section) => (
+        <Collapsible
+          key={section.id}
+          open={expandedSections.includes(section.id)}
+          onOpenChange={() => handleToggleSection(section.id)}
+          className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
+        >
+
+          {/* HEADER */}
+          <div className="flex items-center justify-between p-4 bg-muted/30">
+
+            <div className="flex items-center flex-1">
+              <CollapsibleTrigger asChild>
+                <div className="flex items-center flex-1 cursor-pointer">
+                  <span className="text-sm font-semibold text-foreground">
+                    {section.text}
+
+                    {section.sectionsettings?.conditional &&
+                      showConditional && (
+                        <span className="ml-2 text-xs italic text-muted-foreground">
                           (Hidden Section)
                         </span>
                       )}
-                    </span>
-                  </div>
-                </CollapsibleTrigger>
-                
-                <span className="text-xs text-gray-500 ml-2">
-                  (
-                  {
-                    section.formElements.filter(
-                      (el) =>
-                        el.textvalue &&
-                        (!el.questionsectionsettings?.conditional ||
-                          showConditional)
-                    ).length
-                  }
-                  /
-                  {
-                    section.formElements.filter(
+                  </span>
+                </div>
+              </CollapsibleTrigger>
+
+              <span className="text-xs text-muted-foreground ml-3">
+                (
+                {
+                  section.formElements.filter(
+                    (el) =>
+                      el.textvalue &&
+                      (!el.questionsectionsettings?.conditional ||
+                        showConditional)
+                  ).length
+                }
+                /
+                {
+                  section.formElements.filter(
+                    (el) =>
+                      !el.questionsectionsettings?.conditional ||
+                      showConditional
+                  ).length
+                }
+                )
+              </span>
+            </div>
+
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
+              >
+                {expandedSections.includes(section.id) ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+
+          </div>
+
+          {/* CONTENT */}
+          <CollapsibleContent>
+            <div className="border-t border-border">
+
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40">
+                    <TableHead className="font-semibold text-foreground">
+                      Question
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Answer
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Reviewed
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {section.formElements
+                    .filter(
                       (el) =>
                         !el.questionsectionsettings?.conditional ||
                         showConditional
-                    ).length
-                  }
-                  )
-                </span>
-              </div>
+                    )
+                    .map((formElement) => (
+                      <TableRow
+                        key={formElement.id}
+                        className="hover:bg-muted/40 transition"
+                      >
+
+                        {/* QUESTION */}
+                        <TableCell className="text-sm text-foreground">
+                          {formElement.type === "Text Editor"
+                            ? "Text Block"
+                            : formElement.text}
+                        </TableCell>
+
+                        {/* ANSWER */}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formElement.type === "Text Editor" ? (
+                            <Button
+                              variant="link"
+                              className="text-primary p-0 h-auto"
+                              onClick={() =>
+                                handleOpenDrawer(formElement.text)
+                              }
+                            >
+                              Display
+                            </Button>
+                          ) : (
+                            <div className="whitespace-pre-line">
+                              {formElement.textvalue}
+                            </div>
+                          )}
+                        </TableCell>
+
+                        {/* REVIEW */}
+                        <TableCell>
+                          {formElement.type !== "Text Editor" && (
+                            <Checkbox
+                              checked={formElement.active || false}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange(
+                                  section.id,
+                                  formElement.id,
+                                  checked
+                                )
+                              }
+                            />
+                          )}
+                        </TableCell>
+
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      ))
+    ) : (
+      <p className="text-sm text-muted-foreground">No Data</p>
+    )}
+
+    {/* BACK BUTTON */}
+    <Button variant="outline" onClick={onClose}>
+      Back
+    </Button>
+
+    {/* DIALOG (TEXT VIEWER) */}
+    <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 rounded-2xl bg-background text-foreground">
+
+        {/* HEADER */}
+        <DialogHeader className="border-b border-border p-4">
+          <DialogTitle className="text-foreground">
+            Text Block Content
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* BODY */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <div
+            className="text-sm text-foreground"
+            dangerouslySetInnerHTML={{ __html: drawerContent }}
+          />
+        </div>
+
+        {/* FOOTER */}
+        <DialogFooter className="border-t border-border p-4">
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+
+      </DialogContent>
+    </Dialog>
+
+  </div>
+);
+//   return (
+//     <div className="space-y-4">
+//       <div className="flex items-center space-x-2 mb-4">
+//         <Switch
+//           id="show-conditional"
+//           checked={showConditional}
+//           onCheckedChange={setShowConditional}
+//         />
+//         <Label htmlFor="show-conditional">Show Hidden Questions</Label>
+//       </div>
+
+//       {filteredSections.length > 0 ? (
+//         filteredSections.map((section) => (
+//           <Collapsible
+//             key={section.id}
+//             open={expandedSections.includes(section.id)}
+//             onOpenChange={() => handleToggleSection(section.id)}
+//             className="border rounded-lg"
+//           >
+//             <div className="flex items-center justify-between p-4">
+//               <div className="flex items-center flex-1">
+//                 <CollapsibleTrigger asChild>
+//                   <div className="flex items-center flex-1 cursor-pointer">
+//                     <span className="text-sm font-medium">
+//                       {section.text}
+//                       {section.sectionsettings?.conditional && showConditional && (
+//                         <span className="italic text-gray-500 text-xs ml-2">
+//                           (Hidden Section)
+//                         </span>
+//                       )}
+//                     </span>
+//                   </div>
+//                 </CollapsibleTrigger>
+                
+//                 <span className="text-xs text-gray-500 ml-2">
+//                   (
+//                   {
+//                     section.formElements.filter(
+//                       (el) =>
+//                         el.textvalue &&
+//                         (!el.questionsectionsettings?.conditional ||
+//                           showConditional)
+//                     ).length
+//                   }
+//                   /
+//                   {
+//                     section.formElements.filter(
+//                       (el) =>
+//                         !el.questionsectionsettings?.conditional ||
+//                         showConditional
+//                     ).length
+//                   }
+//                   )
+//                 </span>
+//               </div>
               
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  {expandedSections.includes(section.id) ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-            </div>
+//               <CollapsibleTrigger asChild>
+//                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+//                   {expandedSections.includes(section.id) ? (
+//                     <ChevronUp className="h-4 w-4" />
+//                   ) : (
+//                     <ChevronDown className="h-4 w-4" />
+//                   )}
+//                 </Button>
+//               </CollapsibleTrigger>
+//             </div>
 
-            <CollapsibleContent>
-              <div className="border-t">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-semibold">Question</TableHead>
-                      <TableHead className="font-semibold">Answer</TableHead>
-                      <TableHead className="font-semibold">Reviewed</TableHead>
-                    </TableRow>
-                  </TableHeader>
+//             <CollapsibleContent>
+//               <div className="border-t">
+//                 <Table>
+//                   <TableHeader>
+//                     <TableRow>
+//                       <TableHead className="font-semibold">Question</TableHead>
+//                       <TableHead className="font-semibold">Answer</TableHead>
+//                       <TableHead className="font-semibold">Reviewed</TableHead>
+//                     </TableRow>
+//                   </TableHeader>
 
-                  <TableBody>
-                    {section.formElements
-                      .filter(
-                        (el) =>
-                          !el.questionsectionsettings?.conditional ||
-                          showConditional
-                      )
-                      .map((formElement) => (
-                        <TableRow key={formElement.id}>
-                          <TableCell>
-                            {formElement.type === "Text Editor"
-                              ? "Text Block"
-                              : formElement.text}
-                          </TableCell>
+//                   <TableBody>
+//                     {section.formElements
+//                       .filter(
+//                         (el) =>
+//                           !el.questionsectionsettings?.conditional ||
+//                           showConditional
+//                       )
+//                       .map((formElement) => (
+//                         <TableRow key={formElement.id}>
+//                           <TableCell>
+//                             {formElement.type === "Text Editor"
+//                               ? "Text Block"
+//                               : formElement.text}
+//                           </TableCell>
 
-                          <TableCell>
-                            {formElement.type === "Text Editor" ? (
-                              <Button
-                                variant="link"
-                                className="text-blue-600 p-0 h-auto"
-                                onClick={() =>
-                                  handleOpenDrawer(formElement.text)
-                                }
-                              >
-                                Display
-                              </Button>
-                            ) : (
-                              <div className="whitespace-pre-line">
-                                {formElement.textvalue}
-                              </div>
-                            )}
-                          </TableCell>
+//                           <TableCell>
+//                             {formElement.type === "Text Editor" ? (
+//                               <Button
+//                                 variant="link"
+//                                 className="text-blue-600 p-0 h-auto"
+//                                 onClick={() =>
+//                                   handleOpenDrawer(formElement.text)
+//                                 }
+//                               >
+//                                 Display
+//                               </Button>
+//                             ) : (
+//                               <div className="whitespace-pre-line">
+//                                 {formElement.textvalue}
+//                               </div>
+//                             )}
+//                           </TableCell>
 
-                          <TableCell>
-                            {formElement.type !== "Text Editor" && (
-                              <Checkbox
-                                checked={formElement.active || false}
-                                onCheckedChange={(checked) =>
-                                  handleCheckboxChange(
-                                    section.id,
-                                    formElement.id,
-                                    checked
-                                  )
-                                }
-                              />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        ))
-      ) : (
-        <p className="text-gray-500">No Data</p>
-      )}
+//                           <TableCell>
+//                             {formElement.type !== "Text Editor" && (
+//                               <Checkbox
+//                                 checked={formElement.active || false}
+//                                 onCheckedChange={(checked) =>
+//                                   handleCheckboxChange(
+//                                     section.id,
+//                                     formElement.id,
+//                                     checked
+//                                   )
+//                                 }
+//                               />
+//                             )}
+//                           </TableCell>
+//                         </TableRow>
+//                       ))}
+//                   </TableBody>
+//                 </Table>
+//               </div>
+//             </CollapsibleContent>
+//           </Collapsible>
+//         ))
+//       ) : (
+//         <p className="text-gray-500">No Data</p>
+//       )}
 
-      <Button variant="outline" onClick={onClose}>
-        Back
-      </Button>
+//       <Button variant="outline" onClick={onClose}>
+//         Back
+//       </Button>
 
-      {/* shadcn/ui Drawer */}
-      {/* <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
-        <DrawerContent >
-          <div className="flex flex-col h-full">
-            <DrawerHeader className="border-b">
-              <div className="flex items-center justify-between">
-                <DrawerTitle>Text Block Content</DrawerTitle>
-                <DrawerClose asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DrawerClose>
-              </div>
-            </DrawerHeader>
+//       {/* shadcn/ui Drawer */}
+//       {/* <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
+//         <DrawerContent >
+//           <div className="flex flex-col h-full">
+//             <DrawerHeader className="border-b">
+//               <div className="flex items-center justify-between">
+//                 <DrawerTitle>Text Block Content</DrawerTitle>
+//                 <DrawerClose asChild>
+//                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+//                     <X className="h-4 w-4" />
+//                   </Button>
+//                 </DrawerClose>
+//               </div>
+//             </DrawerHeader>
             
-            <div className="flex-1 overflow-y-auto p-4">
-              <div dangerouslySetInnerHTML={{ __html: drawerContent }} />
-            </div>
+//             <div className="flex-1 overflow-y-auto p-4">
+//               <div dangerouslySetInnerHTML={{ __html: drawerContent }} />
+//             </div>
             
-            <DrawerFooter className="border-t">
-              <DrawerClose asChild>
-                <Button variant="outline">Close</Button>
-              </DrawerClose>
-            </DrawerFooter>
-          </div>
-        </DrawerContent>
-      </Drawer> */}
-      <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
-  <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
+//             <DrawerFooter className="border-t">
+//               <DrawerClose asChild>
+//                 <Button variant="outline">Close</Button>
+//               </DrawerClose>
+//             </DrawerFooter>
+//           </div>
+//         </DrawerContent>
+//       </Drawer> */}
+//       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+//   <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
     
-    {/* Header */}
-    <DialogHeader className="border-b p-4">
-      <div className="flex items-center justify-between">
-        <DialogTitle>Text Block Content</DialogTitle>
+//     {/* Header */}
+//     <DialogHeader className="border-b p-4">
+//       <div className="flex items-center justify-between">
+//         <DialogTitle>Text Block Content</DialogTitle>
 
        
-      </div>
-    </DialogHeader>
+//       </div>
+//     </DialogHeader>
 
-    {/* Body */}
-    <div className="flex-1 overflow-y-auto p-4">
-      <div dangerouslySetInnerHTML={{ __html: drawerContent }} />
-    </div>
+//     {/* Body */}
+//     <div className="flex-1 overflow-y-auto p-4">
+//       <div dangerouslySetInnerHTML={{ __html: drawerContent }} />
+//     </div>
 
-    {/* Footer */}
-    <DialogFooter className="border-t p-4">
-      <DialogClose asChild>
-        <Button variant="outline">Close</Button>
-      </DialogClose>
-    </DialogFooter>
+//     {/* Footer */}
+//     <DialogFooter className="border-t p-4">
+//       <DialogClose asChild>
+//         <Button variant="outline">Close</Button>
+//       </DialogClose>
+//     </DialogFooter>
 
-  </DialogContent>
-</Dialog>
-    </div>
-  );
+//   </DialogContent>
+// </Dialog>
+//     </div>
+//   );
 };
 
 export default CreateOrganizerUpdate;

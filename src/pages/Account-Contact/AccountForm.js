@@ -1,22 +1,7 @@
 import React, { useState, useEffect, useMemo, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAccountData } from "../../redux/accountContactSlice";
-import {
-  Autocomplete,
-  FormLabel,
-  Box,
-  // Button,
-  TextField,
-  Typography,
-  FormControl,
-  Radio,
-  FormControlLabel,
-  RadioGroup,
-  Grid,
-  Stack,
-  Paper,
-  Divider,
-} from "@mui/material";
+
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
@@ -191,434 +176,776 @@ export default function AccountForm({ onContinue, isEditing = false }) {
 
   const options = useMemo(() => countryList().getData(), []);
  const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring";
-  // return (
-  //   <Box
-  //     sx={{
-  //       maxWidth: 750,
-  //       mx: "auto",
-  //       p: 3,
-  //     }}
-  //   >
-  //     {/* CLIENT TYPE */}
-  //     <FormControl component="fieldset" fullWidth sx={{ mb: 4 }}>
-  //       <Typography variant="h6" fontWeight={600} mb={1}>
-  //         Client Type
-  //       </Typography>
+ 
 
-  //       <RadioGroup
-  //         row
-  //         name="clientType"
-  //         value={accountData.clientType || ""}
-  //         onChange={handleChange}
-  //       >
-  //         <FormControlLabel
-  //           value="Individual"
-  //           control={<Radio />}
-  //           label="Individual"
-  //         />
-  //         <FormControlLabel
-  //           value="Company"
-  //           control={<Radio />}
-  //           label="Company"
-  //         />
-  //       </RadioGroup>
-  //     </FormControl>
 
-  //     {/* ACCOUNT INFO */}
-  //     <Box mb={4}>
-  //       <Typography variant="h6" fontWeight={600} mb={2}>
-  //         Account Info
-  //       </Typography>
+  return (
+  // <div className="flex flex-col h-full">
+  //   {/* Scrollable content */}
+  //   <div className="flex-1 overflow-y-auto space-y-6 pb-2 px-4">
 
-  //       <Stack spacing={2}>
-  //         <TextField
-  //           size="small"
-  //           fullWidth
-  //           label="Account Name"
-  //           name="accountName"
-  //           value={accountData.accountName || ""}
-  //           onChange={handleChange}
-  //           error={!!errors.accountName}
-  //           helperText={errors.accountName}
-  //           required
-  //         />
+  //     {/* Client Type */}
+  //     <div className="space-y-3">
+  //       <SheetHeader className="px-0 py-0 space-y-0.5">
+  //         <SheetTitle className="text-sm font-semibold">Client Type</SheetTitle>
+  //         <SheetDescription className="text-xs">
+  //           Select whether this is an individual or company account.
+  //         </SheetDescription>
+  //       </SheetHeader>
+
+  //       <div className="flex items-center gap-6">
+  //         {["Individual", "Company"].map((type) => (
+  //           <label key={type} className="flex items-center gap-2 cursor-pointer">
+  //             <input
+  //               type="radio"
+  //               name="clientType"
+  //               value={type}
+  //               checked={(accountData.clientType || "") === type}
+  //               onChange={handleChange}
+  //               className="h-4 w-4 accent-primary"
+  //             />
+  //             <span className="text-sm text-foreground">{type}</span>
+  //           </label>
+  //         ))}
+  //       </div>
+  //     </div>
+
+  //     {/* Account Info */}
+  //     <div className="space-y-3">
+  //       <SheetHeader className="px-0 py-0 space-y-0.5">
+  //         <SheetTitle className="text-sm font-semibold">Account Info</SheetTitle>
+  //         <SheetDescription className="text-xs">
+  //           Enter the primary account details.
+  //         </SheetDescription>
+  //       </SheetHeader>
+
+  //       <div className="space-y-3">
+  //         <div className="space-y-1.5">
+  //           <Label>
+  //             Account Name <span className="text-destructive">*</span>
+  //           </Label>
+  //           <Input
+  //             name="accountName"
+  //             value={accountData.accountName || ""}
+  //             placeholder="Account Name"
+  //             className={errors.accountName ? "border-destructive" : ""}
+  //             onChange={handleChange}
+  //           />
+  //           {errors.accountName && (
+  //             <p className="text-xs text-destructive">{errors.accountName}</p>
+  //           )}
+  //         </div>
 
   //         {accountData.clientType === "Company" && (
-  //           <TextField
-  //             fullWidth
-  //             size="small"
-  //             label="Company Name"
-  //             name="companyName"
-  //             value={accountData.companyName || ""}
-  //             onChange={handleChange}
-  //             error={!!errors.companyName}
-  //             helperText={errors.companyName}
-  //             required
-  //           />
+  //           <div className="space-y-1.5">
+  //             <Label>
+  //               Company Name <span className="text-destructive">*</span>
+  //             </Label>
+  //             <Input
+  //               name="companyName"
+  //               value={accountData.companyName || ""}
+  //               placeholder="Company Name"
+  //               className={errors.companyName ? "border-destructive" : ""}
+  //               onChange={handleChange}
+  //             />
+  //             {errors.companyName && (
+  //               <p className="text-xs text-destructive">
+  //                 {errors.companyName}
+  //               </p>
+  //             )}
+  //           </div>
   //         )}
+  //       </div>
+  //     </div>
 
+  //     {/* Assignment */}
+  //     <div className="space-y-3">
+  //       <SheetHeader className="px-0 py-0 space-y-0.5">
+  //         <SheetTitle className="text-sm font-semibold">Assignment</SheetTitle>
+  //         <SheetDescription className="text-xs">
+  //           Assign team members, tags and a folder template.
+  //         </SheetDescription>
+  //       </SheetHeader>
+
+  //       <div className="space-y-3">
   //         <MultiSelectDropdown
   //           value={accountData.teamMembers || []}
-  //           options={teamMembers}
   //           onChange={(newValue) =>
   //             dispatch(setAccountData({ teamMembers: newValue }))
   //           }
+  //           options={teamMembers}
   //           placeholder="Select Team Members"
   //           width="100%"
   //         />
 
   //         <TagsMultiSelectDropDown
   //           value={accountData.tags || []}
-  //            options={tags}
   //           onChange={(newValue) =>
   //             dispatch(setAccountData({ tags: newValue }))
   //           }
+  //           options={tags}
   //           placeholder="Select tags"
   //         />
-  //         <Box mt={1}>
-  //           {" "}
-  //           <Autocomplete
-  //             options={folderTemp}
-  //             getOptionLabel={(option) => option?.label || ""}
-  //             value={accountData.folderTemp || null}
-  //             onChange={(e, newValue) =>
-  //               handleAutocompleteChange("folderTemp", newValue)
-  //             }
-  //             renderInput={(params) => (
-  //               <TextField
-  //                 {...params}
-  //                 margin="normal"
-  //                 label="Select Folder Template"
-  //                 size="small"
-  //                 required
-  //               />
-  //             )}
-  //           />
-  //         </Box>
-  //       </Stack>
-  //     </Box>
 
-  //     {/* ADDRESS SECTION */}
-  //     {accountData.clientType === "Company" && (
-  //       <Box>
-  //         <Divider sx={{ mb: 3 }} />
-
-  //         <Typography variant="h6" fontWeight={600} mb={2}>
-  //           Address
-  //         </Typography>
-
-  //         <Stack spacing={2}>
-  //           <Autocomplete
-  //             fullWidth
-  //             options={options}
-  //             getOptionLabel={(option) => option.label}
-  //             value={
-  //               options.find(
-  //                 (opt) => opt.label === accountData?.country?.label,
-  //               ) || null
-  //             }
-  //             onChange={(event, newValue) =>
-  //               dispatch(setAccountData({ country: newValue }))
-  //             }
-  //             isOptionEqualToValue={(option, value) =>
-  //               option.label === value?.label
-  //             }
-  //             renderInput={(params) => (
-  //               <TextField {...params} label="Select Country" size="small" />
-  //             )}
-  //           />
-
-  //           <TextField
-  //             fullWidth
-  //             size="small"
-  //             label="Street Address"
-  //             name="streetAddress"
-  //             value={accountData.streetAddress || ""}
-  //             onChange={handleChange}
-  //           />
-
-  //           <Grid
-  //             container
-  //             rowSpacing={3}
-  //             columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+  //         <div className="space-y-1.5">
+  //           <Label>
+  //             Folder Template <span className="text-destructive">*</span>
+  //           </Label>
+  //           <select
+  //             value={accountData.folderTemp?.value || ""}
+  //             onChange={(e) => {
+  //               const opt =
+  //                 folderTemp.find((f) => f.value === e.target.value) || null;
+  //               handleAutocompleteChange("folderTemp", opt);
+  //             }}
+  //             className={selectCls}
   //           >
-  //             <Grid size={{ xs: 12, md: 4 }}>
-  //               <TextField
-  //                 fullWidth
-  //                 size="small"
-  //                 label="City"
+  //             <option value="">Select Folder Template</option>
+  //             {folderTemp.map((f) => (
+  //               <option key={f.value} value={f.value}>
+  //                 {f.label}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </div>
+  //       </div>
+  //     </div>
+
+  //     {/* Address */}
+  //     {accountData.clientType === "Company" && (
+  //       <div className="space-y-3">
+  //         <SheetHeader className="px-0 py-0 space-y-0.5">
+  //           <SheetTitle className="text-sm font-semibold">Address</SheetTitle>
+  //           <SheetDescription className="text-xs">
+  //             Company billing or mailing address.
+  //           </SheetDescription>
+  //         </SheetHeader>
+
+  //         <div className="space-y-3">
+  //           <div className="space-y-1.5">
+  //             <Label>Country</Label>
+  //             <select
+  //               value={
+  //                 options.find(
+  //                   (o) => o.label === accountData?.country?.label
+  //                 )?.value || ""
+  //               }
+  //               onChange={(e) => {
+  //                 const found =
+  //                   options.find((o) => o.value === e.target.value) || null;
+  //                 dispatch(setAccountData({ country: found }));
+  //               }}
+  //               className={selectCls}
+  //             >
+  //               <option value="">Select Country</option>
+  //               {options.map((o) => (
+  //                 <option key={o.value} value={o.value}>
+  //                   {o.label}
+  //                 </option>
+  //               ))}
+  //             </select>
+  //           </div>
+
+  //           <div className="space-y-1.5">
+  //             <Label>Street Address</Label>
+  //             <Input
+  //               name="streetAddress"
+  //               value={accountData.streetAddress || ""}
+  //               placeholder="Street address"
+  //               onChange={handleChange}
+  //             />
+  //           </div>
+
+  //           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+  //             <div className="space-y-1.5">
+  //               <Label>City</Label>
+  //               <Input
   //                 name="city"
   //                 value={accountData.city || ""}
+  //                 placeholder="City"
   //                 onChange={handleChange}
   //               />
-  //             </Grid>
+  //             </div>
 
-  //             <Grid size={{ xs: 12, md: 4 }}>
-  //               <TextField
-  //                 fullWidth
-  //                 size="small"
-  //                 label="State"
+  //             <div className="space-y-1.5">
+  //               <Label>State</Label>
+  //               <Input
   //                 name="state"
   //                 value={accountData.state || ""}
+  //                 placeholder="State"
   //                 onChange={handleChange}
   //               />
-  //             </Grid>
-  //             <Grid size={{ xs: 12, md: 4 }}>
-  //               <TextField
-  //                 fullWidth
-  //                 size="small"
-  //                 label="Zip Code"
+  //             </div>
+
+  //             <div className="space-y-1.5">
+  //               <Label>ZIP Code</Label>
+  //               <Input
   //                 name="postalCode"
   //                 value={accountData.postalCode || ""}
+  //                 placeholder="ZIP Code"
   //                 onChange={handleChange}
   //               />
-  //             </Grid>
-  //           </Grid>
-  //         </Stack>
-  //       </Box>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
   //     )}
+  //   </div>
 
-  //     {/* ACTION BUTTON */}
-  //     <Box mt={4} display="flex" justifyContent="flex-end">
-  //       <Button
-  //         variant="contained"
-  //         onClick={onContinue}
-  //         sx={{
-  //           px: 4,
-  //           py: 1,
-  //           borderRadius: 2,
-  //           textTransform: "none",
-  //           fontWeight: 600,
-  //         }}
-  //       >
+  //   {/* Footer */}
+  //   <SheetFooter className="border-t border-border/40 pt-3 pb-1">
+  //     <div className="flex justify-end w-full">
+  //       <Button size="sm" onClick={onContinue} className="gap-1.5">
   //         Continue
   //       </Button>
-  //     </Box>
-  //   </Box>
-  // );
+  //     </div>
+  //   </SheetFooter>
+  // </div>
 
+  <div
+  className="
+    flex flex-col h-full
+    bg-background text-foreground
+  "
+  style={{
+    fontFamily: "var(--font-family)",
+    fontSize: "calc(0.875rem * (var(--font-scale) / 100))",
+  }}
+>
+  {/* Scrollable Content */}
+  <div className="flex-1 overflow-y-auto px-5 py-4 space-y-8">
 
-  return (
-  <div className="flex flex-col h-full">
-    {/* Scrollable content */}
-    <div className="flex-1 overflow-y-auto space-y-6 pb-2 px-4">
+    {/* ───────────────── Client Type ───────────────── */}
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <SheetTitle
+          className="font-semibold tracking-tight text-foreground"
+          style={{
+            fontSize:
+              "calc(1rem * (var(--font-scale) / 100))",
+          }}
+        >
+          Client Type
+        </SheetTitle>
 
-      {/* Client Type */}
-      <div className="space-y-3">
-        <SheetHeader className="px-0 py-0 space-y-0.5">
-          <SheetTitle className="text-sm font-semibold">Client Type</SheetTitle>
-          <SheetDescription className="text-xs">
-            Select whether this is an individual or company account.
-          </SheetDescription>
-        </SheetHeader>
+        <SheetDescription
+          className="text-muted-foreground leading-relaxed"
+          style={{
+            fontSize:
+              "calc(0.78rem * (var(--font-scale) / 100))",
+          }}
+        >
+          Choose whether this account belongs to an
+          individual client or a company organization.
+        </SheetDescription>
+      </div>
 
-        <div className="flex items-center gap-6">
-          {["Individual", "Company"].map((type) => (
-            <label key={type} className="flex items-center gap-2 cursor-pointer">
+      <div className="flex flex-wrap gap-3">
+        {["Individual", "Company"].map((type) => {
+          const active =
+            (accountData.clientType || "") === type;
+
+          return (
+            <label
+              key={type}
+              className={`
+                flex items-center gap-2 cursor-pointer
+                rounded-xl border px-4 py-3
+                transition-all duration-200
+                min-w-[140px]
+                ${
+                  active
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/40 hover:bg-muted/40"
+                }
+              `}
+            >
               <input
                 type="radio"
                 name="clientType"
                 value={type}
-                checked={(accountData.clientType || "") === type}
+                checked={active}
                 onChange={handleChange}
                 className="h-4 w-4 accent-primary"
               />
-              <span className="text-sm text-foreground">{type}</span>
+
+              <span
+                className="font-medium text-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.86rem * (var(--font-scale) / 100))",
+                }}
+              >
+                {type}
+              </span>
             </label>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+    </section>
+
+    {/* ───────────────── Account Information ───────────────── */}
+    <section className="space-y-5">
+      <div className="space-y-1">
+        <SheetTitle
+          className="font-semibold tracking-tight text-foreground"
+          style={{
+            fontSize:
+              "calc(1rem * (var(--font-scale) / 100))",
+          }}
+        >
+          Account Information
+        </SheetTitle>
+
+        <SheetDescription
+          className="text-muted-foreground leading-relaxed"
+          style={{
+            fontSize:
+              "calc(0.78rem * (var(--font-scale) / 100))",
+          }}
+        >
+          Provide the primary details associated with
+          this account.
+        </SheetDescription>
       </div>
 
-      {/* Account Info */}
-      <div className="space-y-3">
-        <SheetHeader className="px-0 py-0 space-y-0.5">
-          <SheetTitle className="text-sm font-semibold">Account Info</SheetTitle>
-          <SheetDescription className="text-xs">
-            Enter the primary account details.
-          </SheetDescription>
-        </SheetHeader>
+      <div className="grid grid-cols-1 gap-4">
+        {/* Account Name */}
+        <div className="space-y-2">
+          <Label
+            className="font-medium text-foreground"
+            style={{
+              fontSize:
+                "calc(0.82rem * (var(--font-scale) / 100))",
+            }}
+          >
+            Account Name
+            <span className="text-destructive ml-1">*</span>
+          </Label>
 
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>
-              Account Name <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              name="accountName"
-              value={accountData.accountName || ""}
-              placeholder="Account Name"
-              className={errors.accountName ? "border-destructive" : ""}
-              onChange={handleChange}
-            />
-            {errors.accountName && (
-              <p className="text-xs text-destructive">{errors.accountName}</p>
-            )}
-          </div>
+          <Input
+            name="accountName"
+            value={accountData.accountName || ""}
+            placeholder="Enter account name"
+            className={`
+              h-10 rounded-xl bg-background
+              shadow-sm transition-all
+              focus-visible:ring-2 focus-visible:ring-primary/30
+              ${errors.accountName ? "border-destructive" : ""}
+            `}
+            onChange={handleChange}
+            style={{
+              fontSize:
+                "calc(0.86rem * (var(--font-scale) / 100))",
+            }}
+          />
 
-          {accountData.clientType === "Company" && (
-            <div className="space-y-1.5">
-              <Label>
-                Company Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                name="companyName"
-                value={accountData.companyName || ""}
-                placeholder="Company Name"
-                className={errors.companyName ? "border-destructive" : ""}
-                onChange={handleChange}
-              />
-              {errors.companyName && (
-                <p className="text-xs text-destructive">
-                  {errors.companyName}
-                </p>
-              )}
-            </div>
+          {errors.accountName && (
+            <p
+              className="text-destructive"
+              style={{
+                fontSize:
+                  "calc(0.72rem * (var(--font-scale) / 100))",
+              }}
+            >
+              {errors.accountName}
+            </p>
           )}
         </div>
+
+        {/* Company Name */}
+        {accountData.clientType === "Company" && (
+          <div className="space-y-2">
+            <Label
+              className="font-medium text-foreground"
+              style={{
+                fontSize:
+                  "calc(0.82rem * (var(--font-scale) / 100))",
+              }}
+            >
+              Company Name
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+
+            <Input
+              name="companyName"
+              value={accountData.companyName || ""}
+              placeholder="Enter company name"
+              className={`
+                h-10 rounded-xl bg-background
+                shadow-sm transition-all
+                focus-visible:ring-2 focus-visible:ring-primary/30
+                ${errors.companyName ? "border-destructive" : ""}
+              `}
+              onChange={handleChange}
+              style={{
+                fontSize:
+                  "calc(0.86rem * (var(--font-scale) / 100))",
+              }}
+            />
+
+            {errors.companyName && (
+              <p
+                className="text-destructive"
+                style={{
+                  fontSize:
+                    "calc(0.72rem * (var(--font-scale) / 100))",
+                }}
+              >
+                {errors.companyName}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+
+    {/* ───────────────── Assignment ───────────────── */}
+    <section className="space-y-5">
+      <div className="space-y-1">
+        <SheetTitle
+          className="font-semibold tracking-tight text-foreground"
+          style={{
+            fontSize:
+              "calc(1rem * (var(--font-scale) / 100))",
+          }}
+        >
+          Assignment & Organization
+        </SheetTitle>
+
+        <SheetDescription
+          className="text-muted-foreground leading-relaxed"
+          style={{
+            fontSize:
+              "calc(0.78rem * (var(--font-scale) / 100))",
+          }}
+        >
+          Assign internal team members, attach tags,
+          and choose a folder template structure.
+        </SheetDescription>
       </div>
 
-      {/* Assignment */}
-      <div className="space-y-3">
-        <SheetHeader className="px-0 py-0 space-y-0.5">
-          <SheetTitle className="text-sm font-semibold">Assignment</SheetTitle>
-          <SheetDescription className="text-xs">
-            Assign team members, tags and a folder template.
+      <div className="space-y-4">
+        <MultiSelectDropdown
+          value={accountData.teamMembers || []}
+          onChange={(newValue) =>
+            dispatch(
+              setAccountData({
+                teamMembers: newValue,
+              })
+            )
+          }
+          options={teamMembers}
+          placeholder="Select Team Members"
+          width="100%"
+        />
+
+        <TagsMultiSelectDropDown
+          value={accountData.tags || []}
+          onChange={(newValue) =>
+            dispatch(
+              setAccountData({
+                tags: newValue,
+              })
+            )
+          }
+          options={tags}
+          placeholder="Select tags"
+        />
+
+        <div className="space-y-2">
+          <Label
+            className="font-medium text-foreground"
+            style={{
+              fontSize:
+                "calc(0.82rem * (var(--font-scale) / 100))",
+            }}
+          >
+            Folder Template
+            <span className="text-destructive ml-1">*</span>
+          </Label>
+
+          <select
+            value={accountData.folderTemp?.value || ""}
+            onChange={(e) => {
+              const opt =
+                folderTemp.find(
+                  (f) => f.value === e.target.value
+                ) || null;
+
+              handleAutocompleteChange(
+                "folderTemp",
+                opt
+              );
+            }}
+            className="
+              h-10 w-full rounded-xl
+              border border-input
+              bg-background
+              px-3 shadow-sm
+              text-foreground
+              outline-none
+              transition-all
+              focus:ring-2 focus:ring-primary/30
+            "
+            style={{
+              fontSize:
+                "calc(0.86rem * (var(--font-scale) / 100))",
+            }}
+          >
+            <option value="">
+              Select Folder Template
+            </option>
+
+            {folderTemp.map((f) => (
+              <option
+                key={f.value}
+                value={f.value}
+              >
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </section>
+
+    {/* ───────────────── Address ───────────────── */}
+    {accountData.clientType === "Company" && (
+      <section className="space-y-5">
+        <div className="space-y-1">
+          <SheetTitle
+            className="font-semibold tracking-tight text-foreground"
+            style={{
+              fontSize:
+                "calc(1rem * (var(--font-scale) / 100))",
+            }}
+          >
+            Business Address
+          </SheetTitle>
+
+          <SheetDescription
+            className="text-muted-foreground leading-relaxed"
+            style={{
+              fontSize:
+                "calc(0.78rem * (var(--font-scale) / 100))",
+            }}
+          >
+            Enter the official mailing or billing
+            address for the company.
           </SheetDescription>
-        </SheetHeader>
+        </div>
 
-        <div className="space-y-3">
-          <MultiSelectDropdown
-            value={accountData.teamMembers || []}
-            onChange={(newValue) =>
-              dispatch(setAccountData({ teamMembers: newValue }))
-            }
-            options={teamMembers}
-            placeholder="Select Team Members"
-            width="100%"
-          />
-
-          <TagsMultiSelectDropDown
-            value={accountData.tags || []}
-            onChange={(newValue) =>
-              dispatch(setAccountData({ tags: newValue }))
-            }
-            options={tags}
-            placeholder="Select tags"
-          />
-
-          <div className="space-y-1.5">
-            <Label>
-              Folder Template <span className="text-destructive">*</span>
-            </Label>
-            <select
-              value={accountData.folderTemp?.value || ""}
-              onChange={(e) => {
-                const opt =
-                  folderTemp.find((f) => f.value === e.target.value) || null;
-                handleAutocompleteChange("folderTemp", opt);
+        <div className="space-y-4">
+          {/* Country */}
+          <div className="space-y-2">
+            <Label
+              className="font-medium text-foreground"
+              style={{
+                fontSize:
+                  "calc(0.82rem * (var(--font-scale) / 100))",
               }}
-              className={selectCls}
             >
-              <option value="">Select Folder Template</option>
-              {folderTemp.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
+              Country
+            </Label>
+
+            <select
+              value={
+                options.find(
+                  (o) =>
+                    o.label ===
+                    accountData?.country?.label
+                )?.value || ""
+              }
+              onChange={(e) => {
+                const found =
+                  options.find(
+                    (o) =>
+                      o.value === e.target.value
+                  ) || null;
+
+                dispatch(
+                  setAccountData({
+                    country: found,
+                  })
+                );
+              }}
+              className="
+                h-10 w-full rounded-xl
+                border border-input
+                bg-background
+                px-3 shadow-sm
+                text-foreground
+                outline-none
+                transition-all
+                focus:ring-2 focus:ring-primary/30
+              "
+              style={{
+                fontSize:
+                  "calc(0.86rem * (var(--font-scale) / 100))",
+              }}
+            >
+              <option value="">
+                Select Country
+              </option>
+
+              {options.map((o) => (
+                <option
+                  key={o.value}
+                  value={o.value}
+                >
+                  {o.label}
                 </option>
               ))}
             </select>
           </div>
-        </div>
-      </div>
 
-      {/* Address */}
-      {accountData.clientType === "Company" && (
-        <div className="space-y-3">
-          <SheetHeader className="px-0 py-0 space-y-0.5">
-            <SheetTitle className="text-sm font-semibold">Address</SheetTitle>
-            <SheetDescription className="text-xs">
-              Company billing or mailing address.
-            </SheetDescription>
-          </SheetHeader>
+          {/* Street */}
+          <div className="space-y-2">
+            <Label
+              className="font-medium text-foreground"
+              style={{
+                fontSize:
+                  "calc(0.82rem * (var(--font-scale) / 100))",
+              }}
+            >
+              Street Address
+            </Label>
 
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label>Country</Label>
-              <select
-                value={
-                  options.find(
-                    (o) => o.label === accountData?.country?.label
-                  )?.value || ""
-                }
-                onChange={(e) => {
-                  const found =
-                    options.find((o) => o.value === e.target.value) || null;
-                  dispatch(setAccountData({ country: found }));
+            <Input
+              name="streetAddress"
+              value={accountData.streetAddress || ""}
+              placeholder="Street address"
+              onChange={handleChange}
+              className="
+                h-10 rounded-xl shadow-sm
+                focus-visible:ring-2
+                focus-visible:ring-primary/30
+              "
+              style={{
+                fontSize:
+                  "calc(0.86rem * (var(--font-scale) / 100))",
+              }}
+            />
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label
+                className="font-medium text-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.82rem * (var(--font-scale) / 100))",
                 }}
-                className={selectCls}
               >
-                <option value="">Select Country</option>
-                {options.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+                City
+              </Label>
 
-            <div className="space-y-1.5">
-              <Label>Street Address</Label>
               <Input
-                name="streetAddress"
-                value={accountData.streetAddress || ""}
-                placeholder="Street address"
+                name="city"
+                value={accountData.city || ""}
+                placeholder="City"
                 onChange={handleChange}
+                className="
+                  h-10 rounded-xl shadow-sm
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/30
+                "
+                style={{
+                  fontSize:
+                    "calc(0.86rem * (var(--font-scale) / 100))",
+                }}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <Label>City</Label>
-                <Input
-                  name="city"
-                  value={accountData.city || ""}
-                  placeholder="City"
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label
+                className="font-medium text-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.82rem * (var(--font-scale) / 100))",
+                }}
+              >
+                State
+              </Label>
 
-              <div className="space-y-1.5">
-                <Label>State</Label>
-                <Input
-                  name="state"
-                  value={accountData.state || ""}
-                  placeholder="State"
-                  onChange={handleChange}
-                />
-              </div>
+              <Input
+                name="state"
+                value={accountData.state || ""}
+                placeholder="State"
+                onChange={handleChange}
+                className="
+                  h-10 rounded-xl shadow-sm
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/30
+                "
+                style={{
+                  fontSize:
+                    "calc(0.86rem * (var(--font-scale) / 100))",
+                }}
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <Label>ZIP Code</Label>
-                <Input
-                  name="postalCode"
-                  value={accountData.postalCode || ""}
-                  placeholder="ZIP Code"
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label
+                className="font-medium text-foreground"
+                style={{
+                  fontSize:
+                    "calc(0.82rem * (var(--font-scale) / 100))",
+                }}
+              >
+                ZIP Code
+              </Label>
+
+              <Input
+                name="postalCode"
+                value={accountData.postalCode || ""}
+                placeholder="ZIP Code"
+                onChange={handleChange}
+                className="
+                  h-10 rounded-xl shadow-sm
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/30
+                "
+                style={{
+                  fontSize:
+                    "calc(0.86rem * (var(--font-scale) / 100))",
+                }}
+              />
             </div>
           </div>
         </div>
-      )}
-    </div>
-
-    {/* Footer */}
-    <SheetFooter className="border-t border-border/40 pt-3 pb-1">
-      <div className="flex justify-end w-full">
-        <Button size="sm" onClick={onContinue} className="gap-1.5">
-          Continue
-        </Button>
-      </div>
-    </SheetFooter>
+      </section>
+    )}
   </div>
+
+  {/* Footer */}
+  <SheetFooter
+    className="
+      border-t border-border/60
+      px-5 py-4
+      bg-background/95 backdrop-blur
+    "
+  >
+    <div className="flex justify-end w-full">
+      <Button
+        size="sm"
+        onClick={onContinue}
+        className="
+          h-10 px-6 rounded-xl
+          shadow-sm transition-all
+          hover:shadow-md
+        "
+        style={{
+          fontSize:
+            "calc(0.85rem * (var(--font-scale) / 100))",
+        }}
+      >
+        Continue
+      </Button>
+    </div>
+  </SheetFooter>
+</div>
 );
 }

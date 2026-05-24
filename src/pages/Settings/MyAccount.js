@@ -1995,12 +1995,12 @@ const MyAccount = () => {
               />
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleEmailSync}>
+                {/* <Button onClick={handleEmailSync}>
                   Sync your email
-                </Button>
+                </Button> */}
 
                 <Button
-                  variant="outline"
+                  // variant="outline"
                   onClick={handleConnectGmail}
                 >
                   Connect Gmail

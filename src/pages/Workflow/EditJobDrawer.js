@@ -1015,255 +1015,602 @@ const EditJobDrawer = ({ open, onClose, jobId }) => {
     };
 
     return (
-      <div className="relative flex-1">
-        <Label className="text-sm font-medium mb-1 block">{label}</Label>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <span className={value ? "text-gray-900" : "text-gray-500"}>
-            {value ? value.format("MMMM D, YYYY") : "Select date"}
-          </span>
-          <CalendarIcon className="h-4 w-4 text-gray-400" />
-        </button>
-        {isOpen && (
-          <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-md shadow-lg p-2">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              initialFocus
-            />
-          </div>
-        )}
+  <div className="relative flex-1">
+
+    <Label className="text-sm font-medium mb-1 block text-foreground">
+      {label}
+    </Label>
+
+    <button
+      type="button"
+      onClick={() => setIsOpen(!isOpen)}
+      className="
+        w-full flex items-center justify-between px-3 py-2 text-sm
+        border border-border rounded-md
+        bg-background
+        text-foreground
+        hover:bg-accent
+        focus:outline-none focus:ring-2 focus:ring-primary
+        transition-colors
+      "
+    >
+      <span className={value ? "text-foreground" : "text-muted-foreground"}>
+        {value ? value.format("MMMM D, YYYY") : "Select date"}
+      </span>
+
+      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+    </button>
+
+    {isOpen && (
+      <div
+        className="
+          absolute top-full left-0 mt-1 z-50
+          bg-card border border-border
+          rounded-md shadow-lg p-2
+        "
+      >
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={handleDateSelect}
+          initialFocus
+        />
       </div>
-    );
+    )}
+
+  </div>
+);
+
+    // return (
+    //   <div className="relative flex-1">
+    //     <Label className="text-sm font-medium mb-1 block">{label}</Label>
+    //     <button
+    //       type="button"
+    //       onClick={() => setIsOpen(!isOpen)}
+    //       className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    //     >
+    //       <span className={value ? "text-gray-900" : "text-gray-500"}>
+    //         {value ? value.format("MMMM D, YYYY") : "Select date"}
+    //       </span>
+    //       <CalendarIcon className="h-4 w-4 text-gray-400" />
+    //     </button>
+    //     {isOpen && (
+    //       <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-md shadow-lg p-2">
+    //         <Calendar
+    //           mode="single"
+    //           selected={selectedDate}
+    //           onSelect={handleDateSelect}
+    //           initialFocus
+    //         />
+    //       </div>
+    //     )}
+    //   </div>
+    // );
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
+  <div className="fixed inset-0 z-50 overflow-hidden">
 
-      {/* Drawer Content */}
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-white shadow-xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
-          <h2 className="text-base font-semibold text-gray-900">Edit Job</h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    {/* Backdrop */}
+    <div
+      className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+      onClick={onClose}
+    />
 
-        {/* Body */}
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            {/* SECTION 1 - Basic Info */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900">Basic Info</h3>
-                <div className="space-y-2">
-                  <Label>Account</Label>
-                  <Input
-                    value={selectedAccount}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Job Name</Label>
-                  <Input
-                    value={jobName}
-                    onChange={(e) => setJobName(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+    {/* Drawer */}
+    <div className="
+      absolute right-0 top-0 h-full w-full sm:w-[650px]
+      bg-card text-card-foreground
+      shadow-xl flex flex-col border-l border-border
+    ">
 
-            {/* SECTION 2 - Workflow */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900">Workflow</h3>
-                <div className="space-y-2">
-                  <Label>Pipeline</Label>
-                  <Input
-                    value={selectedPipeline?.label || ""}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Stage</Label>
-                  <Input
-                    value={selectedStage?.label || ""}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+      {/* Header */}
+      <div className="
+        flex items-center justify-between px-5 py-4
+        border-b border-border shrink-0
+      ">
+        <h2 className="text-base font-semibold text-foreground">
+          Edit Job
+        </h2>
 
-            {/* SECTION 3 - Tags & Assignees */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900">Tags & Assignees</h3>
-                <TagsMultiSelectDropDown
-                  value={tagsList}
-                  onChange={handleTagsChange}
-                  placeholder="Select Tags"
-                />
-                <MultiSelectDropdown
-                  value={selectedUser}
-                  onChange={setSelectedUser}
-                />
-                <Priority
-                  selectedPriority={priority}
-                  onPriorityChange={setPriority}
-                />
-              </CardContent>
-            </Card>
-
-            {/* SECTION 4 - Dates */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900">Dates</h3>
-                <div className="flex gap-3">
-                  <SimpleDatePicker
-                    value={startDate}
-                    onChange={setStartDate}
-                    label="Start Date"
-                  />
-                  <SimpleDatePicker
-                    value={dueDate}
-                    onChange={setDueDate}
-                    label="Due Date"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* SECTION 5 - Description */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900">Description</h3>
-                <Editor value={description} onChange={setDescription} />
-              </CardContent>
-            </Card>
-
-            {/* CLIENT SECTION */}
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Client Facing</h3>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={clientFacingStatus}
-                      onCheckedChange={setClientFacingStatus}
-                    />
-                    <span className="text-sm text-gray-600">Show in Client Portal</span>
-                  </div>
-                </div>
-
-                {clientFacingStatus && (
-                  <div className="space-y-3 pt-2">
-                    <ShortcodeTextField
-                      label="Job name for client"
-                      value={inputText}
-                      onChange={(e) => {
-                        const { value, selectionStart } = e.target;
-                        setInputText(value);
-                        setCursorPosition(selectionStart);
-                      }}
-                      inputRef={textFieldRef}
-                      shortcuts={filteredShortcuts}
-                      showShortcutDropdown={showDropdownClientJob}
-                      onToggleShortcutDropdown={toggleShortcodeDropdown}
-                      onCloseShortcutDropdown={handleCloseDropdown}
-                      onAddShortcut={handleJobAddShortcut}
-                    />
-
-                    {/* Status Dropdown */}
-                    <div className="relative" ref={statusRef}>
-                      <Label className="text-sm font-medium mb-1 block">Status</Label>
-                      <button
-                        type="button"
-                        onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {selectedJob && (
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: selectedJob.clientfacingColour }}
-                          />
-                        )}
-                        <span className="flex-1 text-left text-gray-900">
-                          {selectedJob?.label || "Select status..."}
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-gray-400" />
-                      </button>
-                      {statusDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                          {optionstatus.map((status) => (
-                            <button
-                              key={status.value}
-                              onClick={() => handleJobChange(status)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none"
-                            >
-                              <div
-                                className="h-3 w-3 rounded-full"
-                                style={{ backgroundColor: status.clientfacingColour }}
-                              />
-                              {status.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <ShortcodeTextField
-                      label="Description"
-                      value={clientDescription}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value.length <= 4000) {
-                          setClientDescription(value);
-                        }
-                      }}
-                      multiline
-                      rows={4}
-                      inputRef={descriptionFieldRef}
-                      helperText={`${clientDescription.length}/4000 characters`}
-                      shortcuts={filteredShortcuts}
-                      showShortcutDropdown={showDropdownDescription}
-                      onToggleShortcutDropdown={toggleDescriptionDropdown}
-                      onCloseShortcutDropdown={handleCloseDropdown}
-                      onAddShortcut={handleDescriptionAddShortcut}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </ScrollArea>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t shrink-0">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-            Save
-          </Button>
-        </div>
+        <button
+          onClick={onClose}
+          className="
+            p-1 rounded-md
+            text-muted-foreground
+            hover:text-foreground
+            hover:bg-accent
+            transition-colors
+          "
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
+
+      {/* Body */}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+
+          {/* SECTION 1 */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-foreground">Basic Info</h3>
+
+              <div className="space-y-2">
+                <Label>Account</Label>
+                <Input
+                  value={selectedAccount}
+                  disabled
+                  className="bg-muted border-border"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Job Name</Label>
+                <Input
+                  value={jobName}
+                  onChange={(e) => setJobName(e.target.value)}
+                  className="bg-background border-border"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SECTION 2 */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-foreground">Workflow</h3>
+
+              <div className="space-y-2">
+                <Label>Pipeline</Label>
+                <Input
+                  value={selectedPipeline?.label || ""}
+                  disabled
+                  className="bg-muted border-border"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Stage</Label>
+                <Input
+                  value={selectedStage?.label || ""}
+                  disabled
+                  className="bg-muted border-border"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SECTION 3 */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-foreground">
+                Tags & Assignees
+              </h3>
+
+              <TagsMultiSelectDropDown
+                value={tagsList}
+                onChange={handleTagsChange}
+                placeholder="Select Tags"
+              />
+
+              <MultiSelectDropdown
+                value={selectedUser}
+                onChange={setSelectedUser}
+              />
+
+              <Priority
+                selectedPriority={priority}
+                onPriorityChange={setPriority}
+              />
+            </CardContent>
+          </Card>
+
+          {/* SECTION 4 */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-foreground">Dates</h3>
+
+              <div className="flex gap-3">
+                <SimpleDatePicker
+                  value={startDate}
+                  onChange={setStartDate}
+                  label="Start Date"
+                />
+                <SimpleDatePicker
+                  value={dueDate}
+                  onChange={setDueDate}
+                  label="Due Date"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SECTION 5 */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-foreground">Description</h3>
+
+              <Editor value={description} onChange={setDescription} />
+            </CardContent>
+          </Card>
+
+          {/* CLIENT SECTION */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 space-y-3">
+
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-foreground">
+                  Client Facing
+                </h3>
+
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={clientFacingStatus}
+                    onCheckedChange={setClientFacingStatus}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Show in Client Portal
+                  </span>
+                </div>
+              </div>
+
+              {clientFacingStatus && (
+                <div className="space-y-3 pt-2">
+
+                  {/* Job Name */}
+                  <ShortcodeTextField
+                    label="Job name for client"
+                    value={inputText}
+                    onChange={(e) => {
+                      const { value, selectionStart } = e.target;
+                      setInputText(value);
+                      setCursorPosition(selectionStart);
+                    }}
+                    inputRef={textFieldRef}
+                    shortcuts={filteredShortcuts}
+                    showShortcutDropdown={showDropdownClientJob}
+                    onToggleShortcutDropdown={toggleShortcodeDropdown}
+                    onCloseShortcutDropdown={handleCloseDropdown}
+                    onAddShortcut={handleJobAddShortcut}
+                  />
+
+                  {/* Status Dropdown */}
+                  <div className="relative" ref={statusRef}>
+                    <Label className="text-sm font-medium mb-1 block">
+                      Status
+                    </Label>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setStatusDropdownOpen(!statusDropdownOpen)
+                      }
+                      className="
+                        w-full flex items-center gap-2 px-3 py-2 text-sm
+                        border border-border rounded-md
+                        bg-background
+                        hover:bg-accent
+                        focus:outline-none focus:ring-2 focus:ring-primary
+                      "
+                    >
+                      {selectedJob && (
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{
+                            backgroundColor: selectedJob.clientfacingColour,
+                          }}
+                        />
+                      )}
+
+                      <span className="flex-1 text-left text-foreground">
+                        {selectedJob?.label || "Select status..."}
+                      </span>
+
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </button>
+
+                    {statusDropdownOpen && (
+                      <div className="
+                        absolute top-full left-0 right-0 mt-1 z-50
+                        bg-card border border-border rounded-md shadow-lg
+                        max-h-60 overflow-y-auto
+                      ">
+                        {optionstatus.map((status) => (
+                          <button
+                            key={status.value}
+                            onClick={() => handleJobChange(status)}
+                            className="
+                              w-full flex items-center gap-2 px-3 py-2 text-sm
+                              hover:bg-accent
+                              text-foreground
+                            "
+                          >
+                            <div
+                              className="h-3 w-3 rounded-full"
+                              style={{
+                                backgroundColor: status.clientfacingColour,
+                              }}
+                            />
+                            {status.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Client Description */}
+                  <ShortcodeTextField
+                    label="Description"
+                    value={clientDescription}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.length <= 4000) {
+                        setClientDescription(value);
+                      }
+                    }}
+                    multiline
+                    rows={4}
+                    inputRef={descriptionFieldRef}
+                    helperText={`${clientDescription.length}/4000 characters`}
+                    shortcuts={filteredShortcuts}
+                    showShortcutDropdown={showDropdownDescription}
+                    onToggleShortcutDropdown={toggleDescriptionDropdown}
+                    onCloseShortcutDropdown={handleCloseDropdown}
+                    onAddShortcut={handleDescriptionAddShortcut}
+                  />
+
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+        </div>
+      </ScrollArea>
+
+      {/* Footer */}
+      <div className="
+        flex items-center justify-end gap-3 px-5 py-4
+        border-t border-border shrink-0
+      ">
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+
+        <Button
+          onClick={handleSave}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          Save
+        </Button>
+      </div>
+
     </div>
-  );
+  </div>
+);
+  // return (
+  //   <div className="fixed inset-0 z-50 overflow-hidden">
+  //     {/* Backdrop */}
+  //     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
+
+  //     {/* Drawer Content */}
+  //     <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-white shadow-xl flex flex-col">
+  //       {/* Header */}
+  //       <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
+  //         <h2 className="text-base font-semibold text-gray-900">Edit Job</h2>
+  //         <button
+  //           onClick={onClose}
+  //           className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+  //         >
+  //           <X className="h-4 w-4" />
+  //         </button>
+  //       </div>
+
+  //       {/* Body */}
+  //       <ScrollArea className="flex-1">
+  //         <div className="p-4 space-y-4">
+  //           {/* SECTION 1 - Basic Info */}
+  //           <Card>
+  //             <CardContent className="p-4 space-y-3">
+  //               <h3 className="font-semibold text-gray-900">Basic Info</h3>
+  //               <div className="space-y-2">
+  //                 <Label>Account</Label>
+  //                 <Input
+  //                   value={selectedAccount}
+  //                   disabled
+  //                   className="bg-gray-50"
+  //                 />
+  //               </div>
+  //               <div className="space-y-2">
+  //                 <Label>Job Name</Label>
+  //                 <Input
+  //                   value={jobName}
+  //                   onChange={(e) => setJobName(e.target.value)}
+  //                 />
+  //               </div>
+  //             </CardContent>
+  //           </Card>
+
+  //           {/* SECTION 2 - Workflow */}
+  //           <Card>
+  //             <CardContent className="p-4 space-y-3">
+  //               <h3 className="font-semibold text-gray-900">Workflow</h3>
+  //               <div className="space-y-2">
+  //                 <Label>Pipeline</Label>
+  //                 <Input
+  //                   value={selectedPipeline?.label || ""}
+  //                   disabled
+  //                   className="bg-gray-50"
+  //                 />
+  //               </div>
+  //               <div className="space-y-2">
+  //                 <Label>Stage</Label>
+  //                 <Input
+  //                   value={selectedStage?.label || ""}
+  //                   disabled
+  //                   className="bg-gray-50"
+  //                 />
+  //               </div>
+  //             </CardContent>
+  //           </Card>
+
+  //           {/* SECTION 3 - Tags & Assignees */}
+  //           <Card>
+  //             <CardContent className="p-4 space-y-3">
+  //               <h3 className="font-semibold text-gray-900">Tags & Assignees</h3>
+  //               <TagsMultiSelectDropDown
+  //                 value={tagsList}
+  //                 onChange={handleTagsChange}
+  //                 placeholder="Select Tags"
+  //               />
+  //               <MultiSelectDropdown
+  //                 value={selectedUser}
+  //                 onChange={setSelectedUser}
+  //               />
+  //               <Priority
+  //                 selectedPriority={priority}
+  //                 onPriorityChange={setPriority}
+  //               />
+  //             </CardContent>
+  //           </Card>
+
+  //           {/* SECTION 4 - Dates */}
+  //           <Card>
+  //             <CardContent className="p-4 space-y-3">
+  //               <h3 className="font-semibold text-gray-900">Dates</h3>
+  //               <div className="flex gap-3">
+  //                 <SimpleDatePicker
+  //                   value={startDate}
+  //                   onChange={setStartDate}
+  //                   label="Start Date"
+  //                 />
+  //                 <SimpleDatePicker
+  //                   value={dueDate}
+  //                   onChange={setDueDate}
+  //                   label="Due Date"
+  //                 />
+  //               </div>
+  //             </CardContent>
+  //           </Card>
+
+  //           {/* SECTION 5 - Description */}
+  //           <Card>
+  //             <CardContent className="p-4 space-y-3">
+  //               <h3 className="font-semibold text-gray-900">Description</h3>
+  //               <Editor value={description} onChange={setDescription} />
+  //             </CardContent>
+  //           </Card>
+
+  //           {/* CLIENT SECTION */}
+  //           <Card>
+  //             <CardContent className="p-4 space-y-3">
+  //               <div className="flex items-center justify-between">
+  //                 <h3 className="font-semibold text-gray-900">Client Facing</h3>
+  //                 <div className="flex items-center gap-2">
+  //                   <Switch
+  //                     checked={clientFacingStatus}
+  //                     onCheckedChange={setClientFacingStatus}
+  //                   />
+  //                   <span className="text-sm text-gray-600">Show in Client Portal</span>
+  //                 </div>
+  //               </div>
+
+  //               {clientFacingStatus && (
+  //                 <div className="space-y-3 pt-2">
+  //                   <ShortcodeTextField
+  //                     label="Job name for client"
+  //                     value={inputText}
+  //                     onChange={(e) => {
+  //                       const { value, selectionStart } = e.target;
+  //                       setInputText(value);
+  //                       setCursorPosition(selectionStart);
+  //                     }}
+  //                     inputRef={textFieldRef}
+  //                     shortcuts={filteredShortcuts}
+  //                     showShortcutDropdown={showDropdownClientJob}
+  //                     onToggleShortcutDropdown={toggleShortcodeDropdown}
+  //                     onCloseShortcutDropdown={handleCloseDropdown}
+  //                     onAddShortcut={handleJobAddShortcut}
+  //                   />
+
+  //                   {/* Status Dropdown */}
+  //                   <div className="relative" ref={statusRef}>
+  //                     <Label className="text-sm font-medium mb-1 block">Status</Label>
+  //                     <button
+  //                       type="button"
+  //                       onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+  //                       className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  //                     >
+  //                       {selectedJob && (
+  //                         <div
+  //                           className="h-3 w-3 rounded-full"
+  //                           style={{ backgroundColor: selectedJob.clientfacingColour }}
+  //                         />
+  //                       )}
+  //                       <span className="flex-1 text-left text-gray-900">
+  //                         {selectedJob?.label || "Select status..."}
+  //                       </span>
+  //                       <ChevronDown className="h-4 w-4 text-gray-400" />
+  //                     </button>
+  //                     {statusDropdownOpen && (
+  //                       <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+  //                         {optionstatus.map((status) => (
+  //                           <button
+  //                             key={status.value}
+  //                             onClick={() => handleJobChange(status)}
+  //                             className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none"
+  //                           >
+  //                             <div
+  //                               className="h-3 w-3 rounded-full"
+  //                               style={{ backgroundColor: status.clientfacingColour }}
+  //                             />
+  //                             {status.label}
+  //                           </button>
+  //                         ))}
+  //                       </div>
+  //                     )}
+  //                   </div>
+
+  //                   <ShortcodeTextField
+  //                     label="Description"
+  //                     value={clientDescription}
+  //                     onChange={(e) => {
+  //                       const value = e.target.value;
+  //                       if (value.length <= 4000) {
+  //                         setClientDescription(value);
+  //                       }
+  //                     }}
+  //                     multiline
+  //                     rows={4}
+  //                     inputRef={descriptionFieldRef}
+  //                     helperText={`${clientDescription.length}/4000 characters`}
+  //                     shortcuts={filteredShortcuts}
+  //                     showShortcutDropdown={showDropdownDescription}
+  //                     onToggleShortcutDropdown={toggleDescriptionDropdown}
+  //                     onCloseShortcutDropdown={handleCloseDropdown}
+  //                     onAddShortcut={handleDescriptionAddShortcut}
+  //                   />
+  //                 </div>
+  //               )}
+  //             </CardContent>
+  //           </Card>
+  //         </div>
+  //       </ScrollArea>
+
+  //       {/* Footer */}
+  //       <div className="flex items-center justify-end gap-3 px-5 py-4 border-t shrink-0">
+  //         <Button variant="outline" onClick={onClose}>
+  //           Cancel
+  //         </Button>
+  //         <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+  //           Save
+  //         </Button>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 };
 
 export default EditJobDrawer;

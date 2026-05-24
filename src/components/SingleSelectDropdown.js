@@ -100,84 +100,194 @@ const SingleSelectDropdown = ({
   const selectedLabel = getSelectedLabel();
 
   return (
-    <div style={{ width }} className="mt-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between min-h-[40px] h-auto p-2 rounded-[10px] border-[#ccc] bg-white hover:bg-white"
-          >
-            <div className="flex flex-wrap gap-1">
-              {selectedLabel ? (
-                <span className="text-sm">{selectedLabel}</span>
-              ) : (
-                <span className="text-muted-foreground font-normal">
-                  {placeholder}
-                </span>
-              )}
-            </div>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-
-        <PopoverContent 
-          className="p-0" 
-          style={{ width: "var(--radix-popover-trigger-width)" }}
+  <div style={{ width }} className="mt-2">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="
+            w-full justify-between
+            min-h-[40px] h-auto
+            p-2 rounded-[10px]
+            border border-border
+            bg-background
+            text-foreground
+            hover:bg-accent
+          "
         >
-          <Command>
-            <CommandInput placeholder="Search account..." />
-            <CommandList className="max-h-[300px]">
-              {loading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : (
-                <>
-                  <CommandEmpty>No accounts found.</CommandEmpty>
-                  <CommandGroup>
-                    {options.map((option) => {
-                      const isSelected = value 
-                        ? (typeof value === "object" 
-                          ? value.value === option.value 
-                          : value === option.value)
-                        : false;
+          <div className="flex flex-wrap gap-1">
+            {selectedLabel ? (
+              <span className="text-sm text-foreground">
+                {selectedLabel}
+              </span>
+            ) : (
+              <span className="text-sm text-muted-foreground font-normal">
+                {placeholder}
+              </span>
+            )}
+          </div>
+
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+        </Button>
+      </PopoverTrigger>
+
+      <PopoverContent
+        className="
+          p-0
+          bg-popover
+          text-popover-foreground
+          border border-border
+          shadow-lg
+        "
+        style={{ width: "var(--radix-popover-trigger-width)" }}
+      >
+        <Command className="bg-popover">
+          <CommandInput
+            placeholder="Search account..."
+            className="text-sm"
+          />
+
+          <CommandList className="max-h-[300px]">
+            {loading ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <CommandEmpty className="text-muted-foreground text-sm">
+                  No accounts found.
+                </CommandEmpty>
+
+                <CommandGroup>
+                  {options.map((option) => {
+                    const isSelected = value
+                      ? typeof value === "object"
+                        ? value.value === option.value
+                        : value === option.value
+                      : false;
+
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        onSelect={() => handleSelect(option.value)}
+                        className="
+                          flex items-center justify-between
+                          cursor-pointer
+                          text-foreground
+                          hover:bg-accent
+                          rounded-md
+                        "
+                      >
+                        <span>{option.label}</span>
+
+                        {isSelected && (
+                          <svg
+                            className="h-4 w-4 text-primary"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  </div>
+);
+  // return (
+  //   <div style={{ width }} className="mt-2">
+  //     <Popover open={open} onOpenChange={setOpen}>
+  //       <PopoverTrigger asChild>
+  //         <Button
+  //           variant="outline"
+  //           role="combobox"
+  //           aria-expanded={open}
+  //           className="w-full justify-between min-h-[40px] h-auto p-2 rounded-[10px] border-[#ccc] bg-white hover:bg-white"
+  //         >
+  //           <div className="flex flex-wrap gap-1">
+  //             {selectedLabel ? (
+  //               <span className="text-sm">{selectedLabel}</span>
+  //             ) : (
+  //               <span className="text-muted-foreground font-normal">
+  //                 {placeholder}
+  //               </span>
+  //             )}
+  //           </div>
+  //           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+  //         </Button>
+  //       </PopoverTrigger>
+
+  //       <PopoverContent 
+  //         className="p-0" 
+  //         style={{ width: "var(--radix-popover-trigger-width)" }}
+  //       >
+  //         <Command>
+  //           <CommandInput placeholder="Search account..." />
+  //           <CommandList className="max-h-[300px]">
+  //             {loading ? (
+  //               <div className="flex items-center justify-center p-4">
+  //                 <Loader2 className="h-4 w-4 animate-spin" />
+  //               </div>
+  //             ) : (
+  //               <>
+  //                 <CommandEmpty>No accounts found.</CommandEmpty>
+  //                 <CommandGroup>
+  //                   {options.map((option) => {
+  //                     const isSelected = value 
+  //                       ? (typeof value === "object" 
+  //                         ? value.value === option.value 
+  //                         : value === option.value)
+  //                       : false;
                       
-                      return (
-                        <CommandItem
-                          key={option.value}
-                          onSelect={() => handleSelect(option.value)}
-                          className="flex items-center justify-between cursor-pointer"
-                        >
-                          <span>{option.label}</span>
-                          {isSelected && (
-                            <svg
-                              className="h-4 w-4 text-primary"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          )}
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
+  //                     return (
+  //                       <CommandItem
+  //                         key={option.value}
+  //                         onSelect={() => handleSelect(option.value)}
+  //                         className="flex items-center justify-between cursor-pointer"
+  //                       >
+  //                         <span>{option.label}</span>
+  //                         {isSelected && (
+  //                           <svg
+  //                             className="h-4 w-4 text-primary"
+  //                             fill="none"
+  //                             stroke="currentColor"
+  //                             viewBox="0 0 24 24"
+  //                           >
+  //                             <path
+  //                               strokeLinecap="round"
+  //                               strokeLinejoin="round"
+  //                               strokeWidth={2}
+  //                               d="M5 13l4 4L19 7"
+  //                             />
+  //                           </svg>
+  //                         )}
+  //                       </CommandItem>
+  //                     );
+  //                   })}
+  //                 </CommandGroup>
+  //               </>
+  //             )}
+  //           </CommandList>
+  //         </Command>
+  //       </PopoverContent>
+  //     </Popover>
+  //   </div>
+  // );
 };
 
 export default SingleSelectDropdown;

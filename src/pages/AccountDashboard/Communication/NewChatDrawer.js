@@ -497,194 +497,741 @@ const saveChat = async () => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+  <div className="fixed inset-0 z-50 overflow-hidden">
+    {/* Overlay */}
+    <div
+      className="
+        absolute inset-0
+        bg-black/40
+        backdrop-blur-sm
+        dark:bg-black/60
+      "
+      onClick={handleClose}
+    />
+
+    {/* Drawer */}
+    <div
+      className="
+        absolute right-0 top-0
+        flex h-full w-full flex-col
+
+        border-l border-border
+        bg-background
+        text-foreground
+        shadow-2xl
+
+        sm:w-[650px]
+      "
+    >
+      {/* HEADER */}
       <div
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
-        onClick={handleClose}
-      />
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-          <h2 className="text-base font-semibold text-foreground">New Chat</h2>
-          <button
-            onClick={handleClose}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        className="
+          flex items-center justify-between
+          border-b border-border
+
+          bg-muted/30
+          dark:bg-muted/10
+
+          px-6 py-5
+          shrink-0
+        "
+      >
+        <div>
+          <h2
+            className="font-semibold text-foreground"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(1.05rem * parseFloat(var(--font-scale)) / 100)",
+            }}
           >
-            <X className="h-4 w-4" />
-          </button>
+            New Chat
+          </h2>
+
+          <p
+            className="mt-1 text-muted-foreground"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(0.78rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            Create a new client conversation and tasks
+          </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <button
+          onClick={handleClose}
+          className="
+            flex h-9 w-9 items-center justify-center
+            rounded-xl
+
+            text-muted-foreground
+            transition-all duration-200
+
+            hover:bg-muted
+            hover:text-foreground
+
+            dark:hover:bg-muted/40
+          "
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* BODY */}
+      <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="space-y-6">
           {/* ACCOUNT */}
-          <div className="space-y-2">
-            <Label>Account *</Label>
-            <AccountMultiSelectDropdown
-              value={selectedaccount}
-              onChange={setSelectedaccount}
-            />
+          <div
+            className="
+              rounded-2xl
+              border border-border
+
+              bg-card
+              dark:bg-card/70
+
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-2">
+              <Label
+                className="text-foreground"
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize:
+                    "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+                }}
+              >
+                Account *
+              </Label>
+
+              <AccountMultiSelectDropdown
+                value={selectedaccount}
+                onChange={setSelectedaccount}
+              />
+            </div>
           </div>
 
           {/* TEMPLATE */}
-          <div className="space-y-2">
-            <Label>Template</Label>
-            <Select
-              value={selectedtemp?.value || ""}
-              onValueChange={handleTemplateChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a template" />
-              </SelectTrigger>
-              <SelectContent>
-                {chatTemplateOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div
+            className="
+              rounded-2xl border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-2">
+              <Label
+                className="text-foreground"
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize:
+                    "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+                }}
+              >
+                Template
+              </Label>
+
+              <Select
+                value={selectedtemp?.value || ""}
+                onValueChange={handleTemplateChange}
+              >
+                <SelectTrigger
+                  className="
+                    h-11 rounded-xl
+
+                    border-border
+                    bg-background
+                    text-foreground
+
+                    shadow-sm
+
+                    dark:bg-muted/20
+                    dark:border-border/70
+
+                    focus:ring-2
+                    focus:ring-primary/20
+                  "
+                >
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+
+                <SelectContent
+                  className="
+                    rounded-xl
+                    border border-border
+
+                    bg-popover
+                    text-popover-foreground
+
+                    shadow-xl
+                  "
+                >
+                  {chatTemplateOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="rounded-md"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* SUBJECT (SHORTCODE FIELD ✅) */}
-          <div className="space-y-2">
-            <Label>Subject *</Label>
-            <ShortcodeTextField
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              shortcuts={shortcuts}
-              showShortcutDropdown={showDropdown}
-              anchorElShortcut={anchorEl}
-              onToggleShortcutDropdown={(e) => {
-                setAnchorEl(e.currentTarget);
-                setShowDropdown(true);
-              }}
-              onCloseShortcutDropdown={() => {
-                setAnchorEl(null);
-                setShowDropdown(false);
-              }}
-            />
+          {/* SUBJECT */}
+          <div
+            className="
+              rounded-2xl border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-2">
+              <Label
+                className="text-foreground"
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize:
+                    "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+                }}
+              >
+                Subject *
+              </Label>
+
+              <ShortcodeTextField
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                shortcuts={shortcuts}
+                showShortcutDropdown={showDropdown}
+                anchorElShortcut={anchorEl}
+                onToggleShortcutDropdown={(e) => {
+                  setAnchorEl(e.currentTarget);
+                  setShowDropdown(true);
+                }}
+                onCloseShortcutDropdown={() => {
+                  setAnchorEl(null);
+                  setShowDropdown(false);
+                }}
+              />
+            </div>
           </div>
 
           {/* DESCRIPTION */}
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <EditorShortcodes
-              initialContent={description}
-              onChange={setDescription}
-            />
-          </div>
+          <div
+            className="
+              rounded-2xl border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-2">
+              <Label
+                className="text-foreground"
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize:
+                    "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+                }}
+              >
+                Description
+              </Label>
 
-          {/* REMINDER SETTINGS */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="send-reminders">Send reminders to client</Label>
-              <Switch
-                id="send-reminders"
-                checked={absoluteDate}
-                onCheckedChange={setAbsoluteDates}
+              <EditorShortcodes
+                initialContent={description}
+                onChange={setDescription}
               />
             </div>
-
-            {absoluteDate && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="days-until-reminder">Days until next reminder</Label>
-                  <Input
-                    id="days-until-reminder"
-                    type="number"
-                    value={daysuntilNextReminder}
-                    onChange={(e) => setDaysuntilNextReminder(e.target.value)}
-                    min="1"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="number-of-reminders">Number of reminders</Label>
-                  <Input
-                    id="number-of-reminders"
-                    type="number"
-                    value={noOfReminder}
-                    onChange={(e) => setNoOfReminder(parseInt(e.target.value) || 0)}
-                    min="1"
-                  />
-                </div>
-              </>
-            )}
           </div>
 
-          {/* TASKS */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Client Tasks</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setSubtasks([...subtasks, { id: Date.now(), text: "" }])
-                }
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Task
-              </Button>
-            </div>
+          {/* REMINDERS */}
+          <div
+            className="
+              rounded-2xl border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="send-reminders"
+                  className="text-foreground"
+                  style={{
+                    fontFamily: "var(--font-family)",
+                    fontSize:
+                      "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
+                  }}
+                >
+                  Send reminders to client
+                </Label>
 
-            <div className="space-y-2">
-              {subtasks.map((task) => (
-                <div key={task.id} className="flex items-center gap-2">
-                  <Checkbox id={`task-${task.id}`} />
-                  <Input
-                    value={task.text}
-                    onChange={(e) =>
-                      setSubtasks((prev) =>
-                        prev.map((t) =>
-                          t.id === task.id
-                            ? { ...t, text: e.target.value }
-                            : t
-                        )
-                      )
-                    }
-                    placeholder="Enter task description"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setSubtasks((prev) =>
-                        prev.filter((t) => t.id !== task.id)
-                      )
-                    }
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
-              {subtasks.length === 0 && (
-                <p className="text-sm text-muted-foreground">No tasks added yet. Click "Add Task" to create one.</p>
+                <Switch
+                  id="send-reminders"
+                  checked={absoluteDate}
+                  onCheckedChange={setAbsoluteDates}
+                />
+              </div>
+
+              {absoluteDate && (
+                <>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="days-until-reminder"
+                      className="text-foreground"
+                    >
+                      Days until next reminder
+                    </Label>
+
+                    <Input
+                      id="days-until-reminder"
+                      type="number"
+                      value={daysuntilNextReminder}
+                      onChange={(e) =>
+                        setDaysuntilNextReminder(e.target.value)
+                      }
+                      min="1"
+                      className="
+                        h-11 rounded-xl
+
+                        border border-border
+                        bg-background
+                        text-foreground
+                        placeholder:text-muted-foreground
+
+                        shadow-sm transition-all
+
+                        dark:bg-muted/20
+                        dark:border-border/70
+
+                        focus-visible:ring-2
+                        focus-visible:ring-primary/20
+                        focus-visible:border-primary
+                      "
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="number-of-reminders"
+                      className="text-foreground"
+                    >
+                      Number of reminders
+                    </Label>
+
+                    <Input
+                      id="number-of-reminders"
+                      type="number"
+                      value={noOfReminder}
+                      onChange={(e) =>
+                        setNoOfReminder(parseInt(e.target.value) || 0)
+                      }
+                      min="1"
+                      className="
+                        h-11 rounded-xl
+
+                        border border-border
+                        bg-background
+                        text-foreground
+                        placeholder:text-muted-foreground
+
+                        shadow-sm transition-all
+
+                        dark:bg-muted/20
+                        dark:border-border/70
+
+                        focus-visible:ring-2
+                        focus-visible:ring-primary/20
+                        focus-visible:border-primary
+                      "
+                    />
+                  </div>
+                </>
               )}
             </div>
           </div>
-        </div>
 
-        {/* FOOTER */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
+          {/* TASKS */}
+          <div
+            className="
+              rounded-2xl border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
           >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={saveChat}
-          >
-            Create Chat
-          </Button>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label
+                  className="text-foreground"
+                  style={{
+                    fontFamily: "var(--font-family)",
+                    fontSize:
+                      "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
+                  }}
+                >
+                  Client Tasks
+                </Label>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setSubtasks([
+                      ...subtasks,
+                      { id: Date.now(), text: "" },
+                    ])
+                  }
+                  className="
+                    rounded-xl border-border
+
+                    bg-background
+                    hover:bg-muted
+
+                    dark:bg-muted/20
+                    dark:hover:bg-muted/40
+                  "
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add Task
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {subtasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="
+                      flex items-center gap-2
+
+                      rounded-xl border border-border
+
+                      bg-muted/20
+                      dark:bg-muted/10
+
+                      p-3
+                    "
+                  >
+                    <Checkbox id={`task-${task.id}`} />
+
+                    <Input
+                      value={task.text}
+                      onChange={(e) =>
+                        setSubtasks((prev) =>
+                          prev.map((t) =>
+                            t.id === task.id
+                              ? { ...t, text: e.target.value }
+                              : t
+                          )
+                        )
+                      }
+                      placeholder="Enter task description"
+                      className="
+                        h-10 flex-1 rounded-xl
+
+                        border border-border
+                        bg-background
+                        text-foreground
+                        placeholder:text-muted-foreground
+
+                        shadow-sm
+
+                        dark:bg-muted/20
+                        dark:border-border/70
+
+                        focus-visible:ring-2
+                        focus-visible:ring-primary/20
+                        focus-visible:border-primary
+                      "
+                    />
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setSubtasks((prev) =>
+                          prev.filter((t) => t.id !== task.id)
+                        )
+                      }
+                      className="
+                        rounded-lg
+
+                        hover:bg-destructive/10
+                        hover:text-destructive
+                      "
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                {subtasks.length === 0 && (
+                  <div
+                    className="
+                      rounded-xl border border-dashed border-border
+
+                      bg-muted/20
+                      dark:bg-muted/10
+
+                      px-4 py-6 text-center
+                    "
+                  >
+                    <p
+                      className="text-muted-foreground"
+                      style={{
+                        fontFamily: "var(--font-family)",
+                        fontSize:
+                          "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
+                      }}
+                    >
+                      No tasks added yet. Click "Add Task" to create one.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* FOOTER */}
+      <div
+        className="
+          flex items-center justify-end gap-3
+
+          border-t border-border
+
+          bg-muted/20
+          dark:bg-muted/10
+
+          px-6 py-4
+          shrink-0
+        "
+      >
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleClose}
+          className="
+            rounded-xl border-border
+
+            bg-background
+            hover:bg-muted
+
+            dark:bg-muted/20
+            dark:hover:bg-muted/40
+          "
+        >
+          Cancel
+        </Button>
+
+        <Button
+          type="button"
+          onClick={saveChat}
+          className="
+            rounded-xl
+            shadow-sm
+          "
+        >
+          Create Chat
+        </Button>
+      </div>
     </div>
-  );
+  </div>
+);
+  // return (
+  //   <div className="fixed inset-0 z-50 overflow-hidden">
+  //     <div
+  //       className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+  //       onClick={handleClose}
+  //     />
+  //     <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
+  //       <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+  //         <h2 className="text-base font-semibold text-foreground">New Chat</h2>
+  //         <button
+  //           onClick={handleClose}
+  //           className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+  //         >
+  //           <X className="h-4 w-4" />
+  //         </button>
+  //       </div>
+
+  //       <div className="flex-1 overflow-y-auto p-6 space-y-5">
+  //         {/* ACCOUNT */}
+  //         <div className="space-y-2">
+  //           <Label>Account *</Label>
+  //           <AccountMultiSelectDropdown
+  //             value={selectedaccount}
+  //             onChange={setSelectedaccount}
+  //           />
+  //         </div>
+
+  //         {/* TEMPLATE */}
+  //         <div className="space-y-2">
+  //           <Label>Template</Label>
+  //           <Select
+  //             value={selectedtemp?.value || ""}
+  //             onValueChange={handleTemplateChange}
+  //           >
+  //             <SelectTrigger className="w-full">
+  //               <SelectValue placeholder="Select a template" />
+  //             </SelectTrigger>
+  //             <SelectContent>
+  //               {chatTemplateOptions.map((option) => (
+  //                 <SelectItem key={option.value} value={option.value}>
+  //                   {option.label}
+  //                 </SelectItem>
+  //               ))}
+  //             </SelectContent>
+  //           </Select>
+  //         </div>
+
+  //         {/* SUBJECT (SHORTCODE FIELD ✅) */}
+  //         <div className="space-y-2">
+  //           <Label>Subject *</Label>
+  //           <ShortcodeTextField
+  //             value={inputText}
+  //             onChange={(e) => setInputText(e.target.value)}
+  //             shortcuts={shortcuts}
+  //             showShortcutDropdown={showDropdown}
+  //             anchorElShortcut={anchorEl}
+  //             onToggleShortcutDropdown={(e) => {
+  //               setAnchorEl(e.currentTarget);
+  //               setShowDropdown(true);
+  //             }}
+  //             onCloseShortcutDropdown={() => {
+  //               setAnchorEl(null);
+  //               setShowDropdown(false);
+  //             }}
+  //           />
+  //         </div>
+
+  //         {/* DESCRIPTION */}
+  //         <div className="space-y-2">
+  //           <Label>Description</Label>
+  //           <EditorShortcodes
+  //             initialContent={description}
+  //             onChange={setDescription}
+  //           />
+  //         </div>
+
+  //         {/* REMINDER SETTINGS */}
+  //         <div className="space-y-3">
+  //           <div className="flex items-center justify-between">
+  //             <Label htmlFor="send-reminders">Send reminders to client</Label>
+  //             <Switch
+  //               id="send-reminders"
+  //               checked={absoluteDate}
+  //               onCheckedChange={setAbsoluteDates}
+  //             />
+  //           </div>
+
+  //           {absoluteDate && (
+  //             <>
+  //               <div className="space-y-2">
+  //                 <Label htmlFor="days-until-reminder">Days until next reminder</Label>
+  //                 <Input
+  //                   id="days-until-reminder"
+  //                   type="number"
+  //                   value={daysuntilNextReminder}
+  //                   onChange={(e) => setDaysuntilNextReminder(e.target.value)}
+  //                   min="1"
+  //                 />
+  //               </div>
+
+  //               <div className="space-y-2">
+  //                 <Label htmlFor="number-of-reminders">Number of reminders</Label>
+  //                 <Input
+  //                   id="number-of-reminders"
+  //                   type="number"
+  //                   value={noOfReminder}
+  //                   onChange={(e) => setNoOfReminder(parseInt(e.target.value) || 0)}
+  //                   min="1"
+  //                 />
+  //               </div>
+  //             </>
+  //           )}
+  //         </div>
+
+  //         {/* TASKS */}
+  //         <div className="space-y-3">
+  //           <div className="flex items-center justify-between">
+  //             <Label>Client Tasks</Label>
+  //             <Button
+  //               type="button"
+  //               variant="outline"
+  //               size="sm"
+  //               onClick={() =>
+  //                 setSubtasks([...subtasks, { id: Date.now(), text: "" }])
+  //               }
+  //             >
+  //               <Plus className="h-4 w-4 mr-1" />
+  //               Add Task
+  //             </Button>
+  //           </div>
+
+  //           <div className="space-y-2">
+  //             {subtasks.map((task) => (
+  //               <div key={task.id} className="flex items-center gap-2">
+  //                 <Checkbox id={`task-${task.id}`} />
+  //                 <Input
+  //                   value={task.text}
+  //                   onChange={(e) =>
+  //                     setSubtasks((prev) =>
+  //                       prev.map((t) =>
+  //                         t.id === task.id
+  //                           ? { ...t, text: e.target.value }
+  //                           : t
+  //                       )
+  //                     )
+  //                   }
+  //                   placeholder="Enter task description"
+  //                   className="flex-1"
+  //                 />
+  //                 <Button
+  //                   type="button"
+  //                   variant="ghost"
+  //                   size="sm"
+  //                   onClick={() =>
+  //                     setSubtasks((prev) =>
+  //                       prev.filter((t) => t.id !== task.id)
+  //                     )
+  //                   }
+  //                 >
+  //                   <Trash2 className="h-4 w-4 text-destructive" />
+  //                 </Button>
+  //               </div>
+  //             ))}
+  //             {subtasks.length === 0 && (
+  //               <p className="text-sm text-muted-foreground">No tasks added yet. Click "Add Task" to create one.</p>
+  //             )}
+  //           </div>
+  //         </div>
+  //       </div>
+
+  //       {/* FOOTER */}
+  //       <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border shrink-0">
+  //         <Button
+  //           type="button"
+  //           variant="outline"
+  //           onClick={handleClose}
+  //         >
+  //           Cancel
+  //         </Button>
+  //         <Button
+  //           type="button"
+  //           onClick={saveChat}
+  //         >
+  //           Create Chat
+  //         </Button>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 };
 
 export default NewChatDrawer;

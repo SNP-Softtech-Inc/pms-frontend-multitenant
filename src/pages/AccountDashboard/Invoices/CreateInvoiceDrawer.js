@@ -1855,263 +1855,642 @@ const addRow = useCallback((isDiscountRow = false) => {
   if (!open) return null;
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
-        <div className="absolute right-0 top-0 h-full w-full sm:w-[700px] bg-background shadow-xl flex flex-col">
-          {/* <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-            <h2 className="text-base font-semibold text-foreground">Create new Invoice</h2>
+  <>
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Drawer */}
+      <div
+        className="
+          absolute right-0 top-0
+          h-full w-full
+          sm:w-[700px]
+          bg-background
+          text-foreground
+          border-l border-border
+          shadow-xl
+          flex flex-col
+        "
+      >
+        {/* Header */}
+        <div
+          className="
+            flex items-center justify-between
+            px-5 py-4
+            border-b border-border
+            bg-background/95 backdrop-blur
+            shrink-0
+          "
+        >
+          <h2 className="text-base font-semibold text-foreground">
+            Create new Invoice
+          </h2>
+
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handlePreview}
-              className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+              className="
+                flex items-center gap-1.5
+                text-sm text-primary
+                hover:text-primary/80
+                transition-colors
+              "
             >
               <Eye className="h-4 w-4" />
               Preview
             </button>
-            <button onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+
+            <button
+              onClick={onClose}
+              className="
+                p-1 rounded-md
+                text-muted-foreground
+                hover:text-foreground
+                hover:bg-accent
+                transition-colors
+              "
+            >
               <X className="h-4 w-4" />
             </button>
-          </div> */}
-<div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-  <h2 className="text-base font-semibold text-foreground">Create new Invoice</h2>
-  <div className="flex items-center gap-3">
-    <button
-      type="button"
-      onClick={handlePreview}
-      className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
-    >
-      <Eye className="h-4 w-4" />
-      Preview
-    </button>
-    <button 
-      onClick={onClose} 
-      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-    >
-      <X className="h-4 w-4" />
-    </button>
-  </div>
-</div>
-          <div className="flex-1 overflow-y-auto p-5 space-y-6">
-            {/* Account Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Account name, ID or email</Label>
-                <SingleSelectDropdown
-                  value={selectedAccount}
-                  onChange={setSelectedAccount}
-                />
-                {accountError && <p className="text-xs text-destructive mt-1">{accountError}</p>}
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Invoice Template</Label>
-                <Select value={selectedTemplate?.value} onValueChange={handleTemplateChange}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Invoice Template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {invoiceoptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Invoice Number + Payment Method */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Invoice Number</Label>
-                <Input
-                  value={isLoadingInvoiceNumber ? "Loading..." : invoicenumber}
-                  placeholder="Invoice Number"
-                  readOnly
-                  disabled={isLoadingInvoiceNumber}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Auto-generated invoice number</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Choose payment method</Label>
-                <Select value={paymentMode?.value} onValueChange={handlePaymentOptionChange}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select Payment Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paymentsOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Date + Team Member */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !startDate && "text-muted-foreground")}>
-                      {startDate ? startDate.format("MM/DD/YYYY") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate ? startDate.toDate() : undefined}
-                      onSelect={(date) => date && handleStartDateChange(dayjs(date))}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Team Member</Label>
-                <MultiSelectDropdown
-                  value={selectedUser}
-                  onChange={handleUserChange}
-                  placeholder="Team Member"
-                  options={options}
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <ShortcodeTextField
-                label="Description"
-                value={description}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value.length <= 4000) {
-                    setDescription(value);
-                    setCharCount(value.length);
-                  }
-                }}
-                placeholder="Description"
-                multiline
-                rows={4}
-                maxLength={4000}
-                inputRef={descriptionFieldRef}
-                onClick={(e) => setCursorPosition(e.target.selectionStart)}
-                helperText={`${description.length}/4000 characters`}
-                shortcuts={filteredShortcuts}
-                showShortcutDropdown={showDropdownDescription}
-                anchorElShortcut={anchorEl}
-                onToggleShortcutDropdown={toggleDescriptionDropdown}
-                onCloseShortcutDropdown={handleCloseDropdown}
-                onAddShortcut={handleDescriptionAddShortcut}
-              />
-            </div>
-
-            {/* Additional Options */}
-            <div>
-              <h3 className="text-base font-semibold mb-2">Additional</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="pay-invoice" className="cursor-pointer">Pay invoice using client credits</Label>
-                  <Switch id="pay-invoice" checked={payInvoice} onCheckedChange={handlePayInvoiceChange} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="email-invoice" className="cursor-pointer">Email invoice to client</Label>
-                  <Switch id="email-invoice" checked={emailInvoice} onCheckedChange={handleEmailInvoiceChange} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="reminders" className="cursor-pointer">Reminders</Label>
-                  <Switch id="reminders" checked={reminders} onCheckedChange={handleRemindersChange} />
-                </div>
-              </div>
-            </div>
-
-            {/* Line Items & Summary */}
-            <LineItemsAndSummary
-              rows={rows}
-              serviceoptions={serviceoptions}
-              onInputChange={handleInputChange}
-              onServiceChange={handleServiceChangeWrapper}
-              onServiceInputChange={handleServiceInputChangeWrapper}
-              onAddRow={addRow}
-              onDeleteRow={deleteRow}
-              onEditService={handleEditService}
-              onDeleteService={handleDeleteService}
-              onSaveAsNewService={handleSaveAsNewService}
-              onDuplicate={handleDuplicate}
-              subtotal={subtotal}
-              onSubtotalChange={setSubtotal}
-              taxRate={taxRate}
-              onTaxRateChange={setTaxRate}
-              taxTotal={taxTotal}
-              totalAmount={totalAmount}
-              lineItemsTitle="Line items"
-              lineItemsSubtitle="Client-facing itemized list of products and services"
-              summaryTitle="Summary"
-            />
-
-            {/* Note to client */}
-            <div>
-              <h3 className="text-base font-semibold mb-2">Note to client</h3>
-              <Editor onChange={setClientNote} value={clientNote} />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-              {/* <Button variant="outline" onClick={handlePreview}>Preview</Button> */}
-              <Button onClick={handleSave}>Save</Button>
           </div>
         </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-muted/30">
+          
+          {/* Account Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Account name, ID or email
+              </Label>
+
+              <SingleSelectDropdown
+                value={selectedAccount}
+                onChange={setSelectedAccount}
+              />
+
+              {accountError && (
+                <p className="text-xs text-destructive mt-1">
+                  {accountError}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Invoice Template
+              </Label>
+
+              <Select
+                value={selectedTemplate?.value}
+                onValueChange={handleTemplateChange}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Invoice Template" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {invoiceoptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Invoice Number + Payment */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Invoice Number
+              </Label>
+
+              <Input
+                value={
+                  isLoadingInvoiceNumber
+                    ? "Loading..."
+                    : invoicenumber
+                }
+                placeholder="Invoice Number"
+                readOnly
+                disabled={isLoadingInvoiceNumber}
+                className="mt-1"
+              />
+
+              <p className="text-xs text-muted-foreground mt-1">
+                Auto-generated invoice number
+              </p>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Choose payment method
+              </Label>
+
+              <Select
+                value={paymentMode?.value}
+                onValueChange={handlePaymentOptionChange}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select Payment Mode" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {paymentsOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Date + Team */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Date
+              </Label>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal mt-1 border-border bg-background text-foreground hover:bg-accent",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    {startDate ? (
+                      startDate.format("MM/DD/YYYY")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-auto p-0 bg-popover border border-border text-popover-foreground">
+                  <Calendar
+                    mode="single"
+                    selected={
+                      startDate ? startDate.toDate() : undefined
+                    }
+                    onSelect={(date) =>
+                      date && handleStartDateChange(dayjs(date))
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-foreground">
+                Team Member
+              </Label>
+
+              <MultiSelectDropdown
+                value={selectedUser}
+                onChange={handleUserChange}
+                placeholder="Team Member"
+                options={options}
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <ShortcodeTextField
+              label="Description"
+              value={description}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 4000) {
+                  setDescription(value);
+                  setCharCount(value.length);
+                }
+              }}
+              placeholder="Description"
+              multiline
+              rows={4}
+              maxLength={4000}
+              inputRef={descriptionFieldRef}
+              onClick={(e) =>
+                setCursorPosition(e.target.selectionStart)
+              }
+              helperText={`${description.length}/4000 characters`}
+              shortcuts={filteredShortcuts}
+              showShortcutDropdown={showDropdownDescription}
+              anchorElShortcut={anchorEl}
+              onToggleShortcutDropdown={toggleDescriptionDropdown}
+              onCloseShortcutDropdown={handleCloseDropdown}
+              onAddShortcut={handleDescriptionAddShortcut}
+            />
+          </div>
+
+          {/* Additional Options */}
+          <div>
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              Additional
+            </h3>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="cursor-pointer text-foreground">
+                  Pay invoice using client credits
+                </Label>
+                <Switch
+                  id="pay-invoice"
+                  checked={payInvoice}
+                  onCheckedChange={handlePayInvoiceChange}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className="cursor-pointer text-foreground">
+                  Email invoice to client
+                </Label>
+                <Switch
+                  id="email-invoice"
+                  checked={emailInvoice}
+                  onCheckedChange={handleEmailInvoiceChange}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className="cursor-pointer text-foreground">
+                  Reminders
+                </Label>
+                <Switch
+                  id="reminders"
+                  checked={reminders}
+                  onCheckedChange={handleRemindersChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Line Items */}
+          <LineItemsAndSummary
+            rows={rows}
+            serviceoptions={serviceoptions}
+            onInputChange={handleInputChange}
+            onServiceChange={handleServiceChangeWrapper}
+            onServiceInputChange={handleServiceInputChangeWrapper}
+            onAddRow={addRow}
+            onDeleteRow={deleteRow}
+            onEditService={handleEditService}
+            onDeleteService={handleDeleteService}
+            onSaveAsNewService={handleSaveAsNewService}
+            onDuplicate={handleDuplicate}
+            subtotal={subtotal}
+            onSubtotalChange={setSubtotal}
+            taxRate={taxRate}
+            onTaxRateChange={setTaxRate}
+            taxTotal={taxTotal}
+            totalAmount={totalAmount}
+            lineItemsTitle="Line items"
+            lineItemsSubtitle="Client-facing itemized list of products and services"
+            summaryTitle="Summary"
+          />
+
+          {/* Note */}
+          <div>
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              Note to client
+            </h3>
+
+            <Editor onChange={setClientNote} value={clientNote} />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div
+          className="
+            flex items-center justify-end gap-3
+            px-5 py-4
+            border-t border-border
+            bg-background
+            shrink-0
+          "
+        >
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+
+          <Button onClick={handleSave}>Save</Button>
+        </div>
       </div>
+    </div>
 
-      {/* Service Drawers */}
-      <ServiceDrawer
-        open={isNewServiceDrawerOpen}
-        onClose={() => setIsNewServiceDrawerOpen(false)}
-        selectedRowData={selectedRowData}
-        setSelectedRowData={setSelectedRowData}
-        categoryoptions={categoryoptions}
-        onCreateCategory={() => setIsCategoryDrawerOpen(true)}
-        onSave={handleCreateService}
-      />
+    {/* Service Drawers (UNCHANGED FUNCTIONALITY) */}
+    <ServiceDrawer
+      open={isNewServiceDrawerOpen}
+      onClose={() => setIsNewServiceDrawerOpen(false)}
+      selectedRowData={selectedRowData}
+      setSelectedRowData={setSelectedRowData}
+      categoryoptions={categoryoptions}
+      onCreateCategory={() => setIsCategoryDrawerOpen(true)}
+      onSave={handleCreateService}
+    />
 
-      <CategoryDrawer
-        open={isCategoryDrawerOpen}
-        onClose={() => setIsCategoryDrawerOpen(false)}
-        onCreateCategory={handleCreateCategory}
-      />
+    <CategoryDrawer
+      open={isCategoryDrawerOpen}
+      onClose={() => setIsCategoryDrawerOpen(false)}
+      onCreateCategory={handleCreateCategory}
+    />
 
-      <EditItemDrawer
-        open={isEditItemDrawerOpen}
-        onClose={() => setIsEditItemDrawerOpen(false)}
-        selectedRowData={selectedRowData}
-        setSelectedRowData={setSelectedRowData}
-        onSave={handleSaveChanges}
-      />
-      <PreviewDrawer
-        open={isPreviewDrawerOpen}
-        onClose={() => setIsPreviewDrawerOpen(false)}
-        rows={rows}
-        description={description}
-        clientNote={clientNote}
-        subtotal={subtotal}
-        taxRate={taxRate}
-        taxTotal={taxTotal}
-        totalAmount={totalAmount}
-        onSave={handleSave}
-        invoiceNumber={invoicenumber}
-        invoiceDate={startDate ? startDate.format("MM/DD/YYYY") : new Date().toLocaleDateString()}
-        // dueDate={dueDate}
-        companyInfo={companyInfo}
-        clientInfo={clientInfo}
-        currency="$"
-      />
+    <EditItemDrawer
+      open={isEditItemDrawerOpen}
+      onClose={() => setIsEditItemDrawerOpen(false)}
+      selectedRowData={selectedRowData}
+      setSelectedRowData={setSelectedRowData}
+      onSave={handleSaveChanges}
+    />
 
-    </>
-  );
+    <PreviewDrawer
+      open={isPreviewDrawerOpen}
+      onClose={() => setIsPreviewDrawerOpen(false)}
+      rows={rows}
+      description={description}
+      clientNote={clientNote}
+      subtotal={subtotal}
+      taxRate={taxRate}
+      taxTotal={taxTotal}
+      totalAmount={totalAmount}
+      onSave={handleSave}
+      invoiceNumber={invoicenumber}
+      invoiceDate={
+        startDate
+          ? startDate.format("MM/DD/YYYY")
+          : new Date().toLocaleDateString()
+      }
+      companyInfo={companyInfo}
+      clientInfo={clientInfo}
+      currency="$"
+    />
+  </>
+);
+//   return (
+//     <>
+//       <div className="fixed inset-0 z-50 overflow-hidden">
+//         <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+//         <div className="absolute right-0 top-0 h-full w-full sm:w-[700px] bg-background shadow-xl flex flex-col">
+         
+// <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+//   <h2 className="text-base font-semibold text-foreground">Create new Invoice</h2>
+//   <div className="flex items-center gap-3">
+//     <button
+//       type="button"
+//       onClick={handlePreview}
+//       className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+//     >
+//       <Eye className="h-4 w-4" />
+//       Preview
+//     </button>
+//     <button 
+//       onClick={onClose} 
+//       className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+//     >
+//       <X className="h-4 w-4" />
+//     </button>
+//   </div>
+// </div>
+//           <div className="flex-1 overflow-y-auto p-5 space-y-6">
+//             {/* Account Row */}
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               <div>
+//                 <Label className="text-sm font-medium">Account name, ID or email</Label>
+//                 <SingleSelectDropdown
+//                   value={selectedAccount}
+//                   onChange={setSelectedAccount}
+//                 />
+//                 {accountError && <p className="text-xs text-destructive mt-1">{accountError}</p>}
+//               </div>
+//               <div>
+//                 <Label className="text-sm font-medium">Invoice Template</Label>
+//                 <Select value={selectedTemplate?.value} onValueChange={handleTemplateChange}>
+//                   <SelectTrigger className="mt-1">
+//                     <SelectValue placeholder="Invoice Template" />
+//                   </SelectTrigger>
+//                   <SelectContent>
+//                     {invoiceoptions.map((option) => (
+//                       <SelectItem key={option.value} value={option.value}>
+//                         {option.label}
+//                       </SelectItem>
+//                     ))}
+//                   </SelectContent>
+//                 </Select>
+//               </div>
+//             </div>
+
+//             {/* Invoice Number + Payment Method */}
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               <div>
+//                 <Label className="text-sm font-medium">Invoice Number</Label>
+//                 <Input
+//                   value={isLoadingInvoiceNumber ? "Loading..." : invoicenumber}
+//                   placeholder="Invoice Number"
+//                   readOnly
+//                   disabled={isLoadingInvoiceNumber}
+//                   className="mt-1"
+//                 />
+//                 <p className="text-xs text-muted-foreground mt-1">Auto-generated invoice number</p>
+//               </div>
+//               <div>
+//                 <Label className="text-sm font-medium">Choose payment method</Label>
+//                 <Select value={paymentMode?.value} onValueChange={handlePaymentOptionChange}>
+//                   <SelectTrigger className="mt-1">
+//                     <SelectValue placeholder="Select Payment Mode" />
+//                   </SelectTrigger>
+//                   <SelectContent>
+//                     {paymentsOptions.map((option) => (
+//                       <SelectItem key={option.value} value={option.value}>
+//                         {option.label}
+//                       </SelectItem>
+//                     ))}
+//                   </SelectContent>
+//                 </Select>
+//               </div>
+//             </div>
+
+//             {/* Date + Team Member */}
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               <div>
+//                 <Label className="text-sm font-medium">Date</Label>
+//                 <Popover>
+//                   <PopoverTrigger asChild>
+//                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !startDate && "text-muted-foreground")}>
+//                       {startDate ? startDate.format("MM/DD/YYYY") : <span>Pick a date</span>}
+//                     </Button>
+//                   </PopoverTrigger>
+//                   <PopoverContent className="w-auto p-0" align="start">
+//                     <Calendar
+//                       mode="single"
+//                       selected={startDate ? startDate.toDate() : undefined}
+//                       onSelect={(date) => date && handleStartDateChange(dayjs(date))}
+//                       initialFocus
+//                     />
+//                   </PopoverContent>
+//                 </Popover>
+//               </div>
+//               <div>
+//                 <Label className="text-sm font-medium">Team Member</Label>
+//                 <MultiSelectDropdown
+//                   value={selectedUser}
+//                   onChange={handleUserChange}
+//                   placeholder="Team Member"
+//                   options={options}
+//                 />
+//               </div>
+//             </div>
+
+//             {/* Description */}
+//             <div>
+//               <ShortcodeTextField
+//                 label="Description"
+//                 value={description}
+//                 onChange={(e) => {
+//                   const value = e.target.value;
+//                   if (value.length <= 4000) {
+//                     setDescription(value);
+//                     setCharCount(value.length);
+//                   }
+//                 }}
+//                 placeholder="Description"
+//                 multiline
+//                 rows={4}
+//                 maxLength={4000}
+//                 inputRef={descriptionFieldRef}
+//                 onClick={(e) => setCursorPosition(e.target.selectionStart)}
+//                 helperText={`${description.length}/4000 characters`}
+//                 shortcuts={filteredShortcuts}
+//                 showShortcutDropdown={showDropdownDescription}
+//                 anchorElShortcut={anchorEl}
+//                 onToggleShortcutDropdown={toggleDescriptionDropdown}
+//                 onCloseShortcutDropdown={handleCloseDropdown}
+//                 onAddShortcut={handleDescriptionAddShortcut}
+//               />
+//             </div>
+
+//             {/* Additional Options */}
+//             <div>
+//               <h3 className="text-base font-semibold mb-2">Additional</h3>
+//               <div className="space-y-2">
+//                 <div className="flex items-center justify-between">
+//                   <Label htmlFor="pay-invoice" className="cursor-pointer">Pay invoice using client credits</Label>
+//                   <Switch id="pay-invoice" checked={payInvoice} onCheckedChange={handlePayInvoiceChange} />
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <Label htmlFor="email-invoice" className="cursor-pointer">Email invoice to client</Label>
+//                   <Switch id="email-invoice" checked={emailInvoice} onCheckedChange={handleEmailInvoiceChange} />
+//                 </div>
+//                 <div className="flex items-center justify-between">
+//                   <Label htmlFor="reminders" className="cursor-pointer">Reminders</Label>
+//                   <Switch id="reminders" checked={reminders} onCheckedChange={handleRemindersChange} />
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Line Items & Summary */}
+//             <LineItemsAndSummary
+//               rows={rows}
+//               serviceoptions={serviceoptions}
+//               onInputChange={handleInputChange}
+//               onServiceChange={handleServiceChangeWrapper}
+//               onServiceInputChange={handleServiceInputChangeWrapper}
+//               onAddRow={addRow}
+//               onDeleteRow={deleteRow}
+//               onEditService={handleEditService}
+//               onDeleteService={handleDeleteService}
+//               onSaveAsNewService={handleSaveAsNewService}
+//               onDuplicate={handleDuplicate}
+//               subtotal={subtotal}
+//               onSubtotalChange={setSubtotal}
+//               taxRate={taxRate}
+//               onTaxRateChange={setTaxRate}
+//               taxTotal={taxTotal}
+//               totalAmount={totalAmount}
+//               lineItemsTitle="Line items"
+//               lineItemsSubtitle="Client-facing itemized list of products and services"
+//               summaryTitle="Summary"
+//             />
+
+//             {/* Note to client */}
+//             <div>
+//               <h3 className="text-base font-semibold mb-2">Note to client</h3>
+//               <Editor onChange={setClientNote} value={clientNote} />
+//             </div>
+//           </div>
+
+//           <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
+//             <Button variant="outline" onClick={onClose}>Cancel</Button>
+//               {/* <Button variant="outline" onClick={handlePreview}>Preview</Button> */}
+//               <Button onClick={handleSave}>Save</Button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Service Drawers */}
+//       <ServiceDrawer
+//         open={isNewServiceDrawerOpen}
+//         onClose={() => setIsNewServiceDrawerOpen(false)}
+//         selectedRowData={selectedRowData}
+//         setSelectedRowData={setSelectedRowData}
+//         categoryoptions={categoryoptions}
+//         onCreateCategory={() => setIsCategoryDrawerOpen(true)}
+//         onSave={handleCreateService}
+//       />
+
+//       <CategoryDrawer
+//         open={isCategoryDrawerOpen}
+//         onClose={() => setIsCategoryDrawerOpen(false)}
+//         onCreateCategory={handleCreateCategory}
+//       />
+
+//       <EditItemDrawer
+//         open={isEditItemDrawerOpen}
+//         onClose={() => setIsEditItemDrawerOpen(false)}
+//         selectedRowData={selectedRowData}
+//         setSelectedRowData={setSelectedRowData}
+//         onSave={handleSaveChanges}
+//       />
+//       <PreviewDrawer
+//         open={isPreviewDrawerOpen}
+//         onClose={() => setIsPreviewDrawerOpen(false)}
+//         rows={rows}
+//         description={description}
+//         clientNote={clientNote}
+//         subtotal={subtotal}
+//         taxRate={taxRate}
+//         taxTotal={taxTotal}
+//         totalAmount={totalAmount}
+//         onSave={handleSave}
+//         invoiceNumber={invoicenumber}
+//         invoiceDate={startDate ? startDate.format("MM/DD/YYYY") : new Date().toLocaleDateString()}
+//         // dueDate={dueDate}
+//         companyInfo={companyInfo}
+//         clientInfo={clientInfo}
+//         currency="$"
+//       />
+
+//     </>
+//   );
 };
 
 export default CreateInvoiceDrawer;

@@ -629,7 +629,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
   </div>
 </div>
       {/* Board */}
-      <DragDropContext onDragEnd={onDragEnd}>
+      {/* <DragDropContext onDragEnd={onDragEnd}>
         <div className="flex gap-4 overflow-x-auto pb-4">
           {pipeline.stages.map((stage) => (
             <Droppable droppableId={stage._id} key={stage._id}>
@@ -639,7 +639,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
                   ref={provided.innerRef}
                   className="flex flex-col min-w-[320px] h-[75vh]  rounded-xl p-4 shadow-sm border border-slate-200"
                 >
-                  {/* Stage Header */}
+                 
                   <div className="flex items-center justify-between mb-4 px-1">
                     <h3 className="font-semibold text-slate-700">{stage.name}</h3>
                     <Badge variant="secondary" className="rounded-full">
@@ -647,7 +647,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
                     </Badge>
                   </div>
 
-                  {/* Jobs List */}
+                 
                   <ScrollArea className="flex-grow pr-3">
                     <div className="flex flex-col gap-3">
                       {groupedJobs[stage._id]?.map((job, index) => {
@@ -670,7 +670,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
                                 `}
                               >
                                 <CardContent className="p-4 space-y-2">
-                                  {/* Delete Button */}
+                                 
                                   {hoveredJobId === job.id && (
                                     <TooltipProvider>
                                       <Tooltip>
@@ -745,8 +745,187 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
             </Droppable>
           ))}
         </div>
-      </DragDropContext>
+      </DragDropContext> */}
 
+
+<DragDropContext onDragEnd={onDragEnd}>
+  <div className="flex gap-4 overflow-x-auto pb-4">
+
+    {pipeline.stages.map((stage) => (
+      <Droppable droppableId={stage._id} key={stage._id}>
+        {(provided) => (
+          <div
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            className="
+              flex flex-col min-w-[320px] h-[75vh]
+              rounded-xl p-4
+              border border-border
+              bg-card
+              shadow-sm
+              hover:shadow-md
+              transition-all
+            "
+          >
+
+            {/* Stage Header */}
+            <div className="flex items-center justify-between mb-4 px-1">
+              <h3 className="font-semibold text-foreground">
+                {stage.name}
+              </h3>
+
+              <Badge
+                variant="secondary"
+                className="rounded-full bg-muted text-muted-foreground"
+              >
+                {groupedJobs[stage._id]?.length || 0}
+              </Badge>
+            </div>
+
+            {/* Jobs List */}
+            <ScrollArea className="flex-grow pr-2">
+              <div className="flex flex-col gap-3">
+
+                {groupedJobs[stage._id]?.map((job, index) => {
+                  const priority = priorityConfig[job.Priority] || {
+                    border: "border-l-border",
+                    bg: "bg-muted",
+                    text: "text-foreground",
+                  };
+
+                  return (
+                    <Draggable
+                      key={job.id}
+                      draggableId={job.id}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <Card
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          onClick={() => handleEditOpen(job.id)}
+                          onMouseEnter={() => setHoveredJobId(job.id)}
+                          onMouseLeave={() => setHoveredJobId(null)}
+                          className={`
+                            relative cursor-grab
+                            border-l-4 border-border
+                            bg-card text-card-foreground
+                            transition-all rounded-lg
+
+                            ${
+                              snapshot.isDragging
+                                ? "bg-accent/40 rotate-2 shadow-lg"
+                                : "hover:bg-accent/20 hover:shadow-md"
+                            }
+
+                            ${priority.border}
+                          `}
+                        >
+                          <CardContent className="p-4 space-y-2">
+
+                            {/* Delete Button */}
+                            {hoveredJobId === job.id && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="
+                                        absolute top-2 right-2
+                                        h-8 w-8
+                                        text-destructive
+                                        hover:bg-destructive/10
+                                      "
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        confirm({
+                                          title: "Delete Job",
+                                          description:
+                                            "Are you sure you want to delete this job?",
+                                          onConfirm: () =>
+                                            deleteMutation.mutate(job.id),
+                                        });
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Delete Job
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+
+                            {/* CONTENT */}
+                            <p className="font-semibold text-card-foreground leading-tight">
+                              {truncateText(job.Name, 20)}
+                            </p>
+
+                            <p className="text-sm text-muted-foreground">
+                              {job.Account?.join(", ")}
+                            </p>
+
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <User className="h-3 w-3" />
+                              {job.JobAssignee?.join(", ") || "Unassigned"}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground italic">
+                              {truncateText(job.Description, 20)}
+                            </p>
+
+                            {/* PRIORITY */}
+                            <Badge
+                              className={`
+                                ${priority.bg}
+                                ${priority.text}
+                                border-none font-semibold
+                              `}
+                            >
+                              {priority.label || job.Priority}
+                            </Badge>
+
+                            {/* DATES */}
+                            <div className="grid grid-cols-1 gap-1 pt-2">
+
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                Start: {dayjs(job.StartDate).format("DD MMM")}
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                Due: {dayjs(job.DueDate).format("DD MMM")}
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-[10px] text-primary">
+                                <RefreshCw className="h-3 w-3" />
+                                {dayjs(job.updatedAt).fromNow()}
+                              </div>
+
+                            </div>
+
+                          </CardContent>
+                        </Card>
+                      )}
+                    </Draggable>
+                  );
+                })}
+
+                {provided.placeholder}
+              </div>
+            </ScrollArea>
+
+          </div>
+        )}
+      </Droppable>
+    ))}
+
+  </div>
+</DragDropContext>
       {/* Drawers */}
       <JobDrawer 
         open={jobDrawerOpen} 

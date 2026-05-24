@@ -622,7 +622,7 @@ import { MoreVertical, Trash2, RotateCcw, Download } from "lucide-react";
 
 const Trash = () => {
   const { accountId } = useParams();
-
+console.log("Account ID in Trash component:", accountId);
   const FolderTreeView = ({ accountId }) => {
     const [expandedFolders, setExpandedFolders] = useState({});
     const [selectedFolderForMenu, setSelectedFolderForMenu] = useState(null);
@@ -638,7 +638,8 @@ const Trash = () => {
 
     const fetchFolderTree = async () => {
       try {
-        const res = await accountDocsAPI.listTrashedItems();
+        // const res = await accountDocsAPI.listTrashedItems();
+           const res = await accountDocsAPI.listTrashedItems(accountId);
         if (res.status === 200) {
           setFolderTree(res.data.contents?.Admin || []);
         } else {
@@ -747,107 +748,295 @@ const Trash = () => {
         </span>
       );
     };
-
-    const renderRows = (items, level = 0) =>
-      items.map((item) => {
-        const isFolder = item.type === "folder";
-
-        return (
-          <React.Fragment key={item.path}>
-            <TableRow className="hover:bg-muted/50">
-              <TableCell className="pl-4">
-                <div className="flex items-center gap-2">
-                  {isFolder ? (
-                    <>
-                      <button onClick={() => toggleFolder(item.path)}>
-                        {expandedFolders[item.path] ? (
-                          <FolderOpenIcon size={16} />
-                        ) : (
-                          <FolderClosedIcon size={16} />
-                        )}
-                      </button>
-                      <span
-                        className="cursor-pointer font-medium"
-                        onClick={() => toggleFolder(item.path)}
-                      >
-                        {item.name} (Trashed)
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      {getFileIcon(item.name)}
-                      <span>{item.name} (Trashed)</span>
-                    </>
-                  )}
-                </div>
-              </TableCell>
-
-              <TableCell>
-                <TrashedInfo meta={item.meta} />
-              </TableCell>
-
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => restoreItem(item)}
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Restore
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setItemToDelete(item);
-                        setDeleteDialogOpen(true);
-                      }}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Permanently
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() => handleDownload(item)}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-
-            {isFolder &&
-              expandedFolders[item.path] &&
-              item.children &&
-              renderRows(item.children, level + 1)}
-          </React.Fragment>
-        );
-      });
+const renderRows = (items, level = 0) =>
+  items.map((item) => {
+    const isFolder = item.type === "folder";
 
     return (
-      <div className="p-6">
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <h2 className="text-lg font-semibold mb-2">📜 Folder Explorer</h2>
+      <React.Fragment key={item.path}>
+        <TableRow
+          className="
+            border-b border-border/60
+            transition-colors duration-200
+            hover:bg-muted/30
+          "
+        >
+          {/* Name */}
+          <TableCell
+            className="pl-4 py-3"
+            style={{
+              paddingLeft: `${level * 20 + 16}px`,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              {isFolder ? (
+                <>
+                  <button
+                    onClick={() => toggleFolder(item.path)}
+                    className="
+                      flex h-7 w-7 items-center justify-center
+                      rounded-md
+                      text-muted-foreground
+                      transition-colors
+                      hover:bg-muted
+                      hover:text-foreground
+                    "
+                  >
+                    {expandedFolders[item.path] ? (
+                      <FolderOpenIcon size={16} />
+                    ) : (
+                      <FolderClosedIcon size={16} />
+                    )}
+                  </button>
 
-          <div className="mb-3 rounded-md border bg-yellow-50 p-3 text-sm">
-            ⚠️ Items will be permanently deleted after 60 days
-          </div>
+                  <span
+                    className="
+                      cursor-pointer
+                      font-medium
+                      text-foreground
+                      transition-colors
+                      hover:text-primary
+                    "
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(0.9rem * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                    onClick={() => toggleFolder(item.path)}
+                  >
+                    {item.name}
+                    <span className="ml-1 text-muted-foreground text-xs">
+                      (Trashed)
+                    </span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="text-muted-foreground">
+                    {getFileIcon(item.name)}
+                  </div>
 
-          {folderTree.length > 0 ? (
+                  <span
+                    className="text-foreground"
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(0.88rem * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
+                    {item.name}
+                    <span className="ml-1 text-muted-foreground text-xs">
+                      (Trashed)
+                    </span>
+                  </span>
+                </>
+              )}
+            </div>
+          </TableCell>
+
+          {/* Trashed Info */}
+          <TableCell
+            className="py-3 text-muted-foreground"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            <TrashedInfo meta={item.meta} />
+          </TableCell>
+
+          {/* Actions */}
+          <TableCell className="py-3 text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="
+                    h-8 w-8 rounded-lg
+                    text-muted-foreground
+                    transition-all
+                    hover:bg-muted
+                    hover:text-foreground
+                  "
+                >
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                align="end"
+                className="
+                  w-52 rounded-xl
+                  border border-border
+                  bg-popover
+                  shadow-xl
+                "
+              >
+                <DropdownMenuItem
+                  onClick={() => restoreItem(item)}
+                  className="
+                    cursor-pointer
+                    rounded-md
+                    focus:bg-muted
+                  "
+                >
+                  <RotateCcw className="mr-2 h-4 w-4 text-primary" />
+                  Restore
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    setItemToDelete(item);
+                    setDeleteDialogOpen(true);
+                  }}
+                  className="
+                    cursor-pointer
+                    rounded-md
+                    text-destructive
+                    focus:bg-destructive/10
+                    focus:text-destructive
+                  "
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Permanently
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleDownload(item)}
+                  className="
+                    cursor-pointer
+                    rounded-md
+                    focus:bg-muted
+                  "
+                >
+                  <Download className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Download
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
+
+        {isFolder &&
+          expandedFolders[item.path] &&
+          item.children &&
+          renderRows(item.children, level + 1)}
+      </React.Fragment>
+    );
+  });
+
+return (
+  <div className="p-4 md:p-6 bg-background min-h-full">
+    <div
+      className="
+        overflow-hidden rounded-2xl
+        border border-border
+        bg-card
+        shadow-sm
+      "
+    >
+      {/* Header */}
+      <div className="border-b border-border px-5 py-4">
+        <h2
+          className="text-lg font-semibold text-foreground"
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(1.05rem * parseFloat(var(--font-scale)) / 100)",
+          }}
+        >
+          📜 Folder Explorer
+        </h2>
+
+        <p
+          className="mt-1 text-muted-foreground"
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
+          }}
+        >
+          Browse and manage trashed folders and files
+        </p>
+      </div>
+
+      {/* Warning */}
+      <div className="px-5 pt-4">
+        <div
+          className="
+            flex items-start gap-2
+            rounded-xl border
+            border-yellow-500/20
+            bg-yellow-500/10
+            px-4 py-3
+          "
+        >
+          <span className="text-sm">⚠️</span>
+
+          <p
+            className="text-yellow-700 dark:text-yellow-300"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            Items will be permanently deleted after 60 days
+          </p>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="p-5">
+        {folderTree.length > 0 ? (
+          <div className="overflow-hidden rounded-xl border border-border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Trashed</TableHead>
-                  <TableHead className="text-right">
+                <TableRow className="bg-muted/40 hover:bg-muted/40 border-border">
+                  <TableHead
+                    className="
+                      h-11 px-4
+                      text-muted-foreground
+                      font-semibold uppercase tracking-wide
+                    "
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
+                    Name
+                  </TableHead>
+
+                  <TableHead
+                    className="
+                      h-11 px-4
+                      text-muted-foreground
+                      font-semibold uppercase tracking-wide
+                    "
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
+                    Trashed
+                  </TableHead>
+
+                  <TableHead
+                    className="
+                      h-11 px-4 text-right
+                      text-muted-foreground
+                      font-semibold uppercase tracking-wide
+                    "
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
                     Actions
                   </TableHead>
                 </TableRow>
@@ -855,52 +1044,417 @@ const Trash = () => {
 
               <TableBody>{renderRows(folderTree)}</TableBody>
             </Table>
-          ) : (
-            <div className="text-center py-6 text-muted-foreground">
-              🗑️ Trash is empty
+          </div>
+        ) : (
+          <div
+            className="
+              flex flex-col items-center justify-center
+              rounded-xl border border-dashed border-border
+              py-16 text-center
+            "
+          >
+            <div
+              className="
+                mb-3 flex h-12 w-12 items-center justify-center
+                rounded-full bg-muted
+              "
+            >
+              <Trash2 className="h-5 w-5 text-muted-foreground" />
             </div>
-          )}
-        </div>
 
-        {/* Delete Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="text-red-600">
-                Delete Permanently
-              </DialogTitle>
-            </DialogHeader>
-
-            <p className="text-sm">
-              Type <b>DELETE</b> to confirm
+            <p
+              className="font-medium text-foreground"
+              style={{
+                fontFamily: "var(--font-family)",
+                fontSize:
+                  "calc(0.92rem * parseFloat(var(--font-scale)) / 100)",
+              }}
+            >
+              Trash is empty
             </p>
 
-            <Input
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="Type DELETE"
-            />
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                Cancel
-              </Button>
-
-              <Button
-                variant="destructive"
-                disabled={deleteConfirmText !== "DELETE"}
-                onClick={async () => {
-                  await deleteItem(itemToDelete);
-                  setDeleteDialogOpen(false);
-                }}
-              >
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            <p
+              className="mt-1 text-muted-foreground"
+              style={{
+                fontFamily: "var(--font-family)",
+                fontSize:
+                  "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
+              }}
+            >
+              Deleted items will appear here
+            </p>
+          </div>
+        )}
       </div>
-    );
+    </div>
+
+    {/* Delete Dialog */}
+    {/* <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <DialogContent
+        className="
+          rounded-2xl border-border
+          bg-background shadow-2xl
+        "
+      >
+        <DialogHeader>
+          <DialogTitle
+            className="text-destructive"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(1rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            Delete Permanently
+          </DialogTitle>
+        </DialogHeader>
+
+        <p
+          className="text-muted-foreground"
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(0.85rem * parseFloat(var(--font-scale)) / 100)",
+          }}
+        >
+          Type <b className="text-foreground">DELETE</b> to confirm
+        </p>
+
+        <Input
+          value={deleteConfirmText}
+          onChange={(e) => setDeleteConfirmText(e.target.value)}
+          placeholder="Type DELETE"
+          className="
+            border-border
+            bg-background
+            focus-visible:ring-1
+            focus-visible:ring-primary
+          "
+          style={{
+            fontFamily: "var(--font-family)",
+          }}
+        />
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setDeleteDialogOpen(false)}
+            className="rounded-lg"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="destructive"
+            disabled={deleteConfirmText !== "DELETE"}
+            onClick={async () => {
+              await deleteItem(itemToDelete);
+              setDeleteDialogOpen(false);
+            }}
+            className="rounded-lg"
+          >
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog> */}
+
+    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+  <DialogContent
+    className="
+      overflow-hidden
+      rounded-2xl
+      border border-border
+      bg-background
+      p-0
+      shadow-2xl
+    "
+  >
+    {/* Header */}
+    <div className="border-b border-border bg-muted/20 px-6 py-5">
+      <DialogHeader className="space-y-2">
+        <div
+          className="
+            flex h-11 w-11 items-center justify-center
+            rounded-xl
+            bg-destructive/10
+          "
+        >
+          <Trash2 className="h-5 w-5 text-destructive" />
+        </div>
+
+        <DialogTitle
+          className="text-left font-semibold text-foreground"
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(1.05rem * parseFloat(var(--font-scale)) / 100)",
+          }}
+        >
+          Delete Permanently
+        </DialogTitle>
+
+        <p
+          className="text-left text-muted-foreground"
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
+          }}
+        >
+          This action cannot be undone. Type{" "}
+          <span className="font-semibold text-foreground">
+            DELETE
+          </span>{" "}
+          below to confirm permanent deletion.
+        </p>
+      </DialogHeader>
+    </div>
+
+    {/* Content */}
+    <div className="space-y-5 px-6 py-5">
+      <div className="space-y-2">
+        <label
+          className="block font-medium text-foreground"
+          style={{
+            fontFamily: "var(--font-family)",
+            fontSize:
+              "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+          }}
+        >
+          Confirmation
+        </label>
+
+       <Input
+  value={deleteConfirmText}
+  onChange={(e) => setDeleteConfirmText(e.target.value)}
+  placeholder="Type DELETE"
+  className="
+    h-11 rounded-xl
+    border border-border
+    bg-background
+    text-foreground
+    placeholder:text-muted-foreground
+    shadow-sm
+    transition-all duration-200
+
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-primary/30
+    focus-visible:border-primary
+
+    dark:bg-muted/20
+    dark:border-border/80
+    dark:text-foreground
+    dark:placeholder:text-muted-foreground
+  "
+  style={{
+    fontFamily: "var(--font-family)",
+    fontSize:
+      "calc(0.88rem * parseFloat(var(--font-scale)) / 100)",
+  }}
+/>
+      </div>
+
+      {/* Footer */}
+      <DialogFooter className="gap-2 sm:justify-end">
+        <Button
+          variant="outline"
+          onClick={() => setDeleteDialogOpen(false)}
+          className="
+            rounded-xl
+            border-border
+            px-5
+            transition-all
+            hover:bg-muted
+          "
+          style={{
+            fontFamily: "var(--font-family)",
+          }}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          variant="destructive"
+          disabled={deleteConfirmText !== "DELETE"}
+          onClick={async () => {
+            await deleteItem(itemToDelete);
+            setDeleteDialogOpen(false);
+          }}
+          className="
+            rounded-xl
+            px-5
+            shadow-sm
+            transition-all
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+          style={{
+            fontFamily: "var(--font-family)",
+          }}
+        >
+          Delete Permanently
+        </Button>
+      </DialogFooter>
+    </div>
+  </DialogContent>
+</Dialog>
+  </div>
+);
+    // const renderRows = (items, level = 0) =>
+    //   items.map((item) => {
+    //     const isFolder = item.type === "folder";
+
+    //     return (
+    //       <React.Fragment key={item.path}>
+    //         <TableRow className="hover:bg-muted/50">
+    //           <TableCell className="pl-4">
+    //             <div className="flex items-center gap-2">
+    //               {isFolder ? (
+    //                 <>
+    //                   <button onClick={() => toggleFolder(item.path)}>
+    //                     {expandedFolders[item.path] ? (
+    //                       <FolderOpenIcon size={16} />
+    //                     ) : (
+    //                       <FolderClosedIcon size={16} />
+    //                     )}
+    //                   </button>
+    //                   <span
+    //                     className="cursor-pointer font-medium"
+    //                     onClick={() => toggleFolder(item.path)}
+    //                   >
+    //                     {item.name} (Trashed)
+    //                   </span>
+    //                 </>
+    //               ) : (
+    //                 <>
+    //                   {getFileIcon(item.name)}
+    //                   <span>{item.name} (Trashed)</span>
+    //                 </>
+    //               )}
+    //             </div>
+    //           </TableCell>
+
+    //           <TableCell>
+    //             <TrashedInfo meta={item.meta} />
+    //           </TableCell>
+
+    //           <TableCell className="text-right">
+    //             <DropdownMenu>
+    //               <DropdownMenuTrigger asChild>
+    //                 <Button variant="ghost" size="icon">
+    //                   <MoreVertical size={16} />
+    //                 </Button>
+    //               </DropdownMenuTrigger>
+
+    //               <DropdownMenuContent align="end">
+    //                 <DropdownMenuItem
+    //                   onClick={() => restoreItem(item)}
+    //                 >
+    //                   <RotateCcw className="mr-2 h-4 w-4" />
+    //                   Restore
+    //                 </DropdownMenuItem>
+
+    //                 <DropdownMenuItem
+    //                   onClick={() => {
+    //                     setItemToDelete(item);
+    //                     setDeleteDialogOpen(true);
+    //                   }}
+    //                   className="text-red-600"
+    //                 >
+    //                   <Trash2 className="mr-2 h-4 w-4" />
+    //                   Delete Permanently
+    //                 </DropdownMenuItem>
+
+    //                 <DropdownMenuItem
+    //                   onClick={() => handleDownload(item)}
+    //                 >
+    //                   <Download className="mr-2 h-4 w-4" />
+    //                   Download
+    //                 </DropdownMenuItem>
+    //               </DropdownMenuContent>
+    //             </DropdownMenu>
+    //           </TableCell>
+    //         </TableRow>
+
+    //         {isFolder &&
+    //           expandedFolders[item.path] &&
+    //           item.children &&
+    //           renderRows(item.children, level + 1)}
+    //       </React.Fragment>
+    //     );
+    //   });
+
+    // return (
+    //   <div className="p-6">
+    //     <div className="rounded-xl border bg-card p-4 shadow-sm">
+    //       <h2 className="text-lg font-semibold mb-2">📜 Folder Explorer</h2>
+
+    //       <div className="mb-3 rounded-md border bg-yellow-50 p-3 text-sm">
+    //         ⚠️ Items will be permanently deleted after 60 days
+    //       </div>
+
+    //       {folderTree.length > 0 ? (
+    //         <Table>
+    //           <TableHeader>
+    //             <TableRow>
+    //               <TableHead>Name</TableHead>
+    //               <TableHead>Trashed</TableHead>
+    //               <TableHead className="text-right">
+    //                 Actions
+    //               </TableHead>
+    //             </TableRow>
+    //           </TableHeader>
+
+    //           <TableBody>{renderRows(folderTree)}</TableBody>
+    //         </Table>
+    //       ) : (
+    //         <div className="text-center py-6 text-muted-foreground">
+    //           🗑️ Trash is empty
+    //         </div>
+    //       )}
+    //     </div>
+
+    //     {/* Delete Dialog */}
+    //     <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+    //       <DialogContent>
+    //         <DialogHeader>
+    //           <DialogTitle className="text-red-600">
+    //             Delete Permanently
+    //           </DialogTitle>
+    //         </DialogHeader>
+
+    //         <p className="text-sm">
+    //           Type <b>DELETE</b> to confirm
+    //         </p>
+
+    //         <Input
+    //           value={deleteConfirmText}
+    //           onChange={(e) => setDeleteConfirmText(e.target.value)}
+    //           placeholder="Type DELETE"
+    //         />
+
+    //         <DialogFooter>
+    //           <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+    //             Cancel
+    //           </Button>
+
+    //           <Button
+    //             variant="destructive"
+    //             disabled={deleteConfirmText !== "DELETE"}
+    //             onClick={async () => {
+    //               await deleteItem(itemToDelete);
+    //               setDeleteDialogOpen(false);
+    //             }}
+    //           >
+    //             Delete
+    //           </Button>
+    //         </DialogFooter>
+    //       </DialogContent>
+    //     </Dialog>
+    //   </div>
+    // );
   };
 
   return <FolderTreeView accountId={accountId} />;

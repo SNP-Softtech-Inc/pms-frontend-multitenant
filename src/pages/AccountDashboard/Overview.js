@@ -1,5 +1,3 @@
-
-
 import React from "react";
 import { useState } from "react";
 import ActiveChats from "./ActiveChats";
@@ -31,12 +29,12 @@ const hardcodedData = {
 
 const Overview = () => {
   const { accountId } = useParams();
-  const [jobsCount, setJobsCount] =  useState(0);
-  const [proposalsCount, setProposalsCount] =  useState(0);
+  const [jobsCount, setJobsCount] = useState(0);
+  const [proposalsCount, setProposalsCount] = useState(0);
   const [invoicesCount, setInvoicesCount] = useState(0);
   const [chatsCount, setChatsCount] = useState(0);
   const [documentsCount, setDocumentsCount] = useState(0);
-  const [organizersCount, setOrganizersCount] =  useState(0);
+  const [organizersCount, setOrganizersCount] = useState(0);
   const EmptyState = ({ label, icon: Icon = PiNotepad }) => (
     <div className="flex flex-col items-center py-12 text-muted-foreground/60">
       <Icon className="text-5xl mb-3 opacity-50" />
@@ -97,7 +95,9 @@ const Overview = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Unpaid Invoices</p>
-              <p className="text-2xl font-bold text-foreground">{invoicesCount}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {invoicesCount}
+              </p>
             </div>
 
             <PiReceipt className="text-3xl text-primary/60" />
@@ -123,7 +123,9 @@ const Overview = () => {
               <p className="text-xs text-muted-foreground">
                 Pending Organizers
               </p>
-              <p className="text-2xl font-bold text-foreground">{organizersCount}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {organizersCount}
+              </p>
             </div>
 
             <PiFileText className="text-3xl text-primary/60" />
@@ -157,10 +159,7 @@ const Overview = () => {
               count={chatsCount}
             />
 
-            <ActiveChats
-  accountId={accountId}
-  setChatsCount={setChatsCount}
-/>
+            <ActiveChats accountId={accountId} setChatsCount={setChatsCount} />
           </div>
 
           {/* Organizers Card */}
@@ -173,9 +172,9 @@ const Overview = () => {
             />
 
             <PendingOrganizers
-  accountId={accountId}
-  setOrganizersCount={setOrganizersCount}
-/>
+              accountId={accountId}
+              setOrganizersCount={setOrganizersCount}
+            />
           </div>
 
           {/* Proposals Card */}
@@ -188,9 +187,9 @@ const Overview = () => {
             />
 
             <PendingProposals
-  accountId={accountId}
-  setProposalsCount={setProposalsCount}
-/>
+              accountId={accountId}
+              setProposalsCount={setProposalsCount}
+            />
           </div>
         </div>
 
@@ -205,10 +204,7 @@ const Overview = () => {
               count={jobsCount}
             />
 
-              <ActiveJobs
-  accountId={accountId}
-  setJobsCount={setJobsCount}
-/>
+            <ActiveJobs accountId={accountId} setJobsCount={setJobsCount} />
           </div>
 
           {/* Invoices Card */}
@@ -216,17 +212,14 @@ const Overview = () => {
             <SectionHeader
               title="Unpaid Invoices"
               to={`/clients/accounts/accountsdash/invoices/${accountId}/invoices`}
-          
               icon={PiReceipt}
               count={invoicesCount}
             />
 
-           
-<PendingInvoices
-  accountId={accountId}
-  setInvoicesCount={setInvoicesCount}
- 
-/>
+            <PendingInvoices
+              accountId={accountId}
+              setInvoicesCount={setInvoicesCount}
+            />
           </div>
 
           {/* Documents Card */}

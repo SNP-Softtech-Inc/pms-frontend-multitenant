@@ -1188,9 +1188,12 @@ export const accountDocsAPI = {
     ),
 
   // Trashed items
-  listTrashedItems: () =>
-    folderManagementApi.get("/accounts/docs/list-trashed"),
-
+  // listTrashedItems: () =>
+  //   folderManagementApi.get("/accounts/docs/list-trashed"),
+ listTrashedItems: (folderPath) =>
+  folderManagementApi.get(
+    `/accounts/docs/list-trashed?folderPath=${encodeURIComponent(folderPath)}`
+  ),
   // ================= DOCUMENT STATES =================
 
   // New tagged docs

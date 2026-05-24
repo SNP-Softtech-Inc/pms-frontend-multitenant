@@ -566,320 +566,415 @@ const NoteApp = () => {
   );
 
   // ---------------- UI ----------------
-  return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2 bg-white p-1 rounded-xl shadow-sm border">
-          <Button
-            variant={view === "active" ? "default" : "ghost"}
-            onClick={() => setView("active")}
-          >
-            Active
-          </Button>
-          <Button
-            variant={view === "archived" ? "default" : "ghost"}
-            onClick={() => setView("archived")}
-          >
-            Archived
-          </Button>
-        </div>
+//   return (
+//     <div className="min-h-screen bg-slate-50 p-6">
+//       {/* Header */}
+//       <div className="flex items-center justify-between mb-6">
+//         <div className="flex gap-2 bg-white p-1 rounded-xl shadow-sm border">
+//           <Button
+//             variant={view === "active" ? "default" : "ghost"}
+//             onClick={() => setView("active")}
+//           >
+//             Active
+//           </Button>
+//           <Button
+//             variant={view === "archived" ? "default" : "ghost"}
+//             onClick={() => setView("archived")}
+//           >
+//             Archived
+//           </Button>
+//         </div>
 
-        <Button onClick={() => setNewNoteVisible(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          New Note
+//         <Button onClick={() => setNewNoteVisible(true)}>
+//           <Plus className="w-4 h-4 mr-2" />
+//           New Note
+//         </Button>
+//       </div>
+
+//       {/* Create Note */}
+//       {newNoteVisible && (
+      
+//         <Card className="mb-6">
+//   <CardContent className="p-4 space-y-4">
+    
+//     {/* IMPORTANT WRAPPER */}
+//     <div className="relative z-10">
+//       <Editor value={newNoteText} onChange={setNewNoteText} />
+//     </div>
+
+//     <div className="flex gap-3 mt-6 relative z-20">
+//       <Button onClick={handleAddNote}>
+//         Save new note
+//       </Button>
+
+//       <Button
+//         variant="outline"
+//         onClick={() => setNewNoteVisible(false)}
+//       >
+//         Cancel
+//       </Button>
+//     </div>
+
+//   </CardContent>
+// </Card>
+//       )}
+
+     
+//       <div className="space-y-5">
+//   {filtered.map((note) => (
+//     <Card
+//       key={note.id}
+//       className={`
+//         relative overflow-hidden rounded-2xl border bg-white
+//         shadow-sm transition-all duration-200
+//         hover:shadow-lg hover:-translate-y-[1px]
+//         ${note.pinned ? "border-yellow-200" : "border-slate-200"}
+//       `}
+//     >
+//       {/* Pinned Accent Bar */}
+//       {note.pinned && (
+//         <div className="absolute left-0 top-0 h-full w-1 bg-yellow-400" />
+//       )}
+
+//       <CardContent className="p-5">
+//         {editingNoteId === note.id ? (
+//           <>
+//             <div className="mb-3 text-sm font-medium text-slate-600">
+//               Editing note...
+//             </div>
+
+//             <Editor
+//               value={editingNoteText}
+//               onChange={setEditingNoteText}
+//             />
+
+//             <div className="mt-4 flex gap-2">
+//               <Button onClick={handleUpdate}>Update</Button>
+//               <Button
+//                 variant="outline"
+//                 onClick={() => setEditingNoteId(null)}
+//               >
+//                 Cancel
+//               </Button>
+//             </div>
+//           </>
+//         ) : (
+//           <>
+//             {/* HEADER */}
+//             <div className="flex items-start justify-between gap-4">
+//               <div className="space-y-1">
+//                 <div className="text-xs text-slate-500">
+//                   {note.createdBy}
+//                 </div>
+
+//                 <div className="text-xs text-slate-400">
+//                   {note.time}
+//                 </div>
+//               </div>
+
+//               {note.pinned && (
+//                 <span className="text-yellow-500">
+//                   📌
+//                 </span>
+//               )}
+//             </div>
+
+//             {/* BODY */}
+//             <div
+//               className="prose prose-sm max-w-none text-slate-700 mt-4 line-clamp-none"
+//               dangerouslySetInnerHTML={{
+//                 __html: note.text || "No content",
+//               }}
+//             />
+
+//             {/* FOOTER */}
+//             <div className="mt-5 flex items-center justify-between">
+//               {/* ACTIONS */}
+//               <div className="flex items-center gap-1 opacity-80 hover:opacity-100 transition">
+//                 {view === "active" ? (
+//                   <>
+//                     <Button
+//                       variant="ghost"
+//                       size="icon"
+//                       onClick={() => handleTogglePin(note)}
+//                       className="hover:bg-yellow-50"
+//                     >
+//                       <Pin
+//                         className={`w-4 h-4 ${
+//                           note.pinned
+//                             ? "text-yellow-500"
+//                             : "text-slate-500"
+//                         }`}
+//                       />
+//                     </Button>
+
+//                     <Button
+//                       variant="ghost"
+//                       size="icon"
+//                       onClick={() => handleArchive(note.id)}
+//                     >
+//                       <Archive className="w-4 h-4 text-slate-500" />
+//                     </Button>
+
+//                     <Button
+//                       variant="ghost"
+//                       onClick={() => handleEdit(note)}
+//                       className="text-slate-600"
+//                     >
+//                       <Edit3 className="w-4 h-4 mr-2" />
+//                       Edit
+//                     </Button>
+//                   </>
+//                 ) : (
+//                   <>
+//                     <Button
+//                       variant="ghost"
+//                       onClick={() => handleUnarchive(note.id)}
+//                     >
+//                       <ArchiveRestore className="w-4 h-4 mr-2" />
+//                       Restore
+//                     </Button>
+
+//                     <Button
+//                       variant="ghost"
+//                       className="text-red-500 hover:text-red-600"
+//                       onClick={() => handleDelete(note.id)}
+//                     >
+//                       <Trash2 className="w-4 h-4 mr-2" />
+//                       Delete
+//                     </Button>
+//                   </>
+//                 )}
+//               </div>
+
+//               {/* TAG BADGE */}
+//               <Badge
+//                 variant="secondary"
+//                 className="rounded-full px-3 py-1 text-xs bg-slate-100 text-slate-600"
+//               >
+//                 {view === "active" ? "Active" : "Archived"}
+//               </Badge>
+//             </div>
+//           </>
+//         )}
+//       </CardContent>
+//     </Card>
+//   ))}
+// </div>
+//     </div>
+//   );
+return (
+  <div className="min-h-screen bg-background text-foreground p-6">
+
+    {/* Header */}
+    <div className="flex items-center justify-between mb-6">
+
+      {/* View Toggle */}
+      <div className="flex gap-2 p-1 rounded-xl border border-border bg-muted/30 shadow-sm">
+        <Button
+          variant={view === "active" ? "default" : "ghost"}
+          onClick={() => setView("active")}
+        >
+          Active
+        </Button>
+
+        <Button
+          variant={view === "archived" ? "default" : "ghost"}
+          onClick={() => setView("archived")}
+        >
+          Archived
         </Button>
       </div>
 
-      {/* Create Note */}
-      {newNoteVisible && (
-        // <Card className="mb-6">
-        //   <CardContent className="p-4">
-        //     <div> <Editor value={newNoteText} onChange={setNewNoteText} /></div>
-           
-
-        //     <div className="flex gap-3 mt-10">
-        //       <Button onClick={handleAddNote}>Save new note</Button>
-        //       <Button
-        //         variant="outline"
-        //         onClick={() => setNewNoteVisible(false)}
-        //       >
-        //         Cancel
-        //       </Button>
-        //     </div>
-        //   </CardContent>
-        // </Card>
-        <Card className="mb-6">
-  <CardContent className="p-4 space-y-4">
-    
-    {/* IMPORTANT WRAPPER */}
-    <div className="relative z-10">
-      <Editor value={newNoteText} onChange={setNewNoteText} />
-    </div>
-
-    <div className="flex gap-3 mt-6 relative z-20">
-      <Button onClick={handleAddNote}>
-        Save new note
-      </Button>
-
-      <Button
-        variant="outline"
-        onClick={() => setNewNoteVisible(false)}
-      >
-        Cancel
+      {/* New Note */}
+      <Button onClick={() => setNewNoteVisible(true)}>
+        <Plus className="w-4 h-4 mr-2" />
+        New Note
       </Button>
     </div>
 
-  </CardContent>
-</Card>
-      )}
+    {/* Create Note */}
+    {newNoteVisible && (
+      <Card className="mb-6 bg-card border border-border shadow-sm">
+        <CardContent className="p-4 space-y-4">
 
-      {/* Notes */}
-      {/* <div className="space-y-4">
-        {filtered.map((note) => (
-          <Card
-            key={note.id}
-            className="hover:shadow-md transition"
-          >
-            <CardContent className="p-5">
-              {editingNoteId === note.id ? (
-                <>
-                  <Editor
-                    value={editingNoteText}
-                    onChange={setEditingNoteText}
-                  />
+          <div className="relative z-10">
+            <Editor value={newNoteText} onChange={setNewNoteText} />
+          </div>
 
-                  <div className="flex gap-3 mt-4">
-                    <Button onClick={handleUpdate}>Update</Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setEditingNoteId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  
-                  <div
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: note.text,
-                    }}
-                  />
+          <div className="flex gap-3 mt-6 relative z-20">
+            <Button onClick={handleAddNote}>
+              Save new note
+            </Button>
 
-                 
-                  <div className="flex items-center justify-between mt-5">
-                    <div className="flex gap-2">
-                      {view === "active" ? (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleTogglePin(note)}
-                          >
-                            <Pin
-                              className={`w-4 h-4 ${
-                                note.pinned
-                                  ? "text-yellow-500"
-                                  : ""
-                              }`}
-                            />
-                          </Button>
+            <Button
+              variant="outline"
+              onClick={() => setNewNoteVisible(false)}
+            >
+              Cancel
+            </Button>
+          </div>
 
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleArchive(note.id)}
-                          >
-                            <Archive className="w-4 h-4" />
-                          </Button>
+        </CardContent>
+      </Card>
+    )}
 
-                          <Button
-                            variant="ghost"
-                            onClick={() => handleEdit(note)}
-                          >
-                            <Edit3 className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            variant="ghost"
-                            onClick={() => handleUnarchive(note.id)}
-                          >
-                            <ArchiveRestore className="w-4 h-4 mr-2" />
-                            Restore
-                          </Button>
+    {/* Notes List */}
+    <div className="space-y-5">
+      {filtered.map((note) => (
+        <Card
+          key={note.id}
+          className={`
+            relative overflow-hidden rounded-2xl
+            bg-card text-card-foreground
+            border border-border
+            shadow-sm transition-all duration-200
+            hover:shadow-lg hover:-translate-y-[1px]
+            ${note.pinned ? "border-yellow-500/40" : ""}
+          `}
+        >
 
-                          <Button
-                            variant="ghost"
-                            className="text-red-500"
-                            onClick={() => handleDelete(note.id)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </Button>
-                        </>
-                      )}
+          {/* Pinned Accent */}
+          {note.pinned && (
+            <div className="absolute left-0 top-0 h-full w-1 bg-yellow-500" />
+          )}
+
+          <CardContent className="p-5">
+
+            {/* EDIT MODE */}
+            {editingNoteId === note.id ? (
+              <>
+                <div className="mb-3 text-sm font-medium text-muted-foreground">
+                  Editing note...
+                </div>
+
+                <Editor
+                  value={editingNoteText}
+                  onChange={setEditingNoteText}
+                />
+
+                <div className="mt-4 flex gap-2">
+                  <Button onClick={handleUpdate}>
+                    Update
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditingNoteId(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* HEADER */}
+                <div className="flex items-start justify-between gap-4">
+
+                  <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground">
+                      {note.createdBy}
                     </div>
 
-                    <Badge variant="secondary">
-                      {note.createdBy} • {note.time}
-                    </Badge>
+                    <div className="text-xs text-muted-foreground/70">
+                      {note.time}
+                    </div>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div> */}
 
-      <div className="space-y-5">
-  {filtered.map((note) => (
-    <Card
-      key={note.id}
-      className={`
-        relative overflow-hidden rounded-2xl border bg-white
-        shadow-sm transition-all duration-200
-        hover:shadow-lg hover:-translate-y-[1px]
-        ${note.pinned ? "border-yellow-200" : "border-slate-200"}
-      `}
-    >
-      {/* Pinned Accent Bar */}
-      {note.pinned && (
-        <div className="absolute left-0 top-0 h-full w-1 bg-yellow-400" />
-      )}
-
-      <CardContent className="p-5">
-        {editingNoteId === note.id ? (
-          <>
-            <div className="mb-3 text-sm font-medium text-slate-600">
-              Editing note...
-            </div>
-
-            <Editor
-              value={editingNoteText}
-              onChange={setEditingNoteText}
-            />
-
-            <div className="mt-4 flex gap-2">
-              <Button onClick={handleUpdate}>Update</Button>
-              <Button
-                variant="outline"
-                onClick={() => setEditingNoteId(null)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* HEADER */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="text-xs text-slate-500">
-                  {note.createdBy}
+                  {note.pinned && (
+                    <span className="text-yellow-500">📌</span>
+                  )}
                 </div>
 
-                <div className="text-xs text-slate-400">
-                  {note.time}
+                {/* BODY */}
+                <div
+                  className="prose prose-sm max-w-none text-foreground/80 mt-4"
+                  dangerouslySetInnerHTML={{
+                    __html: note.text || "No content",
+                  }}
+                />
+
+                {/* FOOTER */}
+                <div className="mt-5 flex items-center justify-between">
+
+                  {/* ACTIONS */}
+                  <div className="flex items-center gap-1">
+
+                    {view === "active" ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleTogglePin(note)}
+                          className="hover:bg-muted"
+                        >
+                          <Pin
+                            className={`w-4 h-4 ${
+                              note.pinned
+                                ? "text-yellow-500"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleArchive(note.id)}
+                        >
+                          <Archive className="w-4 h-4 text-muted-foreground" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleEdit(note)}
+                          className="text-muted-foreground"
+                        >
+                          <Edit3 className="w-4 h-4 mr-2" />
+                          Edit
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleUnarchive(note.id)}
+                        >
+                          <ArchiveRestore className="w-4 h-4 mr-2" />
+                          Restore
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          className="text-red-500 hover:text-red-600"
+                          onClick={() => handleDelete(note.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* TAG */}
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full px-3 py-1 text-xs bg-muted text-muted-foreground border border-border"
+                  >
+                    {view === "active" ? "Active" : "Archived"}
+                  </Badge>
+
                 </div>
-              </div>
+              </>
+            )}
 
-              {note.pinned && (
-                <span className="text-yellow-500">
-                  📌
-                </span>
-              )}
-            </div>
-
-            {/* BODY */}
-            <div
-              className="prose prose-sm max-w-none text-slate-700 mt-4 line-clamp-none"
-              dangerouslySetInnerHTML={{
-                __html: note.text || "No content",
-              }}
-            />
-
-            {/* FOOTER */}
-            <div className="mt-5 flex items-center justify-between">
-              {/* ACTIONS */}
-              <div className="flex items-center gap-1 opacity-80 hover:opacity-100 transition">
-                {view === "active" ? (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleTogglePin(note)}
-                      className="hover:bg-yellow-50"
-                    >
-                      <Pin
-                        className={`w-4 h-4 ${
-                          note.pinned
-                            ? "text-yellow-500"
-                            : "text-slate-500"
-                        }`}
-                      />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleArchive(note.id)}
-                    >
-                      <Archive className="w-4 h-4 text-slate-500" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleEdit(note)}
-                      className="text-slate-600"
-                    >
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleUnarchive(note.id)}
-                    >
-                      <ArchiveRestore className="w-4 h-4 mr-2" />
-                      Restore
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      className="text-red-500 hover:text-red-600"
-                      onClick={() => handleDelete(note.id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              {/* TAG BADGE */}
-              <Badge
-                variant="secondary"
-                className="rounded-full px-3 py-1 text-xs bg-slate-100 text-slate-600"
-              >
-                {view === "active" ? "Active" : "Archived"}
-              </Badge>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  ))}
-</div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
-  );
+
+  </div>
+);
 };
 
 export default NoteApp;

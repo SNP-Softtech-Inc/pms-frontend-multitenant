@@ -294,104 +294,297 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
     console.log(selectedValues);
   };
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="!w-[700px] !max-w-none overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
-            {mode === "edit" ? "Edit Contact" : "New Contact"}
-          </SheetTitle>
-        </SheetHeader>
+  <Sheet open={open} onOpenChange={onClose}>
+    <SheetContent
+      className="
+        !w-[720px]
+        !max-w-none
+        overflow-y-auto
+        border-l border-border/60
 
-        <div className="space-y-4 mt-4">
-          {/* Name */}
-          <div className="grid grid-cols-3 gap-3">
+        bg-background/95
+        backdrop-blur-xl
+
+        p-0
+
+        dark:bg-background/90
+      "
+    >
+      {/* Header */}
+      <div
+        className="
+          sticky top-0 z-20
+          border-b border-border/50
+          bg-background/90
+          backdrop-blur-xl
+        "
+      >
+        <SheetHeader className="px-6 py-5 space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <SheetTitle
+                className="
+                  text-lg font-semibold tracking-tight
+                  text-foreground
+                "
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize:
+                    "calc(1.05rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                {mode === "edit"
+                  ? "Edit Contact"
+                  : "New Contact"}
+              </SheetTitle>
+
+              <p
+                className="
+                  text-sm text-muted-foreground
+                "
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize:
+                    "calc(0.82rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                Manage personal details, communication,
+                tags and address information.
+              </p>
+            </div>
+
+            <div
+              className="
+                h-10 w-10
+                rounded-2xl
+                border border-primary/20
+                bg-primary/10
+                flex items-center justify-center cursor-pointer
+              "
+              onClick={onClose}
+            >
+              <span className="text-sm font-semibold text-primary">
+                {mode === "edit" ? "E" : "N"}
+              </span>
+            </div>
+          </div>
+        </SheetHeader>
+      </div>
+
+      {/* Body */}
+      <div className="px-6 py-5 space-y-6">
+        {/* Name Section */}
+        <div
+          className="
+            rounded-2xl
+            border border-border/60
+            bg-muted/20
+            p-5
+            space-y-4
+
+            dark:bg-muted/10
+          "
+        >
+          <div>
+            <h3
+              className="
+                text-sm font-semibold
+                text-foreground
+              "
+            >
+              Personal Information
+            </h3>
+
+            <p className="text-xs text-muted-foreground mt-1">
+              Basic contact identification details.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input
               placeholder="First Name *"
               value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              onChange={(e) =>
+                setFirstName(e.target.value)
+              }
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+                focus-visible:ring-primary/20
+              "
             />
+
             <Input
               placeholder="Middle Name"
               value={middleName}
-              onChange={(e) => setMiddleName(e.target.value)}
+              onChange={(e) =>
+                setMiddleName(e.target.value)
+              }
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
             />
+
             <Input
               placeholder="Last Name *"
               value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              onChange={(e) =>
+                setLastName(e.target.value)
+              }
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
             />
           </div>
 
-          {/* Contact */}
           <Input
             value={contactName}
             placeholder="Contact Name"
-            onChange={(e) => setContactName(e.target.value)}
+            onChange={(e) =>
+              setContactName(e.target.value)
+            }
+            className="
+              h-11 rounded-xl
+              border-border/60
+              bg-background/80
+            "
           />
+
           <Input
             value={companyName}
             placeholder="Company Name"
-            onChange={(e) => setCompanyName(e.target.value)}
+            onChange={(e) =>
+              setCompanyName(e.target.value)
+            }
+            className="
+              h-11 rounded-xl
+              border-border/60
+              bg-background/80
+            "
           />
 
-          {/* Email */}
           <Input
             value={email}
-            placeholder="Email"
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email Address"
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
+            className="
+              h-11 rounded-xl
+              border-border/60
+              bg-background/80
+            "
           />
+        </div>
 
-          {/* Tags */}
+        {/* Tags & Notes */}
+        <div
+          className="
+            rounded-2xl
+            border border-border/60
+            bg-muted/20
+            p-5
+            space-y-4
+
+            dark:bg-muted/10
+          "
+        >
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">
+              Additional Details
+            </h3>
+
+            <p className="text-xs text-muted-foreground mt-1">
+              Organize contacts with tags and notes.
+            </p>
+          </div>
+
           <TagsMultiSelectDropDown
             value={selectedTags}
             onChange={handleTagChange}
-            placeholder="Tags"
+            placeholder="Select tags"
           />
 
-          {/* Note */}
           <Textarea
             value={note}
-            placeholder="Note"
+            placeholder="Write a note..."
             onChange={(e) => setNote(e.target.value)}
+            className="
+              min-h-[110px]
+              rounded-xl
+              border-border/60
+              bg-background/80
+              resize-none
+            "
           />
 
-          {/* SSN */}
-          <Input value={ssn} placeholder="SSN" onChange={handleSSNChange} />
+          <Input
+            value={ssn}
+            placeholder="SSN"
+            onChange={handleSSNChange}
+            className="
+              h-11 rounded-xl
+              border-border/60
+              bg-background/80
+            "
+          />
+        </div>
 
-          {/* Phones */}
-          {/* <div>
-            <div className="font-semibold">Phone Numbers</div>
+        {/* Phone Numbers */}
+        <div
+          className="
+            rounded-2xl
+            border border-border/60
+            bg-muted/20
+            p-5
+            space-y-4
 
-            {phoneNumbers.map((phone) => (
-              <div key={phone.id} className="flex gap-2 items-center mt-2">
-                <PhoneInput
-                  country="us"
-                  value={phone.phone}
-                  onChange={(val) =>
-                    setPhoneNumbers((prev) =>
-                      prev.map((p) =>
-                        p.id === phone.id ? { ...p, phone: val } : p
-                      )
-                    )
-                  }
-                />
-                <AiOutlineDelete onClick={()=>handleDeletePhoneNumber(phone.id)} />
-              </div>
-            ))}
+            dark:bg-muted/10
+          "
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">
+                Phone Numbers
+              </h3>
 
-            <div
-              className="flex items-center gap-2 text-blue-600 cursor-pointer mt-2"
-              onClick={handleAddPhoneNumber}
-            >
-              <AiOutlinePlusCircle /> Add phone
+              <p className="text-xs text-muted-foreground mt-1">
+                Add one or multiple phone numbers.
+              </p>
             </div>
-          </div> */}
-          <div className="space-y-2">
-            <div className="font-semibold text-xs">Phone Numbers</div>
 
+            <button
+              type="button"
+              onClick={handleAddPhoneNumber}
+              className="
+                inline-flex items-center gap-1.5
+                rounded-xl
+                border border-primary/20
+                bg-primary/10
+                px-3 py-2
+
+                text-xs font-medium text-primary
+
+                transition-all duration-200
+                hover:bg-primary/15
+              "
+            >
+              <AiOutlinePlusCircle className="h-4 w-4" />
+              Add Phone
+            </button>
+          </div>
+
+          <div className="space-y-3">
             {phoneNumbers.map((phone) => (
-              <div key={phone.id} className="flex items-center gap-2">
-                {/* IMPORTANT: constrain width */}
+              <div
+                key={phone.id}
+                className="flex items-center gap-2"
+              >
                 <div className="flex-1 min-w-0">
                   <PhoneInput
                     country="us"
@@ -399,14 +592,31 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
                     onChange={(val) =>
                       setPhoneNumbers((prev) =>
                         prev.map((p) =>
-                          p.id === phone.id ? { ...p, phone: val } : p,
-                        ),
+                          p.id === phone.id
+                            ? {
+                                ...p,
+                                phone: val,
+                              }
+                            : p
+                        )
                       )
                     }
                     inputStyle={{
                       width: "100%",
-                      height: "36px",
+                      height: "44px",
                       fontSize: "14px",
+                      borderRadius: "12px",
+                      border: "1px solid hsl(var(--border))",
+                      background: "hsl(var(--background))",
+                      color: "hsl(var(--foreground))",
+                    }}
+                    buttonStyle={{
+                      borderTopLeftRadius: "12px",
+                      borderBottomLeftRadius: "12px",
+                      borderColor:
+                        "hsl(var(--border))",
+                      background:
+                        "hsl(var(--background))",
                     }}
                     containerStyle={{
                       width: "100%",
@@ -414,65 +624,103 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
                   />
                 </div>
 
-                {/* tighter icon button like shadcn */}
                 <button
                   type="button"
-                  onClick={() => handleDeletePhoneNumber(phone.id)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md 
-                   text-muted-foreground hover:text-destructive 
-                   hover:bg-destructive/10 transition-colors shrink-0"
+                  onClick={() =>
+                    handleDeletePhoneNumber(phone.id)
+                  }
+                  className="
+                    inline-flex
+                    h-11 w-11
+                    items-center justify-center
+
+                    rounded-xl
+
+                    border border-border/60
+                    bg-background/70
+
+                    text-muted-foreground
+                    transition-all duration-200
+
+                    hover:border-destructive/20
+                    hover:bg-destructive/10
+                    hover:text-destructive
+                  "
                 >
                   <AiOutlineDelete className="h-4 w-4" />
                 </button>
               </div>
             ))}
-
-            <div
-              className="flex items-center gap-2 text-blue-600 cursor-pointer mt-2"
-              onClick={handleAddPhoneNumber}
-            >
-              <AiOutlinePlusCircle /> Add phone
-            </div>
           </div>
-          {/* Country */}
-          {/* <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                {selectedCountry?.label || "Select Country"}
-              </Button>
-            </PopoverTrigger>
+        </div>
 
-            <PopoverContent>
-              <Command>
-                <CommandInput placeholder="Search..." />
-                <CommandList>
-                  {options.map((opt) => (
-                    <CommandItem
-                      key={opt.value}
-                      onSelect={() => setSelectedCountry(opt)}
-                    >
-                      {opt.label}
-                    </CommandItem>
-                  ))}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover> */}
+        {/* Address */}
+        <div
+          className="
+            rounded-2xl
+            border border-border/60
+            bg-muted/20
+            p-5
+            space-y-4
+
+            dark:bg-muted/10
+          "
+        >
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">
+              Address Information
+            </h3>
+
+            <p className="text-xs text-muted-foreground mt-1">
+              Contact mailing and regional details.
+            </p>
+          </div>
+
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-between">
-                {selectedCountry?.label || "Select Country"}
+              <Button
+                variant="outline"
+                className="
+                  w-full h-11
+                  justify-between
+
+                  rounded-xl
+                  border-border/60
+                  bg-background/80
+
+                  font-normal
+                  text-muted-foreground
+
+                  hover:bg-muted/30
+                "
+              >
+                {selectedCountry?.label ||
+                  "Select Country"}
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-              <Command className="w-full">
-                <CommandInput placeholder="Search..." />
+            <PopoverContent
+              className="
+                w-[var(--radix-popover-trigger-width)]
+                rounded-2xl
+                border border-border/60
+                p-0
+                shadow-xl
+              "
+            >
+              <Command className="rounded-2xl">
+                <CommandInput
+                  placeholder="Search country..."
+                />
+
                 <CommandList>
                   {options.map((opt) => (
                     <CommandItem
                       key={opt.value}
-                      onSelect={() => setSelectedCountry(opt)}
+                      onSelect={() =>
+                        setSelectedCountry(opt)
+                      }
+                      className="cursor-pointer"
                     >
                       {opt.label}
                     </CommandItem>
@@ -481,44 +729,330 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
               </Command>
             </PopoverContent>
           </Popover>
-          {/* Address */}
+
           <Input
-            placeholder="Street"
+            placeholder="Street Address"
             value={streetAddress}
-            onChange={(e) => setStreetAddress(e.target.value)}
+            onChange={(e) =>
+              setStreetAddress(e.target.value)
+            }
+            className="
+              h-11 rounded-xl
+              border-border/60
+              bg-background/80
+            "
           />
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input
               placeholder="City"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) =>
+                setCity(e.target.value)
+              }
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
             />
+
             <Input
               placeholder="State"
               value={state}
-              onChange={(e) => setState(e.target.value)}
+              onChange={(e) =>
+                setState(e.target.value)
+              }
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
             />
+
             <Input
               placeholder="Postal Code"
               value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
+              onChange={(e) =>
+                setPostalCode(e.target.value)
+              }
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
             />
           </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button onClick={sendingData}>
-              {mode === "edit" ? "Edit Contact" : "Create Contact"}
-            </Button>
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-          </div>
         </div>
-      </SheetContent>
-    </Sheet>
-  );
+
+        {/* Footer Buttons */}
+        <div
+          className="
+            sticky bottom-0 z-20
+            flex justify-end gap-3
+
+            border-t border-border/50
+            bg-background/90
+            backdrop-blur-xl
+
+            px-1 pt-5 pb-1
+          "
+        >
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="
+              h-10 px-5
+              rounded-xl
+              border-border/60
+            "
+          >
+            Cancel
+          </Button>
+
+          <Button
+            onClick={sendingData}
+            className="
+              h-10 px-5
+              rounded-xl
+              shadow-sm
+            "
+          >
+            {mode === "edit"
+              ? "Edit Contact"
+              : "Create Contact"}
+          </Button>
+        </div>
+      </div>
+    </SheetContent>
+  </Sheet>
+);
+  // return (
+  //   <Sheet open={open} onOpenChange={onClose}>
+  //     <SheetContent className="!w-[700px] !max-w-none overflow-y-auto">
+  //       <SheetHeader>
+  //         <SheetTitle>
+  //           {mode === "edit" ? "Edit Contact" : "New Contact"}
+  //         </SheetTitle>
+  //       </SheetHeader>
+
+  //       <div className="space-y-4 mt-4">
+  //         {/* Name */}
+  //         <div className="grid grid-cols-3 gap-3">
+  //           <Input
+  //             placeholder="First Name *"
+  //             value={firstName}
+  //             onChange={(e) => setFirstName(e.target.value)}
+  //           />
+  //           <Input
+  //             placeholder="Middle Name"
+  //             value={middleName}
+  //             onChange={(e) => setMiddleName(e.target.value)}
+  //           />
+  //           <Input
+  //             placeholder="Last Name *"
+  //             value={lastName}
+  //             onChange={(e) => setLastName(e.target.value)}
+  //           />
+  //         </div>
+
+  //         {/* Contact */}
+  //         <Input
+  //           value={contactName}
+  //           placeholder="Contact Name"
+  //           onChange={(e) => setContactName(e.target.value)}
+  //         />
+  //         <Input
+  //           value={companyName}
+  //           placeholder="Company Name"
+  //           onChange={(e) => setCompanyName(e.target.value)}
+  //         />
+
+  //         {/* Email */}
+  //         <Input
+  //           value={email}
+  //           placeholder="Email"
+  //           onChange={(e) => setEmail(e.target.value)}
+  //         />
+
+  //         {/* Tags */}
+  //         <TagsMultiSelectDropDown
+  //           value={selectedTags}
+  //           onChange={handleTagChange}
+  //           placeholder="Tags"
+  //         />
+
+  //         {/* Note */}
+  //         <Textarea
+  //           value={note}
+  //           placeholder="Note"
+  //           onChange={(e) => setNote(e.target.value)}
+  //         />
+
+  //         {/* SSN */}
+  //         <Input value={ssn} placeholder="SSN" onChange={handleSSNChange} />
+
+  //         {/* Phones */}
+  //         {/* <div>
+  //           <div className="font-semibold">Phone Numbers</div>
+
+  //           {phoneNumbers.map((phone) => (
+  //             <div key={phone.id} className="flex gap-2 items-center mt-2">
+  //               <PhoneInput
+  //                 country="us"
+  //                 value={phone.phone}
+  //                 onChange={(val) =>
+  //                   setPhoneNumbers((prev) =>
+  //                     prev.map((p) =>
+  //                       p.id === phone.id ? { ...p, phone: val } : p
+  //                     )
+  //                   )
+  //                 }
+  //               />
+  //               <AiOutlineDelete onClick={()=>handleDeletePhoneNumber(phone.id)} />
+  //             </div>
+  //           ))}
+
+  //           <div
+  //             className="flex items-center gap-2 text-blue-600 cursor-pointer mt-2"
+  //             onClick={handleAddPhoneNumber}
+  //           >
+  //             <AiOutlinePlusCircle /> Add phone
+  //           </div>
+  //         </div> */}
+  //         <div className="space-y-2">
+  //           <div className="font-semibold text-xs">Phone Numbers</div>
+
+  //           {phoneNumbers.map((phone) => (
+  //             <div key={phone.id} className="flex items-center gap-2">
+  //               {/* IMPORTANT: constrain width */}
+  //               <div className="flex-1 min-w-0">
+  //                 <PhoneInput
+  //                   country="us"
+  //                   value={phone.phone}
+  //                   onChange={(val) =>
+  //                     setPhoneNumbers((prev) =>
+  //                       prev.map((p) =>
+  //                         p.id === phone.id ? { ...p, phone: val } : p,
+  //                       ),
+  //                     )
+  //                   }
+  //                   inputStyle={{
+  //                     width: "100%",
+  //                     height: "36px",
+  //                     fontSize: "14px",
+  //                   }}
+  //                   containerStyle={{
+  //                     width: "100%",
+  //                   }}
+  //                 />
+  //               </div>
+
+  //               {/* tighter icon button like shadcn */}
+  //               <button
+  //                 type="button"
+  //                 onClick={() => handleDeletePhoneNumber(phone.id)}
+  //                 className="inline-flex h-8 w-8 items-center justify-center rounded-md 
+  //                  text-muted-foreground hover:text-destructive 
+  //                  hover:bg-destructive/10 transition-colors shrink-0"
+  //               >
+  //                 <AiOutlineDelete className="h-4 w-4" />
+  //               </button>
+  //             </div>
+  //           ))}
+
+  //           <div
+  //             className="flex items-center gap-2 text-blue-600 cursor-pointer mt-2"
+  //             onClick={handleAddPhoneNumber}
+  //           >
+  //             <AiOutlinePlusCircle /> Add phone
+  //           </div>
+  //         </div>
+  //         {/* Country */}
+  //         {/* <Popover>
+  //           <PopoverTrigger asChild>
+  //             <Button variant="outline">
+  //               {selectedCountry?.label || "Select Country"}
+  //             </Button>
+  //           </PopoverTrigger>
+
+  //           <PopoverContent>
+  //             <Command>
+  //               <CommandInput placeholder="Search..." />
+  //               <CommandList>
+  //                 {options.map((opt) => (
+  //                   <CommandItem
+  //                     key={opt.value}
+  //                     onSelect={() => setSelectedCountry(opt)}
+  //                   >
+  //                     {opt.label}
+  //                   </CommandItem>
+  //                 ))}
+  //               </CommandList>
+  //             </Command>
+  //           </PopoverContent>
+  //         </Popover> */}
+  //         <Popover>
+  //           <PopoverTrigger asChild>
+  //             <Button variant="outline" className="w-full justify-between">
+  //               {selectedCountry?.label || "Select Country"}
+  //             </Button>
+  //           </PopoverTrigger>
+
+  //           <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+  //             <Command className="w-full">
+  //               <CommandInput placeholder="Search..." />
+  //               <CommandList>
+  //                 {options.map((opt) => (
+  //                   <CommandItem
+  //                     key={opt.value}
+  //                     onSelect={() => setSelectedCountry(opt)}
+  //                   >
+  //                     {opt.label}
+  //                   </CommandItem>
+  //                 ))}
+  //               </CommandList>
+  //             </Command>
+  //           </PopoverContent>
+  //         </Popover>
+  //         {/* Address */}
+  //         <Input
+  //           placeholder="Street"
+  //           value={streetAddress}
+  //           onChange={(e) => setStreetAddress(e.target.value)}
+  //         />
+
+  //         <div className="grid grid-cols-3 gap-3">
+  //           <Input
+  //             placeholder="City"
+  //             value={city}
+  //             onChange={(e) => setCity(e.target.value)}
+  //           />
+  //           <Input
+  //             placeholder="State"
+  //             value={state}
+  //             onChange={(e) => setState(e.target.value)}
+  //           />
+  //           <Input
+  //             placeholder="Postal Code"
+  //             value={postalCode}
+  //             onChange={(e) => setPostalCode(e.target.value)}
+  //           />
+  //         </div>
+
+  //         {/* Buttons */}
+  //         <div className="flex justify-end gap-2 mt-4">
+  //           <Button onClick={sendingData}>
+  //             {mode === "edit" ? "Edit Contact" : "Create Contact"}
+  //           </Button>
+  //           <Button variant="outline" onClick={onClose}>
+  //             Cancel
+  //           </Button>
+  //         </div>
+  //       </div>
+  //     </SheetContent>
+  //   </Sheet>
+  // );
 };
 
 export default NewContactDrawer;
