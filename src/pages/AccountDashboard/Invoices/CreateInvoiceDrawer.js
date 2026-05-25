@@ -1139,7 +1139,22 @@ import CategoryDrawer from "../../Templates/InvoiceTemp/CategoryDrawer";
 import Editor from "../../../components/Editor";
 import SingleSelectDropdown from "../../../components/SingleSelectDropdown";
 import PreviewDrawer from "./PreviewDrawer";
-const CreateInvoiceDrawer = ({ open, onClose, fetchInvoices }) => {
+// const CreateInvoiceDrawer = ({ open, onClose, fetchInvoices }) => {
+  const CreateInvoiceDrawer = ({
+  open,
+  onClose,
+  fetchInvoices,
+  editInvoiceId,
+}) => {
+  const isEditMode = Boolean(editInvoiceId);
+
+  useEffect(() => {
+  if (open && editInvoiceId) {
+    fetchInvoiceById(editInvoiceId);
+  }
+}, [open, editInvoiceId]);
+
+
   const { user } = useAuth();
 
   // 🔹 States
@@ -1276,7 +1291,75 @@ const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
 
     fetchAccountDetails();
   }, [selectedAccount]); // Re-run when selectedAccount changes
+const fetchInvoiceById = async (id) => {
+  try {
+    const res = await invoiceAPI.getInvoiceById(id);
 
+    const invoice = res.data.invoice;
+
+    console.log("Edit invoice data:", invoice);
+
+    // Account
+    // if (invoice.account) {
+    //   setSelectedAccount({
+    //     value: invoice.account._id,
+    //     label: invoice.account.accountName,
+    //   });
+    // }
+
+    // Invoice Number
+    setinvoicenumber(invoice.invoicenumber || "");
+
+    // Date
+    setStartDate(dayjs(invoice.invoicedate));
+
+    // Description
+    setDescription(invoice.description || "");
+
+    // Payment Method
+    if (invoice.paymentMethod) {
+      setPaymentMode({
+        value: invoice.paymentMethod,
+        label: invoice.paymentMethod,
+      });
+    }
+
+    // Toggles
+    setIsEmailInvoice(invoice.emailinvoicetoclient || false);
+    setIsPayInvoice(invoice.payInvoicewithcredits || false);
+    setReminders(invoice.reminders || false);
+
+    // Client Note
+    setClientNote(invoice.clientNote || "");
+
+    // Line Items
+    if (invoice.lineItems?.length > 0) {
+      const formattedRows = invoice.lineItems.map((item) => ({
+        id: `${Date.now()}_${Math.random()}`,
+        productName: item.productorService || "",
+        description: item.description || "",
+        rate: `$${parseFloat(item.rate || 0).toFixed(2)}`,
+        qty: item.quantity?.toString() || "1",
+        amount: `$${parseFloat(item.amount || 0).toFixed(2)}`,
+        tax: item.tax || false,
+        isDiscount: false,
+      }));
+
+      setRows(formattedRows);
+    }
+
+    // Summary
+    if (invoice.summary) {
+      setSubtotal(invoice.summary.subtotal || 0);
+      setTaxRate(invoice.summary.taxRate || 0);
+      setTaxTotal(invoice.summary.taxTotal || 0);
+      setTotalAmount(invoice.summary.total || 0);
+    }
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    toast.error("Failed to load invoice");
+  }
+};
     // Preview handler
   const handlePreview = () => {
     setIsPreviewDrawerOpen(true);
@@ -1696,9 +1779,13 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
         invoiceStatus: "Pending",
         balanceDueAmount: totalAmount,
       };
-      const res = await invoiceAPI.createInvoice(payload);
-      if (res?.data?.message === "Invoice created successfully") {
-        toast.success("Invoice created successfully");
+      // const res = await invoiceAPI.createInvoice(payload);
+      const res = isEditMode
+  ? await invoiceAPI.updateInvoice(editInvoiceId, payload)
+  : await invoiceAPI.createInvoice(payload);
+  console.log("Invoice save response:", res);
+      if (res?.data?.message === "Invoice created successfully" || res?.data?.message === "Invoice Updated successfully") {
+        toast.success(isEditMode ? "Invoice Updated successfully" : "Invoice created successfully");
         onClose();
         if (fetchInvoices) fetchInvoices();
       } else {
@@ -1852,6 +1939,61 @@ const addRow = useCallback((isDiscountRow = false) => {
     if (success) setIsCategoryDrawerOpen(false);
   }, [createCategory]);
 
+  const resetForm = () => {
+  setSelectedAccount(null);
+  setAccountError("");
+  setinvoicenumber("");
+  setClientNote("");
+  setPaymentMode({
+    value: "Bank Debits",
+    label: "Bank Debits",
+  });
+
+  setSelectedTemplate(null);
+  setDescription("");
+  setSelectedUser([]);
+  setCombinedValues([]);
+  setStartDate(dayjs());
+
+  setIsPayInvoice(false);
+  setIsEmailInvoice(false);
+  setReminders(false);
+
+  setRows([
+    {
+      id: `${Date.now()}_${Math.random()}`,
+      productName: "",
+      description: "",
+      rate: "$0.00",
+      qty: "1",
+      amount: "$0.00",
+      tax: false,
+      isDiscount: false,
+    },
+  ]);
+
+  setSubtotal(0);
+  setTaxRate(0);
+  setTaxTotal(0);
+  setTotalAmount(0);
+
+  setClientInfo({
+    name: "",
+    address: "",
+    city: "",
+    email: "",
+    phone: "",
+  });
+
+  setSelectedRowData(null);
+  setSelectedRowIndex(null);
+
+  fetchNextInvoiceNumber();
+};
+const handleDrawerClose = () => {
+  resetForm();
+  onClose();
+};
   if (!open) return null;
 
   return (
@@ -1860,7 +2002,7 @@ const addRow = useCallback((isDiscountRow = false) => {
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleDrawerClose}
       />
 
       {/* Drawer */}
@@ -1886,10 +2028,12 @@ const addRow = useCallback((isDiscountRow = false) => {
             shrink-0
           "
         >
-          <h2 className="text-base font-semibold text-foreground">
+          {/* <h2 className="text-base font-semibold text-foreground">
             Create new Invoice
-          </h2>
-
+          </h2> */}
+<h2 className="text-base font-semibold text-foreground">
+  {isEditMode ? "Edit Invoice" : "Create new Invoice"}
+</h2>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -1906,7 +2050,7 @@ const addRow = useCallback((isDiscountRow = false) => {
             </button>
 
             <button
-              onClick={onClose}
+              onClick={handleDrawerClose}
               className="
                 p-1 rounded-md
                 text-muted-foreground
@@ -2189,11 +2333,13 @@ const addRow = useCallback((isDiscountRow = false) => {
             shrink-0
           "
         >
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={handleDrawerClose}>
             Cancel
           </Button>
-
-          <Button onClick={handleSave}>Save</Button>
+<Button onClick={handleSave}>
+  {isEditMode ? "Update" : "Save"}
+</Button>
+          {/* <Button onClick={handleSave}>Save</Button> */}
         </div>
       </div>
     </div>
@@ -2246,6 +2392,15 @@ const addRow = useCallback((isDiscountRow = false) => {
     />
   </>
 );
+
+};
+
+export default CreateInvoiceDrawer;
+
+
+
+
+
 //   return (
 //     <>
 //       <div className="fixed inset-0 z-50 overflow-hidden">
@@ -2491,6 +2646,3 @@ const addRow = useCallback((isDiscountRow = false) => {
 
 //     </>
 //   );
-};
-
-export default CreateInvoiceDrawer;

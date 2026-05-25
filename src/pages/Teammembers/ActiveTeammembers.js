@@ -169,7 +169,7 @@ const ActiveTeammembers = ({ refresh, onEdit }) => {
     try {
       setLoading(true);
       const res = await authAPI.getTeamMembers();
-
+console.log("Fetched Team Members:", res.data.data);
       const activeMembers = res.data.data
         // .filter((m) => m.active === true)
         .map((m) => ({
@@ -231,15 +231,35 @@ const ActiveTeammembers = ({ refresh, onEdit }) => {
         </Badge>
       ),
     },
+    // {
+    //   accessorKey: "status",
+    //   header: "Status",
+    //   cell: ({ row }) => (
+    //     <Badge variant="success" className="bg-green-500 hover:bg-green-600">
+    //       Active
+    //     </Badge>
+    //   ),
+    // },
     {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => (
-        <Badge variant="success" className="bg-green-500 hover:bg-green-600">
-          Active
-        </Badge>
-      ),
-    },
+  accessorKey: "status",
+  header: "Status",
+  cell: ({ row }) => {
+    const isActive = row.getValue("status");
+// console.log("Row Status:", isActive);
+    return (
+      <Badge
+        variant={isActive ? "success" : "secondary"}
+        className={
+          isActive
+            ? "bg-green-500 hover:bg-green-600 text-white"
+            : "bg-red-500 hover:bg-red-600 text-white"
+        }
+      >
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+    );
+  },
+},
     {
       id: "actions",
       header: "Actions",

@@ -271,11 +271,13 @@ const TagsMultiSelectDropDown = ({
     onChange?.(newValue);
   };
 
-  const clearAll = (e) => {
-    e.stopPropagation();
-    onChange?.([]);
-  };
-
+  // const clearAll = (e) => {
+  //   e.stopPropagation();
+  //   onChange?.([]);
+  // };
+const clearAll = () => {
+  onChange?.([]);
+};
   const filtered = options
     .filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
     .filter((o) => !value.some((v) => v.value === o.value));

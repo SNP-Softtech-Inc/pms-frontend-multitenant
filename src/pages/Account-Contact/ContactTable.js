@@ -958,7 +958,7 @@ const ContactsTable = () => {
               </div>
             )}
 
-            {activeFilters.includes("tags") && (
+            {/* {activeFilters.includes("tags") && (
               <div className="flex items-center gap-1.5 min-h-8 border border-border rounded-lg pl-1 pr-1.5 bg-background">
                 <TagMultiSelectDropDown
                   value={filters.tags}
@@ -973,8 +973,26 @@ const ContactsTable = () => {
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-            )}
+            )} */}
+  {activeFilters.includes("tags") && (
+  <div className="flex items-center gap-1.5 min-h-8 w-[400px] border border-border rounded-lg pl-1 pr-1.5 bg-background">
+    <div className="flex-1 min-w-0">
+         <TagMultiSelectDropDown
+                  value={filters.tags}
+                  onChange={(v) => setFilters((p) => ({ ...p, tags: v }))}
+                  options={uniqueTagOptions}
+                  width="200px"
+                />
+    </div>
 
+    <button
+      onClick={() => removeFilter("tags")}
+      className="text-muted-foreground hover:text-foreground shrink-0"
+    >
+      <X className="h-3.5 w-3.5" />
+    </button>
+  </div>
+)}
             <button
               onClick={clearFilters}
               className="inline-flex items-center gap-1 h-7 px-2.5 text-xs font-medium rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

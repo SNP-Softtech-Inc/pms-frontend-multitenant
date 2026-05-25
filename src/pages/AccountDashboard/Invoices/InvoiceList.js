@@ -29,7 +29,7 @@
 //   const [anchorEl, setAnchorEl] = useState(null);
 //   const [openMenuId, setOpenMenuId] = useState(null);
 //   const [openDrawer, setOpenDrawer] = useState(false);
-  
+
 //   // Check if an invoice is overdue
 //   const isInvoiceOverdue = (invoice, paymentTermDays = 5) => {
 //     if (!invoice.invoicedate || invoice.invoiceStatus === "Paid") return false;
@@ -478,10 +478,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import {
-  Card,
-  CardContent,
-} from "../../../components/ui/card";
+import { Card, CardContent } from "../../../components/ui/card";
 
 const InvoiceTable = () => {
   const { accountId } = useParams();
@@ -489,7 +486,7 @@ const InvoiceTable = () => {
   const [accountInvoicesData, setAccountInvoicesData] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [openDrawer, setOpenDrawer] = useState(false);
-  
+const [editInvoiceId, setEditInvoiceId] = useState(null);
   // Check if an invoice is overdue
   const isInvoiceOverdue = (invoice, paymentTermDays = 5) => {
     if (!invoice.invoicedate || invoice.invoiceStatus === "Paid") return false;
@@ -612,7 +609,7 @@ const InvoiceTable = () => {
       toast.error("Duplicate failed");
     }
   };
-  
+
   //print
   const handlePrint = async (_id) => {
     try {
@@ -688,9 +685,8 @@ const InvoiceTable = () => {
       const invoiceData = res.data;
 
       const invoice = invoiceData.invoice;
-console.log("Invoice data for download:", invoice);
-      const accountName =
-        invoice.account?.accountName || "Unknown Account";
+      console.log("Invoice data for download:", invoice);
+      const accountName = invoice.account?.accountName || "Unknown Account";
 
       const doc = new jsPDF();
 
@@ -704,7 +700,7 @@ console.log("Invoice data for download:", invoice);
       doc.text(
         `Date: ${new Date(invoice.invoicedate).toLocaleDateString()}`,
         10,
-        20
+        20,
       );
 
       doc.text(`Account: ${accountName}`, 10, 30);
@@ -739,13 +735,13 @@ console.log("Invoice data for download:", invoice);
       doc.text(
         `Subtotal: $${invoice.summary.subtotal.toFixed(2)}`,
         pageWidth - 70,
-        summaryY
+        summaryY,
       );
 
       doc.text(
         `Tax: $${invoice.summary.taxTotal.toFixed(2)}`,
         pageWidth - 70,
-        summaryY + 10
+        summaryY + 10,
       );
 
       doc.setFontSize(14);
@@ -754,7 +750,7 @@ console.log("Invoice data for download:", invoice);
       doc.text(
         `Total: $${invoice.summary.total.toFixed(2)}`,
         pageWidth - 70,
-        summaryY + 20
+        summaryY + 20,
       );
 
       // ================= DOWNLOAD =================
@@ -770,7 +766,7 @@ console.log("Invoice data for download:", invoice);
 
   // Helper function to get status badge variant
   const getStatusVariant = (status) => {
-    switch(status) {
+    switch (status) {
       case "Paid":
         return "default";
       case "Pending":
@@ -781,15 +777,17 @@ console.log("Invoice data for download:", invoice);
         return "outline";
     }
   };
-
+const handleEdit = (invoice) => {
+  setEditInvoiceId(invoice._id);
+  setOpenDrawer(true);
+  handleMenuClose();
+};
   return (
     <div className="mt-2 space-y-4">
       <div className="mb-2">
-        <Button onClick={() => setOpenDrawer(true)}>
-          Create Invoice
-        </Button>
+        <Button onClick={() => setOpenDrawer(true)}>Create Invoice</Button>
       </div>
-      
+
       <Card>
         <CardContent className="p-0">
           <div className="rounded-md border">
@@ -812,11 +810,11 @@ console.log("Invoice data for download:", invoice);
                   <TableRow key={row._id}>
                     <TableCell className="font-medium">
                       {row.invoicenumber}
-                      {row.invoiceLabel && (
+                      {/* {row.invoiceLabel && (
                         <Badge variant="warning" className="ml-1">
                           {row.invoiceLabel}
                         </Badge>
-                      )}
+                      )} */}
                     </TableCell>
 
                     <TableCell>
@@ -840,10 +838,13 @@ console.log("Invoice data for download:", invoice);
                     </TableCell>
 
                     <TableCell>
-                      <DropdownMenu open={openMenuId === row._id} onOpenChange={(open) => {
-                        if (!open) setOpenMenuId(null);
-                        else setOpenMenuId(row._id);
-                      }}>
+                      <DropdownMenu
+                        open={openMenuId === row._id}
+                        onOpenChange={(open) => {
+                          if (!open) setOpenMenuId(null);
+                          else setOpenMenuId(row._id);
+                        }}
+                      >
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Open menu</span>
@@ -851,16 +852,32 @@ console.log("Invoice data for download:", invoice);
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleDelete(row._id)}>
+                            {/* Show Edit only for Pending invoices */}
+  {row.invoiceStatus === "Pending" && (
+    <DropdownMenuItem
+      onClick={() => handleEdit(row)}
+    >
+      Edit
+    </DropdownMenuItem>
+  )}
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(row._id)}
+                          >
                             Delete
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicate(row._id)}>
+                          <DropdownMenuItem
+                            onClick={() => handleDuplicate(row._id)}
+                          >
                             Duplicate
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handlePrint(row._id)}>
+                          <DropdownMenuItem
+                            onClick={() => handlePrint(row._id)}
+                          >
                             Print
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownload(row._id)}>
+                          <DropdownMenuItem
+                            onClick={() => handleDownload(row._id)}
+                          >
                             Download
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -873,12 +890,21 @@ console.log("Invoice data for download:", invoice);
           </div>
         </CardContent>
       </Card>
-      
-      <CreateInvoiceDrawer
+
+      {/* <CreateInvoiceDrawer
         open={openDrawer}
         onClose={() => setOpenDrawer(false)}
         fetchInvoices={fetchInvoices}
-      />
+      /> */}
+      <CreateInvoiceDrawer
+  open={openDrawer}
+  onClose={() => {
+    setOpenDrawer(false);
+    setEditInvoiceId(null);
+  }}
+  fetchInvoices={fetchInvoices}
+  editInvoiceId={editInvoiceId}
+/>
     </div>
   );
 };

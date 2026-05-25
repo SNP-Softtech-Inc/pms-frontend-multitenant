@@ -1812,7 +1812,7 @@ const AccountTable = () => {
                 </button>
               </div>
             )}
-            {activeFilters.includes("tags") && (
+            {/* {activeFilters.includes("tags") && (
               <div className="flex items-center gap-1.5 min-h-8 border border-border rounded-lg pl-1 pr-1.5 bg-background">
                 <TagsMultiSelectDropDown
                   value={filters.tags}
@@ -1824,7 +1824,27 @@ const AccountTable = () => {
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-            )}
+            )} */}
+
+            {activeFilters.includes("tags") && (
+  <div className="flex items-center gap-1.5 min-h-8 w-[400px] border border-border rounded-lg pl-1 pr-1.5 bg-background">
+    <div className="flex-1 min-w-0">
+      <TagsMultiSelectDropDown
+        value={filters.tags}
+        onChange={(v) => setFilters((p) => ({ ...p, tags: v }))}
+        options={uniqueTags}
+        placeholder="Tags…"
+      />
+    </div>
+
+    <button
+      onClick={() => removeFilter("tags")}
+      className="text-muted-foreground hover:text-foreground shrink-0"
+    >
+      <X className="h-3.5 w-3.5" />
+    </button>
+  </div>
+)}
           </div>
         )}
       </DataTableToolbar>
