@@ -777,10 +777,13 @@ const Login = () => {
 
   // ================= CHECK USERS BY EMAIL =================
   const checkEmailForUsers = async (email) => {
-    if (!email || !email.includes("@")) return;
-
+     // ✅ Remove extra white spaces
+  const cleanEmail = email.trim();
+console.log("entred emawil",cleanEmail)
+    // if (!email || !email.includes("@")) return;
+ if (!cleanEmail || !cleanEmail.includes("@")) return;
     try {
-      const response = await authAPI.getUsersByEmail(email);
+      const response = await authAPI.getUsersByEmail(cleanEmail);
 
       const users = response.data.users || [];
 
@@ -811,8 +814,11 @@ const Login = () => {
   const loginuser = async (e) => {
     e.preventDefault();
 
-    const { email, password, expiryTime } = inpval;
-
+    // const { email, password, expiryTime } = inpval;
+  // ✅ Remove extra white spaces
+  const email = inpval.email.trim();
+  const password = inpval.password.trim();
+  const expiryTime = inpval.expiryTime;
     if (!email) {
       return toast.error("Email required");
     }

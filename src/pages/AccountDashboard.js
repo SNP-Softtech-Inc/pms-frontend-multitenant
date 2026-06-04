@@ -121,19 +121,136 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import Cookies from 'js-cookie';
 import { accountsAPI } from "../services/api";
 
+// const AccountsDash = () => {
+//   const { accountId } = useParams();
+//   const location = useLocation();
+//   const [accName, setAccName] = useState();
+
+//   // ✅ Store accountId in cookie
+//   useEffect(() => {
+//     if (accountId) {
+//       Cookies.set("accountId", accountId);
+//     }
+//   }, [accountId]);
+
+//   // ✅ Cleanup cookies
+//   useEffect(() => {
+//     return () => {
+//       Cookies.remove("accountId");
+//       Cookies.remove("accountName");
+//     };
+//   }, []);
+
+//   // ✅ Fetch account details
+//   const fetchAccountDetails = async () => {
+//     try {
+//       const res = await accountsAPI.getAccountById(accountId);
+//       setAccName(res.data.accountName);
+//       Cookies.set("accountName", res.data.accountName);
+//       console.log("result", res.data);
+//     } catch (error) {
+//       console.error("Error fetching account details:", error);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchAccountDetails();
+//   }, [accountId]);
+
+//   // ✅ Tab routes
+//   const tabRoutes = [
+//     `/clients/accounts/accountsdash/overview/${accountId}`,
+//     `/clients/accounts/accountsdash/info/${accountId}`,
+//     `/clients/accounts/accountsdash/docs/${accountId}`,
+//     `/clients/accounts/accountsdash/communication/${accountId}`,
+//     `/clients/accounts/accountsdash/organizers/${accountId}`,
+//     `/clients/accounts/accountsdash/invoices/${accountId}`,
+//     `/clients/accounts/accountsdash/email/${accountId}`,
+//     `/clients/accounts/accountsdash/proposals/${accountId}`,
+//     `/clients/accounts/accountsdash/notes/${accountId}`,
+//     `/clients/accounts/accountsdash/workflow/${accountId}`,
+//   ];
+
+//   // Tab labels
+//   const tabLabels = [
+//     "Overview",
+//     "Info",
+//     "Docs",
+//     "Communication",
+//     "Organizers",
+//     "Invoices",
+//     "Email",
+//     "Proposals & ELs",
+//     "Notes",
+//     "Workflow"
+//   ];
+
+//   // Combine routes with labels
+//   const navItems = tabRoutes.map((route, index) => [route, tabLabels[index]]);
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       {/* Top header bar */}
+//       <div className="bg-card border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
+//         <Link
+//           to="/clients/accounts/activeaccounts"
+//           className="flex items-center justify-center w-8 h-8 rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors no-underline"
+//         >
+//           <ArrowLeft size={16} />
+//         </Link>
+//         <div className="flex items-center gap-2">
+         
+//           <span className="font-semibold text-foreground text-base leading-none">{accName}</span>
+//         </div>
+//       </div>
+
+//       {/* Sub-navigation - mt-4 matches original mt={4} */}
+//       <div className="bg-card border-b border-border px-4 py-0 mt-4">
+//         <div className="flex items-center gap-0 overflow-x-auto scrollbar-hide">
+//           {navItems.map(([to, label]) => (
+//             <NavLink
+//               key={to}
+//               to={to}
+//               className={({ isActive }) =>
+//                 `no-underline whitespace-nowrap px-4 py-3 text-sm font-medium transition-all duration-150 border-b-2 ${
+//                   isActive
+//                     ? "border-primary text-primary"
+//                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+//                 }`
+//               }
+//             >
+//               {label}
+//             </NavLink>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* Divider - matches Divider sx={{ my: 2 }} */}
+//       <div className="border-t border-border my-2"></div>
+
+//       {/* Page content - matches Box pl={3} pr={3} mt={2} */}
+//       <div className="px-3 py-2 mt-2">
+//         <Outlet />
+//       </div>
+//     </div>
+//   );
+// };
+
+
+
 const AccountsDash = () => {
   const { accountId } = useParams();
   const location = useLocation();
-  const [accName, setAccName] = useState();
+  const [accName, setAccName] = useState("");
 
-  // ✅ Store accountId in cookie
+  // Store accountId in cookie
   useEffect(() => {
     if (accountId) {
       Cookies.set("accountId", accountId);
     }
   }, [accountId]);
 
-  // ✅ Cleanup cookies
+  // Cleanup cookies
   useEffect(() => {
     return () => {
       Cookies.remove("accountId");
@@ -141,97 +258,159 @@ const AccountsDash = () => {
     };
   }, []);
 
-  // ✅ Fetch account details
+  // Fetch account details
   const fetchAccountDetails = async () => {
     try {
       const res = await accountsAPI.getAccountById(accountId);
       setAccName(res.data.accountName);
       Cookies.set("accountName", res.data.accountName);
-      console.log("result", res.data);
     } catch (error) {
       console.error("Error fetching account details:", error);
     }
   };
 
   useEffect(() => {
-    fetchAccountDetails();
+    if (accountId) {
+      fetchAccountDetails();
+    }
   }, [accountId]);
 
-  // ✅ Tab routes
-  const tabRoutes = [
-    `/clients/accounts/accountsdash/overview/${accountId}`,
-    `/clients/accounts/accountsdash/info/${accountId}`,
-    `/clients/accounts/accountsdash/docs/${accountId}`,
-    `/clients/accounts/accountsdash/communication/${accountId}`,
-    `/clients/accounts/accountsdash/organizers/${accountId}`,
-    `/clients/accounts/accountsdash/invoices/${accountId}`,
-    `/clients/accounts/accountsdash/email/${accountId}`,
-    `/clients/accounts/accountsdash/proposals/${accountId}`,
-    `/clients/accounts/accountsdash/notes/${accountId}`,
-    `/clients/accounts/accountsdash/workflow/${accountId}`,
+  const navItems = [
+    {
+      label: "Overview",
+      to: `/clients/accounts/accountsdash/overview/${accountId}`,
+    },
+    {
+      label: "Info",
+      to: `/clients/accounts/accountsdash/info/${accountId}`,
+    },
+    {
+      label: "Docs",
+      to: `/clients/accounts/accountsdash/docs/${accountId}`,
+    },
+    {
+      label: "Communication",
+      to: `/clients/accounts/accountsdash/communication/${accountId}`,
+    },
+    {
+      label: "Organizers",
+      to: `/clients/accounts/accountsdash/organizers/${accountId}`,
+    },
+    {
+      label: "Invoices",
+      to: `/clients/accounts/accountsdash/invoices/${accountId}`,
+    },
+    {
+      label: "Email",
+      to: `/clients/accounts/accountsdash/email/${accountId}`,
+    },
+    {
+      label: "Proposals & ELs",
+      to: `/clients/accounts/accountsdash/proposals/${accountId}`,
+    },
+    {
+      label: "Notes",
+      to: `/clients/accounts/accountsdash/notes/${accountId}`,
+    },
+    {
+      label: "Workflow",
+      to: `/clients/accounts/accountsdash/workflow/${accountId}`,
+    },
   ];
-
-  // Tab labels
-  const tabLabels = [
-    "Overview",
-    "Info",
-    "Docs",
-    "Communication",
-    "Organizers",
-    "Invoices",
-    "Email",
-    "Proposals & ELs",
-    "Notes",
-    "Workflow"
-  ];
-
-  // Combine routes with labels
-  const navItems = tabRoutes.map((route, index) => [route, tabLabels[index]]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top header bar */}
-      <div className="bg-card border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
-        <Link
-          to="/clients/accounts/activeaccounts"
-          className="flex items-center justify-center w-8 h-8 rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors no-underline"
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Sticky Header */}
+      <header
+        className="
+          sticky top-0 z-30
+          border-b border-border
+          bg-background/95
+          backdrop-blur
+          supports-[backdrop-filter]:bg-background/80
+        "
+      >
+        {/* Account Header */}
+        <div
+          className="
+            flex items-center gap-4
+            px-6 py-4
+            border-b border-border/60
+          "
         >
-          <ArrowLeft size={16} />
-        </Link>
-        <div className="flex items-center gap-2">
-         
-          <span className="font-semibold text-foreground text-base leading-none">{accName}</span>
+          <Link
+            to="/clients/accounts/activeaccounts"
+            className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+              rounded-xl border border-border
+              text-muted-foreground
+              hover:bg-accent
+              hover:text-foreground
+              transition-colors
+              no-underline
+            "
+          >
+            <ArrowLeft size={18} />
+          </Link>
+
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-lg font-semibold tracking-tight">
+              {accName || "Account"}
+            </h1>
+
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage account information and activities
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Sub-navigation - mt-4 matches original mt={4} */}
-      <div className="bg-card border-b border-border px-4 py-0 mt-4">
-        <div className="flex items-center gap-0 overflow-x-auto scrollbar-hide">
-          {navItems.map(([to, label]) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `no-underline whitespace-nowrap px-4 py-3 text-sm font-medium transition-all duration-150 border-b-2 ${
-                  isActive
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-                }`
-              }
-            >
-              {label}
-            </NavLink>
-          ))}
+        {/* Tabs Navigation */}
+        <div className="px-6">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {navItems.map(({ label, to }) => {
+              const isActive = location.pathname === to;
+
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={`
+                    relative whitespace-nowrap
+                    px-4 py-3
+                    text-sm font-medium
+                    transition-all duration-200
+                    border-b-2
+                    no-underline
+                    ${
+                      isActive
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                    }
+                  `}
+                >
+                  {label}
+                </NavLink>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Divider - matches Divider sx={{ my: 2 }} */}
-      <div className="border-t border-border my-2"></div>
-
-      {/* Page content - matches Box pl={3} pr={3} mt={2} */}
-      <div className="px-3 py-2 mt-2">
-        <Outlet />
-      </div>
+      {/* Page Content */}
+      <main>
+        {/* <div
+          className="
+            rounded-2xl
+            border border-border
+            bg-card
+            text-card-foreground
+            shadow-sm
+           
+          "
+        > */}
+          <Outlet />
+        {/* </div> */}
+      </main>
     </div>
   );
 };

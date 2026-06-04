@@ -238,24 +238,11 @@ code {
 }
 
 
-/* quill emoji popup fix */
-.ql-container {
-  overflow: visible !important;
-}
-
-.ql-editor {
-  overflow-y: auto;
-}
-
 .ql-emoji-picker {
-  z-index: 9999 !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
 }
 
-.ql-toolbar {
-  overflow: visible !important;
-}
-
-.quill-wrapper-container {
-  overflow: visible !important;
-  position: relative;
+.ql-emoji-picker * {
+  pointer-events: auto !important;
 }

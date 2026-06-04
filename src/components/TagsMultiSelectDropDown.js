@@ -244,7 +244,7 @@ const TagsMultiSelectDropDown = ({
         try {
           const res = await templateAPI.getAllTags();
           const tags = res?.data?.tags || [];
-
+console.log("Fetched tags:", tags);
           setInternalOptions(
             tags.map((tag) => ({
               value: tag._id,

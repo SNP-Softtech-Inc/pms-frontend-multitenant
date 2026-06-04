@@ -158,17 +158,18 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-
+import { toast } from "react-toastify";
 import { authAPI } from "../../services/api";
-
+import { useConfirm } from "../../components/ConfirmDialogContext";
 const ActiveTeammembers = ({ refresh, onEdit }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-
+const confirm = useConfirm();
   const fetchTeamMembers = async () => {
     try {
       setLoading(true);
-      const res = await authAPI.getTeamMembers();
+      // const res = await authAPI.getTeamMembers();
+      const res = await authAPI.getActiveTeamMembers();
 console.log("Fetched Team Members:", res.data.data);
       const activeMembers = res.data.data
         // .filter((m) => m.active === true)
@@ -209,7 +210,26 @@ console.log("Fetched Team Members:", res.data.data);
   const handleEdit = (row) => {
     onEdit(row); // 🔥 send data to parent
   };
+const handleDeactivate = (id, memberName) => {
+  confirm({
+    title: "Deactivate Team Member",
+    description: `Are you sure you want to deactivate ${memberName}? The team member will no longer be able to access the system.`,
+    onConfirm: async () => {
+      try {
+        await authAPI.deactivateTeamMember(id);
+        fetchTeamMembers();
 
+        // Optional toast
+         toast.success("Team member deactivated successfully");
+      } catch (error) {
+        console.error(error);
+
+        // Optional toast
+         toast.error(error?.response?.data?.message);
+      }
+    },
+  });
+};
   // ================= COLUMNS =================
   const columns = [
     {
@@ -231,15 +251,7 @@ console.log("Fetched Team Members:", res.data.data);
         </Badge>
       ),
     },
-    // {
-    //   accessorKey: "status",
-    //   header: "Status",
-    //   cell: ({ row }) => (
-    //     <Badge variant="success" className="bg-green-500 hover:bg-green-600">
-    //       Active
-    //     </Badge>
-    //   ),
-    // },
+
     {
   accessorKey: "status",
   header: "Status",
@@ -275,10 +287,22 @@ console.log("Fetched Team Members:", res.data.data);
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              
               <DropdownMenuItem onClick={() => handleEdit(member.raw)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
+             <DropdownMenuItem
+  onClick={() =>
+    handleDeactivate(
+      member.id,
+      member.name
+    )
+  }
+  className="text-orange-600"
+>
+  Deactivate
+</DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleDelete(member.id)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete

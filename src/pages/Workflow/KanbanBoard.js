@@ -462,12 +462,13 @@ import MoveAutomationDrawer from "./MoveAutomationDrawer";
 import JobDrawer from "./JobDrawer";
 import EditJobDrawer from "./EditJobDrawer";
 import { useConfirm } from "../../components/ConfirmDialogContext";
-
+import { useAuth } from "../../context/AuthContext";
 dayjs.extend(relativeTime);
 
 const KanbanBoard = ({ pipeline, onBack, isActive }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const { user,  } = useAuth();
 
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -946,6 +947,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
         automations={selectedAutomationData?.automations || []}
         jobId={selectedAutomationData?.jobId}
         stageId={selectedAutomationData?.stageId}
+        username={user?.username}
       />
     </div>
   );

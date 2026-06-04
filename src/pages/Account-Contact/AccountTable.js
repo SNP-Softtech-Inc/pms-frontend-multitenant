@@ -1254,21 +1254,52 @@ function TagPills({ tags }) {
   );
 }
 
+// function MemberPills({ members }) {
+//   if (!members?.length) return <span className="text-muted-foreground text-xs">—</span>;
+//   const first = members[0];
+//   return (
+//     <div className="flex items-center gap-1">
+//       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 truncate max-w-[110px]">
+//         {first.username}
+//       </span>
+//       {members.length > 1 && (
+//         <span
+//           title={members.slice(1).map((m) => m.username).join(", ")}
+//           className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground border border-border"
+//         >
+//           +{members.length - 1}
+//         </span>
+//       )}
+//     </div>
+//   );
+// }
+
 function MemberPills({ members }) {
-  if (!members?.length) return <span className="text-muted-foreground text-xs">—</span>;
-  const first = members[0];
+  if (!members?.length) {
+    return <span className="text-muted-foreground text-xs">—</span>;
+  }
+
   return (
-    <div className="flex items-center gap-1">
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 truncate max-w-[110px]">
-        {first.username}
-      </span>
-      {members.length > 1 && (
-        <span
-          title={members.slice(1).map((m) => m.username).join(", ")}
-          className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground border border-border"
+    <div className="flex items-center">
+      <div className="flex -space-x-2">
+        {members.slice(0, 3).map((member, index) => (
+          <div
+            key={member._id || index}
+            title={member.username}
+            className="h-7 w-7 rounded-full border-2 border-background bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-semibold shadow-sm"
+          >
+            {member.username?.charAt(0)?.toUpperCase()}
+          </div>
+        ))}
+      </div>
+
+      {members.length > 3 && (
+        <div
+          title={members.slice(3).map((m) => m.username).join(", ")}
+          className="ml-1 h-7 w-7 rounded-full border-2 border-background bg-muted text-muted-foreground flex items-center justify-center text-[11px] font-medium"
         >
-          +{members.length - 1}
-        </span>
+          +{members.length - 3}
+        </div>
       )}
     </div>
   );
@@ -1364,6 +1395,7 @@ const AccountTable = () => {
         res = await accountsAPI.getAccountsByTeamMember(isActive);
       } else {
         res = await accountsAPI.getAccountsList(isActive);
+        console.log("Fetched accounts:", res.data.accountlist);
       }
       return res.data.accountlist || [];
     },
@@ -1801,7 +1833,7 @@ const AccountTable = () => {
                 </button>
               </div>
             )}
-            {activeFilters.includes("teamMember") && (
+            {/* {activeFilters.includes("teamMember") && (
               <div className="flex items-center gap-1.5 min-h-8 border border-border rounded-lg pl-1 pr-1.5 bg-background">
                 <TeamMemberMultiSelectDropDown
                   value={filters.teamMember}
@@ -1811,7 +1843,24 @@ const AccountTable = () => {
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-            )}
+            )} */}
+             {activeFilters.includes("teamMember") && (
+  <div className="flex items-center gap-1.5 min-h-8 w-[400px] border border-border rounded-lg pl-1 pr-1.5 bg-background">
+    <div className="flex-1 min-w-0">
+       <TeamMemberMultiSelectDropDown
+                  value={filters.teamMember}
+                  onChange={(v) => setFilters((p) => ({ ...p, teamMember: v }))}
+                />
+    </div>
+
+    <button
+      onClick={() => removeFilter("teamMember")}
+      className="text-muted-foreground hover:text-foreground shrink-0"
+    >
+      <X className="h-3.5 w-3.5" />
+    </button>
+  </div>
+)}
             {/* {activeFilters.includes("tags") && (
               <div className="flex items-center gap-1.5 min-h-8 border border-border rounded-lg pl-1 pr-1.5 bg-background">
                 <TagsMultiSelectDropDown
@@ -1914,7 +1963,7 @@ const AccountTable = () => {
       <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
 
       {/* Delete confirmation dialog */}
-      {isDeleteDialogOpen && (
+      {/* {isDeleteDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-foreground/40" onClick={() => setIsDeleteDialogOpen(false)} />
           <div className="relative bg-background rounded-xl shadow-lg w-full max-w-sm mx-4 p-6 space-y-4">
@@ -1946,7 +1995,115 @@ const AccountTable = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+      {isDeleteDialogOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    
+    {/* Backdrop */}
+    <div
+      className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+      onClick={() => setIsDeleteDialogOpen(false)}
+    />
+
+    {/* Dialog */}
+    <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      
+      {/* Header */}
+      <div className="border-b border-border px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10 cursor-pointer"  onClick={() => {
+            setIsDeleteDialogOpen(false);
+            setConfirmText("");
+          }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-destructive"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M18.364 5.636L5.636 18.364M5.636 5.636l12.728 12.728"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <h3 className="text-base font-semibold text-foreground">
+              Delete Account
+              {selectedIds.length > 1 ? "s" : ""}
+            </h3>
+
+            <p className="text-xs text-muted-foreground mt-0.5">
+              This action cannot be undone
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-6 py-5 space-y-4">
+        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            You are about to permanently delete{" "}
+            <span className="font-semibold text-foreground">
+              {selectedIds.length}
+            </span>{" "}
+            account
+            {selectedIds.length > 1 ? "s" : ""}.
+          </p>
+
+          <p className="text-sm text-muted-foreground mt-2">
+            Type{" "}
+            <span className="font-bold tracking-wide text-destructive">
+              DELETE
+            </span>{" "}
+            below to confirm.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Confirmation
+          </label>
+
+          <input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="Type DELETE"
+            autoFocus
+            className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-end gap-3 border-t border-border bg-muted/30 px-6 py-4">
+        <button
+          onClick={() => {
+            setIsDeleteDialogOpen(false);
+            setConfirmText("");
+          }}
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleDelete}
+          disabled={confirmText !== "DELETE"}
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-destructive px-4 text-sm font-semibold text-destructive-foreground shadow-sm transition-all hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

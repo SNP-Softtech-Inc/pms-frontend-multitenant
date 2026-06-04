@@ -258,6 +258,19 @@ updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data)
   // Get all team members
   getTeamMembers: () => authUserApi.get("/api/teammember/"),
 
+    // Get active team members
+  getActiveTeamMembers: () =>
+    authUserApi.get("/api/teammember/active"),
+
+  // Get inactive team members
+  getInactiveTeamMembers: () =>
+    authUserApi.get("/api/teammember/inactive"),
+
+
+  deactivateTeamMember: (id) =>
+  authUserApi.patch(`/api/teammember/${id}/deactivate`),
+
+
   // Get single team member
   getTeamMemberById: (id) => authUserApi.get(`/api/teammember/${id}`),
 
@@ -332,6 +345,30 @@ getEmailNotifications: () =>
 // Get communication emails
 getEmailCommunications: () =>
   authUserApi.get("/api/emailsync/communications"),
+
+  // Mark thread as read
+  markThreadAsRead: (
+    threadId
+  ) =>
+    emailSyncApi.put(
+      `/emailsync/messagesList/mark-read/${threadId}`
+    ),
+
+  // Archive thread
+  archiveThread: (
+    threadId
+  ) =>
+    emailSyncApi.put(
+      `/api/emailsync/messagesList/archive/${threadId}`
+    ),
+
+  // Unarchive thread
+  unarchiveThread: (
+    threadId
+  ) =>
+    emailSyncApi.put(
+      `/api/emailsync/messagesList/unarchive/${threadId}`
+    ),
 };
 
 // ================= SIDEBAR APIs =================

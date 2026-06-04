@@ -1,32 +1,40 @@
-// import {
-//   Box,
-//   Typography,
-//   Divider,
-//   Grid,
-//   Checkbox,
-//   IconButton,
-//   Button,
-//   Menu,
-//   MenuItem,
-//   List,
-//   ListItem,
-//   ListItemText,
-//   TextField,
-//   Dialog,
-//   DialogActions,
-//   DialogContent,
-//   DialogTitle,
-// } from "@mui/material";
+
+
+// import React, { useEffect, useState, useRef } from "react";
 // import { toast } from "react-toastify";
-// import React, { useEffect, useState, useRef, useContext } from "react";
-// import MoreVertIcon from "@mui/icons-material/MoreVert";
-// import CloseIcon from "@mui/icons-material/Close";
-// // import EditIcon from "@mui/icons-material/Edit";
+// import {
+//   MoreVertical,
+//   X,
+//   Plus,
+//   Trash2,
+//   CornerUpLeft,
+//   Check,
+// } from "lucide-react";
+
+// // Shadcn UI Components
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from "../../../components/ui/dialog";
+// import { Button } from "../../../components/ui/button";
+// import { ScrollArea } from "../../../components/ui/scroll-area";
+// import { Separator } from "../../../components/ui/separator";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+// } from "../../../components/ui/dropdown-menu";
+// import { Checkbox } from "../../../components/ui/checkbox";
+// import { Input } from "../../../components/ui/input";
+
+// // Your Custom Components/Context
 // import Editor from "../../../components/Editor";
 // import { useAuth } from "../../../context/AuthContext";
 // import { chatAPI } from "../../../services/api";
-// import DeleteIcon from "@mui/icons-material/Delete";
-// import AddIcon from "@mui/icons-material/Add";
 
 // const ChatDetails = ({
 //   chat,
@@ -37,21 +45,17 @@
 //   isActiveTrue,
 //   accountName,
 // }) => {
-//   console.log("chat details", chat);
 //   const [showTasks, setShowTasks] = useState(false);
 //   const [chatId, setChatId] = useState(chat._id);
 //   const [chatTemplate, setChatTemplate] = useState(chat.chattemplateid);
-//   const { user, isAuthenticated } = useAuth();
+//   const { user } = useAuth();
 //   const [loginUserId, setLoginUserId] = useState();
 //   const messageRefs = useRef({});
 //   const [highlightedId, setHighlightedId] = useState(null);
 //   const [replyTo, setReplyTo] = useState(null);
 //   const messagesEndRef = useRef(null);
-//   const [anchorEl, setAnchorEl] = useState(null);
-//   const [selectedMessage, setSelectedMessage] = useState(null);
 //   const [editorContent, setEditorContent] = useState("");
 //   const [tasks, setTasks] = useState([]);
-//   const [chatanchorEl, setChatAnchorEl] = useState(null);
 
 //   // Edit state
 //   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -61,16 +65,11 @@
 //   const [senderEmail, setSenderEmail] = useState("");
 //   const [senderName, setSenderName] = useState("");
 
-//   const handleChatMenuClose = () => {
-//     setChatAnchorEl(null);
-//   };
-
 //   useEffect(() => {
 //     if (user?.id) {
-//       const id = user.id;
-//       setLoginUserId(id);
+//       setLoginUserId(user.id);
 //       setSenderEmail(user.email);
-//       setSenderName(user?.group?.name ||user.username || user.name);
+//       setSenderName(user?.group?.name || user.username || user.name);
 //     }
 //     if (chat.clienttasks) {
 //       setTasks(chat.clienttasks.flat());
@@ -97,39 +96,15 @@
 //     scrollToBottom();
 //   }, [chat.description]);
 
-//   const handleMenuClick = (event, message) => {
-//     setAnchorEl(event.currentTarget);
-//     setSelectedMessage(message);
-//   };
+//   const handleEditorChange = (content) => setEditorContent(content);
+//   const toggleTasks = () => setShowTasks(!showTasks);
 
-//   const handleMenuClose = () => {
-//     setAnchorEl(null);
-//     setSelectedMessage(null);
-//   };
-
-//   const handleEditorChange = (content) => {
-//     setEditorContent(content);
-//   };
-
-//   const toggleTasks = () => {
-//     setShowTasks(!showTasks);
-//   };
-
-//   // Check if message is within 10 minutes
 //   const canEditMessage = (messageTime) => {
 //     if (!messageTime) return false;
-
 //     const messageTimestamp = new Date(messageTime).getTime();
 //     const currentTime = new Date().getTime();
-//     const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
-
-//     return (currentTime - messageTimestamp) <= tenMinutes;
-//   };
-
-//   // Check if message has any available menu options
-//   const hasMenuOptions = (message) => {
-//     // All messages have at least the Reply option
-//     return true;
+//     const tenMinutes = 10 * 60 * 1000;
+//     return currentTime - messageTimestamp <= tenMinutes;
 //   };
 
 //   const updateChatDescription = async (message = "") => {
@@ -142,61 +117,49 @@
 //       senderid: senderName,
 //     };
 
-//     if (replyTo) {
-//       newDescription.replyTo = replyTo._id;
-//     }
+//     if (replyTo) newDescription.replyTo = replyTo._id;
 
 //     try {
 //       await chatAPI.updateChatDescription(chatId, {
-//         newDescriptions: [newDescription]
+//         newDescriptions: [newDescription],
 //       });
-
 //       setEditorContent("");
 //       setReplyTo(null);
 //       toast.success("Message sent");
-
 //       await securemessagechatsend(chatId);
 //       await updatechatStatus(chatId);
 //       accountwiseChatlist(data, isActiveTrue);
 //       getsChatDetails();
 //     } catch (error) {
-//       console.error("Send failed:", error);
 //       toast.error("Send failed");
 //     }
 //   };
 
-//   // Edit message function
 //   const handleEditMessage = (message) => {
 //     if (!canEditMessage(message.time)) {
 //       toast.error("Cannot edit message after 10 minutes");
 //       return;
 //     }
-
 //     setEditingMessage(message);
 //     setEditContent(message.message);
 //     setEditDialogOpen(true);
-//     setAnchorEl(null);
 //   };
 
 //   const handleSaveEdit = async () => {
 //     if (!editContent.trim() || !editingMessage) return;
-
 //     try {
 //       await chatAPI.updateMessage({
 //         chatId: chatId,
 //         messageId: editingMessage._id,
 //         newMessage: editContent,
 //       });
-
 //       toast.success("Message updated successfully");
 //       setEditDialogOpen(false);
 //       setEditingMessage(null);
 //       setEditContent("");
-
 //       getsChatDetails();
 //       accountwiseChatlist(data, isActiveTrue);
 //     } catch (error) {
-//       console.error("Error updating message:", error);
 //       toast.error("Failed to update message");
 //     }
 //   };
@@ -208,27 +171,23 @@
 //   };
 
 //   const securemessagechatsend = async (chatId) => {
-//   try {
-//     const payload = {
-//       accountid: data,
-//       chattemplateid: chatTemplate,
-//       username: senderName,
-//       viewchatlink: "/login",
-//       chatId: chatId,
-//     };
-
-//     const response = await sendSecureMessage(payload);
-
-//     console.log(response.data); // axios style response
-//   } catch (error) {
-//     console.error("Secure message error:", error?.response?.data || error.message);
-//   }
-// };
+//     try {
+//       const payload = {
+//         accountid: data,
+//         chattemplateid: chatTemplate,
+//         username: senderName,
+//         viewchatlink: "/login",
+//         chatId: chatId,
+//       };
+//       await chatAPI.sendSecureMessage(payload);
+//     } catch (error) {
+//       console.error("Secure message error:", error);
+//     }
+//   };
 
 //   const updatechatStatus = async (chatId) => {
 //     try {
 //       await chatAPI.updateChat(chatId, { chatstatus: false });
-//       console.log("Status updated");
 //     } catch (error) {
 //       console.error("Error updating chat status:", error);
 //     }
@@ -237,9 +196,8 @@
 //   const handleTaskToggle = (id) => {
 //     setTasks((prevTasks) => {
 //       const updated = prevTasks.map((task) =>
-//         task.id === id ? { ...task, checked: !task.checked } : task
+//         task.id === id ? { ...task, checked: !task.checked } : task,
 //       );
-
 //       updateClientTask(updated);
 //       return updated;
 //     });
@@ -255,12 +213,10 @@
 //           checked: task.checked,
 //         })),
 //       });
-
 //       toast.success("Task updated");
-//       getsChatDetails();
-//       accountwiseChatlist(data, isActiveTrue);
+//       // getsChatDetails();
+//       // accountwiseChatlist(data, isActiveTrue);
 //     } catch (error) {
-//       console.error(error);
 //       toast.error("Task update failed");
 //     }
 //   };
@@ -268,42 +224,28 @@
 //   const handleAddTask = () => {
 //     const maxId =
 //       tasks.length > 0 ? Math.max(...tasks.map((task) => Number(task.id))) : 0;
-
-//     const newTaskItem = {
-//       id: maxId + 1,
-//       text: "",
-//       checked: false,
-//     };
-
+//     const newTaskItem = { id: maxId + 1, text: "", checked: false };
 //     setTasks([...tasks, newTaskItem]);
 //   };
 
 //   const handleDeleteTask = (id) => {
-//     const updated = tasks.filter((task) => task.id !== id);
-//     setTasks(updated);
+//     setTasks(tasks.filter((task) => task.id !== id));
 //   };
 
 //   const handleTaskTextChange = (id, newText) => {
-//     const updated = tasks.map((task) =>
-//       task.id === id ? { ...task, text: newText } : task
+//     setTasks(
+//       tasks.map((task) => (task.id === id ? { ...task, text: newText } : task)),
 //     );
-//     setTasks(updated);
 //   };
 
 //   const resendClientTask = async () => {
 //     try {
-//       await chatAPI.addClientTask({
-//         chatId: chatId,
-//         newTask: tasks,
-//       });
-
+//       await chatAPI.addClientTask({ chatId, newTask: tasks });
 //       const taskMessages = tasks
 //         .filter((task) => !task.checked)
 //         .map((task) => `• ${task.text}`)
 //         .join("\n");
-
-//       const description = `${taskMessages}`;
-//       await updateAdminChatDescription(description);
+//       await updateAdminChatDescription(taskMessages);
 //     } catch (error) {
 //       console.error(error);
 //     }
@@ -311,55 +253,41 @@
 
 //   const updateAdminChatDescription = async (description) => {
 //     if (!description.trim()) return;
-
-//     const newDescription = {
-//       message: description,
-//       fromwhome: "Admin",
-//       senderid: senderName,
-//     };
-
 //     try {
 //       await chatAPI.updateChatDescription(chatId, {
-//         newDescriptions: [newDescription]
+//         newDescriptions: [
+//           { message: description, fromwhome: "Admin", senderid: senderName },
+//         ],
 //       });
-
 //       toast.success("Chat description updated successfully");
 //       getsChatDetails();
 //       await updatechatStatus(chatId);
 //       accountwiseChatlist(data, isActiveTrue);
 //     } catch (error) {
-//       console.error("Error:", error);
-//       toast.error("Failed to update chat description. Please try again.");
+//       toast.error("Failed to update chat description");
 //     }
 //   };
 
 //   const handleDeleteMessage = async (messageToDelete) => {
 //     try {
-//       await chatAPI.deleteMessage({
-//         chatId: chatId,
-//         messageId: messageToDelete._id,
-//       });
-
+//       await chatAPI.deleteMessage({ chatId, messageId: messageToDelete._id });
 //       toast.success("Message deleted successfully");
 //       getsChatDetails();
 //       accountwiseChatlist(data, isActiveTrue);
 //     } catch (error) {
-//       console.error("Error deleting message:", error);
 //       toast.error("Failed to delete message");
 //     }
 //   };
 
-//   const handleArchiveThread = async (chatId) => {
+//   const handleArchiveThread = async (id) => {
 //     try {
-//       await chatAPI.updateChat(chatId, { active: !chat.active });
-//       toast.success(chat.active ? "Chat archived successfully" : "Chat activated successfully");
+//       await chatAPI.updateChat(id, { active: !chat.active });
+//       toast.success(chat.active ? "Chat archived" : "Chat activated");
 //       accountwiseChatlist(data, isActiveTrue);
 //       onChatAction();
 //     } catch (error) {
-//       console.error(error);
-//       toast.error("An error occurred while submitting the form");
+//       toast.error("Action failed");
 //     }
-//     handleChatMenuClose();
 //   };
 
 //   const handleDeleteThread = async () => {
@@ -369,118 +297,231 @@
 //       toast.success("Thread deleted successfully");
 //       accountwiseChatlist(data, isActiveTrue);
 //     } catch (error) {
-//       console.error("Error deleting thread:", error);
 //       toast.error("Failed to delete thread");
 //     }
 //   };
 
 //   if (!chat) return null;
-
-//   return (
-//     <Box sx={{ display: "flex" }}>
-//       {/* Edit Dialog */}
-//       <Dialog
-//         open={editDialogOpen}
-//         onClose={handleCancelEdit}
-//         maxWidth="md"
-//         fullWidth
+// return (
+//   <div
+//     className="
+//       flex h-full w-full 
+//       rounded-2xl
+//       border border-border
+//       bg-background
+//       text-foreground
+//     "
+//   >
+//     {/* Edit Dialog */}
+//     <Dialog
+//       open={editDialogOpen}
+//       onOpenChange={(open) => !open && handleCancelEdit()}
+//     >
+//       <DialogContent
+//         className="
+//           max-w-3xl
+//           rounded-2xl
+//           border border-border
+//           bg-background
+//           shadow-2xl
+//         "
 //       >
-//         <DialogTitle>Edit Message</DialogTitle>
-//         <DialogContent>
-//           <Box sx={{ mt: 2, minHeight: 200 }}>
-//             <Editor
-//               onChange={setEditContent}
-//               value={editContent}
-//             />
-//           </Box>
-//         </DialogContent>
-//         <DialogActions>
-//           <Button onClick={handleCancelEdit}>Cancel</Button>
+//         <DialogHeader className="space-y-1">
+//           <DialogTitle
+//             className="font-semibold text-foreground"
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(1rem * parseFloat(var(--font-scale)) / 100)",
+//             }}
+//           >
+//             Edit Message
+//           </DialogTitle>
+
+//           <p
+//             className="text-muted-foreground"
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
+//             }}
+//           >
+//             Update the message content before saving.
+//           </p>
+//         </DialogHeader>
+
+//         <div
+//           className="
+//             mt-4 min-h-[200px]
+//             rounded-xl
+//             border border-border
+//             bg-card
+//             p-3
+//           "
+//         >
+//           <Editor onChange={setEditContent} value={editContent} />
+//         </div>
+
+//         <DialogFooter className="mt-5 gap-2">
+//           <Button
+//             variant="outline"
+//             onClick={handleCancelEdit}
+//             className="
+//               rounded-xl border-border
+//               hover:bg-muted
+//             "
+//           >
+//             Cancel
+//           </Button>
+
 //           <Button
 //             onClick={handleSaveEdit}
-//             variant="contained"
 //             disabled={!editContent.trim()}
+//             className="rounded-xl"
 //           >
 //             Save Changes
 //           </Button>
-//         </DialogActions>
-//       </Dialog>
+//         </DialogFooter>
+//       </DialogContent>
+//     </Dialog>
 
-//       {/* Main Chat Area */}
-//       <Box sx={{ flex: 1, overflow: "hidden", pr: showTasks ? 2 : 0 }}>
-//         <Box
-//           sx={{
-//             display: "flex",
-//             alignItems: "center",
-//             justifyContent: "space-between",
-//           }}
-//         >
-//           <Box>
+//     {/* Main Chat Area */}
+//     <div
+//       className={`flex min-w-0 flex-1 flex-col ${
+//         showTasks ? "pr-4" : "pr-0"
+//       }`}
+//     >
+//       {/* HEADER */}
+//       <div
+//         className="
+//           flex items-center justify-between
+//           border-b border-border
+//           bg-card/60
+//           px-5 py-4
+//           backdrop-blur
+//         "
+//       >
+//         <div className="min-w-0">
+//           <h2
+//             className="truncate font-semibold text-foreground"
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(1rem * parseFloat(var(--font-scale)) / 100)",
+//             }}
+//           >
+//             {chat.accountid?.accountName || accountName}
+//           </h2>
 
-//             <Typography variant="h6" gutterBottom>
-//               {chat.accountid?.accountName || accountName}
-//             </Typography>
-//             <Typography variant="subtitle2" gutterBottom>
-//               {chat.chatsubject}
-//             </Typography>
-//           </Box>
-//           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-//             {tasks.length > 0 ? (
-//               <Typography
-//                 variant="subtitle2"
-//                 fontWeight={600}
-//                 sx={{ cursor: "pointer" }}
-//                 onClick={toggleTasks}
-//               >
-//                 Client Tasks:{" "}
-//                 {`${tasks.filter((task) => task.checked).length}/${tasks.length}`}
-//               </Typography>
-//             ) : (
-//               <Typography
-//                 variant="subtitle2"
-//                 fontWeight={600}
-//                 sx={{ cursor: "pointer", color: "primary.main" }}
-//                 onClick={toggleTasks}
-//               >
-//                 + Add Client Task
-//               </Typography>
-//             )}
+//           <p
+//             className="mt-1 truncate text-muted-foreground"
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+//             }}
+//           >
+//             {chat.chatsubject}
+//           </p>
+//         </div>
 
-//             <IconButton
-//               sx={{ cursor: "pointer" }}
-//               onClick={(e) => setChatAnchorEl(e.currentTarget)}
+//         <div className="flex items-center gap-3">
+//           {tasks.length > 0 ? (
+//             <div
+//               className="
+//                 cursor-pointer rounded-xl
+//                 border border-border
+//                 bg-muted/30
+//                 px-3 py-1.5
+//                 transition-all
+//                 hover:bg-muted/50
+//               "
+//               onClick={toggleTasks}
 //             >
-//               <MoreVertIcon />
-//             </IconButton>
-//             <Menu
-//               anchorEl={chatanchorEl}
-//               open={Boolean(chatanchorEl)}
-//               onClose={handleChatMenuClose}
-//             >
-//               <MenuItem
-//                 onClick={() => {
-//                   handleArchiveThread(chatId);
+//               <span
+//                 className="font-medium text-foreground"
+//                 style={{
+//                   fontFamily: "var(--font-family)",
+//                   fontSize:
+//                     "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
 //                 }}
+//               >
+//                 Client Tasks: {tasks.filter((t) => t.checked).length}/
+//                 {tasks.length}
+//               </span>
+//             </div>
+//           ) : (
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               onClick={toggleTasks}
+//               className="
+//                 rounded-xl
+//                 text-primary
+//                 hover:bg-primary/10
+//                 hover:text-primary
+//               "
+//             >
+//               + Add Client Task
+//             </Button>
+//           )}
+
+//           <DropdownMenu>
+//             <DropdownMenuTrigger asChild>
+//               <Button
+//                 variant="ghost"
+//                 size="icon"
+//                 className="
+//                   rounded-xl
+//                   hover:bg-muted
+//                 "
+//               >
+//                 <MoreVertical className="h-5 w-5" />
+//               </Button>
+//             </DropdownMenuTrigger>
+
+//             <DropdownMenuContent
+//               align="end"
+//               className="
+//                 rounded-xl
+//                 border border-border
+//                 bg-popover
+//                 shadow-xl
+//               "
+//             >
+//               <DropdownMenuItem
+//                 onClick={() => handleArchiveThread(chatId)}
+//                 className="rounded-lg"
 //               >
 //                 {chat.active ? "Archive Thread" : "Activate Thread"}
-//               </MenuItem>
-//               <MenuItem
-//                 onClick={() => {
-//                   handleDeleteThread();
-//                   handleChatMenuClose();
-//                 }}
+//               </DropdownMenuItem>
+
+//               <DropdownMenuItem
+//                 className="
+//                   rounded-lg
+//                   text-destructive
+//                   focus:text-destructive
+//                 "
+//                 onClick={handleDeleteThread}
 //               >
 //                 Delete
-//               </MenuItem>
-//             </Menu>
-//           </Box>
-//         </Box>
+//               </DropdownMenuItem>
+//             </DropdownMenuContent>
+//           </DropdownMenu>
+//         </div>
+        
+//       </div>
 
-//         <Divider sx={{ my: 1 }} />
-
-//         <Box height={"40vh"} sx={{ overflowY: "auto", mt: 1, mb: 1 }}>
+//       {/* CHAT MESSAGES */}
+//       <ScrollArea
+//         className="
+//           flex-1
+//           bg-background
+//           px-4 py-5
+//         "
+//       >
+//         <div className="space-y-4">
 //           {Array.isArray(chat.description) &&
-//             chat.description.length > 0 &&
 //             chat.description.map((desc, index) => (
 //               <MessageItem
 //                 key={desc._id || index}
@@ -489,124 +530,261 @@
 //                 messageRefs={messageRefs}
 //                 highlightedId={highlightedId}
 //                 setHighlightedId={setHighlightedId}
-//                 handleMenuClick={handleMenuClick}
-//                 anchorEl={anchorEl}
-//                 setAnchorEl={setAnchorEl}
-//                 selectedMessage={selectedMessage}
 //                 setReplyTo={setReplyTo}
 //                 formatDate={formatDate}
-//                 loginUserId={loginUserId}
 //                 handleDeleteMessage={handleDeleteMessage}
 //                 handleEditMessage={handleEditMessage}
 //                 canEditMessage={canEditMessage}
-//                 hasMenuOptions={hasMenuOptions}
 //               />
 //             ))}
-//         </Box>
+//         </div>
 
-//         <Box
-//           sx={{
-//             display: "grid",
-//             gridTemplateColumns: "1fr auto",
-//             gap: 2,
-//             alignItems: "start",
-//             height: "35vh",
-//             overflowY: "auto",
-//           }}
-//         >
-//           {replyTo && (
-//             <ReplyPreview replyTo={replyTo} setReplyTo={setReplyTo} />
-//           )}
-//           <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
-//             <Editor onChange={handleEditorChange} value={editorContent} />
-//             <Button
-//               onClick={() => updateChatDescription()}
-//               variant="contained"
-//               sx={{ height: "fit-content", alignSelf: "end" }}
+//         <div ref={messagesEndRef} />
+//       </ScrollArea>
+
+//       <Separator className="bg-border" />
+
+//       {/* REPLY + EDITOR */}
+//       <div
+//         className="
+//           bg-card/40
+//           px-4 py-4
+//           backdrop-blur
+//         "
+//       >
+//         {replyTo && (
+//           <div
+//             className="
+//               relative mb-3
+//               rounded-2xl
+//               border border-primary/20
+//               bg-primary/5
+//               p-4
+//             "
+//           >
+//             <p
+//               className="mb-1 font-semibold text-primary"
+//               style={{
+//                 fontFamily: "var(--font-family)",
+//                 fontSize:
+//                   "calc(0.75rem * parseFloat(var(--font-scale)) / 100)",
+//               }}
 //             >
-//               Send
-//             </Button>
-//           </Box>
-//         </Box>
-//       </Box>
+//               Replying to:{" "}
+//               {replyTo.fromwhome === "client"
+//                 ? replyTo.senderid
+//                 : "Admin"}
+//             </p>
 
-//       {/* Tasks Panel */}
-//       {showTasks && (
-//         <Box
-//           sx={{
-//             width: 300,
-//             borderLeft: "1px solid #e0e0e0",
-//             pl: 2,
-//             pr: 1,
-//             overflowY: "auto",
-//           }}
+//             <div
+//               className="
+//                 pr-8 italic
+//                 text-muted-foreground
+//                 line-clamp-2
+//               "
+//               dangerouslySetInnerHTML={{
+//                 __html: replyTo.message,
+//               }}
+//             />
+
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               className="
+//                 absolute right-2 top-2
+//                 h-7 w-7 rounded-lg
+//                 hover:bg-background
+//               "
+//               onClick={() => setReplyTo(null)}
+//             >
+//               <X className="h-4 w-4" />
+//             </Button>
+//           </div>
+//         )}
+
+//         <div className="flex items-end gap-4">
+//           <div
+//             className="
+//               flex-1 
+//               rounded-2xl
+//               border border-border
+//               bg-card
+//               p-3
+//               shadow-sm 
+//             "
+//           >
+//             <Editor
+//               onChange={handleEditorChange}
+//               value={editorContent}
+//             />
+//           </div>
+
+//           <Button
+//             onClick={() => updateChatDescription()}
+//             className="
+//               rounded-2xl
+//               px-5 py-2.5
+//               shadow-sm
+//             "
+//           >
+//             Send
+//           </Button>
+//         </div>
+//       </div>
+//     </div>
+
+//     {/* TASKS PANEL */}
+//     {showTasks && (
+//       <div
+//         className="
+//           flex w-80 flex-col
+//           border-l border-border
+//           bg-card/40
+//           backdrop-blur
+//         "
+//       >
+//         {/* TASK HEADER */}
+//         <div
+//           className="
+//             flex items-center justify-between
+//             border-b border-border
+//             bg-card
+//             px-4 py-4
+//           "
 //         >
-//           <Box
-//             sx={{
-//               display: "flex",
-//               alignItems: "center",
-//               justifyContent: "space-between",
-//               pt: 2,
-//               pb: 1,
+//           <h3
+//             className="font-semibold text-foreground"
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(0.92rem * parseFloat(var(--font-scale)) / 100)",
 //             }}
 //           >
-//             <Typography variant="h6">Client Tasks</Typography>
-//             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-//               <IconButton onClick={handleAddTask} color="primary">
-//                 <AddIcon />
-//               </IconButton>
-//               <IconButton onClick={toggleTasks} color="primary">
-//                 <CloseIcon />
-//               </IconButton>
-//             </Box>
-//           </Box>
+//             Client Tasks
+//           </h3>
 
-//           <List>
+//           <div className="flex gap-1">
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               onClick={handleAddTask}
+//               className="
+//                 rounded-lg
+//                 hover:bg-muted
+//               "
+//             >
+//               <Plus className="h-4 w-4" />
+//             </Button>
+
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               onClick={toggleTasks}
+//               className="
+//                 rounded-lg
+//                 hover:bg-muted
+//               "
+//             >
+//               <X className="h-4 w-4" />
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* TASK LIST */}
+//         <ScrollArea className="flex-1 px-3 py-3">
+//           <div className="space-y-3">
 //             {tasks.map((task) => (
-//               <ListItem
+//               <div
 //                 key={task.id}
-//                 sx={{
-//                   display: "flex",
-//                   alignItems: "center",
-//                   px: 0,
-//                 }}
+//                 className="
+//                   flex items-center gap-2
+//                   rounded-2xl
+//                   border border-border
+//                   bg-background
+//                   p-3
+//                   shadow-sm
+//                   transition-all
+//                   hover:shadow-md
+//                 "
 //               >
 //                 <Checkbox
 //                   checked={task.checked}
-//                   onChange={() => handleTaskToggle(task.id)}
+//                   onCheckedChange={() =>
+//                     handleTaskToggle(task.id)
+//                   }
 //                 />
-//                 <TextField
+
+//                 <Input
 //                   value={task.text}
 //                   onChange={(e) =>
-//                     handleTaskTextChange(task.id, e.target.value)
+//                     handleTaskTextChange(
+//                       task.id,
+//                       e.target.value
+//                     )
 //                   }
-//                   variant="outlined"
-//                   size="small"
-//                   fullWidth
-//                   sx={{
-//                     mr: 1,
-//                     textDecoration: task.checked ? "line-through" : "none",
-//                     input: {
-//                       color: task.checked ? "#777" : "inherit",
-//                     },
+//                   className={`
+//                     h-9 border-none bg-transparent
+//                     px-1 shadow-none
+
+//                     focus-visible:ring-0
+//                     focus-visible:ring-offset-0
+
+//                     ${
+//                       task.checked
+//                         ? "text-muted-foreground line-through"
+//                         : "text-foreground"
+//                     }
+//                   `}
+//                   style={{
+//                     fontFamily: "var(--font-family)",
 //                   }}
 //                 />
-//                 <IconButton
-//                   onClick={() => handleDeleteTask(task.id)}
-//                   color="error"
+
+//                 <Button
+//                   variant="ghost"
+//                   size="icon"
+//                   className="
+//                     h-8 w-8 rounded-lg
+//                     text-destructive
+//                     hover:bg-destructive/10
+//                     hover:text-destructive
+//                   "
+//                   onClick={() =>
+//                     handleDeleteTask(task.id)
+//                   }
 //                 >
-//                   <DeleteIcon />
-//                 </IconButton>
-//               </ListItem>
+//                   <Trash2 className="h-4 w-4" />
+//                 </Button>
+//               </div>
 //             ))}
-//           </List>
-//           <Button variant="outlined" sx={{ mt: 2 }} onClick={resendClientTask}>
+//           </div>
+//         </ScrollArea>
+
+//         {/* FOOTER */}
+//         <div
+//           className="
+//             border-t border-border
+//             bg-card
+//             p-4
+//           "
+//         >
+//           <Button
+//             variant="outline"
+//             className="
+//               w-full rounded-xl
+//               border-border
+//               hover:bg-muted
+//             "
+//             onClick={resendClientTask}
+//           >
 //             Resend Client Task
 //           </Button>
-//         </Box>
-//       )}
-//     </Box>
-//   );
+//         </div>
+//       </div>
+//     )}
+//   </div>
+// );
+
 // };
 
 // const MessageItem = ({
@@ -615,283 +793,236 @@
 //   messageRefs,
 //   highlightedId,
 //   setHighlightedId,
-//   handleMenuClick,
-//   anchorEl,
-//   setAnchorEl,
-//   selectedMessage,
 //   setReplyTo,
 //   formatDate,
-//   loginUserId,
 //   handleDeleteMessage,
 //   handleEditMessage,
 //   canEditMessage,
-//   hasMenuOptions,
 // }) => {
 //   const isClient = desc.fromwhome?.toLowerCase() === "client";
 //   const isAdmin = desc.fromwhome?.toLowerCase() === "admin";
-//   const messageTime = desc.time ? formatDate(desc.time) : "Just now";
-
-//   // Check if message can be edited (only admin messages within 10 minutes)
 //   const isEditable = isAdmin && canEditMessage(desc.time);
+// return (
+//   <div
+//     ref={(el) => desc._id && (messageRefs.current[desc._id] = el)}
+//     className={`mb-5 flex ${
+//       isClient ? "justify-start" : "justify-end"
+//     }`}
+//   >
+//     <div
+//       className={`
+//         relative max-w-[78%]
+//         rounded-2xl border
+//         px-4 py-3
+//         shadow-sm transition-all
 
-//   // Check if message has any menu options (all messages have Reply option)
-//   const showMenuIcon = true;
-
-//   let senderDisplayName = "";
-//   if (isClient && desc.senderid) {
-//     senderDisplayName = desc.senderid;
-//   } else if (isAdmin && desc.senderid) {
-//     // senderDisplayName = "You";
-//     senderDisplayName = desc.senderid;
-//   }
-
-//   return (
-//     <Box
-//       ref={(el) => {
-//         if (desc._id) {
-//           messageRefs.current[desc._id] = el;
+//         ${
+//           desc._id === highlightedId
+//             ? `
+//               border-yellow-400/50
+//               bg-yellow-100/80
+//               dark:border-yellow-500/40
+//               dark:bg-yellow-500/10
+//             `
+//             : isAdmin
+//             ? `
+//               border-primary/10
+//               bg-primary/5
+//               dark:border-primary/20
+//               dark:bg-primary/10
+//             `
+//             : `
+//               border-border
+//               bg-card
+//               dark:bg-muted/20
+//             `
 //         }
-//       }}
-//       sx={{
-//         display: "flex",
-//         justifyContent: isClient ? "flex-start" : "flex-end",
-//         mb: 2,
-//         position: "relative",
-//       }}
+
+//         ${
+//           isClient
+//             ? "rounded-tl-md"
+//             : "rounded-tr-md"
+//         }
+//       `}
 //     >
-//       <Box
-//         sx={{
-//           maxWidth: "75%",
-//           backgroundColor:
-//             desc._id === highlightedId
-//               ? "#fff2b3"
-//               : isAdmin
-//                 ? "#ffe6e6"
-//                 : "#e6f0ff",
-//           p: 2,
-//           borderRadius: 2,
-//           borderTopLeftRadius: isClient ? 16 : 4,
-//           borderTopRightRadius: isClient ? 4 : 16,
-//           boxShadow: 1,
-//           position: "relative",
-//         }}
-//       >
-//         {desc.replyTo && (
-//           <ReplyPreviewItem
-//             desc={desc}
-//             chat={chat}
-//             messageRefs={messageRefs}
-//             setHighlightedId={setHighlightedId}
-//           />
-//         )}
+//       {/* Reply Preview */}
+//       {desc.replyTo && (
+//         <ReplyPreviewItem
+//           desc={desc}
+//           chat={chat}
+//           messageRefs={messageRefs}
+//           setHighlightedId={setHighlightedId}
+//         />
+//       )}
 
-//         <Box
-//           sx={{
-//             display: "flex",
-//             justifyContent: "space-between",
-//             color: "#333",
-//           }}
-//         >
-//           <Typography
-//             variant="subtitle2"
-//             component="p"
-//             gutterBottom
-//             sx={{ fontWeight: "600" }}
-//           >
-//             {senderDisplayName}
-//           </Typography>
-
-//           {showMenuIcon && (
-//             <MoreVertIcon
-//               fontSize="small"
-//               sx={{ cursor: "pointer" }}
-//               onClick={(e) => handleMenuClick(e, desc)}
-//             />
-//           )}
-//           <Menu
-//             anchorEl={anchorEl}
-//             open={Boolean(anchorEl)}
-//             onClose={() => setAnchorEl(null)}
-//             PaperProps={{
-//               elevation: 1,
-//               sx: {
-//                 boxShadow: "none",
-//                 borderRadius: "8px",
-//                 border: "1px solid #ccc",
-//               },
+//       {/* Header */}
+//       <div className="mb-2 flex items-start justify-between gap-4">
+//         <div className="min-w-0">
+//           <span
+//             className="
+//               block truncate
+//               font-semibold
+//               text-foreground
+//             "
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(0.78rem * parseFloat(var(--font-scale)) / 100)",
 //             }}
 //           >
-//             {/* Reply option is always available for all messages */}
-//             <MenuItem
-//               onClick={() => {
-//                 setReplyTo(selectedMessage);
-//                 setAnchorEl(null);
-//               }}
-//             >
-//               Reply
-//             </MenuItem>
+//             {desc.senderid}
+//           </span>
+//         </div>
 
-//             {/* Edit and Delete options - only for admin messages */}
-//             {selectedMessage?.fromwhome?.toLowerCase() === "admin" && (
+//         {/* Actions */}
+//         <DropdownMenu>
+//           <DropdownMenuTrigger asChild>
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               className="
+//                 h-7 w-7 rounded-lg
+//                 text-muted-foreground
+//                 transition-all
+
+//                 hover:bg-muted
+//                 hover:text-foreground
+//               "
+//             >
+//               <MoreVertical className="h-3.5 w-3.5" />
+//             </Button>
+//           </DropdownMenuTrigger>
+
+//           <DropdownMenuContent
+//             align="end"
+//             className="
+//               rounded-xl
+//               border border-border
+//               bg-popover
+//               shadow-xl
+//             "
+//           >
+//             <DropdownMenuItem
+//               onClick={() => setReplyTo(desc)}
+//               className="rounded-lg"
+//             >
+//               <CornerUpLeft className="mr-2 h-4 w-4" />
+//               Reply
+//             </DropdownMenuItem>
+
+//             {isAdmin && (
 //               <>
-//                 {/* Edit option - only if within 10 minutes */}
-//                 {canEditMessage(selectedMessage.time) && (
-//                   <MenuItem
-//                     onClick={() => handleEditMessage(selectedMessage)}
+//                 {isEditable && (
+//                   <DropdownMenuItem
+//                     onClick={() => handleEditMessage(desc)}
+//                     className="rounded-lg"
 //                   >
 //                     Edit
-//                   </MenuItem>
+//                   </DropdownMenuItem>
 //                 )}
-//                 {/* Delete option - always available for admin */}
-//                 <MenuItem
-//                   onClick={() => {
-//                     handleDeleteMessage(selectedMessage);
-//                     setAnchorEl(null);
-//                   }}
+
+//                 <DropdownMenuItem
+//                   className="
+//                     rounded-lg
+//                     text-destructive
+//                     focus:text-destructive
+//                   "
+//                   onClick={() => handleDeleteMessage(desc)}
 //                 >
 //                   Delete
-//                 </MenuItem>
+//                 </DropdownMenuItem>
 //               </>
 //             )}
-//           </Menu>
-//         </Box>
+//           </DropdownMenuContent>
+//         </DropdownMenu>
+//       </div>
 
-//         <Typography
-//           variant="body2"
-//           sx={{ whiteSpace: "pre-wrap", color: "#333" }}
-//           dangerouslySetInnerHTML={{
-//             __html:
-//               typeof desc.message === "string"
-//                 ? desc.message
-//                 : "No message available",
-//           }}
-//         />
-//         <Typography
-//           variant="caption"
-//           sx={{
-//             display: "block",
-//             textAlign: "right",
-//             color: "gray",
-//             mt: 1,
-//           }}
-//         >
-//           {messageTime}
+//       {/* Message */}
+//       <div
+//         className="
+//           whitespace-pre-wrap break-words
+//           leading-relaxed
+//           text-foreground
+//         "
+//         style={{
+//           fontFamily: "var(--font-family)",
+//           fontSize:
+//             "calc(0.88rem * parseFloat(var(--font-scale)) / 100)",
+//         }}
+//         dangerouslySetInnerHTML={{
+//           __html: desc.message || "No message available",
+//         }}
+//       />
+
+//       {/* Footer */}
+//       <div className="mt-3 flex justify-end">
+//         <div className="text-right">
+//           <span
+//             className="text-muted-foreground"
+//             style={{
+//               fontFamily: "var(--font-family)",
+//               fontSize:
+//                 "calc(0.68rem * parseFloat(var(--font-scale)) / 100)",
+//             }}
+//           >
+//             {desc.time ? formatDate(desc.time) : "Just now"}
+//           </span>
+
 //           {isAdmin && !isEditable && desc.time && (
-//             <Typography
-//               component="span"
-//               variant="caption"
-//               sx={{
-//                 display: "block",
-//                 fontStyle: "italic",
-//                 color: "#888",
-//                 mt: 0.5,
+//             <span
+//               className="
+//                 mt-0.5 block italic
+//                 text-muted-foreground
+//               "
+//               style={{
+//                 fontFamily: "var(--font-family)",
+//                 fontSize:
+//                   "calc(0.66rem * parseFloat(var(--font-scale)) / 100)",
 //               }}
 //             >
 //               (Edit expired)
-//             </Typography>
+//             </span>
 //           )}
-//         </Typography>
-//       </Box>
-//     </Box>
-//   );
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+// );
+ 
 // };
 
 // const ReplyPreviewItem = ({ desc, chat, messageRefs, setHighlightedId }) => {
 //   const repliedMsg = chat.description.find((msg) => msg._id === desc.replyTo);
 //   if (!repliedMsg) return null;
 
-//   return (
-//     <Box
-//       sx={{
-//         backgroundColor: "#f5f5f5",
-//         borderLeft: "3px solid #1976d2",
-//         px: 1,
-//         py: 0.5,
-//         mb: 1,
-//       }}
-//     >
-//       <Typography
-//         variant="caption"
-//         fontWeight="bold"
-//         sx={{ cursor: "pointer", color: "#1976d2" }}
-//         onClick={() => {
-//           const el = messageRefs.current[desc.replyTo];
-//           if (el) {
-//             el.scrollIntoView({
-//               behavior: "smooth",
-//               block: "center",
-//             });
-//             setHighlightedId(desc.replyTo);
-//             setTimeout(() => setHighlightedId(null), 2000);
-//           }
-//         }}
-//       >
-//         {repliedMsg.fromwhome === "client"
-//           ? repliedMsg.senderid?.username
-//           : "You"}
-//       </Typography>
+//   const scrollToOriginal = () => {
+//     const el = messageRefs.current[desc.replyTo];
+//     if (el) {
+//       el.scrollIntoView({ behavior: "smooth", block: "center" });
+//       setHighlightedId(desc.replyTo);
+//       setTimeout(() => setHighlightedId(null), 2000);
+//     }
+//   };
 
-//       <Typography
-//         variant="body2"
-//         sx={{ fontStyle: "italic", color: "#555" }}
-//         dangerouslySetInnerHTML={{
-//           __html:
-//             repliedMsg.message?.length > 100
-//               ? repliedMsg.message.slice(0, 100) + "..."
-//               : repliedMsg.message,
-//         }}
+//   return (
+//     <div
+//       className="mb-2 p-2 bg-black/5 border-l-2 border-blue-500 rounded text-xs cursor-pointer"
+//       onClick={scrollToOriginal}
+//     >
+//       <p className="font-bold text-blue-600">
+//         {repliedMsg.fromwhome === "client" ? repliedMsg.senderid : "You"}
+//       </p>
+//       <div
+//         className="italic text-gray-600 line-clamp-2"
+//         dangerouslySetInnerHTML={{ __html: repliedMsg.message }}
 //       />
-//     </Box>
+//     </div>
 //   );
 // };
 
-// const ReplyPreview = ({ replyTo, setReplyTo }) => (
-//   <Box
-//     sx={{
-//       gridColumn: "1 / -1",
-//       mb: 1,
-//       p: 1.5,
-//       backgroundColor: "#f4f6f8",
-//       borderLeft: "4px solid #1976d2",
-//       borderRadius: 1,
-//       position: "relative",
-//     }}
-//   >
-//     <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5 }}>
-//       Replying to:{" "}
-//       {replyTo.fromwhome === "client"
-//         ? replyTo.senderid?.username
-//         : "You" || "Admin"}
-//     </Typography>
-
-//     <Typography
-//       variant="body2"
-//       sx={{ fontStyle: "italic", whiteSpace: "pre-wrap", pr: 4 }}
-//       dangerouslySetInnerHTML={{
-//         __html:
-//           replyTo.message?.length > 100
-//             ? `${replyTo.message.slice(0, 100)}...`
-//             : replyTo.message,
-//       }}
-//     />
-
-//     <IconButton
-//       size="small"
-//       onClick={() => setReplyTo(null)}
-//       sx={{
-//         position: "absolute",
-//         top: 6,
-//         right: 6,
-//         color: "#777",
-//         "&:hover": { color: "#000" },
-//       }}
-//     >
-//       <CloseIcon fontSize="small" />
-//     </IconButton>
-//   </Box>
-// );
-
 // export default ChatDetails;
+
+
 
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
@@ -1107,8 +1238,6 @@ const ChatDetails = ({
         })),
       });
       toast.success("Task updated");
-      // getsChatDetails();
-      // accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
       toast.error("Task update failed");
     }
@@ -1195,677 +1324,187 @@ const ChatDetails = ({
   };
 
   if (!chat) return null;
-return (
-  <div
-    className="
-      flex h-full w-full overflow-hidden
-      rounded-2xl
-      border border-border
-      bg-background
-      text-foreground
-    "
-  >
-    {/* Edit Dialog */}
-    <Dialog
-      open={editDialogOpen}
-      onOpenChange={(open) => !open && handleCancelEdit()}
-    >
-      <DialogContent
-        className="
-          max-w-3xl
-          rounded-2xl
-          border border-border
-          bg-background
-          shadow-2xl
-        "
-      >
-        <DialogHeader className="space-y-1">
-          <DialogTitle
-            className="font-semibold text-foreground"
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(1rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
-            Edit Message
-          </DialogTitle>
 
-          <p
-            className="text-muted-foreground"
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
-            Update the message content before saving.
-          </p>
-        </DialogHeader>
-
-        <div
-          className="
-            mt-4 min-h-[200px]
-            rounded-xl
-            border border-border
-            bg-card
-            p-3
-          "
-        >
-          <Editor onChange={setEditContent} value={editContent} />
-        </div>
-
-        <DialogFooter className="mt-5 gap-2">
-          <Button
-            variant="outline"
-            onClick={handleCancelEdit}
-            className="
-              rounded-xl border-border
-              hover:bg-muted
-            "
-          >
-            Cancel
-          </Button>
-
-          <Button
-            onClick={handleSaveEdit}
-            disabled={!editContent.trim()}
-            className="rounded-xl"
-          >
-            Save Changes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-    {/* Main Chat Area */}
-    <div
-      className={`flex min-w-0 flex-1 flex-col ${
-        showTasks ? "pr-4" : "pr-0"
-      }`}
-    >
-      {/* HEADER */}
-      <div
-        className="
-          flex items-center justify-between
-          border-b border-border
-          bg-card/60
-          px-5 py-4
-          backdrop-blur
-        "
-      >
-        <div className="min-w-0">
-          <h2
-            className="truncate font-semibold text-foreground"
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(1rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
-            {chat.accountid?.accountName || accountName}
-          </h2>
-
-          <p
-            className="mt-1 truncate text-muted-foreground"
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
-            {chat.chatsubject}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {tasks.length > 0 ? (
-            <div
-              className="
-                cursor-pointer rounded-xl
-                border border-border
-                bg-muted/30
-                px-3 py-1.5
-                transition-all
-                hover:bg-muted/50
-              "
-              onClick={toggleTasks}
-            >
-              <span
-                className="font-medium text-foreground"
-                style={{
-                  fontFamily: "var(--font-family)",
-                  fontSize:
-                    "calc(0.8rem * parseFloat(var(--font-scale)) / 100)",
-                }}
-              >
-                Client Tasks: {tasks.filter((t) => t.checked).length}/
-                {tasks.length}
-              </span>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleTasks}
-              className="
-                rounded-xl
-                text-primary
-                hover:bg-primary/10
-                hover:text-primary
-              "
-            >
-              + Add Client Task
+  return (
+    <div className="flex h-full w-full bg-background rounded-lg overflow-hidden shadow-sm">
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Message</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-[200px]">
+            <Editor onChange={setEditContent} value={editContent} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEdit}>
+              Cancel
             </Button>
-          )}
+            <Button onClick={handleSaveEdit} disabled={!editContent.trim()}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="
-                  rounded-xl
-                  hover:bg-muted
-                "
-              >
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="end"
-              className="
-                rounded-xl
-                border border-border
-                bg-popover
-                shadow-xl
-              "
-            >
-              <DropdownMenuItem
-                onClick={() => handleArchiveThread(chatId)}
-                className="rounded-lg"
-              >
-                {chat.active ? "Archive Thread" : "Activate Thread"}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className="
-                  rounded-lg
-                  text-destructive
-                  focus:text-destructive
-                "
-                onClick={handleDeleteThread}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* CHAT MESSAGES */}
-      <ScrollArea
-        className="
-          flex-1
-          bg-background
-          px-4 py-5
-        "
-      >
-        <div className="space-y-4">
-          {Array.isArray(chat.description) &&
-            chat.description.map((desc, index) => (
-              <MessageItem
-                key={desc._id || index}
-                desc={desc}
-                chat={chat}
-                messageRefs={messageRefs}
-                highlightedId={highlightedId}
-                setHighlightedId={setHighlightedId}
-                setReplyTo={setReplyTo}
-                formatDate={formatDate}
-                handleDeleteMessage={handleDeleteMessage}
-                handleEditMessage={handleEditMessage}
-                canEditMessage={canEditMessage}
-              />
-            ))}
-        </div>
-
-        <div ref={messagesEndRef} />
-      </ScrollArea>
-
-      <Separator className="bg-border" />
-
-      {/* REPLY + EDITOR */}
-      <div
-        className="
-          bg-card/40
-          px-4 py-4
-          backdrop-blur
-        "
-      >
-        {replyTo && (
-          <div
-            className="
-              relative mb-3
-              rounded-2xl
-              border border-primary/20
-              bg-primary/5
-              p-4
-            "
-          >
-            <p
-              className="mb-1 font-semibold text-primary"
-              style={{
-                fontFamily: "var(--font-family)",
-                fontSize:
-                  "calc(0.75rem * parseFloat(var(--font-scale)) / 100)",
-              }}
-            >
-              Replying to:{" "}
-              {replyTo.fromwhome === "client"
-                ? replyTo.senderid
-                : "Admin"}
+      {/* Main Chat Area */}
+      <div className={`flex-1 flex flex-col min-w-0 ${showTasks ? "mr-0" : ""}`}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-card/50">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold truncate">
+              {chat.accountid?.accountName || accountName}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {chat.chatsubject}
             </p>
-
-            <div
-              className="
-                pr-8 italic
-                text-muted-foreground
-                line-clamp-2
-              "
-              dangerouslySetInnerHTML={{
-                __html: replyTo.message,
-              }}
-            />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                absolute right-2 top-2
-                h-7 w-7 rounded-lg
-                hover:bg-background
-              "
-              onClick={() => setReplyTo(null)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
-        <div className="flex items-end gap-4">
-          <div
-            className="
-              flex-1 overflow-visible
-              rounded-2xl
-              border border-border
-              bg-card
-              p-3
-              shadow-sm
-            "
-          >
-            <Editor
-              onChange={handleEditorChange}
-              value={editorContent}
-            />
           </div>
 
-          <Button
-            onClick={() => updateChatDescription()}
-            className="
-              rounded-2xl
-              px-5 py-2.5
-              shadow-sm
-            "
-          >
-            Send
-          </Button>
-        </div>
-      </div>
-    </div>
-
-    {/* TASKS PANEL */}
-    {showTasks && (
-      <div
-        className="
-          flex w-80 flex-col
-          border-l border-border
-          bg-card/40
-          backdrop-blur
-        "
-      >
-        {/* TASK HEADER */}
-        <div
-          className="
-            flex items-center justify-between
-            border-b border-border
-            bg-card
-            px-4 py-4
-          "
-        >
-          <h3
-            className="font-semibold text-foreground"
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(0.92rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
-            Client Tasks
-          </h3>
-
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleAddTask}
-              className="
-                rounded-lg
-                hover:bg-muted
-              "
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTasks}
-              className="
-                rounded-lg
-                hover:bg-muted
-              "
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* TASK LIST */}
-        <ScrollArea className="flex-1 px-3 py-3">
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="
-                  flex items-center gap-2
-                  rounded-2xl
-                  border border-border
-                  bg-background
-                  p-3
-                  shadow-sm
-                  transition-all
-                  hover:shadow-md
-                "
+          <div className="flex items-center gap-2 ml-4">
+            {tasks.length > 0 ? (
+              <button
+                onClick={toggleTasks}
+                className="text-xs px-3 py-1.5 rounded-md bg-muted hover:bg-muted/80 transition-colors"
               >
-                <Checkbox
-                  checked={task.checked}
-                  onCheckedChange={() =>
-                    handleTaskToggle(task.id)
-                  }
-                />
+                Tasks: {tasks.filter((t) => t.checked).length}/{tasks.length}
+              </button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={toggleTasks} className="h-8 text-xs">
+                + Add Task
+              </Button>
+            )}
 
-                <Input
-                  value={task.text}
-                  onChange={(e) =>
-                    handleTaskTextChange(
-                      task.id,
-                      e.target.value
-                    )
-                  }
-                  className={`
-                    h-9 border-none bg-transparent
-                    px-1 shadow-none
-
-                    focus-visible:ring-0
-                    focus-visible:ring-offset-0
-
-                    ${
-                      task.checked
-                        ? "text-muted-foreground line-through"
-                        : "text-foreground"
-                    }
-                  `}
-                  style={{
-                    fontFamily: "var(--font-family)",
-                  }}
-                />
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="
-                    h-8 w-8 rounded-lg
-                    text-destructive
-                    hover:bg-destructive/10
-                    hover:text-destructive
-                  "
-                  onClick={() =>
-                    handleDeleteTask(task.id)
-                  }
-                >
-                  <Trash2 className="h-4 w-4" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
                 </Button>
-              </div>
-            ))}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => handleArchiveThread(chatId)}>
+                  {chat.active ? "Archive Thread" : "Activate Thread"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteThread} className="text-destructive">
+                  Delete Thread
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+        </div>
+
+        {/* Messages Area */}
+        <ScrollArea className="flex-1 px-6 py-4">
+          <div className="space-y-3">
+            {Array.isArray(chat.description) &&
+              chat.description.map((desc, index) => (
+                <MessageItem
+                  key={desc._id || index}
+                  desc={desc}
+                  chat={chat}
+                  messageRefs={messageRefs}
+                  highlightedId={highlightedId}
+                  setHighlightedId={setHighlightedId}
+                  setReplyTo={setReplyTo}
+                  formatDate={formatDate}
+                  handleDeleteMessage={handleDeleteMessage}
+                  handleEditMessage={handleEditMessage}
+                  canEditMessage={canEditMessage}
+                />
+              ))}
+          </div>
+          <div ref={messagesEndRef} />
         </ScrollArea>
 
-        {/* FOOTER */}
-        <div
-          className="
-            border-t border-border
-            bg-card
-            p-4
-          "
-        >
-          <Button
-            variant="outline"
-            className="
-              w-full rounded-xl
-              border-border
-              hover:bg-muted
-            "
-            onClick={resendClientTask}
-          >
-            Resend Client Task
-          </Button>
+        <Separator />
+
+        {/* Reply Indicator & Editor */}
+        <div className="px-6 py-4 bg-card/30">
+          {replyTo && (
+            <div className="mb-3 p-3 rounded-md bg-muted/50 border-l-2 border-primary relative">
+              <p className="text-xs font-medium text-primary mb-1">
+                Replying to {replyTo.fromwhome === "client" ? replyTo.senderid : "Admin"}
+              </p>
+              <div
+                className="text-xs text-muted-foreground line-clamp-2 pr-6"
+                dangerouslySetInnerHTML={{ __html: replyTo.message }}
+              />
+              <button
+                onClick={() => setReplyTo(null)}
+                className="absolute right-2 top-2 p-1 rounded hover:bg-background"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <Editor onChange={handleEditorChange} value={editorContent} />
+            </div>
+            <Button onClick={() => updateChatDescription()} className="h-10 px-5">
+              Send
+            </Button>
+          </div>
         </div>
       </div>
-    )}
-  </div>
-);
-  // return (
-  //   <div className="flex w-full h-full bg-white overflow-hidden">
-  //     {/* Edit Dialog */}
-  //     <Dialog
-  //       open={editDialogOpen}
-  //       onOpenChange={(open) => !open && handleCancelEdit()}
-  //     >
-  //       <DialogContent className="max-w-3xl">
-  //         <DialogHeader>
-  //           <DialogTitle>Edit Message</DialogTitle>
-  //         </DialogHeader>
-  //         <div className="min-h-[200px] mt-4">
-  //           <Editor onChange={setEditContent} value={editContent} />
-  //         </div>
-  //         <DialogFooter className={"mt-4"}>
-  //           <Button variant="ghost" onClick={handleCancelEdit}>
-  //             Cancel
-  //           </Button>
-  //           <Button onClick={handleSaveEdit} disabled={!editContent.trim()}>
-  //             Save Changes
-  //           </Button>
-  //         </DialogFooter>
-  //       </DialogContent>
-  //     </Dialog>
 
-  //     {/* Main Chat Area */}
-  //     <div
-  //       className={`flex-1 flex flex-col min-w-0 ${showTasks ? "pr-4" : "pr-0"}`}
-  //     >
-  //       <div className="flex items-center justify-between p-4 border-b">
-  //         <div>
-  //           <h2 className="text-lg font-semibold leading-none">
-  //             {chat.accountid?.accountName || accountName}
-  //           </h2>
-  //           <p className="text-sm text-muted-foreground mt-1">
-  //             {chat.chatsubject}
-  //           </p>
-  //         </div>
+      {/* Tasks Sidebar */}
+      {showTasks && (
+        <div className="w-80 flex flex-col border-l bg-card/50">
+          <div className="flex items-center justify-between px-4 py-3 border-b">
+            <h3 className="text-sm font-medium">Client Tasks</h3>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" onClick={handleAddTask} className="h-7 w-7">
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={toggleTasks} className="h-7 w-7">
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
 
-  //         <div className="flex items-center gap-4">
-  //           {tasks.length > 0 ? (
-  //             <span
-  //               className="text-sm font-semibold cursor-pointer hover:underline"
-  //               onClick={toggleTasks}
-  //             >
-  //               Client Tasks: {tasks.filter((t) => t.checked).length}/
-  //               {tasks.length}
-  //             </span>
-  //           ) : (
-  //             <Button
-  //               variant="link"
-  //               size="sm"
-  //               onClick={toggleTasks}
-  //               className="text-blue-600"
-  //             >
-  //               + Add Client Task
-  //             </Button>
-  //           )}
+          <ScrollArea className="flex-1 px-3 py-3">
+            <div className="space-y-2">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center gap-2 p-2 rounded-md border bg-background"
+                >
+                  <Checkbox
+                    checked={task.checked}
+                    onCheckedChange={() => handleTaskToggle(task.id)}
+                    className="h-4 w-4"
+                  />
+                  <Input
+                    value={task.text}
+                    onChange={(e) => handleTaskTextChange(task.id, e.target.value)}
+                    placeholder="Task description..."
+                    className={`h-8 text-sm border-0 shadow-none focus-visible:ring-0 px-1 ${
+                      task.checked ? "line-through text-muted-foreground" : ""
+                    }`}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteTask(task.id)}
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
 
-  //           <DropdownMenu>
-  //             <DropdownMenuTrigger asChild>
-  //               <Button variant="ghost" size="icon">
-  //                 <MoreVertical className="h-5 w-5" />
-  //               </Button>
-  //             </DropdownMenuTrigger>
-  //             <DropdownMenuContent align="end">
-  //               <DropdownMenuItem onClick={() => handleArchiveThread(chatId)}>
-  //                 {chat.active ? "Archive Thread" : "Activate Thread"}
-  //               </DropdownMenuItem>
-  //               <DropdownMenuItem
-  //                 className="text-red-600"
-  //                 onClick={handleDeleteThread}
-  //               >
-  //                 Delete
-  //               </DropdownMenuItem>
-  //             </DropdownMenuContent>
-  //           </DropdownMenu>
-  //         </div>
-  //       </div>
-
-  //       <ScrollArea className="flex-1 p-4 h-[40vh]">
-  //         {Array.isArray(chat.description) &&
-  //           chat.description.map((desc, index) => (
-  //             <MessageItem
-  //               key={desc._id || index}
-  //               desc={desc}
-  //               chat={chat}
-  //               messageRefs={messageRefs}
-  //               highlightedId={highlightedId}
-  //               setHighlightedId={setHighlightedId}
-  //               setReplyTo={setReplyTo}
-  //               formatDate={formatDate}
-  //               handleDeleteMessage={handleDeleteMessage}
-  //               handleEditMessage={handleEditMessage}
-  //               canEditMessage={canEditMessage}
-  //             />
-  //           ))}
-  //         <div ref={messagesEndRef} />
-  //       </ScrollArea>
-
-  //       <Separator />
-
-  //       {/* <div className="p-4 h-[35vh] overflow-y-auto"> */}
-  //       <div>
-  //         {replyTo && (
-  //           <div className="mb-2 p-3 bg-slate-50 border-l-4 border-blue-500 rounded relative">
-  //             <p className="text-xs font-bold mb-1">
-  //               Replying to:{" "}
-  //               {replyTo.fromwhome === "client" ? replyTo.senderid : "Admin"}
-  //             </p>
-  //             <div
-  //               className="text-sm italic truncate pr-8"
-  //               dangerouslySetInnerHTML={{ __html: replyTo.message }}
-  //             />
-  //             <Button
-  //               variant="ghost"
-  //               size="icon"
-  //               className="absolute top-1 right-1 h-6 w-6"
-  //               onClick={() => setReplyTo(null)}
-  //             >
-  //               <X className="h-4 w-4" />
-  //             </Button>
-  //           </div>
-  //         )}
-  //         <div className="flex gap-4 items-start">
-  //           <div className="flex-1 overflow-visible">
-  //             <Editor onChange={handleEditorChange} value={editorContent} />
-  //           </div>
-  //           <Button onClick={() => updateChatDescription()} className="mt-auto">
-  //             Send
-  //           </Button>
-  //         </div>
-  //       </div>
-  //     </div>
-
-  //     {/* Tasks Panel */}
-  //     {showTasks && (
-  //       <div className="w-80 border-l bg-slate-50/50 flex flex-col">
-  //         <div className="flex items-center justify-between p-4 border-b bg-white">
-  //           <h3 className="font-semibold">Client Tasks</h3>
-  //           <div className="flex gap-1">
-  //             <Button variant="ghost" size="icon" onClick={handleAddTask}>
-  //               <Plus className="h-4 w-4" />
-  //             </Button>
-  //             <Button variant="ghost" size="icon" onClick={toggleTasks}>
-  //               <X className="h-4 w-4" />
-  //             </Button>
-  //           </div>
-  //         </div>
-  //         <ScrollArea className="flex-1 p-2">
-  //           {tasks.map((task) => (
-  //             <div
-  //               key={task.id}
-  //               className="flex items-center gap-2 mb-2 bg-white p-2 rounded border shadow-sm"
-  //             >
-  //               <Checkbox
-  //                 checked={task.checked}
-  //                 onCheckedChange={() => handleTaskToggle(task.id)}
-  //               />
-  //               <Input
-  //                 value={task.text}
-  //                 onChange={(e) =>
-  //                   handleTaskTextChange(task.id, e.target.value)
-  //                 }
-  //                 className={`h-8 border-none focus-visible:ring-0 ${task.checked ? "line-through text-gray-400" : ""}`}
-  //               />
-  //               <Button
-  //                 variant="ghost"
-  //                 size="icon"
-  //                 className="h-8 w-8 text-red-500 hover:text-red-700"
-  //                 onClick={() => handleDeleteTask(task.id)}
-  //               >
-  //                 <Trash2 className="h-4 w-4" />
-  //               </Button>
-  //             </div>
-  //           ))}
-  //         </ScrollArea>
-  //         <div className="p-4 border-t bg-white">
-  //           <Button
-  //             variant="outline"
-  //             className="w-full"
-  //             onClick={resendClientTask}
-  //           >
-  //             Resend Client Task
-  //           </Button>
-  //         </div>
-  //       </div>
-  //     )}
-  //   </div>
-  // );
+          <div className="p-3 border-t">
+            <Button  onClick={resendClientTask} className="w-full text-sm h-9">
+              Resend Tasks
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const MessageItem = ({
@@ -1883,265 +1522,85 @@ const MessageItem = ({
   const isClient = desc.fromwhome?.toLowerCase() === "client";
   const isAdmin = desc.fromwhome?.toLowerCase() === "admin";
   const isEditable = isAdmin && canEditMessage(desc.time);
-return (
-  <div
-    ref={(el) => desc._id && (messageRefs.current[desc._id] = el)}
-    className={`mb-5 flex ${
-      isClient ? "justify-start" : "justify-end"
-    }`}
-  >
+
+  return (
     <div
-      className={`
-        relative max-w-[78%]
-        rounded-2xl border
-        px-4 py-3
-        shadow-sm transition-all
-
-        ${
-          desc._id === highlightedId
-            ? `
-              border-yellow-400/50
-              bg-yellow-100/80
-              dark:border-yellow-500/40
-              dark:bg-yellow-500/10
-            `
-            : isAdmin
-            ? `
-              border-primary/10
-              bg-primary/5
-              dark:border-primary/20
-              dark:bg-primary/10
-            `
-            : `
-              border-border
-              bg-card
-              dark:bg-muted/20
-            `
-        }
-
-        ${
-          isClient
-            ? "rounded-tl-md"
-            : "rounded-tr-md"
-        }
-      `}
+      ref={(el) => desc._id && (messageRefs.current[desc._id] = el)}
+      className={`flex ${isClient ? "justify-start" : "justify-end"}`}
     >
-      {/* Reply Preview */}
-      {desc.replyTo && (
-        <ReplyPreviewItem
-          desc={desc}
-          chat={chat}
-          messageRefs={messageRefs}
-          setHighlightedId={setHighlightedId}
-        />
-      )}
+      <div
+        className={`
+          relative max-w-[75%] rounded-lg px-4 py-2.5
+          ${desc._id === highlightedId ? "ring-2 ring-yellow-400 bg-yellow-50 dark:bg-yellow-950/30" : ""}
+          ${isAdmin ? "bg-primary/5 border border-primary/10" : "bg-muted/30 border"}
+        `}
+      >
+        {/* Reply Preview */}
+        {desc.replyTo && (
+          <ReplyPreviewItem
+            desc={desc}
+            chat={chat}
+            messageRefs={messageRefs}
+            setHighlightedId={setHighlightedId}
+          />
+        )}
 
-      {/* Header */}
-      <div className="mb-2 flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <span
-            className="
-              block truncate
-              font-semibold
-              text-foreground
-            "
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(0.78rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <span className="text-xs font-medium text-foreground/80">
             {desc.senderid}
           </span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1">
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => setReplyTo(desc)}>
+                <CornerUpLeft className="mr-2 h-3.5 w-3.5" />
+                Reply
+              </DropdownMenuItem>
+              {isAdmin && (
+                <>
+                  {isEditable && (
+                    <DropdownMenuItem onClick={() => handleEditMessage(desc)}>
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteMessage(desc)}
+                    className="text-destructive"
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Actions */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                h-7 w-7 rounded-lg
-                text-muted-foreground
-                transition-all
+        {/* Message Content */}
+        <div
+          className="text-sm leading-relaxed break-words"
+          dangerouslySetInnerHTML={{ __html: desc.message || "No message available" }}
+        />
 
-                hover:bg-muted
-                hover:text-foreground
-              "
-            >
-              <MoreVertical className="h-3.5 w-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent
-            align="end"
-            className="
-              rounded-xl
-              border border-border
-              bg-popover
-              shadow-xl
-            "
-          >
-            <DropdownMenuItem
-              onClick={() => setReplyTo(desc)}
-              className="rounded-lg"
-            >
-              <CornerUpLeft className="mr-2 h-4 w-4" />
-              Reply
-            </DropdownMenuItem>
-
-            {isAdmin && (
-              <>
-                {isEditable && (
-                  <DropdownMenuItem
-                    onClick={() => handleEditMessage(desc)}
-                    className="rounded-lg"
-                  >
-                    Edit
-                  </DropdownMenuItem>
-                )}
-
-                <DropdownMenuItem
-                  className="
-                    rounded-lg
-                    text-destructive
-                    focus:text-destructive
-                  "
-                  onClick={() => handleDeleteMessage(desc)}
-                >
-                  Delete
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Message */}
-      <div
-        className="
-          whitespace-pre-wrap break-words
-          leading-relaxed
-          text-foreground
-        "
-        style={{
-          fontFamily: "var(--font-family)",
-          fontSize:
-            "calc(0.88rem * parseFloat(var(--font-scale)) / 100)",
-        }}
-        dangerouslySetInnerHTML={{
-          __html: desc.message || "No message available",
-        }}
-      />
-
-      {/* Footer */}
-      <div className="mt-3 flex justify-end">
-        <div className="text-right">
-          <span
-            className="text-muted-foreground"
-            style={{
-              fontFamily: "var(--font-family)",
-              fontSize:
-                "calc(0.68rem * parseFloat(var(--font-scale)) / 100)",
-            }}
-          >
+        {/* Footer */}
+        <div className="flex justify-end mt-1.5">
+          <span className="text-[11px] text-muted-foreground">
             {desc.time ? formatDate(desc.time) : "Just now"}
           </span>
-
-          {isAdmin && !isEditable && desc.time && (
-            <span
-              className="
-                mt-0.5 block italic
-                text-muted-foreground
-              "
-              style={{
-                fontFamily: "var(--font-family)",
-                fontSize:
-                  "calc(0.66rem * parseFloat(var(--font-scale)) / 100)",
-              }}
-            >
-              (Edit expired)
+          {/* {isAdmin && !isEditable && desc.time && (
+            <span className="text-[10px] text-muted-foreground ml-2 italic">
+              (locked)
             </span>
-          )}
+          )} */}
         </div>
       </div>
     </div>
-  </div>
-);
-  // return (
-  //   <div
-  //     ref={(el) => desc._id && (messageRefs.current[desc._id] = el)}
-  //     className={`flex mb-4 ${isClient ? "justify-start" : "justify-end"}`}
-  //   >
-  //     <div
-  //       className={`max-w-[75%] p-3 rounded-lg shadow-sm relative border ${
-  //         desc._id === highlightedId
-  //           ? "bg-yellow-100 border-yellow-300"
-  //           : isAdmin
-  //             ? "bg-red-50 border-red-100"
-  //             : "bg-blue-50 border-blue-100"
-  //       } ${isClient ? "rounded-tl-none" : "rounded-tr-none"}`}
-  //     >
-  //       {desc.replyTo && (
-  //         <ReplyPreviewItem
-  //           desc={desc}
-  //           chat={chat}
-  //           messageRefs={messageRefs}
-  //           setHighlightedId={setHighlightedId}
-  //         />
-  //       )}
-
-  //       <div className="flex justify-between items-start gap-4 mb-1">
-  //         <span className="text-xs font-bold text-gray-700">
-  //           {desc.senderid}
-  //         </span>
-
-  //         <DropdownMenu>
-  //           <DropdownMenuTrigger asChild>
-  //             <Button variant="ghost" size="icon" className="h-5 w-5">
-  //               <MoreVertical className="h-3 w-3" />
-  //             </Button>
-  //           </DropdownMenuTrigger>
-  //           <DropdownMenuContent>
-  //             <DropdownMenuItem onClick={() => setReplyTo(desc)}>
-  //               <CornerUpLeft className="mr-2 h-4 w-4" /> Reply
-  //             </DropdownMenuItem>
-  //             {isAdmin && (
-  //               <>
-  //                 {isEditable && (
-  //                   <DropdownMenuItem onClick={() => handleEditMessage(desc)}>
-  //                     Edit
-  //                   </DropdownMenuItem>
-  //                 )}
-  //                 <DropdownMenuItem
-  //                   className="text-red-600"
-  //                   onClick={() => handleDeleteMessage(desc)}
-  //                 >
-  //                   Delete
-  //                 </DropdownMenuItem>
-  //               </>
-  //             )}
-  //           </DropdownMenuContent>
-  //         </DropdownMenu>
-  //       </div>
-
-  //       <div
-  //         className="text-sm whitespace-pre-wrap text-gray-800"
-  //         dangerouslySetInnerHTML={{
-  //           __html: desc.message || "No message available",
-  //         }}
-  //       />
-
-  //       <div className="text-[10px] text-gray-400 text-right mt-1">
-  //         {desc.time ? formatDate(desc.time) : "Just now"}
-  //         {isAdmin && !isEditable && desc.time && (
-  //           <span className="block italic text-gray-400">(Edit expired)</span>
-  //         )}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
+  );
 };
 
 const ReplyPreviewItem = ({ desc, chat, messageRefs, setHighlightedId }) => {
@@ -2159,14 +1618,14 @@ const ReplyPreviewItem = ({ desc, chat, messageRefs, setHighlightedId }) => {
 
   return (
     <div
-      className="mb-2 p-2 bg-black/5 border-l-2 border-blue-500 rounded text-xs cursor-pointer"
       onClick={scrollToOriginal}
+      className="mb-2 p-2 rounded bg-black/5 dark:bg-white/5 border-l-2 border-blue-500 cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
     >
-      <p className="font-bold text-blue-600">
+      <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
         {repliedMsg.fromwhome === "client" ? repliedMsg.senderid : "You"}
       </p>
       <div
-        className="italic text-gray-600 line-clamp-2"
+        className="text-xs text-muted-foreground line-clamp-2"
         dangerouslySetInnerHTML={{ __html: repliedMsg.message }}
       />
     </div>

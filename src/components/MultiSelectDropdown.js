@@ -218,7 +218,7 @@ const MultiSelectDropdown = ({
       try {
         const res = await authAPI.getAllUsers({
           page: 1,
-          limit: 50,
+          limit: 100,
           status: "active",
         });
 

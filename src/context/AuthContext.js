@@ -1,7 +1,3 @@
-
-
-
-
 import React, {
   createContext,
   useState,
@@ -112,6 +108,23 @@ export const AuthProvider = ({ children }) => {
       clearTimeout(logoutTimerRef.current);
     }
   }, []);
+
+
+  // ================= LOGOUT ON TAB/WINDOW CLOSE =================
+// useEffect(() => {
+//   const handleBeforeUnload = () => {
+//     clearAuthData();
+//   };
+
+//   window.addEventListener("beforeunload", handleBeforeUnload);
+
+//   return () => {
+//     window.removeEventListener(
+//       "beforeunload",
+//       handleBeforeUnload
+//     );
+//   };
+// }, [clearAuthData]);
 
   // ================= EXPIRY =================
   const calculateExpiry = useCallback((expiryTime) => {

@@ -22,6 +22,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from "../../components/ui/sheet";
+import {toast} from "react-toastify";
 import { Plus, Minus, UserPlus, Trash2, X } from "lucide-react";
 import countryList from "react-select-country-list";
 import { AddCircle, RemoveCircle } from "@mui/icons-material";
@@ -348,32 +349,82 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
     return activationContacts.map((contact) => contact.email).filter(Boolean);
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // const handleSubmitWithPersonalization = async (event) => {
+  //   if (event) event.preventDefault();
+
+  //   // Prevent multiple submissions
+  //   if (isSubmitting) return;
+  //   // Check if there are NEW contacts that need activation
+  //   const newActivationContacts = getNewContactsNeedingActivation();
+  //   const newActivationEmails = getNewContactEmailsNeedingActivation();
+
+  //   console.log("New contacts needing activation:", newActivationContacts);
+  //   console.log("New activation emails:", newActivationEmails);
+
+  //   if (newActivationContacts.length > 0) {
+  //     // Show personalization dialog only for NEW contacts
+  //     setPendingSubmit(true);
+  //     setPersonalizationDialogOpen(true);
+  //   } else {
+  //     // No NEW contacts need activation, submit directly without message
+  //     setIsSubmitting(true); // Disable button
+  //     try {
+  //       await onSubmit(event, "");
+  //     } finally {
+  //       setIsSubmitting(false); // Re-enable button
+  //     }
+  //   }
+  // };
   const handleSubmitWithPersonalization = async (event) => {
-    if (event) event.preventDefault();
+  if (event) event.preventDefault();
 
-    // Prevent multiple submissions
-    if (isSubmitting) return;
-    // Check if there are NEW contacts that need activation
-    const newActivationContacts = getNewContactsNeedingActivation();
-    const newActivationEmails = getNewContactEmailsNeedingActivation();
+  // Validate contacts first
+  const isValid = validateContacts();
 
-    console.log("New contacts needing activation:", newActivationContacts);
-    console.log("New activation emails:", newActivationEmails);
+  // if (!isValid) {
+  //   return;
+  // }
 
-    if (newActivationContacts.length > 0) {
-      // Show personalization dialog only for NEW contacts
-      setPendingSubmit(true);
-      setPersonalizationDialogOpen(true);
-    } else {
-      // No NEW contacts need activation, submit directly without message
-      setIsSubmitting(true); // Disable button
-      try {
-        await onSubmit(event, "");
-      } finally {
-        setIsSubmitting(false); // Re-enable button
-      }
+  if (!isValid) {
+  toast.error(
+    "Please fill all required contact details correctly"
+  );
+
+  return;
+}
+  // Prevent multiple submissions
+  if (isSubmitting) return;
+
+  // Check if there are NEW contacts that need activation
+  const newActivationContacts =
+    getNewContactsNeedingActivation();
+
+  const newActivationEmails =
+    getNewContactEmailsNeedingActivation();
+
+  console.log(
+    "New contacts needing activation:",
+    newActivationContacts
+  );
+
+  console.log(
+    "New activation emails:",
+    newActivationEmails
+  );
+
+  if (newActivationContacts.length > 0) {
+    setPendingSubmit(true);
+    setPersonalizationDialogOpen(true);
+  } else {
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit(event, "");
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }
+};
   const handleConfirmPersonalization = async () => {
     setIsSubmitting(true); // Disable button
     setPersonalizationDialogOpen(false);
@@ -454,15 +505,65 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
   };
 
   const handleChange = (index, e) => {
-    const { name, value } = e.target;
-    let updated = { [name]: value };
-    if (["firstName", "middleName", "lastName"].includes(name)) {
-      const c = { ...contacts[index], [name]: value };
-      updated.contactName =
-        `${c.firstName} ${c.middleName} ${c.lastName}`.trim();
-    }
-    dispatch(setContactData({ index, data: updated }));
+  const { name, value } = e.target;
+
+  let updated = {
+    [name]: value,
   };
+
+  // Auto Generate Contact Name
+  if (
+    ["firstName", "middleName", "lastName"].includes(
+      name
+    )
+  ) {
+    const c = {
+      ...contacts[index],
+      [name]: value,
+    };
+
+    updated.contactName =
+      `${c.firstName} ${c.middleName} ${c.lastName}`.trim();
+  }
+
+  dispatch(
+    setContactData({
+      index,
+      data: updated,
+    })
+  );
+
+  // Clear validation errors while typing
+  setContactErrors((prev) => {
+    const updatedErrors = [...prev];
+
+    if (updatedErrors[index]) {
+      delete updatedErrors[index][name];
+
+      // Clear combined email/phone validation
+      if (
+        name === "email" ||
+        name === "phoneNumbers"
+      ) {
+        delete updatedErrors[index].email;
+        delete updatedErrors[index]
+          .phoneNumbers;
+      }
+    }
+
+    return updatedErrors;
+  });
+};
+  // const handleChange = (index, e) => {
+  //   const { name, value } = e.target;
+  //   let updated = { [name]: value };
+  //   if (["firstName", "middleName", "lastName"].includes(name)) {
+  //     const c = { ...contacts[index], [name]: value };
+  //     updated.contactName =
+  //       `${c.firstName} ${c.middleName} ${c.lastName}`.trim();
+  //   }
+  //   dispatch(setContactData({ index, data: updated }));
+  // };
 
   const handleUpdateSelectedContactField = (index, field, value) => {
     dispatch(updateSelectedContactField({ index, field, value }));
@@ -490,7 +591,157 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
     };
     fetchTags();
   }, []);
+  const validateContacts = () => {
+  let errors = [];
+  let firstErrorMessage = "";
 
+  contacts.forEach((contact, index) => {
+    const contactError = {};
+
+    // First Name
+    if (!contact.firstName?.trim()) {
+      contactError.firstName =
+        "First name is required";
+
+      if (!firstErrorMessage) {
+        firstErrorMessage =
+          `Contact #${index + 1}: First name is required`;
+      }
+    }
+
+    // Last Name
+    if (!contact.lastName?.trim()) {
+      contactError.lastName =
+        "Last name is required";
+
+      if (!firstErrorMessage) {
+        firstErrorMessage =
+          `Contact #${index + 1}: Last name is required`;
+      }
+    }
+
+    // Email OR Phone
+    const hasEmail = contact.email?.trim();
+
+    const hasPhone =
+      contact.phoneNumbers &&
+      contact.phoneNumbers.some(
+        (phone) =>
+          phone &&
+          phone.toString().trim() !== ""
+      );
+
+    if (!hasEmail && !hasPhone) {
+      contactError.email =
+        "Email or phone number is required";
+
+      contactError.phoneNumbers =
+        "Email or phone number is required";
+
+      if (!firstErrorMessage) {
+        firstErrorMessage =
+          `Contact #${index + 1}: Email or phone number is required`;
+      }
+    }
+
+    // Email Validation
+    if (hasEmail) {
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(contact.email)) {
+        contactError.email =
+          "Enter a valid email address";
+
+        if (!firstErrorMessage) {
+          firstErrorMessage =
+            `Contact #${index + 1}: Invalid email address`;
+        }
+      }
+    }
+
+    // SSN Validation
+    
+
+    errors[index] = contactError;
+  });
+
+  setContactErrors(errors);
+
+  const hasErrors = errors.some(
+    (err) => Object.keys(err).length > 0
+  );
+
+  if (hasErrors && firstErrorMessage) {
+    toast.error(firstErrorMessage);
+  }
+
+  return !hasErrors;
+};
+// const validateContacts = () => {
+//   let errors = [];
+
+//   contacts.forEach((contact, index) => {
+//     const contactError = {};
+
+//     // First Name Validation
+//     if (!contact.firstName?.trim()) {
+//       contactError.firstName =
+//         "First name is required";
+//     }
+
+//     // Last Name Validation
+//     if (!contact.lastName?.trim()) {
+//       contactError.lastName =
+//         "Last name is required";
+//     }
+
+//     // Email OR Phone Validation
+//     const hasEmail = contact.email?.trim();
+
+//     const hasPhone =
+//       contact.phoneNumbers &&
+//       contact.phoneNumbers.some(
+//         (phone) =>
+//           phone &&
+//           phone.toString().trim() !== ""
+//       );
+
+//     // At least one required
+//     if (!hasEmail && !hasPhone) {
+//       contactError.email =
+//         "Email or phone number is required";
+
+//       contactError.phoneNumbers =
+//         "Email or phone number is required";
+//     }
+
+//     // Validate Email Format
+//     if (hasEmail) {
+//       const emailRegex =
+//         /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+//       if (!emailRegex.test(contact.email)) {
+//         contactError.email =
+//           "Enter a valid email address";
+//       }
+//     }
+
+//     // SSN Validation
+    
+
+//     errors[index] = contactError;
+//   });
+
+//   setContactErrors(errors);
+
+//   // Check if any validation errors exist
+//   const hasErrors = errors.some(
+//     (err) => Object.keys(err).length > 0
+//   );
+
+//   return !hasErrors;
+// };
   const options = useMemo(() => countryList().getData(), []);
 const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
   return (
@@ -1049,15 +1300,39 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
                           <PhoneInput
                             country="us"
                             value={phone}
-                            onChange={(value) =>
-                              dispatch(
-                                updatePhoneNumber({
-                                  contactIndex,
-                                  phoneIndex,
-                                  value,
-                                })
-                              )
-                            }
+                            // onChange={(value) =>
+                            //   dispatch(
+                            //     updatePhoneNumber({
+                            //       contactIndex,
+                            //       phoneIndex,
+                            //       value,
+                            //     })
+                            //   )
+                            // }
+                            onChange={(value) => {
+  dispatch(
+    updatePhoneNumber({
+      contactIndex,
+      phoneIndex,
+      value,
+    })
+  );
+
+  // Clear phone/email validation
+  setContactErrors((prev) => {
+    const updatedErrors = [...prev];
+
+    if (updatedErrors[contactIndex]) {
+      delete updatedErrors[contactIndex]
+        .phoneNumbers;
+
+      delete updatedErrors[contactIndex]
+        .email;
+    }
+
+    return updatedErrors;
+  });
+}}
                             inputStyle={{
                               width: "100%",
                               height: "40px",
@@ -1401,7 +1676,11 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
     onConfirm={handleConfirmPersonalization}
   />
 </div>
-    //  <div className="flex flex-col h-full">
+    
+  );
+}
+
+//  <div className="flex flex-col h-full">
     //   {/* Section header */}
     //   <SheetHeader className="px-0 pb-4 border-b border-border/40 space-y-0.5">
     //     <div className="flex items-center justify-between">
@@ -1612,5 +1891,3 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
     //     onConfirm={handleConfirmPersonalization}
     //   />
     // </div>
-  );
-}

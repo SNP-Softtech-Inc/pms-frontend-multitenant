@@ -383,8 +383,9 @@ const MoveAutomationDrawer = ({
   onClose,
   automations = [],
   jobId,
-  stageId,
+  stageId,username
 }) => {
+  console.log("automation for move", username);
   const queryClient = useQueryClient();
 
   const [selectedAutomations, setSelectedAutomations] = useState([]);
@@ -533,15 +534,16 @@ const MoveAutomationDrawer = ({
       .map((i) => automations[i])
       .filter(Boolean);
 
-    if (!selectedAutos.length) {
-      toast.warning("Select at least one automation");
-      return;
-    }
+    // if (!selectedAutos.length) {
+    //   toast.warning("Select at least one automation");
+    //   return;
+    // }
 
     runAutomationMutation.mutate({
       jobId,
       stageId,
       automations: selectedAutos,
+      username: username
     });
   };
 

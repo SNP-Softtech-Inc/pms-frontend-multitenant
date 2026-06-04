@@ -1,8 +1,6 @@
 import React from "react";
-import {
-  Box, Typography, Card, CardContent,
-  IconButton, FormGroup, FormControlLabel, Checkbox
-} from "@mui/material";
+
+import { Checkbox } from "../../components/ui/checkbox";
 import CloseIcon from "@mui/icons-material/Close";
 
 export default function SelectedContactsDisplay({ contacts, onRemove, onUpdateField, isEditing = false }) {
@@ -159,13 +157,20 @@ export default function SelectedContactsDisplay({ contacts, onRemove, onUpdateFi
                   >
                     <Checkbox
                       checked={contact[field] || false}
+                      // onCheckedChange={(checked) =>
+                      //   onUpdateField(
+                      //     index,
+                      //     field,
+                      //     checked
+                      //   )
+                      // }
                       onCheckedChange={(checked) =>
-                        onUpdateField(
-                          index,
-                          field,
-                          checked
-                        )
-                      }
+  onUpdateField(
+    index,
+    field,
+    checked === true
+  )
+}
                       className="
                         h-4 w-4
                         rounded-[4px]

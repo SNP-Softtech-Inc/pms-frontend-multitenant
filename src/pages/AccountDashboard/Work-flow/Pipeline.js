@@ -461,7 +461,7 @@ import {
   TooltipTrigger,
 } from "../../../components/ui/tooltip";
 import { Skeleton } from "../../../components/ui/skeleton";
-
+import { useAuth } from "../../../context/AuthContext";
 // Icons
 import {
   Trash2,
@@ -477,7 +477,7 @@ const AccountKanbanBoard = ({ isActive = true }) => {
   const { accountId } = useParams();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-
+const { user,  } = useAuth();
   // ================= DRAWERS =================
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -900,6 +900,7 @@ const AccountKanbanBoard = ({ isActive = true }) => {
       automations={selectedAutomationData?.automations || []}
       jobId={selectedAutomationData?.jobId}
       stageId={selectedAutomationData?.stageId}
+      username={user?.username}
     />
   </div>
 );
