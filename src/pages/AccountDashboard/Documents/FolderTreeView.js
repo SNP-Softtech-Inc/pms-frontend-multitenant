@@ -2587,10 +2587,10 @@ export const FolderTreeView = ({ accountId }) => {
   // Handle file click - Using accountDocsAPI to remove new tag
   const handleFileClick = async (fullPath, fileName, meta = {}) => {
     try {
-      if (meta.readOnly) {
-        alert("This file is locked and cannot be opened.");
-        return;
-      }
+      // if (meta.readOnly) {
+      //   alert("This file is locked and cannot be opened.");
+      //   return;
+      // }
 
       if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
         await accountDocsAPI.removeNewTag({ filePath: fullPath });
@@ -3001,10 +3001,10 @@ export const FolderTreeView = ({ accountId }) => {
       const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
 
       const handleSafeFileClick = () => {
-        if (meta.readOnly) {
-          alert("This file is locked and cannot be opened.");
-          return;
-        }
+        // if (meta.readOnly) {
+        //   alert("This file is locked and cannot be opened.");
+        //   return;
+        // }
 
         if (!isFolder) {
           handleFileClick(fullPath, item.name, meta);
@@ -3117,11 +3117,7 @@ return (
                         font-semibold
                         transition-colors
 
-                        ${
-                          meta.readOnly
-                            ? "text-muted-foreground opacity-60"
-                            : "text-foreground group-hover:text-primary"
-                        }
+                        
                       `}
                       style={{
                         fontSize:
@@ -3200,11 +3196,7 @@ return (
                       font-medium
                       transition-colors
 
-                      ${
-                        meta.readOnly
-                          ? "cursor-not-allowed text-muted-foreground opacity-60"
-                          : "text-primary hover:text-primary/80 hover:underline"
-                      }
+                      
                     `}
                     style={{
                       fontSize:
