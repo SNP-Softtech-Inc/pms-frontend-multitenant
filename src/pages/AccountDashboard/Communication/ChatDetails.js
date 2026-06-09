@@ -283,114 +283,190 @@ const handlePrintChat = () => {
   const printWindow = window.open("", "_blank");
 
   const messagesHtml = chat.description
-    ?.map(
-      (msg) => `
-      <div class="message ${msg.fromwhome === "client" ? "client" : "admin"}">
-        <div class="header">
-          <strong>${
-            msg.fromwhome === "client"
-              ? msg.senderid || "Client"
-              : "Admin"
-          }</strong>
-          <span>${formatDate(msg.createdAt)}</span>
+    ?.map((msg) => {
+      const isClient = msg.fromwhome === "client";
+
+      return `
+        <div class="message-row ${isClient ? "left" : "right"}">
+          ${
+            isClient
+              ? `
+            <div class="avatar">
+              ${
+                msg.senderid
+                  ?.substring(0, 2)
+                  .toUpperCase() || "CL"
+              }
+            </div>
+          `
+              : ""
+          }
+
+          <div class="bubble">
+            ${
+              isClient
+                ? `<div class="name">${msg.senderid}</div>`
+                : ""
+            }
+
+            <div class="content">
+              ${msg.message || ""}
+            </div>
+
+            <div class="footer">
+              ${formatDate(msg.createdAt)}
+            </div>
+          </div>
         </div>
-        <div class="body">
-          ${msg.message || ""}
-        </div>
-      </div>
-    `
-    )
+      `;
+    })
     .join("");
 
   printWindow.document.write(`
-    <html>
-      <head>
-        <title>${chat.chatsubject}</title>
-        <style>
-          body{
-            font-family: Arial, sans-serif;
-            padding:30px;
-            color:#222;
-            background:#fff;
-          }
+  <html>
+  <head>
+    <title>Chat Transcript</title>
 
-          .header-section{
-            border-bottom:2px solid #e5e7eb;
-            margin-bottom:25px;
-            padding-bottom:15px;
-          }
+    <style>
+      *{
+        box-sizing:border-box;
+      }
 
-          .account{
-            font-size:24px;
-            font-weight:700;
-          }
+      body{
+        font-family: Inter, Arial, sans-serif;
+        background:#f4f6f8;
+        padding:30px;
+        color:#1f2937;
+      }
 
-          .subject{
-            color:#666;
-            margin-top:5px;
-          }
+      .page{
+        max-width:1100px;
+        margin:auto;
+      }
 
-          .message{
-            margin-bottom:20px;
-            padding:15px;
-            border-radius:10px;
-            border:1px solid #e5e7eb;
-          }
+      .top-bar{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:25px;
+        font-size:14px;
+      }
 
-          .admin{
-            background:#f8fafc;
-          }
+      .company{
+        font-weight:700;
+        font-size:18px;
+      }
 
-          .client{
-            background:#eef6ff;
-          }
+      .thread-info{
+        margin-bottom:35px;
+      }
 
-          .header{
-            display:flex;
-            justify-content:space-between;
-            margin-bottom:10px;
-            font-size:12px;
-            color:#666;
-          }
+      .thread-info p{
+        margin:8px 0;
+      }
 
-          .body{
-            font-size:14px;
-            line-height:1.6;
-          }
+      .thread-info strong{
+        display:inline-block;
+        width:150px;
+      }
 
-          table{
-            width:100%;
-            border-collapse:collapse;
-          }
+      .message-row{
+        display:flex;
+        margin-bottom:18px;
+        align-items:flex-end;
+      }
 
-          table td,
-          table th{
-            border:1px solid #ddd;
-            padding:8px;
-          }
+      .message-row.left{
+        justify-content:flex-start;
+      }
 
-          @media print{
-            body{
-              padding:0;
-            }
-          }
-        </style>
-      </head>
+      .message-row.right{
+        justify-content:flex-end;
+      }
 
-      <body>
-        <div class="header-section">
-          <div class="account">
-            ${chat.accountid?.accountName || accountName}
-          </div>
+      .avatar{
+        width:42px;
+        height:42px;
+        border-radius:50%;
+        background:#8ecdfc;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:600;
+        margin-right:12px;
+      }
 
-          <div class="subject">
-            ${chat.chatsubject}
-          </div>
-        </div>
+      .bubble{
+        max-width:65%;
+        padding:16px;
+        border-radius:14px;
+        background:white;
+        border:1px solid #d9dee5;
+      }
 
-        ${messagesHtml}
-      </body>
-    </html>
+      .right .bubble{
+        background:#edf3fb;
+      }
+
+      .name{
+        font-weight:700;
+        margin-bottom:10px;
+      }
+
+      .content{
+        line-height:1.7;
+      }
+
+      .footer{
+        margin-top:10px;
+        text-align:right;
+        font-size:12px;
+        color:#64748b;
+      }
+
+      @media print{
+        body{
+          background:white;
+          padding:0;
+        }
+
+        .page{
+          width:100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+
+      <div class="top-bar">
+        <div>${new Date().toLocaleString()}</div>
+        <div class="company">SNP Tax & Financials</div>
+      </div>
+
+      <div class="thread-info">
+        <p>
+          <strong>Print date:</strong>
+          ${new Date().toLocaleDateString()}
+        </p>
+
+        <p>
+          <strong>Thread author:</strong>
+          ${chat.accountid?.accountName || accountName}
+        </p>
+
+        <p>
+          <strong>Thread subject:</strong>
+          ${chat.chatsubject}
+        </p>
+      </div>
+
+      ${messagesHtml}
+
+    </div>
+  </body>
+  </html>
   `);
 
   printWindow.document.close();
