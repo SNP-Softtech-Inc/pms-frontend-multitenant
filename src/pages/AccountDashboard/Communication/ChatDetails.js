@@ -1,13 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
-import {
-
-  X,
-  Plus,
-  Trash2,
-  CornerUpLeft,
-  Check,
-} from "lucide-react";
+import { X, Plus, Trash2, CornerUpLeft } from "lucide-react";
+import { Check, CheckCheck } from "lucide-react";
 
 // Shadcn UI Components
 import {
@@ -33,12 +27,7 @@ import { Input } from "../../../components/ui/input";
 import Editor from "../../../components/Editor";
 import { useAuth } from "../../../context/AuthContext";
 import { chatAPI } from "../../../services/api";
-import {
-  MoreVertical,
-  Printer,
-  MailOpen,
-  Mail,
-} from "lucide-react";
+import { MoreVertical, Printer, MailOpen, Mail } from "lucide-react";
 const ChatDetails = ({
   chat,
   getsChatDetails,
@@ -279,162 +268,201 @@ const ChatDetails = ({
       toast.error("Failed to delete message");
     }
   };
-const handlePrintChat = () => {
-  const printWindow = window.open("", "_blank");
+  const handlePrintChat = () => {
+    const iframe = document.createElement("iframe");
 
-  const messagesHtml = chat.description
-    ?.map((msg) => {
-      const isClient = msg.fromwhome === "client";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
 
-      return `
+    document.body.appendChild(iframe);
+
+    const printWindow = iframe.contentWindow;
+    const isDark = document.documentElement.classList.contains("dark");
+
+    const colors = {
+      background: isDark ? "#09090b" : "#f4f6f8",
+      text: isDark ? "#fafafa" : "#1f2937",
+      bubble: isDark ? "#18181b" : "#ffffff",
+      adminBubble: isDark ? "#1e293b" : "#edf3fb",
+      border: isDark ? "#27272a" : "#d9dee5",
+      muted: isDark ? "#a1a1aa" : "#64748b",
+      primary: isDark ? "#60a5fa" : "#2563eb",
+    };
+    const getStatusIcon = (isRead) => {
+      return isRead
+        ? `<span class="tick tick-read">✓✓</span>`
+        : `<span class="tick">✓</span>`;
+    };
+    const messagesHtml = chat.description
+      ?.map((msg) => {
+        const isClient = msg.fromwhome === "client";
+
+        return `
         <div class="message-row ${isClient ? "left" : "right"}">
           ${
             isClient
               ? `
             <div class="avatar">
-              ${
-                msg.senderid
-                  ?.substring(0, 2)
-                  .toUpperCase() || "CL"
-              }
+              ${msg.senderid?.substring(0, 2).toUpperCase() || "CL"}
             </div>
           `
               : ""
           }
 
           <div class="bubble">
-            ${
-              isClient
-                ? `<div class="name">${msg.senderid}</div>`
-                : ""
-            }
+            ${isClient ? `<div class="name">${msg.senderid}</div>` : ""}
 
             <div class="content">
               ${msg.message || ""}
             </div>
 
-            <div class="footer">
-              ${formatDate(msg.createdAt)}
-            </div>
+          <div class="footer">
+  <span>${formatDate(msg.time || msg.createdAt)}</span>
+
+  ${!isClient ? getStatusIcon(msg.isRead) : ""}
+</div>
           </div>
         </div>
       `;
-    })
-    .join("");
+      })
+      .join("");
 
-  printWindow.document.write(`
+    printWindow.document.write(`
   <html>
   <head>
     <title>Chat Transcript</title>
 
     <style>
-      *{
-        box-sizing:border-box;
-      }
+  *{
+    box-sizing:border-box;
+  }
 
-      body{
-        font-family: Inter, Arial, sans-serif;
-        background:#f4f6f8;
-        padding:30px;
-        color:#1f2937;
-      }
+  body{
+    font-family: Inter, Arial, sans-serif;
+    background:${colors.background};
+    color:${colors.text};
+    padding:30px;
+  }
 
-      .page{
-        max-width:1100px;
-        margin:auto;
-      }
+  .page{
+    max-width:1100px;
+    margin:auto;
+  }
 
-      .top-bar{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:25px;
-        font-size:14px;
-      }
+  .top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    font-size:14px;
+  }
 
-      .company{
-        font-weight:700;
-        font-size:18px;
-      }
+  .company{
+    font-weight:700;
+    font-size:18px;
+  }
 
-      .thread-info{
-        margin-bottom:35px;
-      }
+  .thread-info{
+    margin-bottom:35px;
+  }
 
-      .thread-info p{
-        margin:8px 0;
-      }
+  .thread-info p{
+    margin:8px 0;
+  }
 
-      .thread-info strong{
-        display:inline-block;
-        width:150px;
-      }
+  .thread-info strong{
+    display:inline-block;
+    width:150px;
+  }
 
-      .message-row{
-        display:flex;
-        margin-bottom:18px;
-        align-items:flex-end;
-      }
+  .message-row{
+    display:flex;
+    margin-bottom:18px;
+    align-items:flex-end;
+  }
 
-      .message-row.left{
-        justify-content:flex-start;
-      }
+  .message-row.left{
+    justify-content:flex-start;
+  }
 
-      .message-row.right{
-        justify-content:flex-end;
-      }
+  .message-row.right{
+    justify-content:flex-end;
+  }
 
-      .avatar{
-        width:42px;
-        height:42px;
-        border-radius:50%;
-        background:#8ecdfc;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-weight:600;
-        margin-right:12px;
-      }
+  .avatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:${colors.primary};
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:600;
+    margin-right:12px;
+  }
 
-      .bubble{
-        max-width:65%;
-        padding:16px;
-        border-radius:14px;
-        background:white;
-        border:1px solid #d9dee5;
-      }
+  .bubble{
+    max-width:65%;
+    padding:16px;
+    border-radius:14px;
+    background:${colors.bubble};
+    border:1px solid ${colors.border};
+  }
 
-      .right .bubble{
-        background:#edf3fb;
-      }
+  .right .bubble{
+    background:${colors.adminBubble};
+  }
 
-      .name{
-        font-weight:700;
-        margin-bottom:10px;
-      }
+  .name{
+    font-weight:700;
+    margin-bottom:10px;
+  }
 
-      .content{
-        line-height:1.7;
-      }
+  .content{
+    line-height:1.7;
+    word-break:break-word;
+  }
 
-      .footer{
-        margin-top:10px;
-        text-align:right;
-        font-size:12px;
-        color:#64748b;
-      }
+  .footer{
+    margin-top:10px;
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:5px;
+    font-size:12px;
+    color:${colors.muted};
+  }
 
-      @media print{
-        body{
-          background:white;
-          padding:0;
-        }
+  .tick{
+    font-size:13px;
+    font-weight:700;
+    color:${colors.muted};
+  }
 
-        .page{
-          width:100%;
-        }
-      }
-    </style>
+  .tick-read{
+    color:${colors.primary};
+  }
+
+  @media print{
+    body{
+      padding:0;
+      background:white !important;
+      color:black !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .bubble{
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+</style>
   </head>
 
   <body>
@@ -469,12 +497,17 @@ const handlePrintChat = () => {
   </html>
   `);
 
-  printWindow.document.close();
+    printWindow.document.close();
 
-  setTimeout(() => {
-    printWindow.print();
-  }, 500);
-};
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 500);
+  };
   const handleArchiveThread = async (id) => {
     try {
       await chatAPI.updateChat(id, { active: !chat.active });
@@ -497,12 +530,65 @@ const handlePrintChat = () => {
     }
   };
 
+  const getDateLabel = (date) => {
+    const msgDate = new Date(date);
+
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (msgDate.toDateString() === today.toDateString()) {
+      return "Today";
+    }
+
+    if (msgDate.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    }
+
+    const diffDays = Math.floor((today - msgDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 7) {
+      return msgDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
+    }
+
+    return msgDate.toLocaleDateString();
+  };
+
+  // ADD HERE 👇
+  const groupedMessages = [];
+
+  if (Array.isArray(chat.description)) {
+    let lastDate = "";
+
+    chat.description.forEach((msg) => {
+      const currentDate = getDateLabel(msg.time || msg.createdAt);
+
+      if (currentDate !== lastDate) {
+        groupedMessages.push({
+          type: "date",
+          label: currentDate,
+        });
+
+        lastDate = currentDate;
+      }
+
+      groupedMessages.push({
+        type: "message",
+        data: msg,
+      });
+    });
+  }
   if (!chat) return null;
 
   return (
     <div className="flex h-full w-full bg-background rounded-lg overflow-hidden shadow-sm">
       {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={(open) => !open && handleCancelEdit()}>
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => !open && handleCancelEdit()}
+      >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Message</DialogTitle>
@@ -522,7 +608,9 @@ const handlePrintChat = () => {
       </Dialog>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col min-w-0 ${showTasks ? "mr-0" : ""}`}>
+      <div
+        className={`flex-1 flex flex-col min-w-0 ${showTasks ? "mr-0" : ""}`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-card/50">
           <div className="min-w-0 flex-1">
@@ -543,7 +631,12 @@ const handlePrintChat = () => {
                 Tasks: {tasks.filter((t) => t.checked).length}/{tasks.length}
               </button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={toggleTasks} className="h-8 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTasks}
+                className="h-8 text-xs"
+              >
                 + Add Task
               </Button>
             )}
@@ -555,14 +648,17 @@ const handlePrintChat = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handlePrintChat}>
-    <Printer className="mr-2 h-4 w-4" />
-    Print Chat
-  </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePrintChat}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print Chat
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleArchiveThread(chatId)}>
                   {chat.active ? "Archive Thread" : "Activate Thread"}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDeleteThread} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={handleDeleteThread}
+                  className="text-destructive"
+                >
                   Delete Thread
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -573,7 +669,7 @@ const handlePrintChat = () => {
         {/* Messages Area */}
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="space-y-3">
-            {Array.isArray(chat.description) &&
+            {/* {Array.isArray(chat.description) &&
               chat.description.map((desc, index) => (
                 <MessageItem
                   key={desc._id || index}
@@ -588,7 +684,37 @@ const handlePrintChat = () => {
                   handleEditMessage={handleEditMessage}
                   canEditMessage={canEditMessage}
                 />
-              ))}
+              ))} */}
+            {groupedMessages.map((item, index) => {
+              if (item.type === "date") {
+                return (
+                  <div
+                    key={`date-${index}`}
+                    className="flex justify-center my-4"
+                  >
+                    <div className="bg-muted px-3 py-1 rounded-full text-xs font-medium">
+                      {item.label}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <MessageItem
+                  key={item.data._id || index}
+                  desc={item.data}
+                  chat={chat}
+                  messageRefs={messageRefs}
+                  highlightedId={highlightedId}
+                  setHighlightedId={setHighlightedId}
+                  setReplyTo={setReplyTo}
+                  formatDate={formatDate}
+                  handleDeleteMessage={handleDeleteMessage}
+                  handleEditMessage={handleEditMessage}
+                  canEditMessage={canEditMessage}
+                />
+              );
+            })}
           </div>
           <div ref={messagesEndRef} />
         </ScrollArea>
@@ -600,7 +726,8 @@ const handlePrintChat = () => {
           {replyTo && (
             <div className="mb-3 p-3 rounded-md bg-muted/50 border-l-2 border-primary relative">
               <p className="text-xs font-medium text-primary mb-1">
-                Replying to {replyTo.fromwhome === "client" ? replyTo.senderid : "Admin"}
+                Replying to{" "}
+                {replyTo.fromwhome === "client" ? replyTo.senderid : "Admin"}
               </p>
               <div
                 className="text-xs text-muted-foreground line-clamp-2 pr-6"
@@ -619,7 +746,10 @@ const handlePrintChat = () => {
             <div className="flex-1">
               <Editor onChange={handleEditorChange} value={editorContent} />
             </div>
-            <Button onClick={() => updateChatDescription()} className="h-10 px-5">
+            <Button
+              onClick={() => updateChatDescription()}
+              className="h-10 px-5"
+            >
               Send
             </Button>
           </div>
@@ -632,10 +762,20 @@ const handlePrintChat = () => {
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <h3 className="text-sm font-medium">Client Tasks</h3>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={handleAddTask} className="h-7 w-7">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleAddTask}
+                className="h-7 w-7"
+              >
                 <Plus className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleTasks} className="h-7 w-7">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTasks}
+                className="h-7 w-7"
+              >
                 <X className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -655,7 +795,9 @@ const handlePrintChat = () => {
                   />
                   <Input
                     value={task.text}
-                    onChange={(e) => handleTaskTextChange(task.id, e.target.value)}
+                    onChange={(e) =>
+                      handleTaskTextChange(task.id, e.target.value)
+                    }
                     placeholder="Task description..."
                     className={`h-8 text-sm border-0 shadow-none focus-visible:ring-0 px-1 ${
                       task.checked ? "line-through text-muted-foreground" : ""
@@ -675,13 +817,20 @@ const handlePrintChat = () => {
           </ScrollArea>
 
           <div className="p-3 border-t">
-            <Button  onClick={resendClientTask} className="w-full text-sm h-9">
+            <Button onClick={resendClientTask} className="w-full text-sm h-9">
               Resend Tasks
             </Button>
           </div>
         </div>
       )}
     </div>
+  );
+};
+const MessageStatus = ({ isRead }) => {
+  return isRead ? (
+    <CheckCheck size={14} className="text-primary" />
+  ) : (
+    <Check size={14} className="text-muted-foreground" />
   );
 };
 
@@ -760,21 +909,36 @@ const MessageItem = ({
         </div>
 
         {/* Message Content */}
-        <div
+        {/* <div
           className="text-sm leading-relaxed break-words"
-          dangerouslySetInnerHTML={{ __html: desc.message || "No message available" }}
-        />
+          dangerouslySetInnerHTML={{
+            __html: desc.message || "No message available",
+          }}
+        /> */}
+        <div
+  className="text-sm leading-relaxed break-words whitespace-pre-wrap"
+  dangerouslySetInnerHTML={{
+    __html: desc.message || "No message available",
+  }}
+/>
 
         {/* Footer */}
-        <div className="flex justify-end mt-1.5">
+        {/* <div className="flex justify-end mt-1.5">
           <span className="text-[11px] text-muted-foreground">
             {desc.time ? formatDate(desc.time) : "Just now"}
           </span>
-          {/* {isAdmin && !isEditable && desc.time && (
+         {isAdmin && !isEditable && desc.time && (
             <span className="text-[10px] text-muted-foreground ml-2 italic">
               (locked)
             </span>
-          )} */}
+          )} 
+        </div> */}
+        <div className="flex items-center justify-end gap-1 mt-1.5">
+          <span className="text-[11px] text-muted-foreground">
+            {desc.time ? formatDate(desc.time) : "Just now"}
+          </span>
+
+          {isAdmin && <MessageStatus isRead={desc.isRead} />}
         </div>
       </div>
     </div>
