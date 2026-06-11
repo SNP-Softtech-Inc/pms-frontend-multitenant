@@ -38,6 +38,7 @@ const ChatDetails = ({
   accountName,
 }) => {
   const [showTasks, setShowTasks] = useState(false);
+  console.log("ChatDetails render with chat:", chat);
   const [chatId, setChatId] = useState(chat._id);
   const [chatTemplate, setChatTemplate] = useState(chat.chattemplateid);
   const { user } = useAuth();
@@ -268,6 +269,70 @@ const ChatDetails = ({
       toast.error("Failed to delete message");
     }
   };
+  const handleMarkAsRead = async (chatId) => {
+    try {
+      await chatAPI.markThreadAsRead(chatId);
+
+      toast({
+        title: "Success",
+        description: "Thread marked as read",
+      });
+
+      // getsChatDetails();
+
+      // Close the selected chat after marking as read
+      onChatAction(); // This will set selectedChat to null in the parent component
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleMarkAsUnread = async (chatId) => {
+    try {
+      await chatAPI.markThreadAsUnread(chatId);
+
+      toast({
+        title: "Success",
+        description: "Thread marked as unread",
+      });
+
+      // getsChatDetails();
+
+      // Close the selected chat after marking as unread
+      onChatAction(); // This will set selectedChat to null in the parent component
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  //   const handleMarkAsRead = async (chatId) => {
+  //   try {
+  //     await chatAPI.markThreadAsRead(chatId);
+
+  //     toast({
+  //       title: "Success",
+  //       description: "Thread marked as read",
+  //     });
+
+  // getsChatDetails()
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+  // const handleMarkAsUnread = async (chatId) => {
+  //   try {
+  //     await chatAPI.markThreadAsUnread(chatId);
+
+  //     toast({
+  //       title: "Success",
+  //       description: "Thread marked as unread",
+  //     });
+
+  //  getsChatDetails()
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
   const handlePrintChat = () => {
     const iframe = document.createElement("iframe");
 
@@ -580,6 +645,11 @@ const ChatDetails = ({
       });
     });
   }
+  // const latestMessage =
+  // chat?.description?.[chat.description.length - 1];
+  const latestClientMessage = [...(chat?.description || [])]
+    .reverse()
+    .find((msg) => msg.fromwhome === "client");
   if (!chat) return null;
 
   return (
@@ -652,6 +722,20 @@ const ChatDetails = ({
                   <Printer className="mr-2 h-4 w-4" />
                   Print Chat
                 </DropdownMenuItem>
+                {latestClientMessage &&
+                  (latestClientMessage.isRead ? (
+                    <DropdownMenuItem
+                      onClick={() => handleMarkAsUnread(chat._id)}
+                    >
+                      Mark as Unread
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => handleMarkAsRead(chat._id)}
+                    >
+                      Mark as Read
+                    </DropdownMenuItem>
+                  ))}
                 <DropdownMenuItem onClick={() => handleArchiveThread(chatId)}>
                   {chat.active ? "Archive Thread" : "Activate Thread"}
                 </DropdownMenuItem>
@@ -909,30 +993,16 @@ const MessageItem = ({
         </div>
 
         {/* Message Content */}
-        {/* <div
-          className="text-sm leading-relaxed break-words"
+
+        <div
+          className="text-sm leading-relaxed break-words whitespace-pre-wrap"
           dangerouslySetInnerHTML={{
             __html: desc.message || "No message available",
           }}
-        /> */}
-        <div
-  className="text-sm leading-relaxed break-words whitespace-pre-wrap"
-  dangerouslySetInnerHTML={{
-    __html: desc.message || "No message available",
-  }}
-/>
+        />
 
         {/* Footer */}
-        {/* <div className="flex justify-end mt-1.5">
-          <span className="text-[11px] text-muted-foreground">
-            {desc.time ? formatDate(desc.time) : "Just now"}
-          </span>
-         {isAdmin && !isEditable && desc.time && (
-            <span className="text-[10px] text-muted-foreground ml-2 italic">
-              (locked)
-            </span>
-          )} 
-        </div> */}
+
         <div className="flex items-center justify-end gap-1 mt-1.5">
           <span className="text-[11px] text-muted-foreground">
             {desc.time ? formatDate(desc.time) : "Just now"}

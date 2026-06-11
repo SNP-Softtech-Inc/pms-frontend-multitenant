@@ -30,7 +30,7 @@
 // import EditItemDrawer from "../../Templates/InvoiceTemp/EditItemDrawer";
 // import CategoryDrawer from "../../Templates/InvoiceTemp/CategoryDrawer";
 // import Editor from "../../../components/Editor";
-// import { useAuth } from "../../../context/AuthContext"; 
+// import { useAuth } from "../../../context/AuthContext";
 // const CreateInvoiceDrawer = ({ open, onClose,fetchInvoices }) => {
 //     const { user } = useAuth(); // 👈 logged-in user
 //   const [options, setOptions] = useState([]);
@@ -608,8 +608,7 @@
 //       if(fetchInvoices){
 //           fetchInvoices();
 //       }
-    
-      
+
 //     } else {
 //       toast.error(res?.data?.message || "Failed to create invoice");
 //     }
@@ -1105,9 +1104,14 @@ import { toast } from "react-toastify";
 import { X } from "lucide-react";
 import dayjs from "dayjs";
 import { useAuth } from "../../../context/AuthContext";
-import { accountsAPI, invoiceAPI, templateAPI, authAPI } from "../../../services/api";
+import {
+  accountsAPI,
+  invoiceAPI,
+  templateAPI,
+  authAPI,
+} from "../../../services/api";
 import Cookies from "js-cookie";
-import {Eye} from "lucide-react";
+import { Eye } from "lucide-react";
 // shadcn/ui components
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -1139,8 +1143,9 @@ import CategoryDrawer from "../../Templates/InvoiceTemp/CategoryDrawer";
 import Editor from "../../../components/Editor";
 import SingleSelectDropdown from "../../../components/SingleSelectDropdown";
 import PreviewDrawer from "./PreviewDrawer";
+import { Loader2 } from "lucide-react";
 // const CreateInvoiceDrawer = ({ open, onClose, fetchInvoices }) => {
-  const CreateInvoiceDrawer = ({
+const CreateInvoiceDrawer = ({
   open,
   onClose,
   fetchInvoices,
@@ -1149,11 +1154,10 @@ import PreviewDrawer from "./PreviewDrawer";
   const isEditMode = Boolean(editInvoiceId);
 
   useEffect(() => {
-  if (open && editInvoiceId) {
-    fetchInvoiceById(editInvoiceId);
-  }
-}, [open, editInvoiceId]);
-
+    if (open && editInvoiceId) {
+      fetchInvoiceById(editInvoiceId);
+    }
+  }, [open, editInvoiceId]);
 
   const { user } = useAuth();
 
@@ -1163,7 +1167,10 @@ import PreviewDrawer from "./PreviewDrawer";
   const [invoicenumber, setinvoicenumber] = useState("");
   const [clientNote, setClientNote] = useState("");
   const [isLoadingInvoiceNumber, setIsLoadingInvoiceNumber] = useState(true);
-  const [paymentMode, setPaymentMode] = useState({ value: "Bank Debits", label: "Bank Debits" });
+  const [paymentMode, setPaymentMode] = useState({
+    value: "Bank Debits",
+    label: "Bank Debits",
+  });
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [description, setDescription] = useState("");
   const [showDropdownDescription, setShowDropdownDescription] = useState(false);
@@ -1189,23 +1196,23 @@ import PreviewDrawer from "./PreviewDrawer";
   const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
-const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false);
- // Company info state (you can fetch this from your API or context)
+  const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false);
+  // Company info state (you can fetch this from your API or context)
   const [companyInfo, setCompanyInfo] = useState({
     name: "Your Company Name",
     address: "123 Business Street",
     city: "City, State 12345",
     email: "contact@company.com",
-    phone: "+1 (555) 123-4567"
+    phone: "+1 (555) 123-4567",
   });
-const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
+  const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
   // Client info state (from selected account)
   const [clientInfo, setClientInfo] = useState({
     name: "",
     address: "",
     city: "",
     email: "",
-    phone: ""
+    phone: "",
   });
 
   // ✅ Fetch account details when selectedAccount changes
@@ -1218,7 +1225,7 @@ const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
           address: "",
           city: "",
           email: "",
-          phone: ""
+          phone: "",
         });
         return;
       }
@@ -1227,62 +1234,70 @@ const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
       try {
         const res = await accountsAPI.getAccountById(selectedAccount.value);
         const accountData = res.data;
-        
+
         // Get the primary contact (first contact in the array)
         const primaryContact = accountData.contacts?.[0]?.contact;
-        
+
         // Format the client name (combine first, middle, last name if available)
         let clientName = accountData.accountName || "";
         if (primaryContact) {
-          const { firstName = "", middleName = "", lastName = "" } = primaryContact;
-          const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ");
+          const {
+            firstName = "",
+            middleName = "",
+            lastName = "",
+          } = primaryContact;
+          const fullName = [firstName, middleName, lastName]
+            .filter(Boolean)
+            .join(" ");
           if (fullName) clientName = fullName;
         }
-        
+
         // Format full address
         const addressParts = [
           primaryContact?.streetAddress || accountData.streetAddress,
           primaryContact?.city || accountData.city,
           primaryContact?.state || accountData.state,
-          primaryContact?.postalCode || accountData.postalCode
+          primaryContact?.postalCode || accountData.postalCode,
         ].filter(Boolean);
-        
+
         const fullAddress = addressParts.join(", ");
-        
+
         // Get phone number (first non-empty phone number)
-        const phoneNumber = primaryContact?.phoneNumbers?.find(phone => phone && phone.trim()) || "";
-        
+        const phoneNumber =
+          primaryContact?.phoneNumbers?.find(
+            (phone) => phone && phone.trim(),
+          ) || "";
+
         // Update client info with fetched account details
         setClientInfo({
           name: clientName,
           address: fullAddress,
           city: primaryContact?.city || accountData.city || "",
           email: primaryContact?.email || "",
-          phone: phoneNumber
+          phone: phoneNumber,
         });
-        
+
         // Store account name in cookie
         Cookies.set("accountName", accountData.accountName);
-        
+
         console.log("Account details fetched:", {
           accountName: accountData.accountName,
           contactName: clientName,
           email: primaryContact?.email,
           address: fullAddress,
-          phone: phoneNumber
+          phone: phoneNumber,
         });
-        
       } catch (error) {
         console.error("Error fetching account details:", error);
         toast.error("Failed to fetch account details");
-        
+
         // Optionally reset client info on error
         setClientInfo({
           name: "",
           address: "",
           city: "",
           email: "",
-          phone: ""
+          phone: "",
         });
       } finally {
         setIsLoadingAccountDetails(false);
@@ -1291,76 +1306,76 @@ const [isLoadingAccountDetails, setIsLoadingAccountDetails] = useState(false);
 
     fetchAccountDetails();
   }, [selectedAccount]); // Re-run when selectedAccount changes
-const fetchInvoiceById = async (id) => {
-  try {
-    const res = await invoiceAPI.getInvoiceById(id);
+  const fetchInvoiceById = async (id) => {
+    try {
+      const res = await invoiceAPI.getInvoiceById(id);
 
-    const invoice = res.data.invoice;
+      const invoice = res.data.invoice;
 
-    console.log("Edit invoice data:", invoice);
+      console.log("Edit invoice data:", invoice);
 
-    // Account
-    // if (invoice.account) {
-    //   setSelectedAccount({
-    //     value: invoice.account._id,
-    //     label: invoice.account.accountName,
-    //   });
-    // }
+      // Account
+      // if (invoice.account) {
+      //   setSelectedAccount({
+      //     value: invoice.account._id,
+      //     label: invoice.account.accountName,
+      //   });
+      // }
 
-    // Invoice Number
-    setinvoicenumber(invoice.invoicenumber || "");
+      // Invoice Number
+      setinvoicenumber(invoice.invoicenumber || "");
 
-    // Date
-    setStartDate(dayjs(invoice.invoicedate));
+      // Date
+      setStartDate(dayjs(invoice.invoicedate));
 
-    // Description
-    setDescription(invoice.description || "");
+      // Description
+      setDescription(invoice.description || "");
 
-    // Payment Method
-    if (invoice.paymentMethod) {
-      setPaymentMode({
-        value: invoice.paymentMethod,
-        label: invoice.paymentMethod,
-      });
+      // Payment Method
+      if (invoice.paymentMethod) {
+        setPaymentMode({
+          value: invoice.paymentMethod,
+          label: invoice.paymentMethod,
+        });
+      }
+
+      // Toggles
+      setIsEmailInvoice(invoice.emailinvoicetoclient || false);
+      setIsPayInvoice(invoice.payInvoicewithcredits || false);
+      setReminders(invoice.reminders || false);
+
+      // Client Note
+      setClientNote(invoice.clientNote || "");
+
+      // Line Items
+      if (invoice.lineItems?.length > 0) {
+        const formattedRows = invoice.lineItems.map((item) => ({
+          id: `${Date.now()}_${Math.random()}`,
+          productName: item.productorService || "",
+          description: item.description || "",
+          rate: `$${parseFloat(item.rate || 0).toFixed(2)}`,
+          qty: item.quantity?.toString() || "1",
+          amount: `$${parseFloat(item.amount || 0).toFixed(2)}`,
+          tax: item.tax || false,
+          isDiscount: false,
+        }));
+
+        setRows(formattedRows);
+      }
+
+      // Summary
+      if (invoice.summary) {
+        setSubtotal(invoice.summary.subtotal || 0);
+        setTaxRate(invoice.summary.taxRate || 0);
+        setTaxTotal(invoice.summary.taxTotal || 0);
+        setTotalAmount(invoice.summary.total || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching invoice:", error);
+      toast.error("Failed to load invoice");
     }
-
-    // Toggles
-    setIsEmailInvoice(invoice.emailinvoicetoclient || false);
-    setIsPayInvoice(invoice.payInvoicewithcredits || false);
-    setReminders(invoice.reminders || false);
-
-    // Client Note
-    setClientNote(invoice.clientNote || "");
-
-    // Line Items
-    if (invoice.lineItems?.length > 0) {
-      const formattedRows = invoice.lineItems.map((item) => ({
-        id: `${Date.now()}_${Math.random()}`,
-        productName: item.productorService || "",
-        description: item.description || "",
-        rate: `$${parseFloat(item.rate || 0).toFixed(2)}`,
-        qty: item.quantity?.toString() || "1",
-        amount: `$${parseFloat(item.amount || 0).toFixed(2)}`,
-        tax: item.tax || false,
-        isDiscount: false,
-      }));
-
-      setRows(formattedRows);
-    }
-
-    // Summary
-    if (invoice.summary) {
-      setSubtotal(invoice.summary.subtotal || 0);
-      setTaxRate(invoice.summary.taxRate || 0);
-      setTaxTotal(invoice.summary.taxTotal || 0);
-      setTotalAmount(invoice.summary.total || 0);
-    }
-  } catch (error) {
-    console.error("Error fetching invoice:", error);
-    toast.error("Failed to load invoice");
-  }
-};
-    // Preview handler
+  };
+  // Preview handler
   const handlePreview = () => {
     setIsPreviewDrawerOpen(true);
   };
@@ -1389,9 +1404,16 @@ const fetchInvoiceById = async (id) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await authAPI.getAllUsers({ page: 1, limit: 50, status: "active" });
+        const res = await authAPI.getAllUsers({
+          page: 1,
+          limit: 50,
+          status: "active",
+        });
         const users = res?.data?.users || [];
-        const formatted = users.map((u) => ({ value: u._id, label: u.username }));
+        const formatted = users.map((u) => ({
+          value: u._id,
+          label: u.username,
+        }));
         setOptions(formatted);
         if (user) {
           setSelectedUser([{ value: user._id, label: user.username }]);
@@ -1432,72 +1454,93 @@ const fetchInvoiceById = async (id) => {
     }
   }, []);
 
-  const createCategory = useCallback(async (categoryName) => {
-    if (!categoryName?.trim()) {
-      toast.error("Category name is required");
-      return false;
-    }
-    try {
-      const response = await templateAPI.createCategory({ categoryName });
-      if (response.data.message === "Category created successfully") {
-        toast.success("Category created successfully");
-        await fetchCategories();
-        return true;
+  const createCategory = useCallback(
+    async (categoryName) => {
+      if (!categoryName?.trim()) {
+        toast.error("Category name is required");
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error("Error creating category:", error);
-      toast.error(error.response?.data?.message || "Failed to create category");
-      return false;
-    }
-  }, [fetchCategories]);
-
-  const fetchservicebyid = useCallback(async (id, rowIndex, setRowsCallback) => {
-    try {
-      const response = await templateAPI.getServiceTemplateById(id);
-      const service = Array.isArray(response.data.serviceTemplate)
-        ? response.data.serviceTemplate[0]
-        : response.data.serviceTemplate;
-      const rate = service.rate ? parseFloat(service.rate.replace("$", "")) : 0;
-      const updatedRow = {
-        productName: service.serviceName || "",
-        description: service.description || "",
-        rate: `$${rate.toFixed(2)}`,
-        qty: "1",
-        amount: `$${rate.toFixed(2)}`,
-        tax: service.tax || false,
-        isDiscount: false,
-      };
-      setRowsCallback((prevRows) => {
-        const updatedRows = [...prevRows];
-        updatedRows[rowIndex] = { ...updatedRows[rowIndex], ...updatedRow };
-        return updatedRows;
-      });
-    } catch (error) {
-      console.error("Error fetching service by ID:", error);
-      toast.error("Failed to fetch service details");
-    }
-  }, []);
-
-  const createServiceTemplate = useCallback(async (data) => {
-    try {
-      const response = await templateAPI.createServiceTemplate(data);
-      if (response.data.message === "ServiceTemplate created successfully") {
-        toast.success("Service created successfully");
-        await fetchServiceData();
-        return true;
+      try {
+        const response = await templateAPI.createCategory({ categoryName });
+        if (response.data.message === "Category created successfully") {
+          toast.success("Category created successfully");
+          await fetchCategories();
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error creating category:", error);
+        toast.error(
+          error.response?.data?.message || "Failed to create category",
+        );
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error("Error creating service:", error);
-      toast.error(error.response?.data?.message || "Failed to create service");
-      return false;
-    }
-  }, [fetchServiceData]);
+    },
+    [fetchCategories],
+  );
+
+  const fetchservicebyid = useCallback(
+    async (id, rowIndex, setRowsCallback) => {
+      try {
+        const response = await templateAPI.getServiceTemplateById(id);
+        const service = Array.isArray(response.data.serviceTemplate)
+          ? response.data.serviceTemplate[0]
+          : response.data.serviceTemplate;
+        const rate = service.rate
+          ? parseFloat(service.rate.replace("$", ""))
+          : 0;
+        const updatedRow = {
+          productName: service.serviceName || "",
+          description: service.description || "",
+          rate: `$${rate.toFixed(2)}`,
+          qty: "1",
+          amount: `$${rate.toFixed(2)}`,
+          tax: service.tax || false,
+          isDiscount: false,
+        };
+        setRowsCallback((prevRows) => {
+          const updatedRows = [...prevRows];
+          updatedRows[rowIndex] = { ...updatedRows[rowIndex], ...updatedRow };
+          return updatedRows;
+        });
+      } catch (error) {
+        console.error("Error fetching service by ID:", error);
+        toast.error("Failed to fetch service details");
+      }
+    },
+    [],
+  );
+
+  const createServiceTemplate = useCallback(
+    async (data) => {
+      try {
+        const response = await templateAPI.createServiceTemplate(data);
+        if (response.data.message === "ServiceTemplate created successfully") {
+          toast.success("Service created successfully");
+          await fetchServiceData();
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error creating service:", error);
+        toast.error(
+          error.response?.data?.message || "Failed to create service",
+        );
+        return false;
+      }
+    },
+    [fetchServiceData],
+  );
 
   // ==================== DERIVED DATA ====================
-  const serviceoptions = servicedata.map((service) => ({ value: service._id, label: service.serviceName }));
-  const categoryoptions = categoryData.map((category) => ({ value: category._id, label: category.categoryName }));
+  const serviceoptions = servicedata.map((service) => ({
+    value: service._id,
+    label: service.serviceName,
+  }));
+  const categoryoptions = categoryData.map((category) => ({
+    value: category._id,
+    label: category.categoryName,
+  }));
 
   useEffect(() => {
     fetchCategories();
@@ -1513,27 +1556,59 @@ const fetchInvoiceById = async (id) => {
         { title: "Account Shortcodes", isBold: true },
         { title: "Account Name", isBold: false, value: "ACCOUNT_NAME" },
         { title: "Date Shortcodes", isBold: true },
-        { title: "Current day full date", isBold: false, value: "CURRENT_DAY_FULL_DATE" },
-        { title: "Current day number", isBold: false, value: "CURRENT_DAY_NUMBER" },
+        {
+          title: "Current day full date",
+          isBold: false,
+          value: "CURRENT_DAY_FULL_DATE",
+        },
+        {
+          title: "Current day number",
+          isBold: false,
+          value: "CURRENT_DAY_NUMBER",
+        },
         { title: "Current day name", isBold: false, value: "CURRENT_DAY_NAME" },
         { title: "Current week", isBold: false, value: "CURRENT_WEEK" },
-        { title: "Current month number", isBold: false, value: "CURRENT_MONTH_NUMBER" },
-        { title: "Current month name", isBold: false, value: "CURRENT_MONTH_NAME" },
+        {
+          title: "Current month number",
+          isBold: false,
+          value: "CURRENT_MONTH_NUMBER",
+        },
+        {
+          title: "Current month name",
+          isBold: false,
+          value: "CURRENT_MONTH_NAME",
+        },
         { title: "Current quarter", isBold: false, value: "CURRENT_QUARTER" },
         { title: "Current year", isBold: false, value: "CURRENT_YEAR" },
-        { title: "Last day full date", isBold: false, value: "LAST_DAY_FULL_DATE" },
+        {
+          title: "Last day full date",
+          isBold: false,
+          value: "LAST_DAY_FULL_DATE",
+        },
         { title: "Last day number", isBold: false, value: "LAST_DAY_NUMBER" },
         { title: "Last day name", isBold: false, value: "LAST_DAY_NAME" },
         { title: "Last week", isBold: false, value: "LAST_WEEK" },
-        { title: "Last month number", isBold: false, value: "LAST_MONTH_NUMBER" },
+        {
+          title: "Last month number",
+          isBold: false,
+          value: "LAST_MONTH_NUMBER",
+        },
         { title: "Last month name", isBold: false, value: "LAST_MONTH_NAME" },
         { title: "Last quarter", isBold: false, value: "LAST_QUARTER" },
         { title: "Last_year", isBold: false, value: "LAST_YEAR" },
-        { title: "Next day full date", isBold: false, value: "NEXT_DAY_FULL_DATE" },
+        {
+          title: "Next day full date",
+          isBold: false,
+          value: "NEXT_DAY_FULL_DATE",
+        },
         { title: "Next day number", isBold: false, value: "NEXT_DAY_NUMBER" },
         { title: "Next day name", isBold: false, value: "NEXT_DAY_NAME" },
         { title: "Next week", isBold: false, value: "NEXT_WEEK" },
-        { title: "Next month number", isBold: false, value: "NEXT_MONTH_NUMBER" },
+        {
+          title: "Next month number",
+          isBold: false,
+          value: "NEXT_MONTH_NUMBER",
+        },
         { title: "Next month name", isBold: false, value: "NEXT_MONTH_NAME" },
         { title: "Next quarter", isBold: false, value: "NEXT_QUARTER" },
         { title: "Next year", isBold: false, value: "NEXT_YEAR" },
@@ -1544,13 +1619,19 @@ const fetchInvoiceById = async (id) => {
 
   const handleDescriptionAddShortcut = (shortcut) => {
     setDescription((prevText) => {
-      const newText = prevText.slice(0, cursorPosition) + `[${shortcut}]` + prevText.slice(cursorPosition);
+      const newText =
+        prevText.slice(0, cursorPosition) +
+        `[${shortcut}]` +
+        prevText.slice(cursorPosition);
       return newText.length <= 4000 ? newText : prevText;
     });
     setTimeout(() => {
       if (descriptionFieldRef.current) {
         descriptionFieldRef.current.focus();
-        descriptionFieldRef.current.setSelectionRange(cursorPosition + shortcut.length + 2, cursorPosition + shortcut.length + 2);
+        descriptionFieldRef.current.setSelectionRange(
+          cursorPosition + shortcut.length + 2,
+          cursorPosition + shortcut.length + 2,
+        );
       }
     }, 0);
     setShowDropdownDescription(false);
@@ -1605,87 +1686,65 @@ const fetchInvoiceById = async (id) => {
     fetchNextInvoiceNumber();
   }, []);
 
-  const invoiceoptions = invoiceTemplates.map((invoice) => ({ value: invoice._id, label: invoice.templatename }));
+  const invoiceoptions = invoiceTemplates.map((invoice) => ({
+    value: invoice._id,
+    label: invoice.templatename,
+  }));
 
-  // const fetchInvoiceTemplateById = useCallback(async (templateId) => {
-  //   try {
-  //     const response = await templateAPI.getInvoiceTemplateById(templateId);
-  //     const template = response.data.invoiceTemplate;
-  //     if (template) {
-  //       if (template.paymentMethod) setPaymentMode({ value: template.paymentMethod, label: template.paymentMethod });
-  //       setIsEmailInvoice(template.sendEmailWhenInvCreated || false);
-  //       setIsPayInvoice(template.payInvoicewithcredits || false);
-  //       setReminders(template.sendReminderstoClients || false);
-  //       setDescription(template.description || "");
-  //       setClientNote(template.clientNote || "");
-  //       if (template.lineItems?.length > 0) {
-  //         const lineItemsData = template.lineItems.map((item) => ({
-  //           productName: item.productorService || "",
-  //           description: item.description || "",
-  //           rate: item.rate ? `$${item.rate}` : "$0.00",
-  //           qty: item.quantity || "1",
-  //           amount: item.amount ? `$${item.amount}` : "$0.00",
-  //           tax: item.tax === "true" || item.tax === true,
-  //           isDiscount: false,
-  //         }));
-  //         setRows(lineItemsData);
-  //       }
-  //       if (template.summary) {
-  //         setSubtotal(template.summary.subtotal || 0);
-  //         setTaxRate(template.summary.taxRate || 0);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching invoice template:", error);
-  //     toast.error("Failed to load template data");
-  //   }
-  // }, []);
-const fetchInvoiceTemplateById = useCallback(async (templateId) => {
-  try {
-    const response = await templateAPI.getInvoiceTemplateById(templateId);
-    const template = response.data.invoiceTemplate;
-    if (template) {
-      if (template.paymentMethod) setPaymentMode({ value: template.paymentMethod, label: template.paymentMethod });
-      setIsEmailInvoice(template.sendEmailWhenInvCreated || false);
-      setIsPayInvoice(template.payInvoicewithcredits || false);
-      setReminders(template.sendReminderstoClients || false);
-      setDescription(template.description || "");
-      setClientNote(template.clientNote || "");
-      if (template.lineItems?.length > 0) {
-        const lineItemsData = template.lineItems.map((item) => ({
-          productName: item.productorService || "",
-          description: item.description || "",
-          rate: item.rate ? `$${parseFloat(item.rate).toFixed(2)}` : "$0.00", // Ensure proper formatting
-          qty: item.quantity?.toString() || "1",
-          amount: item.amount ? `$${parseFloat(item.amount).toFixed(2)}` : "$0.00", // Ensure proper formatting
-          tax: item.tax === "true" || item.tax === true,
-          isDiscount: false,
-          id: `${Date.now()}_${Math.random()}` // Add unique ID for each row
-        }));
-        setRows(lineItemsData);
-      } else {
-        // Reset to default empty row if no line items
-        setRows([{
-          productName: "",
-          description: "",
-          rate: "$0.00",
-          qty: "1",
-          amount: "$0.00",
-          tax: false,
-          isDiscount: false,
-          id: `${Date.now()}_${Math.random()}`
-        }]);
+  const fetchInvoiceTemplateById = useCallback(async (templateId) => {
+    try {
+      const response = await templateAPI.getInvoiceTemplateById(templateId);
+      const template = response.data.invoiceTemplate;
+      if (template) {
+        if (template.paymentMethod)
+          setPaymentMode({
+            value: template.paymentMethod,
+            label: template.paymentMethod,
+          });
+        setIsEmailInvoice(template.sendEmailWhenInvCreated || false);
+        setIsPayInvoice(template.payInvoicewithcredits || false);
+        setReminders(template.sendReminderstoClients || false);
+        setDescription(template.description || "");
+        setClientNote(template.clientNote || "");
+        if (template.lineItems?.length > 0) {
+          const lineItemsData = template.lineItems.map((item) => ({
+            productName: item.productorService || "",
+            description: item.description || "",
+            rate: item.rate ? `$${parseFloat(item.rate).toFixed(2)}` : "$0.00", // Ensure proper formatting
+            qty: item.quantity?.toString() || "1",
+            amount: item.amount
+              ? `$${parseFloat(item.amount).toFixed(2)}`
+              : "$0.00", // Ensure proper formatting
+            tax: item.tax === "true" || item.tax === true,
+            isDiscount: false,
+            id: `${Date.now()}_${Math.random()}`, // Add unique ID for each row
+          }));
+          setRows(lineItemsData);
+        } else {
+          // Reset to default empty row if no line items
+          setRows([
+            {
+              productName: "",
+              description: "",
+              rate: "$0.00",
+              qty: "1",
+              amount: "$0.00",
+              tax: false,
+              isDiscount: false,
+              id: `${Date.now()}_${Math.random()}`,
+            },
+          ]);
+        }
+        if (template.summary) {
+          setSubtotal(template.summary.subtotal || 0);
+          setTaxRate(template.summary.taxRate || 0);
+        }
       }
-      if (template.summary) {
-        setSubtotal(template.summary.subtotal || 0);
-        setTaxRate(template.summary.taxRate || 0);
-      }
+    } catch (error) {
+      console.error("Error fetching invoice template:", error);
+      toast.error("Failed to load template data");
     }
-  } catch (error) {
-    console.error("Error fetching invoice template:", error);
-    toast.error("Failed to load template data");
-  }
-}, []);
+  }, []);
   const resetTemplateData = () => {
     setPaymentMode({ value: "Bank Debits", label: "Bank Debits" });
     setIsEmailInvoice(false);
@@ -1703,6 +1762,7 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
       setIsLoadingInvoiceNumber(true);
       const res = await invoiceAPI.getNextInvoiceNumber();
       const nextNumber = res.data?.nextInvoiceNumber;
+      console.log("Next invoice number:", nextNumber);
       setinvoicenumber(nextNumber ? nextNumber.toString() : "Auto-generated");
     } catch (error) {
       console.error("Error fetching next invoice number:", error);
@@ -1716,15 +1776,18 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
   const paymentsOptions = [
     { value: "Bank Debits", label: "Bank Debits" },
     { value: "Credit Card", label: "Credit Card" },
-    { value: "Credit Card or Bank Debits", label: "Credit Card or Bank Debits" },
+    {
+      value: "Credit Card or Bank Debits",
+      label: "Credit Card or Bank Debits",
+    },
   ];
 
   const handlePaymentOptionChange = (value) => {
-    setPaymentMode(paymentsOptions.find(opt => opt.value === value));
+    setPaymentMode(paymentsOptions.find((opt) => opt.value === value));
   };
 
   const handleTemplateChange = (value) => {
-    const template = invoiceoptions.find(opt => opt.value === value);
+    const template = invoiceoptions.find((opt) => opt.value === value);
     setSelectedTemplate(template);
     if (template?.value) {
       fetchInvoiceTemplateById(template.value);
@@ -1737,13 +1800,14 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
     setSelectedUser(newSelectedUsers);
     setCombinedValues(newSelectedUsers.map((option) => option.value));
   };
-
+  const [saving, setSaving] = useState(false);
   const handleSave = async () => {
     if (!selectedAccount) {
       setAccountError("Account is required");
       return;
     }
     try {
+      setSaving(true);
       const payload = {
         account: selectedAccount?.value,
         invoicenumber: invoicenumber,
@@ -1754,7 +1818,9 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
         teammember: selectedUser.value,
         emailinvoicetoclient: emailInvoice,
         scheduleinvoicedate: new Date(),
-        scheduleinvoicetime: new Date().toLocaleTimeString("en-US", { hour12: false }),
+        scheduleinvoicetime: new Date().toLocaleTimeString("en-US", {
+          hour12: false,
+        }),
         payInvoicewithcredits: payInvoice,
         reminders: reminders,
         scheduleinvoice: false,
@@ -1781,12 +1847,37 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
       };
       // const res = await invoiceAPI.createInvoice(payload);
       const res = isEditMode
-  ? await invoiceAPI.updateInvoice(editInvoiceId, payload)
-  : await invoiceAPI.createInvoice(payload);
-  console.log("Invoice save response:", res);
-      if (res?.data?.message === "Invoice created successfully" || res?.data?.message === "Invoice Updated successfully") {
-        toast.success(isEditMode ? "Invoice Updated successfully" : "Invoice created successfully");
+        ? await invoiceAPI.updateInvoice(editInvoiceId, payload)
+        : await invoiceAPI.createInvoice(payload);
+      console.log("Invoice save response:", res);
+      // if (
+      //   res?.data?.message === "Invoice created successfully" ||
+      //   res?.data?.message === "Invoice Updated successfully"
+      // ) {
+      //   toast.success(
+      //     isEditMode
+      //       ? "Invoice Updated successfully"
+      //       : "Invoice created successfully",
+      //   );
+      //   onClose();
+      //   if (fetchInvoices) fetchInvoices();
+      // } else {
+      //   toast.error(res?.data?.message || "Failed to create invoice");
+      // }
+      if (
+        res?.data?.message === "Invoice created successfully" ||
+        res?.data?.message === "Invoice Updated successfully"
+      ) {
+        toast.success(
+          isEditMode
+            ? "Invoice Updated successfully"
+            : "Invoice created successfully",
+        );
+
+        resetForm(); // Clear form
+
         onClose();
+
         if (fetchInvoices) fetchInvoices();
       } else {
         toast.error(res?.data?.message || "Failed to create invoice");
@@ -1794,6 +1885,8 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
     } catch (error) {
       console.error("Create invoice error:", error);
       toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -1822,31 +1915,31 @@ const fetchInvoiceTemplateById = useCallback(async (templateId) => {
   //     : { productName: "", description: "", rate: "$0.00", qty: "1", amount: "$0.00", tax: false, isDiscount: false };
   //   setRows((prev) => [...prev, newRow]);
   // }, []);
-  
-const addRow = useCallback((isDiscountRow = false) => {
-  const newRow = isDiscountRow
-    ? { 
-        id: `${Date.now()}_${Math.random()}`,
-        productName: "", 
-        description: "", 
-        rate: "$-10.00", 
-        qty: "1", 
-        amount: "$-10.00", 
-        tax: false, 
-        isDiscount: true 
-      }
-    : { 
-        id: `${Date.now()}_${Math.random()}`,
-        productName: "", 
-        description: "", 
-        rate: "$0.00", 
-        qty: "1", 
-        amount: "$0.00", 
-        tax: false, 
-        isDiscount: false 
-      };
-  setRows((prev) => [...prev, newRow]);
-}, []);
+
+  const addRow = useCallback((isDiscountRow = false) => {
+    const newRow = isDiscountRow
+      ? {
+          id: `${Date.now()}_${Math.random()}`,
+          productName: "",
+          description: "",
+          rate: "$-10.00",
+          qty: "1",
+          amount: "$-10.00",
+          tax: false,
+          isDiscount: true,
+        }
+      : {
+          id: `${Date.now()}_${Math.random()}`,
+          productName: "",
+          description: "",
+          rate: "$0.00",
+          qty: "1",
+          amount: "$0.00",
+          tax: false,
+          isDiscount: false,
+        };
+    setRows((prev) => [...prev, newRow]);
+  }, []);
   const deleteRow = useCallback((index) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
   }, []);
@@ -1885,10 +1978,14 @@ const addRow = useCallback((isDiscountRow = false) => {
   const handleSaveChanges = useCallback(() => {
     if (selectedRowIndex !== null) {
       const updatedRows = [...rows];
-      const rateValue = parseFloat(selectedRowData.rate?.replace(/[^0-9.-]+/g, "")) || 0;
+      const rateValue =
+        parseFloat(selectedRowData.rate?.replace(/[^0-9.-]+/g, "")) || 0;
       const qtyValue = parseInt(selectedRowData.qty) || 0;
       const amount = (rateValue * qtyValue).toFixed(2);
-      updatedRows[selectedRowIndex] = { ...selectedRowData, amount: `$${amount}` };
+      updatedRows[selectedRowIndex] = {
+        ...selectedRowData,
+        amount: `$${amount}`,
+      };
       setRows(updatedRows);
     }
     setIsEditItemDrawerOpen(false);
@@ -1898,24 +1995,39 @@ const addRow = useCallback((isDiscountRow = false) => {
     if (selectedRowIndex !== null) deleteRow(selectedRowIndex);
   }, [selectedRowIndex, deleteRow]);
 
-  const handleDuplicate = useCallback((index) => {
-    const duplicatedRow = { ...rows[index], productName: rows[index].productName ? `${rows[index].productName} Copy` : "Copy" };
-    setRows([...rows, duplicatedRow]);
-  }, [rows]);
+  const handleDuplicate = useCallback(
+    (index) => {
+      const duplicatedRow = {
+        ...rows[index],
+        productName: rows[index].productName
+          ? `${rows[index].productName} Copy`
+          : "Copy",
+      };
+      setRows([...rows, duplicatedRow]);
+    },
+    [rows],
+  );
 
-  const handleServiceChangeWrapper = useCallback((index, selectedOption) => {
-    if (selectedOption) fetchservicebyid(selectedOption.value, index, setRows);
-  }, [fetchservicebyid]);
+  const handleServiceChangeWrapper = useCallback(
+    (index, selectedOption) => {
+      if (selectedOption)
+        fetchservicebyid(selectedOption.value, index, setRows);
+    },
+    [fetchservicebyid],
+  );
 
-  const handleServiceInputChangeWrapper = useCallback((inputValue, actionMeta, index) => {
-    if (actionMeta.action === "input-change") {
-      setRows((prevRows) => {
-        const newRows = [...prevRows];
-        newRows[index].productName = inputValue;
-        return newRows;
-      });
-    }
-  }, []);
+  const handleServiceInputChangeWrapper = useCallback(
+    (inputValue, actionMeta, index) => {
+      if (actionMeta.action === "input-change") {
+        setRows((prevRows) => {
+          const newRows = [...prevRows];
+          newRows[index].productName = inputValue;
+          return newRows;
+        });
+      }
+    },
+    [],
+  );
 
   const handleCreateService = useCallback(async () => {
     const payload = {
@@ -1934,80 +2046,83 @@ const addRow = useCallback((isDiscountRow = false) => {
     }
   }, [selectedRowData, createServiceTemplate]);
 
-  const handleCreateCategory = useCallback(async (categoryName) => {
-    const success = await createCategory(categoryName);
-    if (success) setIsCategoryDrawerOpen(false);
-  }, [createCategory]);
+  const handleCreateCategory = useCallback(
+    async (categoryName) => {
+      const success = await createCategory(categoryName);
+      if (success) setIsCategoryDrawerOpen(false);
+    },
+    [createCategory],
+  );
 
   const resetForm = () => {
-  setSelectedAccount(null);
-  setAccountError("");
-  setinvoicenumber("");
-  setClientNote("");
-  setPaymentMode({
-    value: "Bank Debits",
-    label: "Bank Debits",
-  });
+    setSelectedAccount(null);
+    setAccountError("");
+    setinvoicenumber("");
+    setClientNote("");
+    setPaymentMode({
+      value: "Bank Debits",
+      label: "Bank Debits",
+    });
 
-  setSelectedTemplate(null);
-  setDescription("");
-  setSelectedUser([]);
-  setCombinedValues([]);
-  setStartDate(dayjs());
+    setSelectedTemplate(null);
+    setDescription("");
+    setSelectedUser([]);
+    setCombinedValues([]);
+    setStartDate(dayjs());
 
-  setIsPayInvoice(false);
-  setIsEmailInvoice(false);
-  setReminders(false);
+    setIsPayInvoice(false);
+    setIsEmailInvoice(false);
+    setReminders(false);
 
-  setRows([
-    {
-      id: `${Date.now()}_${Math.random()}`,
-      productName: "",
-      description: "",
-      rate: "$0.00",
-      qty: "1",
-      amount: "$0.00",
-      tax: false,
-      isDiscount: false,
-    },
-  ]);
+    setRows([
+      {
+        id: `${Date.now()}_${Math.random()}`,
+        productName: "",
+        description: "",
+        rate: "$0.00",
+        qty: "1",
+        amount: "$0.00",
+        tax: false,
+        isDiscount: false,
+      },
+    ]);
 
-  setSubtotal(0);
-  setTaxRate(0);
-  setTaxTotal(0);
-  setTotalAmount(0);
+    setSubtotal(0);
+    setTaxRate(0);
+    setTaxTotal(0);
+    setTotalAmount(0);
 
-  setClientInfo({
-    name: "",
-    address: "",
-    city: "",
-    email: "",
-    phone: "",
-  });
+    setClientInfo({
+      name: "",
+      address: "",
+      city: "",
+      email: "",
+      phone: "",
+    });
 
-  setSelectedRowData(null);
-  setSelectedRowIndex(null);
+    setSelectedRowData(null);
+    setSelectedRowIndex(null);
 
-  fetchNextInvoiceNumber();
-};
-const handleDrawerClose = () => {
-  resetForm();
-  onClose();
-};
+    fetchNextInvoiceNumber();
+  };
+  const handleDrawerClose = () => {
+    resetForm();
+    onClose();
+  };
   if (!open) return null;
 
   return (
-  <>
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
-        onClick={handleDrawerClose}
-      />
+    <>
+      <div className="fixed inset-0 z-50 overflow-hidden">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+          onClick={handleDrawerClose}
+        />
 
-      {/* Drawer */}
-      <div
-        className="
+        {/* Drawer */}
+        <div
+          className="
           absolute right-0 top-0
           h-full w-full
           sm:w-[700px]
@@ -2017,396 +2132,384 @@ const handleDrawerClose = () => {
           shadow-xl
           flex flex-col
         "
-      >
-        {/* Header */}
-        <div
-          className="
+        >
+          {/* Header */}
+          <div
+            className="
             flex items-center justify-between
             px-5 py-4
             border-b border-border
             bg-background/95 backdrop-blur
             shrink-0
           "
-        >
-          {/* <h2 className="text-base font-semibold text-foreground">
+          >
+            {/* <h2 className="text-base font-semibold text-foreground">
             Create new Invoice
           </h2> */}
-<h2 className="text-base font-semibold text-foreground">
-  {isEditMode ? "Edit Invoice" : "Create new Invoice"}
-</h2>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handlePreview}
-              className="
+            <h2 className="text-base font-semibold text-foreground">
+              {isEditMode ? "Edit Invoice" : "Create new Invoice"}
+            </h2>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handlePreview}
+                className="
                 flex items-center gap-1.5
                 text-sm text-primary
                 hover:text-primary/80
                 transition-colors
               "
-            >
-              <Eye className="h-4 w-4" />
-              Preview
-            </button>
+              >
+                <Eye className="h-4 w-4" />
+                Preview
+              </button>
 
-            <button
-              onClick={handleDrawerClose}
-              className="
+              <button
+                onClick={handleDrawerClose}
+                className="
                 p-1 rounded-md
                 text-muted-foreground
                 hover:text-foreground
                 hover:bg-accent
                 transition-colors
               "
-            >
-              <X className="h-4 w-4" />
-            </button>
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-muted/30">
-          
-          {/* Account Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-foreground">
-                Account name, ID or email
-              </Label>
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-muted/30">
+            {/* Account Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Account name, ID or email
+                </Label>
 
-              <SingleSelectDropdown
-                value={selectedAccount}
-                onChange={setSelectedAccount}
-              />
+                <SingleSelectDropdown
+                  value={selectedAccount}
+                  onChange={setSelectedAccount}
+                />
 
-              {accountError && (
-                <p className="text-xs text-destructive mt-1">
-                  {accountError}
+                {accountError && (
+                  <p className="text-xs text-destructive mt-1">
+                    {accountError}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Invoice Template
+                </Label>
+
+                <Select
+                  value={selectedTemplate?.value}
+                  onValueChange={handleTemplateChange}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Invoice Template" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {invoiceoptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Invoice Number + Payment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Invoice Number
+                </Label>
+
+                <Input
+                  value={isLoadingInvoiceNumber ? "Loading..." : invoicenumber}
+                  placeholder="Invoice Number"
+                  readOnly
+                  disabled={isLoadingInvoiceNumber}
+                  className="mt-1"
+                />
+
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-generated invoice number
                 </p>
-              )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Choose payment method
+                </Label>
+
+                <Select
+                  value={paymentMode?.value}
+                  onValueChange={handlePaymentOptionChange}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Payment Mode" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {paymentsOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div>
-              <Label className="text-sm font-medium text-foreground">
-                Invoice Template
-              </Label>
+            {/* Date + Team */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Date
+                </Label>
 
-              <Select
-                value={selectedTemplate?.value}
-                onValueChange={handleTemplateChange}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Invoice Template" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {invoiceoptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal mt-1 border-border bg-background text-foreground hover:bg-accent",
+                        !startDate && "text-muted-foreground",
+                      )}
                     >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      {startDate ? (
+                        startDate.format("MM/DD/YYYY")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent className="w-auto p-0 bg-popover border border-border text-popover-foreground">
+                    <Calendar
+                      mode="single"
+                      selected={startDate ? startDate.toDate() : undefined}
+                      onSelect={(date) =>
+                        date && handleStartDateChange(dayjs(date))
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Team Member
+                </Label>
+
+                <MultiSelectDropdown
+                  value={selectedUser}
+                  onChange={handleUserChange}
+                  placeholder="Team Member"
+                  options={options}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Invoice Number + Payment */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Description */}
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Invoice Number
-              </Label>
-
-              <Input
-                value={
-                  isLoadingInvoiceNumber
-                    ? "Loading..."
-                    : invoicenumber
-                }
-                placeholder="Invoice Number"
-                readOnly
-                disabled={isLoadingInvoiceNumber}
-                className="mt-1"
+              <ShortcodeTextField
+                label="Description"
+                value={description}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 4000) {
+                    setDescription(value);
+                    setCharCount(value.length);
+                  }
+                }}
+                placeholder="Description"
+                multiline
+                rows={4}
+                maxLength={4000}
+                inputRef={descriptionFieldRef}
+                onClick={(e) => setCursorPosition(e.target.selectionStart)}
+                helperText={`${description.length}/4000 characters`}
+                shortcuts={filteredShortcuts}
+                showShortcutDropdown={showDropdownDescription}
+                anchorElShortcut={anchorEl}
+                onToggleShortcutDropdown={toggleDescriptionDropdown}
+                onCloseShortcutDropdown={handleCloseDropdown}
+                onAddShortcut={handleDescriptionAddShortcut}
               />
-
-              <p className="text-xs text-muted-foreground mt-1">
-                Auto-generated invoice number
-              </p>
             </div>
 
+            {/* Additional Options */}
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Choose payment method
-              </Label>
+              <h3 className="text-base font-semibold text-foreground mb-2">
+                Additional
+              </h3>
 
-              <Select
-                value={paymentMode?.value}
-                onValueChange={handlePaymentOptionChange}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select Payment Mode" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {paymentsOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Date + Team */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-foreground">
-                Date
-              </Label>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal mt-1 border-border bg-background text-foreground hover:bg-accent",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    {startDate ? (
-                      startDate.format("MM/DD/YYYY")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-
-                <PopoverContent className="w-auto p-0 bg-popover border border-border text-popover-foreground">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      startDate ? startDate.toDate() : undefined
-                    }
-                    onSelect={(date) =>
-                      date && handleStartDateChange(dayjs(date))
-                    }
-                    initialFocus
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer text-foreground">
+                    Pay invoice using client credits
+                  </Label>
+                  <Switch
+                    id="pay-invoice"
+                    checked={payInvoice}
+                    onCheckedChange={handlePayInvoiceChange}
                   />
-                </PopoverContent>
-              </Popover>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer text-foreground">
+                    Email invoice to client
+                  </Label>
+                  <Switch
+                    id="email-invoice"
+                    checked={emailInvoice}
+                    onCheckedChange={handleEmailInvoiceChange}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer text-foreground">
+                    Reminders
+                  </Label>
+                  <Switch
+                    id="reminders"
+                    checked={reminders}
+                    onCheckedChange={handleRemindersChange}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <Label className="text-sm font-medium text-foreground">
-                Team Member
-              </Label>
-
-              <MultiSelectDropdown
-                value={selectedUser}
-                onChange={handleUserChange}
-                placeholder="Team Member"
-                options={options}
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <ShortcodeTextField
-              label="Description"
-              value={description}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value.length <= 4000) {
-                  setDescription(value);
-                  setCharCount(value.length);
-                }
-              }}
-              placeholder="Description"
-              multiline
-              rows={4}
-              maxLength={4000}
-              inputRef={descriptionFieldRef}
-              onClick={(e) =>
-                setCursorPosition(e.target.selectionStart)
-              }
-              helperText={`${description.length}/4000 characters`}
-              shortcuts={filteredShortcuts}
-              showShortcutDropdown={showDropdownDescription}
-              anchorElShortcut={anchorEl}
-              onToggleShortcutDropdown={toggleDescriptionDropdown}
-              onCloseShortcutDropdown={handleCloseDropdown}
-              onAddShortcut={handleDescriptionAddShortcut}
+            {/* Line Items */}
+            <LineItemsAndSummary
+              rows={rows}
+              serviceoptions={serviceoptions}
+              onInputChange={handleInputChange}
+              onServiceChange={handleServiceChangeWrapper}
+              onServiceInputChange={handleServiceInputChangeWrapper}
+              onAddRow={addRow}
+              onDeleteRow={deleteRow}
+              onEditService={handleEditService}
+              onDeleteService={handleDeleteService}
+              onSaveAsNewService={handleSaveAsNewService}
+              onDuplicate={handleDuplicate}
+              subtotal={subtotal}
+              onSubtotalChange={setSubtotal}
+              taxRate={taxRate}
+              onTaxRateChange={setTaxRate}
+              taxTotal={taxTotal}
+              totalAmount={totalAmount}
+              lineItemsTitle="Line items"
+              lineItemsSubtitle="Client-facing itemized list of products and services"
+              summaryTitle="Summary"
             />
-          </div>
 
-          {/* Additional Options */}
-          <div>
-            <h3 className="text-base font-semibold text-foreground mb-2">
-              Additional
-            </h3>
+            {/* Note */}
+            <div>
+              <h3 className="text-base font-semibold text-foreground mb-2">
+                Note to client
+              </h3>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="cursor-pointer text-foreground">
-                  Pay invoice using client credits
-                </Label>
-                <Switch
-                  id="pay-invoice"
-                  checked={payInvoice}
-                  onCheckedChange={handlePayInvoiceChange}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label className="cursor-pointer text-foreground">
-                  Email invoice to client
-                </Label>
-                <Switch
-                  id="email-invoice"
-                  checked={emailInvoice}
-                  onCheckedChange={handleEmailInvoiceChange}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label className="cursor-pointer text-foreground">
-                  Reminders
-                </Label>
-                <Switch
-                  id="reminders"
-                  checked={reminders}
-                  onCheckedChange={handleRemindersChange}
-                />
-              </div>
+              <Editor onChange={setClientNote} value={clientNote} />
             </div>
           </div>
 
-          {/* Line Items */}
-          <LineItemsAndSummary
-            rows={rows}
-            serviceoptions={serviceoptions}
-            onInputChange={handleInputChange}
-            onServiceChange={handleServiceChangeWrapper}
-            onServiceInputChange={handleServiceInputChangeWrapper}
-            onAddRow={addRow}
-            onDeleteRow={deleteRow}
-            onEditService={handleEditService}
-            onDeleteService={handleDeleteService}
-            onSaveAsNewService={handleSaveAsNewService}
-            onDuplicate={handleDuplicate}
-            subtotal={subtotal}
-            onSubtotalChange={setSubtotal}
-            taxRate={taxRate}
-            onTaxRateChange={setTaxRate}
-            taxTotal={taxTotal}
-            totalAmount={totalAmount}
-            lineItemsTitle="Line items"
-            lineItemsSubtitle="Client-facing itemized list of products and services"
-            summaryTitle="Summary"
-          />
-
-          {/* Note */}
-          <div>
-            <h3 className="text-base font-semibold text-foreground mb-2">
-              Note to client
-            </h3>
-
-            <Editor onChange={setClientNote} value={clientNote} />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div
-          className="
+          {/* Footer */}
+          <div
+            className="
             flex items-center justify-end gap-3
             px-5 py-4
             border-t border-border
             bg-background
             shrink-0
           "
-        >
-          <Button variant="outline" onClick={handleDrawerClose}>
-            Cancel
-          </Button>
-<Button onClick={handleSave}>
-  {isEditMode ? "Update" : "Save"}
-</Button>
-          {/* <Button onClick={handleSave}>Save</Button> */}
+          >
+            <Button variant="outline" onClick={handleDrawerClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              {/* {isEditMode ? "Update" : "Save"} */}
+              {saving ? (
+    <>
+  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      {isEditMode ? "Updating..." : "Saving..."}
+    </>
+  ) : (
+    isEditMode ? "Update Invoice" : "Save Invoice"
+  )}
+            </Button>
+            {/* <Button onClick={handleSave}>Save</Button> */}
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* Service Drawers (UNCHANGED FUNCTIONALITY) */}
-    <ServiceDrawer
-      open={isNewServiceDrawerOpen}
-      onClose={() => setIsNewServiceDrawerOpen(false)}
-      selectedRowData={selectedRowData}
-      setSelectedRowData={setSelectedRowData}
-      categoryoptions={categoryoptions}
-      onCreateCategory={() => setIsCategoryDrawerOpen(true)}
-      onSave={handleCreateService}
-    />
+      {/* Service Drawers (UNCHANGED FUNCTIONALITY) */}
+      <ServiceDrawer
+        open={isNewServiceDrawerOpen}
+        onClose={() => setIsNewServiceDrawerOpen(false)}
+        selectedRowData={selectedRowData}
+        setSelectedRowData={setSelectedRowData}
+        categoryoptions={categoryoptions}
+        onCreateCategory={() => setIsCategoryDrawerOpen(true)}
+        onSave={handleCreateService}
+      />
 
-    <CategoryDrawer
-      open={isCategoryDrawerOpen}
-      onClose={() => setIsCategoryDrawerOpen(false)}
-      onCreateCategory={handleCreateCategory}
-    />
+      <CategoryDrawer
+        open={isCategoryDrawerOpen}
+        onClose={() => setIsCategoryDrawerOpen(false)}
+        onCreateCategory={handleCreateCategory}
+      />
 
-    <EditItemDrawer
-      open={isEditItemDrawerOpen}
-      onClose={() => setIsEditItemDrawerOpen(false)}
-      selectedRowData={selectedRowData}
-      setSelectedRowData={setSelectedRowData}
-      onSave={handleSaveChanges}
-    />
+      <EditItemDrawer
+        open={isEditItemDrawerOpen}
+        onClose={() => setIsEditItemDrawerOpen(false)}
+        selectedRowData={selectedRowData}
+        setSelectedRowData={setSelectedRowData}
+        onSave={handleSaveChanges}
+      />
 
-    <PreviewDrawer
-      open={isPreviewDrawerOpen}
-      onClose={() => setIsPreviewDrawerOpen(false)}
-      rows={rows}
-      description={description}
-      clientNote={clientNote}
-      subtotal={subtotal}
-      taxRate={taxRate}
-      taxTotal={taxTotal}
-      totalAmount={totalAmount}
-      onSave={handleSave}
-      invoiceNumber={invoicenumber}
-      invoiceDate={
-        startDate
-          ? startDate.format("MM/DD/YYYY")
-          : new Date().toLocaleDateString()
-      }
-      companyInfo={companyInfo}
-      clientInfo={clientInfo}
-      currency="$"
-    />
-  </>
-);
-
+      <PreviewDrawer
+        open={isPreviewDrawerOpen}
+        onClose={() => setIsPreviewDrawerOpen(false)}
+        rows={rows}
+        description={description}
+        clientNote={clientNote}
+        subtotal={subtotal}
+        taxRate={taxRate}
+        taxTotal={taxTotal}
+        totalAmount={totalAmount}
+        onSave={handleSave}
+        invoiceNumber={invoicenumber}
+        invoiceDate={
+          startDate
+            ? startDate.format("MM/DD/YYYY")
+            : new Date().toLocaleDateString()
+        }
+        companyInfo={companyInfo}
+        clientInfo={clientInfo}
+        currency="$"
+      />
+    </>
+  );
 };
 
 export default CreateInvoiceDrawer;
-
-
-
-
 
 //   return (
 //     <>
 //       <div className="fixed inset-0 z-50 overflow-hidden">
 //         <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
 //         <div className="absolute right-0 top-0 h-full w-full sm:w-[700px] bg-background shadow-xl flex flex-col">
-         
+
 // <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
 //   <h2 className="text-base font-semibold text-foreground">Create new Invoice</h2>
 //   <div className="flex items-center gap-3">
@@ -2418,8 +2521,8 @@ export default CreateInvoiceDrawer;
 //       <Eye className="h-4 w-4" />
 //       Preview
 //     </button>
-//     <button 
-//       onClick={onClose} 
+//     <button
+//       onClick={onClose}
 //       className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
 //     >
 //       <X className="h-4 w-4" />

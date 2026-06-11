@@ -1366,7 +1366,13 @@ export const chatAPI = {
     chatApi.patch(
       `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`,
     ),
+// ================= THREAD READ/UNREAD =================
 
+markThreadAsRead: (chatId) =>
+  chatApi.put(`/chats/${chatId}/mark-read`),
+
+markThreadAsUnread: (chatId) =>
+  chatApi.put(`/chats/${chatId}/mark-unread`),
   // ================= STATUS =================
 
   updateChatStatus: (id, data) =>
@@ -1378,6 +1384,9 @@ export const chatAPI = {
   // For chat message send
   sendSecureMessage: (data) =>
     chatApi.post("/chatsend/securemessagechatsend", data),
+
+
+
 };
 
 // ================= INVOICE APIs =================
