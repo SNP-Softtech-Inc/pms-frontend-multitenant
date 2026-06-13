@@ -997,7 +997,7 @@ import {
 } from "lucide-react";
 
 import axios from "axios";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
@@ -1050,7 +1050,7 @@ const MyAccount = () => {
   const USER_URL = process.env.REACT_APP_AUTH_USER;
 
   const { user, updateUserData, logout } = useAuth();
-
+const { showToast } = useToastContext();
   console.log("users deatils", user);
 
   // ================= STATES =================
@@ -1189,7 +1189,11 @@ const MyAccount = () => {
         setEmailSync(userData.emailSyncEmail || "");
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load profile");
+        showToast({
+          title: "Failed to load profile",
+          description: "Failed to load profile.",
+          type: "error",
+        });
       }
     };
 
@@ -1225,7 +1229,11 @@ const MyAccount = () => {
         setEmailNotificationState(newEmailNotificationState);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
-        toast.error("Failed to load notifications");
+        showToast({
+          title: "Failed to load notifications",
+          description: "Failed to load notifications.",
+          type: "error",
+        });
       }
     };
 
@@ -1281,7 +1289,11 @@ const MyAccount = () => {
 
       const res = await authAPI.updateMyProfile(payload);
 
-      toast.success("Profile updated successfully");
+      showToast({
+        title: "Profile updated successfully",
+        description: "Your profile has been updated.",
+        type: "success",
+      });
 
       if (res.data?.user) {
         updateUserData(res.data.user);
@@ -1298,7 +1310,11 @@ const MyAccount = () => {
     } catch (error) {
       console.error(error);
 
-      toast.error(error.response?.data?.message || "Update failed");
+      showToast({
+        title: "Failed to update profile",
+        description: error.response?.data?.message || "Update failed",
+        type: "error",
+      });
     } finally {
       setIsUploading(false);
     }
@@ -1346,9 +1362,11 @@ const MyAccount = () => {
         setTempEmail(email);
         setTempUsername(username);
 
-        toast.success(
-          "Password verified. You can now edit login details."
-        );
+        showToast({
+  title: "Password verified",
+  description: "You can now edit login details.",
+  type: "success",
+});
       }
     } catch (error) {
       setPasswordError(
@@ -1362,12 +1380,20 @@ const MyAccount = () => {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      showToast({
+        title: "Failed to change password",
+        description: "Passwords do not match",
+        type: "error",
+      });
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      showToast({
+        title: "Failed to change password",
+        description: "Password must be at least 6 characters",
+        type: "error",
+      });
       return;
     }
 
@@ -1378,14 +1404,20 @@ const MyAccount = () => {
         newPassword: newPassword,
       });
 
-      toast.success(
-        response.data.message || "Password changed successfully"
-      );
+      showToast({
+        title: "Password changed successfully",
+        description: response.data.message || "Password changed successfully",
+        type: "success",
+      });
 
       if (response.data.requiresReLogin) {
         setSessionExpiryAlert(true);
 
-        toast.info("Please login again with your new password");
+        showToast({
+          title: "Please login again",
+          description: "Please login again with your new password",
+          type: "info",
+        });
 
         setTimeout(async () => {
           await logout(false);
@@ -1401,16 +1433,21 @@ const MyAccount = () => {
 
       handleCloseAlert();
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to change password"
-      );
+      showToast({
+        title: "Failed to change password",
+        description: error.response?.data?.message || "Failed to change password",
+        type: "error",
+      });
     }
   };
 
   const handleSaveLoginChanges = async () => {
     if (tempEmail === email && tempUsername === username) {
-      toast.info("No changes to save");
+      showToast({
+        title: "No changes to save",
+        description: "No changes to save.",
+        type: "info",
+      });
 
       setIsLoginEditable(false);
       setShowSaveButtons(false);
@@ -1424,7 +1461,11 @@ const MyAccount = () => {
       );
 
       if (!password) {
-        toast.info("Password is required to save changes");
+        showToast({
+          title: "Password is required",
+          description: "Password is required to save changes",
+          type: "info",
+        });
         return;
       }
 
@@ -1435,10 +1476,12 @@ const MyAccount = () => {
         currentPassword: password,
       });
 
-      toast.success(
-        response.data.message ||
-          "Login details updated successfully"
-      );
+     showToast({
+  title: "Login details updated",
+  description:
+    response.data.message || "Login details updated successfully.",
+  type: "success",
+});
 
       setEmail(tempEmail);
       setUsername(tempUsername);
@@ -1454,13 +1497,18 @@ const MyAccount = () => {
       }
 
       if (response.data.warning) {
-        toast.warning(response.data.warning);
-      }
+  showToast({
+    title: "Warning",
+    description: response.data.warning,
+    type: "warning",
+  });
+}
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to update login details"
-      );
+      showToast({
+        title: "Failed to update login details",
+        description: error.response?.data?.message || "Failed to update login details",
+        type: "error",
+      });
     }
   };
 
@@ -1500,11 +1548,19 @@ const MyAccount = () => {
         }
       );
 
-      toast.success(`${name} inbox updated`);
+      showToast({
+        title: "Notification updated",
+        description: `${name} inbox updated`,
+        type: "success",
+      });
     } catch (error) {
       console.error("Failed to update notification:", error);
 
-      toast.error("Failed to update notification");
+      showToast({
+        title: "Failed to update notification",
+        description: "Failed to update notification",
+        type: "error",
+      });
 
       setNotificationState((prev) => ({
         ...prev,
@@ -1534,14 +1590,22 @@ const MyAccount = () => {
         }
       );
 
-      toast.success(`${name} email updated`);
+      showToast({
+        title: "Email notification updated",
+        description: `${name} email updated`,
+        type: "success",
+      });
     } catch (error) {
       console.error(
         "Failed to update email notification:",
         error
       );
 
-      toast.error("Failed to update email notification");
+      showToast({
+        title: "Failed to update email notification",
+        description: "Failed to update email notification",
+        type: "error",
+      });
 
       setEmailNotificationState((prev) => ({
         ...prev,
@@ -1650,14 +1714,22 @@ const MyAccount = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        toast.error("Login token missing");
+        showToast({
+          title: "Login token missing",
+          description: "Please login again to connect Gmail.",
+          type: "error",
+        });
         return;
       }
 
       window.location.href = `${USER_URL}/api/googleauth/google?token=${token}`;
     } catch (error) {
       console.error(error);
-      toast.error("Failed to connect Gmail");
+      showToast({
+        title: "Failed to connect Gmail",
+        description: "Failed to connect Gmail",
+        type: "error",
+      });
     }
   };
 

@@ -366,7 +366,7 @@
 // export default MoveAutomationDrawer;
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { jobAPI, templateAPI, proposalAPI, organizerAPI, folderManagementAPI } from "../../services/api";
 import { X, AlertCircle } from "lucide-react";
@@ -387,7 +387,7 @@ const MoveAutomationDrawer = ({
 }) => {
   console.log("automation for move", username);
   const queryClient = useQueryClient();
-
+const {showToast}=useToastContext()
   const [selectedAutomations, setSelectedAutomations] = useState([]);
   const [templateData, setTemplateData] = useState({});
   const [tagData, setTagData] = useState({});
@@ -518,13 +518,24 @@ const MoveAutomationDrawer = ({
     mutationFn: (payload) => jobAPI.runStageAutomation(payload),
 
     onSuccess: (res) => {
-      toast.success(res?.data?.message || "Automation executed");
+          showToast({
+      title: "Automation executed",
+      description: res?.data?.message,
+      type: "success",
+    });
+
       queryClient.invalidateQueries(["pipeline-jobs"]);
       onClose();
     },
 
     onError: (err) => {
-      toast.error(err?.response?.data?.message || "Automation failed");
+showToast({
+      title: "Automation failed",
+      description:
+        err?.response?.data?.message ||
+        "An error occurred while running the automation.",
+      type: "error",
+    });
     },
   });
 

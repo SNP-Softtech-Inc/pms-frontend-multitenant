@@ -330,7 +330,7 @@
 
 import React, { useState, useEffect } from "react";
 
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../../context/ToastContext";
 import { useAuth } from "../../../../context/AuthContext";
 import { accountDocsAPI, invoiceAPI } from "../../../../services/api";
 import { Button } from "../../../../components/ui/button";
@@ -357,7 +357,7 @@ const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
-
+const {showToast} = useToastContext();
   // Invoice states
   const [invoiceConfirmOpen, setInvoiceConfirmOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
@@ -398,11 +398,17 @@ const [uploading, setUploading] = useState(false);
 
     const validFiles = selectedFiles.filter((file) => {
       if (file.size > maxSize) {
-        toast.error(`${file.name} exceeds 50MB`);
+        showToast({
+          title: `${file.name} exceeds 50MB`,
+          type: "error",
+        });
         return false;
       }
       if (file.type.startsWith("video/") || file.type.startsWith("audio/")) {
-        toast.error(`${file.name} is not allowed`);
+        showToast({
+          title: `${file.name} is not allowed`,
+          type: "error",
+        });
         return false;
       }
       return true;
@@ -454,7 +460,10 @@ const [uploading, setUploading] = useState(false);
 
       await accountDocsAPI.uploadFile(formData, selectedFolder);
 
-      toast.success("Files uploaded successfully");
+      showToast({
+        title: "Files uploaded successfully",
+        type: "success",
+      });
 
       setInvoiceDialogOpen(false);
       setSelectedInvoices([]);
@@ -462,7 +471,10 @@ const [uploading, setUploading] = useState(false);
       fetchFolderTree();
     } catch (err) {
       console.error(err);
-      toast.error("Upload failed");
+      showToast({
+        title: "Upload failed",
+        type: "error",
+      });
     }finally {
     setUploading(false);
   }

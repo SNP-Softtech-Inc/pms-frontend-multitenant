@@ -107,20 +107,20 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+
 import { FormPage, FormSection, FormField } from "../../../components/ui/form-layout";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { FolderPlus } from "lucide-react";
 import { folderManagementAPI } from "../../../services/api";
-
+import { useToastContext } from "../../../context/ToastContext";
 const TemplateCreator = () => {
   const [templatename, setTemplateName] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+const {showToast} = useToastContext();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -136,7 +136,11 @@ const TemplateCreator = () => {
       const templatePath = data.templatePath;
 
       setMessage(`Success! Folder template created: ${templatePath}`);
-      toast.success("Success! Folder template created");
+      showToast({
+        title: "Success! Folder template created",
+        type: "success",
+        description: "The folder template has been created."
+      });
 
       const encodedPath = encodeURIComponent(templatePath);
       navigate(`/firmtemp/templates/tree/${encodedPath}`, {
@@ -149,7 +153,11 @@ const TemplateCreator = () => {
         err.response?.data?.error || "Failed to create folder template";
       
       setError(errorMsg);
-      toast.error(errorMsg);
+      showToast({
+        title: "Failed to create folder template",
+        type: "error",
+        description: errorMsg
+      });
     } finally {
       setLoading(false);
     }

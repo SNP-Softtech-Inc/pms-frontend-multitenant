@@ -2198,12 +2198,13 @@ import {
 import { Alert, AlertDescription } from "../../../components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import { FolderTreeView } from "./FolderTreeView";
 import { folderManagementAPI, docAPI } from "../../../services/api";
 
 const DocsFolderTree = () => {
   const { accountId } = useParams();
+  const {showToast} = useToastContext();
   console.log("account id for the documentation", accountId);
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState("");
@@ -2243,12 +2244,18 @@ const DocsFolderTree = () => {
       .applyTemplateToAccount(payload)
       .then((res) => {
         console.log("API response:", res.data);
-        toast.success("Folder Template Assign Successfully");
+        showToast({
+          title: "Folder Template Assign Successfully",
+          type: "success",
+        });
         setSelectedTemplate("");
       })
       .catch((error) => {
         console.error("Error applying template:", error);
-        toast.error("Failed to Assign Folder Template");
+        showToast({
+          title: "Failed to Assign Folder Template",
+          type: "error",
+        });
         alert("Failed to Assign Folder Template");
       });
   };

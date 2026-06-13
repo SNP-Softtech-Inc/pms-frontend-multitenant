@@ -462,7 +462,7 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import { useParams } from "react-router-dom";
 import { invoiceAPI } from "../../../services/api";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
@@ -482,6 +482,7 @@ import { Card, CardContent } from "../../../components/ui/card";
 
 const InvoiceTable = () => {
   const { accountId } = useParams();
+  const {showToast} = useToastContext();
   const confirm = useConfirm();
   const [accountInvoicesData, setAccountInvoicesData] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -558,7 +559,10 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch invoices");
+      showToast({
+        title: "Failed to fetch invoices",
+        type: "error",
+      });
     }
   };
 
@@ -579,13 +583,19 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
       onConfirm: async () => {
         try {
           await invoiceAPI.deleteInvoice(id);
-          toast.success("Deleted successfully");
+          showToast({
+            title: "Deleted successfully",
+            type: "success",
+          });
 
           setAccountInvoicesData((prev) =>
             prev.filter((inv) => inv._id !== id),
           );
         } catch (err) {
-          toast.error("Delete failed");
+          showToast({
+            title: "Delete failed",
+            type: "error",
+          });
         }
       },
     });
@@ -602,11 +612,17 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
         invoiceLabel: "Copy",
       });
 
-      toast.success("Duplicated");
+      showToast({
+        title: "Duplicated successfully",
+        type: "success",
+      });
       fetchInvoices();
       handleMenuClose();
     } catch {
-      toast.error("Duplicate failed");
+      showToast({
+        title: "Duplicate failed",
+        type: "error",
+      });
     }
   };
 
@@ -673,7 +689,10 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
       handleMenuClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to print invoice");
+      showToast({
+        title: "Failed to print invoice",
+        type: "error",
+      });
     }
   };
 
@@ -756,11 +775,17 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
       // ================= DOWNLOAD =================
       doc.save(`Invoice_${invoice.invoicenumber}.pdf`);
 
-      toast.success("Invoice downloaded successfully");
+      showToast({
+        title: "Invoice downloaded successfully",
+        type: "success",
+      });
       handleMenuClose();
     } catch (error) {
       console.error("Error downloading invoice:", error);
-      toast.error("Failed to download invoice");
+      showToast({
+        title: "Failed to download invoice",
+        type: "error",
+      });
     }
   };
 

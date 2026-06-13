@@ -680,7 +680,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import {
   accountsAPI,
@@ -736,6 +736,7 @@ const AutomationDrawer = ({
   resetForm
 }) => {
   const queryClient = useQueryClient();
+  const {showToast} = useToastContext();
   const [selectedAutomations, setSelectedAutomations] = useState([]);
   const [templateData, setTemplateData] = useState({});
   const [tagData, setTagData] = useState({});
@@ -764,7 +765,10 @@ const AutomationDrawer = ({
         setAccountsWithTags(response.data);
       } catch (error) {
         console.error("Error fetching accounts with tags:", error);
-        toast.error("Failed to fetch account data");
+        showToast({
+          title: "Failed to fetch account data",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -935,7 +939,10 @@ const AutomationDrawer = ({
   const createBulkJobMutation = useMutation({
     mutationFn: (payload) => jobAPI.createBulkJob(payload),
     onSuccess: (response) => {
-      toast.success(response?.data?.message || "Jobs created successfully");
+      showToast({
+        title: response?.data?.message || "Jobs created successfully",
+        type: "success",
+      });
       queryClient.invalidateQueries(["jobs-all"]);
       if (setDrawerOpen) setDrawerOpen(false);
       onClose();
@@ -944,9 +951,10 @@ const AutomationDrawer = ({
     },
     onError: (error) => {
       console.error("Operation failed:", error);
-      toast.error(
-        error.response?.data?.message || error.message || "Something went wrong"
-      );
+      showToast({
+        title: "Failed to create jobs",
+        type: "error",
+      });
     },
   });
 
@@ -997,7 +1005,10 @@ const AutomationDrawer = ({
       createBulkJobMutation.mutate(payload);
     } catch (error) {
       console.error("Operation failed:", error);
-      toast.error(error.response?.data?.message || error.message || "Something went wrong");
+      showToast({
+        title: "Failed to create jobs",
+        type: "error",
+      });
     }
   };
 

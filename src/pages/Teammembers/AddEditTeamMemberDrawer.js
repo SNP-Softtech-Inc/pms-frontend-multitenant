@@ -303,7 +303,7 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { authAPI } from "../../services/api";
-
+import { useToastContext } from "../../context/ToastContext";
 const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
   const isEdit = !!editData;
 
@@ -365,7 +365,7 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
     email: "",
     role: "",
   });
-
+const {showToast}= useToastContext()
   const [permissions, setPermissions] = useState(initialPermissions);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -416,10 +416,19 @@ const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
 
       if (isEdit) {
         await authAPI.updateTeamMember(editData._id, payload);
-        setSuccess("Updated successfully ✅");
+        // setSuccess("Updated successfully ✅");
+        showToast({
+          title: "Team member updated",
+          description: "Team member details updated successfully.",
+          type: "success",
+        });
       } else {
         await authAPI.registerTeamMember(payload);
-        setSuccess("Invitation sent successfully ✅");
+        showToast({
+          title: "Invitation sent",
+          description: "Invitation sent successfully.",
+          type: "success",
+        });
       }
 
       onSuccess(); // 🔥 refresh parent

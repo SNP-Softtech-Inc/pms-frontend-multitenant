@@ -2081,11 +2081,11 @@
 // export default JobTemp;
 
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef,useContext } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext"
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import debounce from "lodash/debounce";
@@ -2162,6 +2162,7 @@ const ACCOUNT_SHORTCUTS = [
 
 const JobTemp = ({ charLimit = 4000 }) => {
   const confirm = useConfirm();
+  const {showToast} = useToastContext();
   const [showForm, setShowForm] = useState(false);
   const [shortcuts] = useState(ACCOUNT_SHORTCUTS);
   const [filteredShortcuts, setFilteredShortcuts] = useState(ACCOUNT_SHORTCUTS);
@@ -2265,7 +2266,11 @@ const JobTemp = ({ charLimit = 4000 }) => {
         }
       }, 0);
     } else {
-      toast.warning(`Description cannot exceed ${charLimit} characters`);
+      showToast({
+        title: "Warning",
+        description: `Description cannot exceed ${charLimit} characters`,
+        type: "warning",
+      });
     }
     setShowDescriptionDropdown(false);
   };
@@ -2308,7 +2313,11 @@ const JobTemp = ({ charLimit = 4000 }) => {
       setClientFacingJobs(response.data.clientFacingJobStatues || []);
     } catch (error) {
       console.error("Error fetching client facing jobs:", error);
-      toast.error("Failed to fetch client facing jobs");
+      showToast({
+        title: "Error",
+        description: "Failed to fetch client facing jobs",
+        type: "error",
+      });
     }
   };
 
@@ -2320,7 +2329,11 @@ const JobTemp = ({ charLimit = 4000 }) => {
       setJobTemplates(response.data.JobTemplates || []);
     } catch (error) {
       console.error("Error fetching job templates:", error);
-      toast.error("Failed to fetch job templates");
+      showToast({
+        title: "Error",
+        description: "Failed to fetch job templates",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -2365,7 +2378,11 @@ const JobTemp = ({ charLimit = 4000 }) => {
       }
     } catch (error) {
       console.error("Error fetching job template:", error);
-      toast.error("Failed to fetch job template details");
+      showToast({
+        title: "Error",
+        description: "Failed to fetch job template details",
+        type: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -2445,10 +2462,18 @@ const JobTemp = ({ charLimit = 4000 }) => {
     try {
       if (editingId) {
         await templateAPI.updateJobTemplate(editingId, formData);
-        toast.success("Job Template updated successfully");
+        showToast({
+          title: "Success",
+          description: "Job Template updated successfully",
+          type: "success",
+        });
       } else {
         await templateAPI.createJobTemplate(formData);
-        toast.success("Job Template created successfully");
+        showToast({
+          title: "Success",
+          description: "Job Template created successfully",
+          type: "success",
+        });
       }
 
       await fetchJobTemplatesData();
@@ -2462,7 +2487,11 @@ const JobTemp = ({ charLimit = 4000 }) => {
       }
     } catch (error) {
       console.error(error);
-      toast.error(`Failed to ${editingId ? "update" : "create"} Job Template`);
+      showToast({
+        title: "Error",
+        description: `Failed to ${editingId ? "update" : "create"} Job Template`,
+        type: "error",
+      });
     }
   };
 
@@ -2481,11 +2510,19 @@ const JobTemp = ({ charLimit = 4000 }) => {
       onConfirm: async () => {
         try {
           await templateAPI.deleteJobTemplate(templateId);
-          toast.success("Job Template deleted successfully");
+          showToast({
+            title: "Success",
+            description: "Job Template deleted successfully",
+            type: "success",
+          });
           fetchJobTemplatesData();
         } catch (error) {
           console.error(error);
-          toast.error("Failed to delete Job Template");
+          showToast({
+            title: "Error",
+            description: "Failed to delete Job Template",
+            type: "error",
+          });
         }
       },
     });

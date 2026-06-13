@@ -915,7 +915,7 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Skeleton } from "../../../components/ui/skeleton";
-
+import { useToastContext } from "../../../context/ToastContext";
 // Custom Components
 import EditorShortcodes from "../../../components/EditorShortcodes";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
@@ -938,6 +938,7 @@ const emailSchema = z.object({
 
 const EmailTemp = () => {
   const confirm = useConfirm();
+  const {showToast} = useToastContext();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -1000,7 +1001,11 @@ const EmailTemp = () => {
       setEmailTemplates(res.data.emailTemplate || []);
     } catch (err) {
       console.error("Error fetching email templates:", err);
-      toast.error("Failed to fetch email templates");
+      showToast({
+        title: "Failed to fetch email templates",
+        type: "error",
+        description: err.message || "An error occurred while fetching email templates"
+      });
     } finally {
       setLoading(false);
     }
@@ -1182,10 +1187,18 @@ const EmailTemp = () => {
     try {
       if (editingId) {
         await templateAPI.updateEmailTemplate(editingId, formData);
-        toast.success("Email Template updated successfully");
+        showToast({
+          title: "Email Template updated successfully",
+          type: "success",
+          description: "The email template has been updated."
+        });
       } else {
         await templateAPI.createEmailTemplate(formData);
-        toast.success("Email Template created successfully");
+        showToast({
+          title: "Email Template created successfully",
+          type: "success",
+          description: "A new email template has been created."
+        });
       }
       await fetchEmailTemplates();
       
@@ -1198,7 +1211,11 @@ const EmailTemp = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Error saving template");
+      showToast({
+        title: "Failed to save email template",
+        type: "error",
+        description: err?.response?.data?.message || "An error occurred while saving the email template"
+      });
     } finally {
       setSaving(false);
     }
@@ -1240,7 +1257,11 @@ const EmailTemp = () => {
       });
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load template");
+      showToast({
+        title: "Failed to load template",
+        type: "error",
+        description: err.message || "An error occurred while loading the template"
+      });
     }
   };
 
@@ -1248,11 +1269,19 @@ const EmailTemp = () => {
   const handleDelete = async (id) => {
     try {
       await templateAPI.deleteEmailTemplate(id);
-      toast.success("Template deleted successfully");
+      showToast({
+        title: "Template deleted successfully",
+        type: "success",
+        description: "The template has been deleted."
+      });
       await fetchEmailTemplates();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete template");
+      showToast({
+        title: "Failed to delete template",
+        type: "error",
+        description: err.message || "An error occurred while deleting the template"
+      });
     }
   };
 

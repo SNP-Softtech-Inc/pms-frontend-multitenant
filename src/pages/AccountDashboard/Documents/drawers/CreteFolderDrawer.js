@@ -218,7 +218,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, Folder, FolderOpen, ChevronDown, ChevronRight, FolderPlus } from "lucide-react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../../context/ToastContext";
 import { accountDocsAPI } from "../../../../services/api";
 import { Button } from "../../../../components/ui/button"; // Adjust path as needed
 
@@ -233,7 +233,7 @@ const CreateFolderDrawer = ({
   const [folderName, setFolderName] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
-
+const {showToast} = useToastContext();
   const handleFolderSelect = (path) => setSelectedFolder(path);
 
   useEffect(() => {
@@ -264,7 +264,10 @@ const CreateFolderDrawer = ({
       const createdName = res?.data?.metaData?.name;
 
       setMessage(`✅ Folder created: ${createdName}`);
-      toast.success(`Folder created: ${createdName}`);
+      showToast({
+        title: `Folder created: ${createdName}`,
+        type: "success",
+      });
 
       setFolderName("");
 
@@ -278,7 +281,10 @@ const CreateFolderDrawer = ({
       const errorMsg =
         err?.response?.data?.error || "Server Error while creating folder";
 
-      toast.error(errorMsg);
+      showToast({
+        title: errorMsg,
+        type: "error",
+      });
 
       setMessage(`❌ Error: ${errorMsg}`);
     }

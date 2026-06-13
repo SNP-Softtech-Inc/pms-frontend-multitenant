@@ -1851,7 +1851,7 @@ import React, {
   useMemo,
 } from "react";
 import Section from "./organizertempSection";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../../context/ToastContext";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -1942,7 +1942,7 @@ const SectionItem = ({
 const OrganizersTemp = () => {
   const confirm = useConfirm();
   const navigate = useNavigate();
-
+const {showToast} = useToastContext()
   const moveSection = (fromIndex, toIndex) => {
     const newSections = [...sections];
     const [movedSection] = newSections.splice(fromIndex, 1);
@@ -2267,7 +2267,11 @@ const OrganizersTemp = () => {
       setShowOrganizerTemplateForm(true);
     } catch (error) {
       console.error("Error fetching template:", error);
-      toast.error(error.response?.data?.error || "Failed to load template data");
+     showToast({
+  title: "Error",
+  description: error.response?.data?.error || "Failed to load template data",
+  type: "error",
+});
     } finally {
       setLoadingTemplate(false);
     }
@@ -2319,7 +2323,11 @@ const OrganizersTemp = () => {
           requestData
         );
         if (result && result.status === 200) {
-          toast.success("Organizer Template updated successfully");
+          showToast({
+            title: "Success",
+            description: "Organizer Template updated successfully",
+            type: "success",
+          });
           handleMenuClose();
           setShowOrganizerTemplateForm(false);
           resetForm();
@@ -2327,12 +2335,20 @@ const OrganizersTemp = () => {
         } else {
           const errorMessage =
             result?.data?.error || "Failed to update Organizer Template";
-          toast.error(errorMessage);
+          showToast({
+            title: "Error",
+            description: errorMessage,
+            type: "error",
+          });
         }
       } else {
         result = await organizerAPI.createOrganizerTemplate(requestData);
         if (result && result.status === 201) {
-          toast.success("Organizer Template created successfully");
+          showToast({
+            title: "Success",
+            description: "Organizer Template created successfully",
+            type: "success",
+          });
           handleMenuClose();
           setShowOrganizerTemplateForm(false);
           resetForm();
@@ -2340,7 +2356,11 @@ const OrganizersTemp = () => {
         } else {
           const errorMessage =
             result?.data?.error || "Failed to create Organizer Template";
-          toast.error(errorMessage);
+          showToast({
+            title: "Error",
+            description: errorMessage,
+            type: "error",
+          });
         }
       }
     } catch (error) {
@@ -2349,7 +2369,11 @@ const OrganizersTemp = () => {
         error.response?.data?.error ||
         error.message ||
         `${mode === "edit" ? "Failed to update" : "Failed to create"} Organizer Template`;
-      toast.error(errorMessage);
+      showToast({
+        title: "Error",
+        description: errorMessage,
+        type: "error",
+      });
     }
   };
 
@@ -2399,28 +2423,44 @@ const OrganizersTemp = () => {
           requestData
         );
         if (result && result.status === 200) {
-          toast.success("Organizer Template updated successfully");
+          showToast({
+            title: "Success",
+            description: "Organizer Template updated successfully",
+            type: "success",
+          });
           fetchOrganizerTemplates();
         } else {
-          toast.error(
-            result?.data?.error || "Failed to update Organizer Template"
-          );
+          showToast({
+            title: "Error",
+            description: result?.data?.error || "Failed to update Organizer Template",
+            type: "error",
+          });
         }
       } else {
         result = await organizerAPI.createOrganizerTemplate(requestData);
         if (result && result.message === "Organizer Template created successfully") {
-          toast.success("Organizer Template created successfully");
+          showToast({
+            title: "Success",
+            description: "Organizer Template created successfully",
+            type: "success",
+          });
           fetchOrganizerTemplates();
         } else {
-          toast.error(result.error || "Failed to create Organizer Template");
+          showToast({
+            title: "Error",
+            description: result.error || "Failed to create Organizer Template",
+            type: "error",
+          });
         }
       }
     } catch (error) {
       console.error(error);
-      toast.error(
-        error.response?.data?.error ||
-          `${mode === "edit" ? "Failed to update" : "Failed to create"} Organizer Template`
-      );
+      showToast({
+        title: "Error",
+        description: error.response?.data?.error || `${mode === "edit" ? "Failed to update" : "Failed to create"} Organizer Template`,
+        type: "error",
+      });
+      
     }
   };
 
@@ -2435,7 +2475,11 @@ const OrganizersTemp = () => {
       setOrganizerTemplatesData(response?.data?.OrganizerTemplates || []);
     } catch (error) {
       console.error("Error fetching email templates:", error);
-      toast.error("Failed to fetch organizer templates");
+      showToast({
+        title: "Error",
+        description: "Failed to fetch organizer templates",
+        type: "error",
+      });
       setOrganizerTemplatesData([]);
     } finally {
       await loaderDelay;
@@ -2457,12 +2501,20 @@ const OrganizersTemp = () => {
       onConfirm: async () => {
         try {
           const result = await organizerAPI.deleteOrganizerTemplate(_id);
-          toast.success("Item deleted successfully");
+          showToast({
+            title: "Success",
+            description: "Item deleted successfully",
+            type: "success",
+          });
           handleMenuClose();
           fetchOrganizerTemplates();
         } catch (error) {
           console.error(error);
-          toast.error(error.response?.data?.error || "Failed to delete item");
+          showToast({
+            title: "Error",
+            description: error.response?.data?.error || "Failed to delete item",
+            type: "error",
+          });
         }
       },
     });
@@ -2526,9 +2578,19 @@ const OrganizersTemp = () => {
   const handleDuplicateTemplate = async (id) => {
     try {
       const res = await organizerAPI.duplicateOrganizerTemplate(id);
+      showToast({
+        title: "Success",
+        description: "Template duplicated successfully",
+        type: "success",
+      });
       fetchOrganizerTemplates();
     } catch (error) {
       console.error("Duplicate failed:", error);
+      showToast({
+        title: "Error",
+        description: "Failed to duplicate template",
+        type: "error",
+      });
     }
   };
 

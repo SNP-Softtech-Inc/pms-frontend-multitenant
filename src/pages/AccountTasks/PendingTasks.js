@@ -402,7 +402,7 @@ import {
 
 import { accountTasksAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext"; // ✅ adjust path
 
 // ✅ shadcn/ui imports
 import { Card, CardContent } from "../../components/ui/card";
@@ -467,7 +467,7 @@ const isLightColor = (hex) => {
 const PendingTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-
+const { showToast } = useToastContext(); // ✅ get showToast from context
   // ✅ Edit Dialog States
   const [editOpen, setEditOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -486,7 +486,10 @@ const [checkedSubtasks, setCheckedSubtasks] = useState([]);
       console.log("gets account tsaks",res.data.list)
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch tasks");
+      showToast({
+        title: "Failed to fetch tasks",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -536,7 +539,10 @@ console.log("selcted task to edit",taskData)
     setEditOpen(true);
   } catch (err) {
     console.error(err);
-    toast.error("Failed to fetch task");
+    showToast({
+      title: "Failed to fetch task",
+      type: "error",
+    });
   } finally {
     setUpdateLoading(false);
   }
@@ -616,13 +622,19 @@ const handleUpdateTask = async () => {
       )
     );
 
-    toast.success("Task updated successfully");
+    showToast({
+      title: "Task updated successfully",
+      type: "success",
+    });
 
     setEditOpen(false);
     fetchPendingTasks();
   } catch (err) {
     console.error(err);
-    toast.error("Failed to update task");
+    showToast({
+      title: "Failed to update task",
+      type: "error",
+    });
   } finally {
     setUpdateLoading(false);
   }
@@ -640,10 +652,16 @@ const handleUpdateTask = async () => {
             prev.filter((task) => task.id !== taskId)
           );
 
-          toast.success("Task deleted successfully");
+          showToast({
+            title: "Task deleted successfully",
+            type: "success",
+          });
         } catch (err) {
           console.error(err);
-          toast.error("Failed to delete task");
+          showToast({
+            title: "Failed to delete task",
+            type: "error",
+          });
         }
       },
     });

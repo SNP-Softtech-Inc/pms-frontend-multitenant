@@ -790,7 +790,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronRight, ChevronLeft, Check, AlertCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../../components/ui/button';
-import { toast } from 'react-toastify';
+import {useToastContext} from "../../../context/ToastContext"
 import { proposalAPI, authAPI } from "../../../services/api";
 
 // Import your step components (make sure they're also converted to shadcn/ui)
@@ -801,6 +801,7 @@ import ServicesInvoicesStep from './Steps/ServicesInvoicesStep';
 import PaymentStep from './Steps/PaymentStep';
 
 const ProposalForm = () => {
+  const {showToast} = useToastContext();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -1272,10 +1273,16 @@ const ProposalForm = () => {
 
       if (proposalId) {
         await proposalAPI.updateProposal(proposalId, submissionData);
-        toast.success("Proposal updated successfully!");
+        showToast({
+          title: "Proposal updated successfully",
+          type: "success",
+        });
       } else {
         await proposalAPI.createProposal(submissionData);
-        toast.success("Proposal submitted successfully!");
+        showToast({
+          title: "Proposal submitted successfully",
+          type: "success",
+        });
       }
         // ✅ IMPORTANT FIX
     setCurrentStep(0);   // reset step
@@ -1285,7 +1292,10 @@ const ProposalForm = () => {
     } catch (error) {
       console.error("Error:", error);
       setError("Error submitting proposal: " + (error.message || "Something went wrong"));
-      toast.error("Something went wrong!");
+      showToast({
+        title: "Failed to submit proposal",
+        type: "error",
+      });
     }
   };
 

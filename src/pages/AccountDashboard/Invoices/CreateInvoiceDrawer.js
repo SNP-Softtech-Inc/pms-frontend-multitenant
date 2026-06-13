@@ -1100,7 +1100,7 @@
 // export default CreateInvoiceDrawer;
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../../context/ToastContext";
 import { X } from "lucide-react";
 import dayjs from "dayjs";
 import { useAuth } from "../../../context/AuthContext";
@@ -1152,7 +1152,7 @@ const CreateInvoiceDrawer = ({
   editInvoiceId,
 }) => {
   const isEditMode = Boolean(editInvoiceId);
-
+const {showToast} = useToastContext();
   useEffect(() => {
     if (open && editInvoiceId) {
       fetchInvoiceById(editInvoiceId);
@@ -1289,7 +1289,10 @@ const CreateInvoiceDrawer = ({
         });
       } catch (error) {
         console.error("Error fetching account details:", error);
-        toast.error("Failed to fetch account details");
+        showToast({
+          title: "Failed to fetch account details",
+          type: "error",
+        });
 
         // Optionally reset client info on error
         setClientInfo({
@@ -1372,7 +1375,10 @@ const CreateInvoiceDrawer = ({
       }
     } catch (error) {
       console.error("Error fetching invoice:", error);
-      toast.error("Failed to load invoice");
+      showToast({
+        title: "Failed to load invoice",
+        type: "error",
+      });
     }
   };
   // Preview handler
@@ -1435,7 +1441,10 @@ const CreateInvoiceDrawer = ({
       setServiceData(response.data.serviceTemplate || []);
     } catch (error) {
       console.error("Error fetching service data:", error);
-      toast.error("Failed to fetch services");
+      showToast({
+        title: "Failed to fetch services",
+        type: "error",
+      });
     } finally {
       setLoadingServices(false);
     }
@@ -1448,7 +1457,10 @@ const CreateInvoiceDrawer = ({
       setCategoryData(response.data.category || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      toast.error("Failed to fetch categories");
+      showToast({
+        title: "Failed to fetch categories",
+        type: "error",
+      });
     } finally {
       setLoadingCategories(false);
     }
@@ -1457,22 +1469,29 @@ const CreateInvoiceDrawer = ({
   const createCategory = useCallback(
     async (categoryName) => {
       if (!categoryName?.trim()) {
-        toast.error("Category name is required");
+        showToast({
+          title: "Category name is required",
+          type: "error",
+        });
         return false;
       }
       try {
         const response = await templateAPI.createCategory({ categoryName });
         if (response.data.message === "Category created successfully") {
-          toast.success("Category created successfully");
+          showToast({
+            title: "Category created successfully",
+            type: "success",
+          });
           await fetchCategories();
           return true;
         }
         return false;
       } catch (error) {
         console.error("Error creating category:", error);
-        toast.error(
-          error.response?.data?.message || "Failed to create category",
-        );
+        showToast({
+          title: error.response?.data?.message || "Failed to create category",
+          type: "error",
+        });
         return false;
       }
     },
@@ -1505,7 +1524,10 @@ const CreateInvoiceDrawer = ({
         });
       } catch (error) {
         console.error("Error fetching service by ID:", error);
-        toast.error("Failed to fetch service details");
+        showToast({
+          title: "Failed to fetch service details",
+          type: "error",
+        });
       }
     },
     [],
@@ -1516,16 +1538,20 @@ const CreateInvoiceDrawer = ({
       try {
         const response = await templateAPI.createServiceTemplate(data);
         if (response.data.message === "ServiceTemplate created successfully") {
-          toast.success("Service created successfully");
+          showToast({
+            title: "Service created successfully",
+            type: "success",
+          });
           await fetchServiceData();
           return true;
         }
         return false;
       } catch (error) {
         console.error("Error creating service:", error);
-        toast.error(
-          error.response?.data?.message || "Failed to create service",
-        );
+        showToast({
+          title: error.response?.data?.message || "Failed to create service",
+          type: "error",
+        });
         return false;
       }
     },
@@ -1742,7 +1768,10 @@ const CreateInvoiceDrawer = ({
       }
     } catch (error) {
       console.error("Error fetching invoice template:", error);
-      toast.error("Failed to load template data");
+      showToast({
+        title: "Failed to load template data",
+        type: "error",
+      });
     }
   }, []);
   const resetTemplateData = () => {
@@ -1767,7 +1796,10 @@ const CreateInvoiceDrawer = ({
     } catch (error) {
       console.error("Error fetching next invoice number:", error);
       setinvoicenumber("Auto-generated");
-      toast.error("Failed to load invoice number");
+      showToast({
+        title: "Failed to load invoice number",
+        type: "error",
+      });
     } finally {
       setIsLoadingInvoiceNumber(false);
     }
@@ -1868,11 +1900,12 @@ const CreateInvoiceDrawer = ({
         res?.data?.message === "Invoice created successfully" ||
         res?.data?.message === "Invoice Updated successfully"
       ) {
-        toast.success(
-          isEditMode
+        showToast({
+          title: isEditMode
             ? "Invoice Updated successfully"
             : "Invoice created successfully",
-        );
+          type: "success",
+        });
 
         resetForm(); // Clear form
 
@@ -1880,11 +1913,17 @@ const CreateInvoiceDrawer = ({
 
         if (fetchInvoices) fetchInvoices();
       } else {
-        toast.error(res?.data?.message || "Failed to create invoice");
+        showToast({
+          title: res?.data?.message || "Failed to create invoice",
+          type: "error",
+        });
       }
     } catch (error) {
       console.error("Create invoice error:", error);
-      toast.error(error.response?.data?.message || "Something went wrong");
+      showToast({
+        title: error.response?.data?.message || "Something went wrong",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }

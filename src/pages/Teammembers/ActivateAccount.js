@@ -417,12 +417,13 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { useToastContext } from '../../context/ToastContext';
 import { authAPI } from '../../services/api';
 
 const ActivateAccount = () => {
   const { id, token } = useParams();
   const navigate = useNavigate();
+  const {showToast}=useToastContext()
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(true);
   const [error, setError] = useState('');
@@ -473,68 +474,151 @@ const ActivateAccount = () => {
       if (response.data.success) {
         setTeamMemberData(response.data.data);
         setActiveStep(1);
-        toast.success('Link verified successfully! Please set your password.');
+        showToast({
+          title: "Link Verified",
+          description: "Link verified successfully! Please set your password.",
+          type: "success",
+        });
       }
     } catch (error) {
       console.error('Validation error:', error);
       const errorMessage = error.response?.data?.message || 'Invalid or expired activation link';
       setError(errorMessage);
       setActiveStep(-1);
-      toast.error(errorMessage);
+      showToast({
+        title: "Error",
+        description: errorMessage,
+        type: "error",
+      });
     } finally {
       setValidating(false);
     }
   };
 
-  const handleActivate = async (e) => {
-    e.preventDefault();
+  // const handleActivate = async (e) => {
+  //   e.preventDefault();
 
-    // Validate password
-    const isValid = Object.values(passwordValidation).every(v => v === true);
-    if (!isValid) {
-      toast.error('Please meet all password requirements');
-      return;
+  //   // Validate password
+  //   const isValid = Object.values(passwordValidation).every(v => v === true);
+  //   if (!isValid) {
+  //     showToast.error('Please meet all password requirements');
+  //     return;
+  //   }
+
+  //   if (password !== confirmPassword) {
+  //     toast.error('Passwords do not match');
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   setError('');
+
+  //   try {
+  //     const response = await authAPI.activateTeamMember(id, token, password, confirmPassword);
+
+  //     if (response.data.success) {
+  //       setActiveStep(2);
+  //       toast.success('Account activated successfully!');
+  //       navigate('/login');
+  //     }
+  //   } catch (error) {
+  //     console.error('Activation error:', error);
+  //     const errorMessage = error.response?.data?.message || 'Activation failed';
+  //     setError(errorMessage);
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const handleActivate = async (e) => {
+  e.preventDefault();
+
+  const isValid = Object.values(passwordValidation).every(
+    (v) => v === true
+  );
+
+  if (!isValid) {
+    showToast({
+      title: "Password requirements not met",
+      description: "Please meet all password requirements.",
+      type: "error",
+    });
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    showToast({
+      title: "Passwords do not match",
+      description: "Please ensure both passwords are identical.",
+      type: "error",
+    });
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+    const response = await authAPI.activateTeamMember(
+      id,
+      token,
+      password,
+      confirmPassword
+    );
+
+    if (response.data.success) {
+      setActiveStep(2);
+
+      showToast({
+        title: "Account activated successfully!",
+        description: "You can now sign in with your account.",
+        type: "success",
+      });
+
+      navigate("/login");
     }
+  } catch (error) {
+    console.error("Activation error:", error);
 
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
+    const errorMessage =
+      error.response?.data?.message || "Activation failed";
 
-    setLoading(true);
-    setError('');
+    setError(errorMessage);
 
-    try {
-      const response = await authAPI.activateTeamMember(id, token, password, confirmPassword);
-
-      if (response.data.success) {
-        setActiveStep(2);
-        toast.success('Account activated successfully!');
-        navigate('/login');
-      }
-    } catch (error) {
-      console.error('Activation error:', error);
-      const errorMessage = error.response?.data?.message || 'Activation failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    showToast({
+      title: "Activation failed",
+      description: errorMessage,
+      type: "error",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   const handleResendActivation = async () => {
     if (!teamMemberData?.teamMemberId) {
-      toast.error('Team member ID not found');
+      showToast({
+        title: "Team member ID not found",
+        description: "Unable to resend activation email.",
+        type: "error",
+      });
       return;
     }
 
     setLoading(true);
     try {
       await authAPI.resendActivation(teamMemberData.teamMemberId);
-      toast.success('New activation email sent! Please check your inbox.');
+      showToast({
+        title: "Email sent!",
+        description: "New activation email sent! Please check your inbox.",
+        type: "success",
+      });
     } catch (error) {
       console.error('Resend error:', error);
-      toast.error(error.response?.data?.message || 'Failed to resend activation email');
+      showToast({
+        title: "Failed to resend email",
+        description: error.response?.data?.message || 'Failed to resend activation email',
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

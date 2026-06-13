@@ -412,7 +412,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { toast } from "react-toastify";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import debounce from "lodash.debounce";
 import axios from "axios";
@@ -429,23 +428,40 @@ import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import Editor from '../../../components/EditorShortcodes'; // Your existing Editor component
 import { templateAPI, authAPI } from "../../../services/api";
 import ShortcodeTextField from '../../../components/ShortcodeTextField';
-
+import {useToastContext} from "../../../context/ToastContext";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 
 
+// const chatSchema = z.object({
+//   templateName: z.string().min(1, "Template name is required"),
+//   selecteduser: z.any().refine((v) => v && v.value, { message: "Please select a sender" }),
+//   inputText: z.string().min(1, "Chat subject is required"),
+//   description: z.string().optional(),
+//   sendReminders: z.boolean().optional(),
+//   daysuntilNextReminder: z.string().optional(),
+//   noOfReminder: z.string().optional(),
+//   SubtaskSwitch: z.boolean().optional(),
+// });
+
 const chatSchema = z.object({
   templateName: z.string().min(1, "Template name is required"),
-  selecteduser: z.any().refine((v) => v && v.value, { message: "Please select a sender" }),
+  selecteduser: z.any().refine(
+    (v) => v && v.value,
+    { message: "Please select a sender" }
+  ),
   inputText: z.string().min(1, "Chat subject is required"),
   description: z.string().optional(),
   sendReminders: z.boolean().optional(),
-  daysuntilNextReminder: z.string().optional(),
-  noOfReminder: z.string().optional(),
+
+  // Fixed
+  daysuntilNextReminder: z.coerce.number().optional(),
+  noOfReminder: z.coerce.number().optional(),
+
   SubtaskSwitch: z.boolean().optional(),
 });
-
 const ChatTemp = () => {
   const confirm = useConfirm();
+  const { showToast } = useToastContext();
   const [chatTemplates, setChatTemplates] = useState([]);
   const [userData, setUserData] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -507,7 +523,11 @@ const ChatTemp = () => {
       setChatTemplates(data.data.chatTemplate || []);
     } catch (error) {
       console.error('Error fetching Chat templates:', error);
-      toast.error("Failed to fetch templates");
+      showToast({
+        title: "Failed to fetch templates",
+        type: "error",
+        description: "An error occurred while fetching chat templates",
+      });
     } finally {
       await loaderDelay;
       setLoading(false);
@@ -629,23 +649,74 @@ const ChatTemp = () => {
     setCheckedSubtasks([]);
   };
 
-  const handleEdit = (template) => {
-    setIsEditMode(true);
-    setSelectedTemplate(template);
-    form.setValue("templateName", template.templatename);
-    form.setValue("selecteduser", { value: template.from, label: userData.find(u => u._id === template.from)?.username || "" });
-    form.setValue("inputText", template.chatsubject);
-    form.setValue("description", template.description || "");
-    form.setValue("sendReminders", template.sendreminderstoclient || false);
-    form.setValue("daysuntilNextReminder", template.daysuntilnextreminder || "3");
-    form.setValue("noOfReminder", String(template.numberofreminders || "1"));
-    form.setValue("SubtaskSwitch", template.isclienttaskchecked || false);
-    setDescription(template.description || "");
-    setSubtasks(template.clienttasks || []);
-    setCheckedSubtasks((template.clienttasks || []).filter((t) => t.checked).map((t) => t.id));
-    setShowForm(true);
-  };
+//   const handleEdit = (template) => {
+//     setIsEditMode(true);
+//     setSelectedTemplate(template);
+//     form.setValue("templateName", template.templatename);
+//     form.setValue("selecteduser", { value: template.from, label: userData.find(u => u._id === template.from)?.username || "" });
+//     form.setValue("inputText", template.chatsubject);
+//     form.setValue("description", template.description || "");
+//     form.setValue("sendReminders", template.sendreminderstoclient || false);
+//    form.setValue(
+//   "daysuntilNextReminder",
+//   String(template.daysuntilnextreminder || 3)
+// );
 
+// form.setValue(
+//   "noOfReminder",
+//   String(template.numberofreminders || 1)
+// );
+//     form.setValue("SubtaskSwitch", template.isclienttaskchecked || false);
+//     setDescription(template.description || "");
+//     setSubtasks(template.clienttasks || []);
+//     setCheckedSubtasks((template.clienttasks || []).filter((t) => t.checked).map((t) => t.id));
+//     setShowForm(true);
+//   };
+const handleEdit = (template) => {
+  setIsEditMode(true);
+  setSelectedTemplate(template);
+
+  form.reset({
+    templateName: template.templatename || "",
+    selecteduser: {
+      value:
+        typeof template.from === "object"
+          ? template.from._id
+          : template.from,
+      label:
+        userData.find(
+          (u) =>
+            u._id ===
+            (typeof template.from === "object"
+              ? template.from._id
+              : template.from)
+        )?.username || "",
+    },
+    inputText: template.chatsubject || "",
+    description: template.description || "",
+    sendReminders: template.sendreminderstoclient || false,
+
+    // Fixed
+    daysuntilNextReminder:
+      template.daysuntilnextreminder ?? 3,
+
+    noOfReminder:
+      template.numberofreminders ?? 1,
+
+    SubtaskSwitch:
+      template.isclienttaskchecked || false,
+  });
+
+  setDescription(template.description || "");
+  setSubtasks(template.clienttasks || []);
+  setCheckedSubtasks(
+    (template.clienttasks || [])
+      .filter((t) => t.checked)
+      .map((t) => t.id)
+  );
+
+  setShowForm(true);
+};
   const handleCloseChatTemp = () => {
     if (form.formState.isDirty) {
       const confirmClose = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
@@ -667,11 +738,19 @@ const handleDelete = (id) => {
     onConfirm: async () => {
       try {
         await templateAPI.deleteChatTemplate(id);
-        toast.success("Template deleted successfully");
+        showToast({
+          title: "Template deleted successfully",
+          description: "The chat template has been deleted.",
+          type: "success",
+        });
         fetchChatTemplates();
       } catch (error) {
         console.error(error);
-        toast.error("Failed to delete template");
+        showToast({
+          title: "Failed to delete template",
+          type: "error",
+          description: error.message || "An error occurred while deleting the template"
+        });
       }
     },
   });
@@ -714,32 +793,57 @@ const handleDelete = (id) => {
   }, [form.watch, selectedTemplate]);
 
   const submitChat = async (values, exitAfterSave) => {
+     console.log("SUBMIT CALLED", values);
+
     const subtaskData = subtasks.map(({ id, text }) => ({
       id,
       text,
       checked: checkedSubtasks.includes(id),
     }));
 
-    const payload = {
-      templatename: values.templateName,
-      from: values.selecteduser.value,
-      chatsubject: values.inputText,
-      description: description,
-      sendreminderstoclient: values.sendReminders,
-      daysuntilnextreminder: values.daysuntilNextReminder,
-      numberofreminders: parseInt(values.noOfReminder, 10),
-      clienttasks: subtaskData,
-      isclienttaskchecked: values.SubtaskSwitch,
-      active: true,
-    };
+    // const payload = {
+    //   templatename: values.templateName,
+    //   from: values.selecteduser.value,
+    //   chatsubject: values.inputText,
+    //   description: description,
+    //   sendreminderstoclient: values.sendReminders,
+    //   daysuntilnextreminder: values.daysuntilNextReminder,
+    //   numberofreminders: parseInt(values.noOfReminder, 10),
+    //   clienttasks: subtaskData,
+    //   isclienttaskchecked: values.SubtaskSwitch,
+    //   active: true,
+    // };
+const payload = {
+  templatename: values.templateName,
+  from: values.selecteduser.value,
+  chatsubject: values.inputText,
+  description,
 
+  sendreminderstoclient: values.sendReminders,
+
+  daysuntilnextreminder: values.daysuntilNextReminder,
+
+  numberofreminders: values.noOfReminder,
+
+  clienttasks: subtaskData,
+  isclienttaskchecked: values.SubtaskSwitch,
+  active: true,
+};
     try {
       if (isEditMode && selectedTemplate) {
         await templateAPI.updateChatTemplate(selectedTemplate._id, payload);
-        toast.success("Template updated successfully");
+        showToast({
+          title: "Template updated successfully",
+          type: "success",
+          description: "The chat template has been updated."
+        });
       } else {
         await templateAPI.createChatTemplate(payload);
-        toast.success("Template created successfully");
+        showToast({
+          title: "Template created successfully",
+          type: "success",
+          description: "A new chat template has been created."
+        });
       }
       fetchChatTemplates();
       if (exitAfterSave) {
@@ -753,13 +857,35 @@ const handleDelete = (id) => {
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Error saving Chat Template");
+      showToast({
+        title: "Failed to save template",
+        type: "error",
+        description: error.message || "An error occurred while saving the template"
+      });
     }
   };
 
-  const savechat = form.handleSubmit((values) => submitChat(values, true));
-  const saveSchat = form.handleSubmit((values) => submitChat(values, false));
+  // const savechat = form.handleSubmit((values) => submitChat(values, true));
+  // const saveSchat = form.handleSubmit((values) => submitChat(values, false));
+const savechat = form.handleSubmit(
+  (values) => {
+    console.log("VALID SUBMIT", values);
+    submitChat(values, true);
+  },
+  (errors) => {
+    console.log("FORM ERRORS", errors);
+  }
+);
 
+const saveSchat = form.handleSubmit(
+  (values) => {
+    console.log("VALID SUBMIT", values);
+    submitChat(values, false);
+  },
+  (errors) => {
+    console.log("FORM ERRORS", errors);
+  }
+);
   const options = userData.map((user) => ({
     value: user._id,
     label: user.username,
@@ -888,7 +1014,7 @@ const handleDelete = (id) => {
                     )}
                   />
 
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="inputText"
                     render={({ field }) => (
@@ -929,7 +1055,39 @@ const handleDelete = (id) => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
+                  <FormField
+  control={form.control}
+  name="inputText"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Subject</FormLabel>
+      <FormControl>
+        <ShortcodeTextField
+          label=""
+          value={field.value}
+          onChange={(e) => {
+            const { value, selectionStart } = e.target;
+            field.onChange(value);
+            setCursorPosition(selectionStart);
+          }}
+          placeholder="Enter chat subject..."
+          inputRef={textFieldRef}
+          onClick={(e) => setCursorPosition(e.target.selectionStart)}
+          shortcuts={filteredShortcuts}
+          showShortcutDropdown={showDropdown}
+          anchorElShortcut={anchorEl}
+          onToggleShortcutDropdown={toggleDropdown}
+          onCloseShortcutDropdown={handleCloseDropdown}
+          onAddShortcut={handleAddShortcut}
+          error={!!form.formState.errors.inputText}
+          helperText={form.formState.errors.inputText?.message}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
                 </FormSection>
 
                 <FormSection title="Description">

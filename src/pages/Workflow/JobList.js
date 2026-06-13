@@ -386,7 +386,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { accountsAPI, jobAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { GoDotFill } from "react-icons/go";
 import { MoreVertical, Archive, Trash2, X, Loader2 } from "lucide-react";
 import FilterDropdown from "./JobFilter";
@@ -417,7 +417,7 @@ import {
 const JobList = () => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-
+const {showToast}= useToastContext()
   const [filters, setFilters] = useState({});
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
@@ -574,7 +574,11 @@ const JobList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["jobs-all"]);
-      toast.success("Jobs deleted successfully");
+      showToast({
+  title: "Jobs deleted successfully",
+  description: "Selected jobs were deleted.",
+  type: "success",
+});
       setSelected([]);
     },
   });
@@ -596,7 +600,10 @@ const JobList = () => {
 
   const handleArchive = () => {
     // Archive functionality - you can implement this based on your API
-    toast.info("Archive functionality to be implemented");
+    showToast({
+      title: "Archive functionality to be implemented",
+      type: "info",
+    });
   };
 
   const handleDeleteJob = () => {

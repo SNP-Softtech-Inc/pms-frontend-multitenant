@@ -438,7 +438,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../../context/ToastContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import dayjs from "dayjs";
@@ -475,6 +475,7 @@ dayjs.extend(relativeTime);
 
 const AccountKanbanBoard = ({ isActive = true }) => {
   const { accountId } = useParams();
+  const {showToast} = useToastContext();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
 const { user,  } = useAuth();
@@ -566,7 +567,10 @@ const { user,  } = useAuth();
   const deleteMutation = useMutation({
     mutationFn: (jobId) => jobAPI.deleteJob(jobId),
     onSuccess: () => {
-      toast.success("Job deleted");
+      showToast({
+        title: "Job deleted",
+        type: "success",
+      });
       queryClient.invalidateQueries(["pipeline-jobs", accountId]);
     },
   });

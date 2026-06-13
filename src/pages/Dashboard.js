@@ -1,33 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useRef } from "react";
-import {
-  Box,
-  Drawer,
-  List,
-  Typography,
-  Divider,
-  IconButton,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Avatar,
-  Menu,
-  MenuItem,
-  Collapse,
-  useMediaQuery,
-  Tooltip,
-} from "@mui/material";
+
 import cn from "classnames";
 import FullLogo from "../Images/snp.png";
 import Logo from "../Images/only s.png";
 import {
-  Dashboard as DashboardIcon,
-  ExpandLess,
-  ExpandMore,
-} from "@mui/icons-material";
-import AddIcon from "@mui/icons-material/Add";
-import { useTheme } from "@mui/material/styles";
+  LayoutDashboard,
+  ChevronDown,
+  ChevronUp,
+  Menu,
+} from "lucide-react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import LogoutButton from "../components/LogoutButton";
 import { sidebarAPI, leftSidebarAPI } from "../services/api";
@@ -61,8 +43,19 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [permissions, setPermissions] = useState(null);
 
-  const theme = useTheme();
-  const isSmUp = useMediaQuery(theme.breakpoints.up("sm"));
+  const [isSmUp, setIsSmUp] = useState(window.innerWidth >= 640);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsSmUp(window.innerWidth >= 640);
+  };
+
+  window.addEventListener("resize", handleResize);
+
+  return () => {
+    window.removeEventListener("resize", handleResize);
+  };
+}, []);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -101,7 +94,7 @@ const Dashboard = () => {
   const handleTasksDrawerClose = () => setTasksDrawerOpen(false);
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
-    return IconComponent ? <IconComponent size={20} /> : <DashboardIcon />;
+    return IconComponent ? <IconComponent size={20} /> : <LayoutDashboard />;
   };
 
   useEffect(() => {
@@ -341,11 +334,27 @@ const Dashboard = () => {
       {/* ════════════════════════════════════════════════
           SIDEBAR PANEL
       ════════════════════════════════════════════════ */}
-      <aside
+      {mobileOpen && !isSmUp && (
+  <div
+    className="fixed inset-0 bg-black/50 z-40"
+    onClick={() => setMobileOpen(false)}
+  />
+)}
+      {/* <aside
         className={`flex flex-col border-r bg-background transition-all duration-300 
       ${open ? "w-[240px]" : "w-[70px]"} 
       ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
-      >
+      > */}
+      <aside
+  className={cn(
+    "flex flex-col border-r bg-background transition-all duration-300",
+    open ? "w-[240px]" : "w-[70px]",
+    !isSmUp &&
+      (mobileOpen
+        ? "fixed left-0 top-0 bottom-0 z-50"
+        : "-translate-x-full fixed left-0 top-0 bottom-0 z-50")
+  )}
+>
         {/* ── Sidebar Header ───────────────────────── */}
         <div
           onClick={handleDrawerToggle}
@@ -419,9 +428,11 @@ const Dashboard = () => {
                   {item.submenu?.length > 0 &&
                     open &&
                     (openMenus[index] ? (
-                      <ExpandLess style={{ fontSize: "var(--text-body)" }} />
+                      <ChevronUp size={16} />
+                      // <ExpandLess style={{ fontSize: "var(--text-body)" }} />
                     ) : (
-                      <ExpandMore style={{ fontSize: "var(--text-body)" }} />
+                      <ChevronDown size={16} />
+                      // <ExpandMore style={{ fontSize: "var(--text-body)" }} />
                     ))}
                 </button>
 
@@ -510,9 +521,9 @@ const Dashboard = () => {
                   {item.submenu?.length > 0 &&
                     open &&
                     (openMenus[realIndex] ? (
-                      <ExpandLess style={{ fontSize: "var(--text-body)" }} />
+                      <ChevronUp size={16} />
                     ) : (
-                      <ExpandMore style={{ fontSize: "var(--text-body)" }} />
+                      <ChevronDown size={16} />
                     ))}
                 </button>
 
@@ -559,14 +570,7 @@ const Dashboard = () => {
         <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
           {/* Left Section */}
           <div className="flex items-center gap-3">
-            {/* Menu Toggle */}
-            {/* <button
-              onClick={handleDrawerToggle}
-              className="p-2 rounded-md hover:bg-muted"
-              style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}
-            >
-              ☰
-            </button> */}
+         
             <button
   onClick={handleDrawerToggle}
   className="
@@ -593,51 +597,12 @@ const Dashboard = () => {
     fontFamily: "var(--font-family)",
   }}
 >
-  <span className="group-hover:scale-110 transition-transform duration-200">
-    ☰
-  </span>
+ <Menu
+  size={18}
+  className="group-hover:scale-110 transition-transform duration-200"
+/>
 </button>
 
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-white 
-             hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
-                  style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}
-                >
-                  +
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                align="start"
-                className="w-56 mt-2 rounded-xl overflow-hidden border shadow-lg animate-in fade-in zoom-in-95"
-                style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
-              >
-                {plusMenuItems.length > 0 ? (
-                  plusMenuItems.map((item, index) => (
-                    <DropdownMenuItem
-                      key={index}
-                      onClick={() => {
-                        if (item.label === "Account") handleDrawerOpen();
-                        else if (item.label === "Contact") handleContactDrawerOpen();
-                        else if (item.label === "Invoice") setInvoiceDrawer(true);
-                        else if (item.label === "Chat") handleChatDrawerOpen();
-                        else if (item.label === "Jobs") handleJobDrawerOpen();
-                        else if (item.label === "Task") handleTasksDrawerOpen();
-                        else navigate(item.path);
-                      }}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <span style={{ fontSize: "var(--text-body)" }}>{getIcon(item.icon)}</span>
-                      <span>{item.label}</span>
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <DropdownMenuItem disabled>No items found</DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu> */}
 
 <DropdownMenu>
   <DropdownMenuTrigger asChild>
@@ -764,365 +729,7 @@ const Dashboard = () => {
     </div>
   </>
 );
-//   return (
-//     <>
-//       {/* ══════════════════════════════════════════════════════
-//         ROOT FLEX LAYOUT
-//     ══════════════════════════════════════════════════════ */}
-//       <div className="flex h-screen bg-background overflow-hidden">
-//         {/* ════════════════════════════════════════════════
-//           SIDEBAR PANEL
-//       ════════════════════════════════════════════════ */}
-//         <aside
-//           className={`flex flex-col border-r bg-background transition-all duration-300 
-//         ${open ? "w-[240px]" : "w-[70px]"} 
-//         ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
-//         >
-//           {/* ── Sidebar Header ───────────────────────── */}
-//           <div
-//             onClick={handleDrawerToggle}
-//             className={cn(
-//               "flex h-16 shrink-0 items-center border-b border-border/40 cursor-pointer",
-//               open ? "px-4 justify-center" : "px-2 justify-center",
-//             )}
-//           >
-//             {open ? (
-//               <img
-//                 src={FullLogo}
-//                 alt="logo"
-//                 className="h-10 w-auto object-contain"
-//               />
-//             ) : (
-//               <img
-//                 src={Logo}
-//                 alt="logo"
-//                 className="h-8 w-auto object-contain"
-//               />
-//             )}
-//           </div>
 
-//           {/* ── Sidebar Menu ─────────────────────────── */}
-//           <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
-//             {/* ───────── MAIN SECTION ───────── */}
-//             {open && (
-//               <p className="px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-//                 Main
-//               </p>
-//             )}
-
-//             {sidebarItems.slice(0, 4).map((item, index) => {
-//               // 👈 adjust count
-//               const active = isActive(item.path, item.submenu);
-
-//               return (
-//                 <div key={index}>
-//                   {/* Main Item */}
-//                   <button
-//                     onClick={() => {
-//                       if (item.submenu?.length) {
-//                         handleToggleMenu(index);
-//                       } else {
-//                         navigate(item.path);
-//                         if (!isSmUp) setMobileOpen(false);
-//                       }
-//                     }}
-//                     className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition
-//             ${
-//               active
-//                 ? "bg-primary/10 text-primary font-semibold"
-//                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
-//             }
-//             ${!open && "justify-center px-2"}
-//           `}
-//                   >
-//                     <span className="text-lg">{getIcon(item.icon)}</span>
-
-//                     {open && (
-//                       <span className="flex-1 text-left truncate">
-//                         {item.label}
-//                       </span>
-//                     )}
-
-//                     {item.submenu?.length > 0 &&
-//                       open &&
-//                       (openMenus[index] ? (
-//                         <ExpandLess fontSize="small" />
-//                       ) : (
-//                         <ExpandMore fontSize="small" />
-//                       ))}
-//                   </button>
-
-//                   {/* Submenu */}
-//                   {item.submenu?.length > 0 && openMenus[index] && (
-//                     <div className="ml-4 mt-1 border-l pl-3 space-y-1">
-//                       {item.submenu.map((sub, i) => {
-//                         const subActive = isSubActive(sub.path);
-
-//                         return (
-//                           <button
-//                             key={i}
-//                             onClick={() => {
-//                               navigate(sub.path);
-//                               if (!isSmUp) setMobileOpen(false);
-//                             }}
-//                             className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
-//                     ${
-//                       subActive
-//                         ? "bg-primary/10 text-primary font-medium"
-//                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
-//                     }
-//                   `}
-//                           >
-//                             <span>{getIcon(sub.icon)}</span>
-//                             {open && <span>{sub.label}</span>}
-//                           </button>
-//                         );
-//                       })}
-//                     </div>
-//                   )}
-//                 </div>
-//               );
-//             })}
-
-//             {/* ───────── DIVIDER ───────── */}
-//             <div className="h-px bg-border/40 my-2" />
-
-//             {/* ───────── TOOLS SECTION ───────── */}
-//             {open && (
-//               <p className="px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-//                 Tools
-//               </p>
-//             )}
-
-//             {sidebarItems.slice(4).map((item, index) => {
-//               // 👈 remaining items
-//               const realIndex = index + 4; // important for submenu state
-//               const active = isActive(item.path, item.submenu);
-
-//               return (
-//                 <div key={realIndex}>
-//                   {/* Main Item */}
-//                   <button
-//                     onClick={() => {
-//                       if (item.submenu?.length) {
-//                         handleToggleMenu(realIndex);
-//                       } else {
-//                         navigate(item.path);
-//                         if (!isSmUp) setMobileOpen(false);
-//                       }
-//                     }}
-//                     className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition
-//             ${
-//               active
-//                 ? "bg-primary/10 text-primary font-semibold"
-//                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
-//             }
-//             ${!open && "justify-center px-2"}
-//           `}
-//                   >
-//                     <span className="text-lg">{getIcon(item.icon)}</span>
-
-//                     {open && (
-//                       <span className="flex-1 text-left truncate">
-//                         {item.label}
-//                       </span>
-//                     )}
-
-//                     {item.submenu?.length > 0 &&
-//                       open &&
-//                       (openMenus[realIndex] ? (
-//                         <ExpandLess fontSize="small" />
-//                       ) : (
-//                         <ExpandMore fontSize="small" />
-//                       ))}
-//                   </button>
-
-//                   {/* Submenu */}
-//                   {item.submenu?.length > 0 && openMenus[realIndex] && (
-//                     <div className="ml-4 mt-1 border-l pl-3 space-y-1">
-//                       {item.submenu.map((sub, i) => {
-//                         const subActive = isSubActive(sub.path);
-
-//                         return (
-//                           <button
-//                             key={i}
-//                             onClick={() => {
-//                               navigate(sub.path);
-//                               if (!isSmUp) setMobileOpen(false);
-//                             }}
-//                             className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
-//                     ${
-//                       subActive
-//                         ? "bg-primary/10 text-primary font-medium"
-//                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
-//                     }
-//                   `}
-//                           >
-//                             <span>{getIcon(sub.icon)}</span>
-//                             {open && <span>{sub.label}</span>}
-//                           </button>
-//                         );
-//                       })}
-//                     </div>
-//                   )}
-//                 </div>
-//               );
-//             })}
-//           </div>
-//         </aside>
-
-//         {/* ════════════════════════════════════════════════
-//           MAIN CONTENT AREA
-//       ════════════════════════════════════════════════ */}
-//         <div className="flex flex-1 flex-col overflow-hidden">
-//           {/* ── Header ─────────────────────────────── */}
-//           <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
-//             {/* Left Section */}
-//             <div className="flex items-center gap-3">
-//               {/* Menu Toggle */}
-//               <button
-//                 onClick={handleDrawerToggle}
-//                 className="p-2 rounded-md hover:bg-muted"
-//               >
-//                 ☰
-//               </button>
-
-//               <DropdownMenu>
-//                 <DropdownMenuTrigger asChild>
-//                   <button
-//                     className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-white 
-//              hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
-//                   >
-//                     +
-//                   </button>
-//                 </DropdownMenuTrigger>
-
-//                 <DropdownMenuContent
-//                   align="start"
-//                   className="w-56 mt-2 rounded-xl overflow-hidden border  shadow-lg animate-in fade-in zoom-in-95"
-//                 >
-//                   {plusMenuItems.length > 0 ? (
-//                     plusMenuItems.map((item, index) => (
-//                       <DropdownMenuItem
-//                         key={index}
-//                         onClick={() => {
-//                           if (item.label === "Account") handleDrawerOpen();
-//                           else if (item.label === "Contact")
-//                             handleContactDrawerOpen();
-//                           else if (item.label === "Invoice")
-//                             setInvoiceDrawer(true);
-//                           else if (item.label === "Chat")
-//                             handleChatDrawerOpen();
-//                           else if (item.label === "Jobs") handleJobDrawerOpen();
-//                           else if (item.label === "Task")
-//                             handleTasksDrawerOpen();
-//                           else navigate(item.path);
-//                         }}
-//                         className="flex items-center gap-2 cursor-pointer"
-//                       >
-//                         <span className="text-base">{getIcon(item.icon)}</span>
-//                         <span>{item.label}</span>
-//                       </DropdownMenuItem>
-//                     ))
-//                   ) : (
-//                     <DropdownMenuItem disabled>No items found</DropdownMenuItem>
-//                   )}
-//                 </DropdownMenuContent>
-//               </DropdownMenu>
-
-//               {/* Search */}
-//               <div className="w-[300px]">
-//                 <SearchComponent />
-//               </div>
-//             </div>
-
-//             {/* Right Section */}
-//             <LogoutButton />
-//           </header>
-
-//           {/* ── Page Content ───────────────────────── */}
-//           {/* <main className="flex-1 overflow-y-auto p-4">
-//             <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
-//               <Outlet />
-//             </div>
-//           </main> */}
-//           <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
-//   <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
-//     <Outlet />
-//   </div>
-// </main>
-//         </div>
-
-//         {/* ════════════════════════════════════════════════
-//           PLUS MENU (ShadCN style)
-//       ════════════════════════════════════════════════ */}
-//         {plusAnchorEl && (
-//           <div className="fixed top-14 left-[260px] z-50 w-56 rounded-xl border  shadow-lg animate-in fade-in zoom-in-95">
-//             <div className="p-1">
-//               {plusMenuItems.length > 0 ? (
-//                 plusMenuItems.map((item, index) => (
-//                   <button
-//                     key={index}
-//                     onClick={() => {
-//                       if (item.label === "Account") handleDrawerOpen();
-//                       else if (item.label === "Contact")
-//                         handleContactDrawerOpen();
-//                       else if (item.label === "Invoice") setInvoiceDrawer(true);
-//                       else if (item.label === "Chat") handleChatDrawerOpen();
-//                       else if (item.label === "Jobs") handleJobDrawerOpen();
-//                       else if (item.label === "Task") handleTasksDrawerOpen();
-//                       else navigate(item.path);
-
-//                       handlePlusClose();
-//                     }}
-//                     className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-//                   >
-//                     <span className="text-base">{getIcon(item.icon)}</span>
-//                     <span className="flex-1 text-left">{item.label}</span>
-//                   </button>
-//                 ))
-//               ) : (
-//                 <div className="p-3 text-sm text-gray-400">No items found</div>
-//               )}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* ════════════════════════════════════════════════
-//           DRAWERS (UNCHANGED)
-//       ════════════════════════════════════════════════ */}
-//         <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
-
-//         <NewContactDrawer
-//           open={contactDrawerOpen}
-//           onClose={handleContactDrawerClose}
-//         />
-
-//         <CreateInvoiceDrawer
-//           open={invoiceDrawer}
-//           onClose={() => setInvoiceDrawer(false)}
-//         />
-
-//         <NewChatDrawer
-//           open={chatDrawerOpen}
-//           handleClose={handleChatDrawerClose}
-//           accountwiseChatlist={() => {}}
-//           data={null}
-//           isActiveTrue={true}
-//         />
-
-//         <JobDrawer
-//           open={jobDrawerOpen}
-//           onClose={() => setJobDrawerOpen(false)}
-//         />
-
-//         <TasksDrawer
-//           open={tasksDrawerOpen}
-//           onClose={() => setTasksDrawerOpen(false)}
-//         />
-//       </div>
-//     </>
-//   );
 };
 
 export default Dashboard;

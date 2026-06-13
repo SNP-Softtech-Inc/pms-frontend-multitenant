@@ -119,7 +119,7 @@ import {
   GitBranch,
   Users,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import { templateAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import KanbanBoard from "./KanbanBoard";
@@ -138,6 +138,7 @@ import { useNavigate } from "react-router-dom";
 const Pipeline = () => {
   const { user, loading: authLoading } = useAuth();
 const navigate = useNavigate();
+const {showToast}=useToastContext()
   const [pipelines, setPipelines] = useState([]);
   const [loading, setLoading] = useState(true);
  const [globalFilter, setGlobalFilter] = useState("");
@@ -156,7 +157,11 @@ const navigate = useNavigate();
       setPipelines(response.data.pipeline || []);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load pipelines");
+      showToast({
+        title: "Error",
+        description: "Failed to load pipelines",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -169,7 +174,11 @@ const navigate = useNavigate();
       setSelectedPipeline(res.data.pipeline);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch pipeline details");
+      showToast({
+        title: "Error",
+        description: "Failed to fetch pipeline details",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

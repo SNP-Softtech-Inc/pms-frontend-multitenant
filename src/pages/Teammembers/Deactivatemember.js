@@ -15,11 +15,13 @@ import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 
 import { authAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
+import { Label } from "../../components/ui/label";
 const DeactiveTeammembers = ({ refresh, onEdit }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 const confirm = useConfirm();
+const {showToast} = useToastContext();
   const fetchTeamMembers = async () => {
     try {
       setLoading(true);
@@ -68,13 +70,21 @@ const handleResendActivation = (teamMemberId, memberName) => {
         console.log(res.data);
 
         // Optional: show toast here
-        toast.success(res.data.message);
+        showToast({
+          title: "Activation email resent",
+          description: res.data.message,
+          type: "success",
+        });
 
       } catch (error) {
         console.error(error);
 
         // Optional: show toast here
-         toast.error(error?.response?.data?.message);
+        showToast({
+          title: "Failed to resend activation email",
+          description: error?.response?.data?.message || "Failed to resend activation email.",
+          type: "error",
+        });
       }
     },
   });
@@ -187,9 +197,9 @@ const handleResendActivation = (teamMemberId, memberName) => {
 
   return (
     <div className="space-y-4">
-      <Typography variant="h6" gutterBottom>
-        Deactive Team Members
-      </Typography>
+      <div className="flex justify-between items-center">
+        <h6 className="text-lg font-semibold">Deactive Team Members</h6>
+      </div>
 
       <DataTable
         data={rows}

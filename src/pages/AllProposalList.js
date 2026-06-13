@@ -320,7 +320,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CiMenuKebab } from "react-icons/ci";
-import { toast } from "react-toastify";
+import { useToastContext } from "../context/ToastContext";
 import { useConfirm } from "../components/ConfirmDialogContext";
 import { accountsAPI, proposalAPI } from "../services/api";
 import { DataTable } from "../components/data-table/data-table";
@@ -343,6 +343,7 @@ const ProposalsEls = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const navigate = useNavigate();
+  const {showToast}=useToastContext()
 
   // ================= FETCH DATA =================
   const fetchPrprosalsAllData = async () => {
@@ -370,7 +371,11 @@ const ProposalsEls = () => {
       console.log("Fetched Proposals:", response.data.proposallist);
     } catch (error) {
       console.error("Error fetching proposals:", error);
-      toast.error("Failed to fetch proposals");
+   showToast({
+  title: "Failed to fetch proposals",
+  description: "Unable to load proposal data. Please try again.",
+  type: "error",
+});
     } finally {
       setLoading(false);
     }

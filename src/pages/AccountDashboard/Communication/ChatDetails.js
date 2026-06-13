@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext"
 import { X, Plus, Trash2, CornerUpLeft } from "lucide-react";
 import { Check, CheckCheck } from "lucide-react";
 
@@ -38,6 +38,7 @@ const ChatDetails = ({
   accountName,
 }) => {
   const [showTasks, setShowTasks] = useState(false);
+  const { showToast } = useToastContext();
   console.log("ChatDetails render with chat:", chat);
   const [chatId, setChatId] = useState(chat._id);
   const [chatTemplate, setChatTemplate] = useState(chat.chattemplateid);
@@ -118,19 +119,28 @@ const ChatDetails = ({
       });
       setEditorContent("");
       setReplyTo(null);
-      toast.success("Message sent");
+      showToast({
+        title: "Message sent",
+        type: "success",
+      });
       await securemessagechatsend(chatId);
       await updatechatStatus(chatId);
       accountwiseChatlist(data, isActiveTrue);
       getsChatDetails();
     } catch (error) {
-      toast.error("Send failed");
+      showToast({
+        title: "Send failed",
+        type: "error",
+      });
     }
   };
 
   const handleEditMessage = (message) => {
     if (!canEditMessage(message.time)) {
-      toast.error("Cannot edit message after 10 minutes");
+      showToast({
+        title: "Cannot edit message after 10 minutes",
+        type: "error",
+      });
       return;
     }
     setEditingMessage(message);
@@ -146,14 +156,20 @@ const ChatDetails = ({
         messageId: editingMessage._id,
         newMessage: editContent,
       });
-      toast.success("Message updated successfully");
+      showToast({
+        title: "Message updated successfully",
+        type: "success",
+      });
       setEditDialogOpen(false);
       setEditingMessage(null);
       setEditContent("");
       getsChatDetails();
       accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
-      toast.error("Failed to update message");
+      showToast({
+        title: "Failed to update message",
+        type: "error",
+      });
     }
   };
 
@@ -206,9 +222,15 @@ const ChatDetails = ({
           checked: task.checked,
         })),
       });
-      toast.success("Task updated");
+      showToast({
+        title: "Task updated",
+        type: "success",
+      });
     } catch (error) {
-      toast.error("Task update failed");
+      showToast({
+        title: "Task update failed",
+        type: "error",
+      });
     }
   };
 
@@ -250,32 +272,44 @@ const ChatDetails = ({
           { message: description, fromwhome: "Admin", senderid: senderName },
         ],
       });
-      toast.success("Chat description updated successfully");
+      showToast({
+        title: "Chat description updated successfully",
+        type: "success",
+      });
       getsChatDetails();
       await updatechatStatus(chatId);
       accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
-      toast.error("Failed to update chat description");
+      showToast({
+        title: "Failed to update chat description",
+        type: "error",
+      });
     }
   };
 
   const handleDeleteMessage = async (messageToDelete) => {
     try {
       await chatAPI.deleteMessage({ chatId, messageId: messageToDelete._id });
-      toast.success("Message deleted successfully");
+      showToast({
+        title: "Message deleted successfully",
+        type: "success",
+      });
       getsChatDetails();
       accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
-      toast.error("Failed to delete message");
+      showToast({
+        title: "Failed to delete message",
+        type: "error",
+      });
     }
   };
   const handleMarkAsRead = async (chatId) => {
     try {
       await chatAPI.markThreadAsRead(chatId);
 
-      toast({
-        title: "Success",
-        description: "Thread marked as read",
+      showToast({
+        title: "Chat marked as read",
+        type: "success",
       });
 
       // getsChatDetails();
@@ -291,9 +325,9 @@ const ChatDetails = ({
     try {
       await chatAPI.markThreadAsUnread(chatId);
 
-      toast({
-        title: "Success",
-        description: "Thread marked as unread",
+      showToast({
+        title: "Chat marked as unread",
+        type: "success",
       });
 
       // getsChatDetails();
@@ -308,9 +342,9 @@ const ChatDetails = ({
   //   try {
   //     await chatAPI.markThreadAsRead(chatId);
 
-  //     toast({
+  //     showToast({
   //       title: "Success",
-  //       description: "Thread marked as read",
+  //       type: "success",
   //     });
 
   // getsChatDetails()
@@ -576,11 +610,17 @@ const ChatDetails = ({
   const handleArchiveThread = async (id) => {
     try {
       await chatAPI.updateChat(id, { active: !chat.active });
-      toast.success(chat.active ? "Chat archived" : "Chat activated");
+      showToast({
+        title: chat.active ? "Chat archived" : "Chat activated",
+        type: "success",
+      });
       accountwiseChatlist(data, isActiveTrue);
       onChatAction();
     } catch (error) {
-      toast.error("Action failed");
+      showToast({
+        title: "Action failed",
+        type: "error",
+      });
     }
   };
 
@@ -588,10 +628,16 @@ const ChatDetails = ({
     try {
       await chatAPI.deleteChat(chatId);
       onChatAction();
-      toast.success("Thread deleted successfully");
+      showToast({
+        title: "Thread deleted successfully",
+        type: "success",
+      });
       accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
-      toast.error("Failed to delete thread");
+      showToast({
+        title: "Failed to delete thread",
+        type: "error",
+      });
     }
   };
 

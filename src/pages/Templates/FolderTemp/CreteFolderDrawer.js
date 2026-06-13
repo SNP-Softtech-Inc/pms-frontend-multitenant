@@ -204,7 +204,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import { docAPI } from "../../../services/api";
 import { 
   FolderPlus, 
@@ -231,7 +231,7 @@ const CreateFolderDrawer = ({
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-
+const {showToast} = useToastContext();
   const handleFolderSelect = (path) => setSelectedFolder(path);
 
   useEffect(() => {
@@ -248,7 +248,11 @@ const CreateFolderDrawer = ({
   const handleCreateFolder = async () => {
     if (!folderName.trim()) {
       setMessage("Folder name is required!");
-      toast.error("Folder name is required!");
+      showToast({
+        title: "Invalid folder name",
+        type: "error",
+        description: "Folder name is required!"
+      } );
       return;
     }
 
@@ -256,7 +260,11 @@ const CreateFolderDrawer = ({
     const invalidChars = /[<>:"/\\|?*]/g;
     if (invalidChars.test(folderName)) {
       setMessage("Folder name cannot contain: < > : \" / \\ | ? *");
-      toast.error("Folder name contains invalid characters");
+      showToast({
+        title: "Invalid folder name",
+        type: "error",
+        description: "Folder name contains invalid characters"
+      });
       return;
     }
 
@@ -273,7 +281,11 @@ const CreateFolderDrawer = ({
       const createdName = res.data?.metaData?.name || folderName;
 
       setMessage(`✓ Folder created: ${createdName}`);
-      toast.success(`Folder created: ${createdName}`);
+      showToast({
+        title: "Folder created successfully",
+        type: "success",
+        description: `Folder created: ${createdName}`
+      });
 
       // Reset form
       setFolderName("");
@@ -290,7 +302,11 @@ const CreateFolderDrawer = ({
       const errorMsg = err.response?.data?.error || "Server Error";
       
       setMessage(`✗ Error creating folder: ${errorMsg}`);
-      toast.error(errorMsg);
+      showToast({
+        title: "Folder creation failed",
+        type: "error",
+        description: errorMsg
+      });
     } finally {
       setIsCreating(false);
     }

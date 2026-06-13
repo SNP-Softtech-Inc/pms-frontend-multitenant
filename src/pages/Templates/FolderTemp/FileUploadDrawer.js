@@ -257,7 +257,7 @@
 
 
 import React, { useState, useEffect, useRef } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import { docAPI } from "../../../services/api";
 import { 
   Upload, 
@@ -291,7 +291,7 @@ const FileUploadDrawer = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
-
+const {showToast} = useToastContext();
   useEffect(() => {
     if (isOpen && selectedFolderForMenu) {
       setSelectedFolder(selectedFolderForMenu.path);
@@ -327,11 +327,19 @@ const FileUploadDrawer = ({
 
     const validFiles = selectedFiles.filter((file) => {
       if (file.size > maxSize) {
-        toast.error(`${file.name} exceeds 50 MB limit.`);
+        showToast({
+          title: "File too large",
+          type: "error",
+          description: `${file.name} exceeds 50 MB limit.`
+        });
         return false;
       }
       if (forbiddenTypes.some((type) => file.type.startsWith(type))) {
-        toast.error(`${file.name} is an audio or video file — not allowed.`);
+        showToast({
+          title: "Invalid file type",
+          type: "error",
+          description: `${file.name} is an audio or video file — not allowed.`
+        });
         return false;
       }
       return true;
@@ -358,13 +366,21 @@ const FileUploadDrawer = ({
   const handleUpload = async () => {
     if (files.length === 0) {
       setMessage("Please select files to upload.");
-      toast.error("Please select files to upload.");
+      showToast({
+        title: "No files selected",
+        type: "error",
+        description: "Please select files to upload."
+      });
       return;
     }
 
     if (!selectedFolder) {
       setMessage("Please select a destination folder.");
-      toast.error("Please select a destination folder.");
+      showToast({
+        title: "No destination folder selected",
+        type: "error",
+        description: "Please select a destination folder."
+      });
       return;
     }
 
@@ -395,7 +411,11 @@ const FileUploadDrawer = ({
       const successMsg = res.data.message || "Files uploaded successfully";
 
       setMessage(`✓ ${successMsg}`);
-      toast.success(`✓ ${successMsg}`);
+      showToast({
+        title: "Files uploaded successfully",
+        type: "success",
+        description: successMsg
+      });
 
       setTimeout(() => {
         setFiles([]);
@@ -407,7 +427,11 @@ const FileUploadDrawer = ({
 
       const errorMsg = err.response?.data?.error || "Error uploading files";
       setMessage(`✗ ${errorMsg}`);
-      toast.error(errorMsg);
+      showToast({
+        title: "File upload failed",
+        type: "error",
+        description: errorMsg
+      });
       setUploadProgress(0);
     } finally {
       setIsUploading(false);
@@ -429,11 +453,19 @@ const FileUploadDrawer = ({
 
     const validFiles = droppedFiles.filter((file) => {
       if (file.size > maxSize) {
-        toast.error(`${file.name} exceeds 50 MB limit.`);
+        showToast({
+          title: "File too large",
+          type: "error",
+          description: `${file.name} exceeds 50 MB limit.`
+        });
         return false;
       }
       if (forbiddenTypes.some((type) => file.type.startsWith(type))) {
-        toast.error(`${file.name} is an audio or video file — not allowed.`);
+        showToast({
+          title: "Invalid file type",
+          type: "error",
+          description: `${file.name} is an audio or video file — not allowed.`
+        });
         return false;
       }
       return true;

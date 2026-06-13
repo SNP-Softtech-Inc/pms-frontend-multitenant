@@ -402,7 +402,7 @@ import { templateAPI } from "../../../services/api";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../components/ui/command";
-
+import { useToastContext } from "../../../context/ToastContext";
 const clientFacingSchema = z.object({
   clientfacingName: z.string().min(1, "Name is required"),
   clientfacingdescription: z.string().min(1, "Description is required").max(200, "Description must be 200 characters or less"),
@@ -411,6 +411,7 @@ const clientFacingSchema = z.object({
 
 const Clientfacing = () => {
   const confirm = useConfirm();
+  const { showToast } = useToastContext();
   const [clientFacingJobs, setClientFacingJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -427,17 +428,21 @@ const Clientfacing = () => {
     },
   });
 
-  const colors = [
-    "#0d6efd",
-    "#6c757d",
-    "#198754",
-    "#dc3545",
-    "#ffc107",
-    "#0dcaf0",
-    "#FF5722",
-    "#212529",
-  ];
+  // const colors = [
+  //   "#0d6efd",
+  //   "#6c757d",
+  //   "#198754",
+  //   "#dc3545",
+  //   "#ffc107",
+  //   "#0dcaf0",
+  //   "#FF5722",
+  //   "#212529",
+  // ];
 
+   const colors = ["#fd3241", "#f9b5ac", "#ac6400", "#ff7e39", "#ffea00", "#94ecbe", "#2e8b57", "#76ac1e", "#3cbb50", "#9ed8db", "#0299bb", "#0af4b8", "#466efb", "#0496ff", "#b9c1ff",
+    "#e1b1ff", "#9d33d0", "#d834f5", "#ff54b6", "#1d3354", "#767b91", "#8f8f8f", "#c7c7c7", "#9a657e", "#616468", "#511dff", "#85c7db", "#8cd1ff", "#0aefff", "#d4ff00", "#a1ff0a", "#00f43d", "#ffc100",
+    "#cdc6a5", "#fed6b1", "#e5dfdf", "#ffeaa7"
+  ];
   // ================= FETCH DATA =================
   const loadJobStatus = async () => {
     try {
@@ -446,7 +451,11 @@ const Clientfacing = () => {
       setClientFacingJobs(res.data.clientFacingJobStatues || []);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load job statuses");
+      showToast({
+        title: "Failed to load job statuses",
+        type: "error",
+        description: error.message || "An error occurred while loading job statuses"
+      });
     } finally {
       setLoading(false);
     }
@@ -476,12 +485,20 @@ const Clientfacing = () => {
         clientfacingdescription: data.clientfacingdescription.trim(),
       });
 
-      toast.success("Created successfully");
+      showToast({
+        title: "Job status created successfully",
+        type: "success",
+        description: "A new job status has been created."
+      });
       handleDrawerClose();
       loadJobStatus();
     } catch (error) {
       console.error(error);
-      toast.error("Create failed");
+      showToast({
+        title: "Failed to create job status",
+        type: "error",
+        description: error.message || "An error occurred while creating the job status"
+      });
     }
   };
 
@@ -494,12 +511,20 @@ const Clientfacing = () => {
         clientfacingdescription: data.clientfacingdescription,
       });
 
-      toast.success("Updated successfully");
+      showToast({
+        title: "Job status updated successfully",
+        type: "success",
+        description: "The job status has been updated."
+      });
       handleDrawerClose();
       loadJobStatus();
     } catch (error) {
       console.error(error);
-      toast.error("Update failed");
+      showToast({
+        title: "Failed to update job status",
+        type: "error",
+        description: error.message || "An error occurred while updating the job status"
+      });
     }
   };
 
@@ -511,11 +536,19 @@ const Clientfacing = () => {
       onConfirm: async () => {
         try {
           await templateAPI.deleteJobStatus(id);
-          toast.success("Deleted successfully");
+          showToast({
+            title: "Job status deleted successfully",
+            type: "success",
+            description: "The job status has been deleted."
+          });
           loadJobStatus();
         } catch (error) {
           console.error(error);
-          toast.error("Delete failed");
+          showToast({
+            title: "Failed to delete job status",
+            type: "error",
+            description: error.message || "An error occurred while deleting the job status"
+          });
         }
       },
     });
@@ -537,7 +570,11 @@ const Clientfacing = () => {
       setIsDrawerOpen(true);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load job status");
+      showToast({
+        title: "Failed to load job status",
+        type: "error",
+        description: error.message || "An error occurred while loading the job status"
+      });
     }
   };
 

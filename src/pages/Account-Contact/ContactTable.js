@@ -523,7 +523,7 @@
 
 /* ─── ContactTable — @tanstack/react-table + shadcn DataTable ─── */
 import React, { useEffect, useState, useMemo } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import { Trash2, X, UserSearch, AtSign, Building2, Hash, TagsIcon } from "lucide-react";
 import { DataTable } from "../../components/data-table/data-table";
 import { DataTableToolbar } from "../../components/data-table/toolbar";
@@ -562,7 +562,7 @@ function TagPills({ tags }) {
 const ContactsTable = () => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-
+const { showToast } = useToastContext();
   const [userRole, setUserRole] = useState("");
   const [canManageContacts, setCanManageContacts] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -600,12 +600,18 @@ const ContactsTable = () => {
   const deleteMutation = useMutation({
     mutationFn: (ids) => contactsAPI.deleteContacts({ ids }),
     onSuccess: () => {
-      toast.success("Contact Deleted Successfully");
+      showToast({
+        title: "Contact Deleted Successfully",
+        type: "success",
+      });
       queryClient.invalidateQueries(["contacts"]);
       setSelectedIds([]);
     },
     onError: () => {
-      toast.error("Delete failed");
+      showToast({
+        title: "Delete failed",
+        type: "error",
+      });
     },
   });
 
@@ -659,7 +665,10 @@ const ContactsTable = () => {
   // ================= HANDLERS =================
   const handleOpenDrawer = (contact = null) => {
     if (!canManageContacts) {
-      toast.info("You do not have permission to edit contacts");
+      showToast({
+        title: "You do not have permission to edit contacts",
+        type: "info",
+      });
       return;
     }
     if (contact) {

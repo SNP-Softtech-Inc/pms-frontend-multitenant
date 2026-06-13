@@ -67,6 +67,9 @@ import InternalCommunication from "./pages/Internal-communication/internalCommun
 import InboxPlus from "./pages/InboxPlus";
 import Inbox from "./pages/AccountDashboard/Email/Inbox";
 import Sent from "./pages/AccountDashboard/Email/Sent";
+import ActiveMember from "./pages/Teammembers/ActiveTeammembers";
+import Deactivatemember from "./pages/Teammembers/Deactivatemember";
+import ActiveGroups from "./pages/Teammembers/ActiveGroups";
 function App() {
   return (
     <Routes>
@@ -134,10 +137,9 @@ function App() {
             <Route path="invoices" element={<InvoiceList />} />
             <Route path="payment" element={<Payment />} />
           </Route>
-          <Route path="email/:accountId" element={<Email />} >
-          <Route path="inbox" element={<Inbox />} />
-              <Route path="sent" element={<Sent />} />
-          
+          <Route path="email/:accountId" element={<Email />}>
+            <Route path="inbox" element={<Inbox />} />
+            <Route path="sent" element={<Sent />} />
           </Route>
           <Route path="proposals/:accountId" element={<Proposals />} />
           <Route
@@ -285,7 +287,14 @@ function App() {
           path="firmtemp/pipelines/pipelineform"
           element={<PipelineForm />}
         />
-        <Route path="firmtemp/teammember" element={<TeamMember />} />
+        {/* <Route path="firmtemp/teammember" element={<TeamMember />} /> */}
+
+      <Route path="firmtemp/teammember" element={<TeamMember />}>
+  <Route index element={<ActiveMember />} />
+  <Route path="active" element={<ActiveMember />} />
+  <Route path="deactive" element={<Deactivatemember />} />
+  <Route path="groups" element={<ActiveGroups />} />
+</Route>
         <Route path="firmtemp/tags" element={<Tags />} />
         <Route path="firmtemp/service" element={<Service />} />
 
@@ -297,7 +306,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/Inbox+" element={<ProtectedRoute><InboxPlus /></ProtectedRoute>}/>
+        <Route
+          path="/Inbox+"
+          element={
+            <ProtectedRoute>
+              <InboxPlus />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* Fallback */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext"
 import { templateAPI } from "../../../services/api";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 
@@ -17,6 +17,7 @@ import EditItemDrawer from "./EditItemDrawer";
 
 const InvoiceTemp = () => {
   const confirm = useConfirm();
+  const {showToast} = useToastContext();
  
 
   // ==================== STATE ====================
@@ -388,7 +389,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       setServiceData(response.data.serviceTemplate || []);
     } catch (error) {
       console.error("Error fetching service data:", error);
-      toast.error("Failed to fetch services");
+      showToast({
+        title: "Failed to fetch services",
+        type: "error",
+        description: "An error occurred while fetching service data"
+      });
     } finally {
       setLoadingServices(false);
     }
@@ -420,7 +425,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       });
     } catch (error) {
       console.error("Error fetching service by ID:", error);
-      toast.error("Failed to fetch service details");
+      showToast({
+        title: "Failed to fetch service details",
+        type: "error",
+        description: "An error occurred while fetching service details"
+      });
     }
   }, []);
 
@@ -428,14 +437,22 @@ const handleSwitchAddShortcut = (shortcut) => {
     try {
       const response = await templateAPI.createServiceTemplate(data);
       if (response.data.message === "ServiceTemplate created successfully") {
-        toast.success("Service created successfully");
+        showToast({
+          title: "Service created successfully",
+          type: "success",
+          description: "The service has been created successfully"
+        });
         await fetchServiceData();
         return true;
       }
       return false;
     } catch (error) {
       console.error("Error creating service:", error);
-      toast.error(error.response?.data?.message || "Failed to create service");
+      showToast({
+        title: "Failed to create service",
+        type: "error",
+        description: error.response?.data?.message || "An error occurred while creating the service"
+      });
       return false;
     }
   }, [fetchServiceData]);
@@ -448,7 +465,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       setCategoryData(response.data.category || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      toast.error("Failed to fetch categories");
+      showToast({
+        title: "Failed to fetch categories",
+        type: "error",
+        description: "An error occurred while fetching categories"
+      });
     } finally {
       setLoadingCategories(false);
     }
@@ -456,21 +477,33 @@ const handleSwitchAddShortcut = (shortcut) => {
 
   const createCategory = useCallback(async (categoryName) => {
     if (!categoryName?.trim()) {
-      toast.error("Category name is required");
+      showToast({
+        title: "Category name is required",
+        type: "error",
+        description: "Please enter a category name"
+      });
       return false;
     }
 
     try {
       const response = await templateAPI.createCategory({ categoryName });
       if (response.data.message === "Category created successfully") {
-        toast.success("Category created successfully");
+        showToast({
+          title: "Category created successfully",
+          type: "success",
+          description: "The category has been created successfully"
+        });
         await fetchCategories();
         return true;
       }
       return false;
     } catch (error) {
       console.error("Error creating category:", error);
-      toast.error(error.response?.data?.message || "Failed to create category");
+      showToast({
+        title: "Failed to create category",
+        type: "error",
+        description: error.response?.data?.message || "An error occurred while creating the category"
+      });
       return false;
     }
   }, [fetchCategories]);
@@ -483,7 +516,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       setInvoiceTemplates(response.data.invoiceTemplate || []);
     } catch (error) {
       console.error("Error fetching invoice templates:", error);
-      toast.error("Failed to fetch invoice templates");
+      showToast({
+        title: "Failed to fetch invoice templates",
+        type: "error",
+        description: "An error occurred while fetching invoice templates"
+      });
     } finally {
       setLoading(false);
     }
@@ -532,7 +569,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       }
     } catch (error) {
       console.error("Error fetching invoice template:", error);
-      toast.error("Failed to load template data");
+      showToast({
+        title: "Failed to load template data",
+        type: "error",
+        description: "An error occurred while loading the template data"
+      });
       setShowForm(false);
       setIsEditMode(false);
       setEditingTemplateId(null);
@@ -568,11 +609,19 @@ const handleSwitchAddShortcut = (shortcut) => {
     try {
       if (isEditMode && editingTemplateId) {
         await templateAPI.updateInvoiceTemplate(editingTemplateId, payload);
-        toast.success("Invoice template updated successfully");
+        showToast({
+          title: "Invoice template updated successfully",
+          type: "success",
+          description: "The invoice template has been updated successfully"
+        });
         setOpenPreview(false)
       } else {
         await templateAPI.createInvoiceTemplate(payload);
-        toast.success("Invoice template created successfully");
+        showToast({
+          title: "Invoice template created successfully",
+          type: "success",
+          description: "The invoice template has been created successfully"
+        });
         setOpenPreview(false);
       }
 
@@ -583,7 +632,11 @@ const handleSwitchAddShortcut = (shortcut) => {
       resetForm();
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Failed to save invoice template");
+      showToast({
+        title: "Failed to save invoice template",
+        type: "error",
+        description: error.response?.data?.message || "An error occurred while saving the invoice template"
+      });
     }
   }, [formData, description, clientmsg, lineItems, subtotal, taxRate, taxTotal, totalAmount, validateForm, fetchInvoiceTemplates, resetForm, isEditMode, editingTemplateId]);
 
@@ -651,12 +704,20 @@ const handleSwitchAddShortcut = (shortcut) => {
       onConfirm: async () => {
         try {
           await templateAPI.deleteInvoiceTemplate(_id);
-          toast.success("Invoice template deleted successfully");
+          showToast({
+            title: "Invoice template deleted successfully",
+            type: "success",
+            description: "The invoice template has been deleted successfully"
+          });
           handleCloseOptions();
           fetchInvoiceTemplates();
         } catch (error) {
           console.error(error);
-          toast.error("Failed to delete item");
+          showToast({
+            title: "Failed to delete invoice template",
+            type: "error",
+            description: "An error occurred while deleting the invoice template"
+          });
         }
       },
     });

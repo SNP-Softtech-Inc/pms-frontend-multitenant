@@ -1206,7 +1206,7 @@ import {
   RotateCcw, Trash2, X,
   UserSearch, AtSign, Building2, UserCog, TagsIcon,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext";
 import Cookies from "js-cookie";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -1327,7 +1327,7 @@ function BulkActionBtn({ label, icon: Icon, onClick, disabled, variant = "defaul
 const AccountTable = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+  const {showToast} = useToastContext();
   // Refs for bulk actions
   const manageTagsRef = useRef();
   const manageTeamRef = useRef();
@@ -1498,24 +1498,36 @@ const AccountTable = () => {
   const handleArchive = async () => {
     try {
       await accountsAPI.updateAccountActiveStatus({ ids: selectedIds, active: false });
-      toast.success("Accounts archived successfully");
+      showToast({
+        title: "Accounts archived successfully",
+        type: "success",
+      });
       setSelectedIds([]);
       queryClient.invalidateQueries(["accounts"]);
       syncCookies([]);
     } catch {
-      toast.error("Failed to archive accounts");
+      showToast({
+        title: "Failed to archive accounts",
+        type: "error",
+      });
     }
   };
 
   const handleActivate = async () => {
     try {
       await accountsAPI.updateAccountActiveStatus({ ids: selectedIds, active: true });
-      toast.success("Accounts activated successfully");
+      showToast({
+        title: "Accounts activated successfully",
+        type: "success",
+      });
       setSelectedIds([]);
       queryClient.invalidateQueries(["accounts"]);
       syncCookies([]);
     } catch {
-      toast.error("Failed to activate accounts");
+      showToast({
+        title: "Failed to activate accounts",
+        type: "error",
+      });
     }
   };
 
@@ -1523,14 +1535,20 @@ const AccountTable = () => {
     if (confirmText !== "DELETE") return;
     try {
       await accountsAPI.deleteMultipleAccounts({ accountIds: selectedIds });
-      toast.success("Accounts deleted successfully");
+      showToast({
+        title: "Accounts deleted successfully",
+        type: "success",
+      });
       setSelectedIds([]);
       setIsDeleteDialogOpen(false);
       setConfirmText("");
       queryClient.invalidateQueries(["accounts"]);
       syncCookies([]);
     } catch {
-      toast.error("Failed to delete accounts");
+      showToast({
+        title: "Failed to delete accounts",
+        type: "error",
+      });
     }
   };
 

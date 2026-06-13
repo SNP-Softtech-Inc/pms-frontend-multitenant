@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { chatAPI, accountsAPI } from "../../services/api";
 import ChatDetails from "./Communication/ChatDetails";
 import NewChatDrawer from "./Communication/NewChatDrawer";
@@ -20,6 +20,7 @@ import { Input } from "../../components/ui/input";
 
 const Communication = () => {
   const { accountId } = useParams();
+  const {showToast}= useToastContext()
   const confirm = useConfirm();
   const [chatList, setChatList] = useState([]);
   const [filteredChatList, setFilteredChatList] = useState([]);
@@ -162,7 +163,10 @@ const handleShowChat = async (chatId) => {
       onConfirm: async () => {
         try {
           await Promise.all(selectedChatIds.map((id) => chatAPI.deleteChatForAdmin(id)));
-          toast.success("Chats deleted");
+          showToast({
+            title: "Chats deleted",
+            type: "success",
+          });
           setSelectedChatIds([]);
           if (selectedChat && selectedChatIds.includes(selectedChat._id)) {
             setSelectedChat(null);
@@ -170,7 +174,10 @@ const handleShowChat = async (chatId) => {
           accountwiseChatlist(accountId, isActiveTrue);
         } catch (error) {
           console.error(error);
-          toast.error("Delete failed");
+          showToast({
+            title: "Failed to delete chats",  
+            type: "error",
+          });
         }
       },
     });
@@ -179,11 +186,17 @@ const handleShowChat = async (chatId) => {
   const handleArchiveJob = async (id) => {
     try {
       await chatAPI.updateChat(id, { active: !isActiveTrue });
-      toast.success("Updated successfully");
+      showToast({
+        title: "Updated successfully",
+        type: "success",
+      });
       accountwiseChatlist(accountId, isActiveTrue);
       setSelectedChatIds([]);
     } catch (err) {
-      toast.error("Failed");
+      showToast({
+        title: "Failed to update chat",
+        type: "error",
+      });
     }
   };
 

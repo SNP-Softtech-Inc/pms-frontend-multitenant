@@ -142,7 +142,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../../context/ToastContext";
 import { Trash2 } from "lucide-react";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 // ✅ use centralized API
@@ -162,6 +162,7 @@ import { Button } from "../../../components/ui/button";
 
 const Approvals = () => {
   const { accountId } = useParams();
+  const { showToast } = useToastContext();
   const [approvals, setApprovals] = useState([]);
   const confirm = useConfirm();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -179,7 +180,10 @@ const Approvals = () => {
         const errorMsg =
           err?.response?.data?.message || "Failed to fetch approvals";
 
-        toast.error(errorMsg);
+        showToast({
+          title: errorMsg,
+          type: "error",
+        });
       }
     };
 
@@ -198,14 +202,20 @@ const Approvals = () => {
           // instant UI update
           setApprovals((prev) => prev.filter((a) => a._id !== id));
 
-          toast.success("Approval deleted successfully");
+          showToast({
+            title: "Approval deleted successfully",
+            type: "success",
+          });
         } catch (err) {
           console.error("Error deleting approval:", err);
 
           const errorMsg =
             err?.response?.data?.message || "Failed to delete approval";
 
-          toast.error(errorMsg);
+          showToast({
+            title: errorMsg,
+            type: "error",
+          });
         }
       },
     });

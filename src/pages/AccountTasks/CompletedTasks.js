@@ -168,7 +168,7 @@ import {
 
 import { accountTasksAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext"; // ✅ adjust path
 
 // ✅ shadcn/ui imports
 import { Card, CardContent } from "../../components/ui/card";
@@ -223,7 +223,7 @@ const isLightColor = (hex) => {
 const CompletedTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-
+const { showToast } = useToastContext(); // ✅ get showToast from context
   const confirm = useConfirm();
 
   const fetchCompletedTasks = async () => {
@@ -232,7 +232,10 @@ const CompletedTasks = () => {
       setTasks(res.data.list || []);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch tasks");
+      showToast({
+        title: "Failed to fetch tasks",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -256,10 +259,16 @@ const CompletedTasks = () => {
             prev.filter((task) => task.id !== taskId)
           );
 
-          toast.success("Task deleted successfully");
+          showToast({
+            title: "Task deleted successfully",
+            type: "success",
+          });
         } catch (err) {
           console.error(err);
-          toast.error("Failed to delete task");
+          showToast({
+            title: "Failed to delete task",
+            type: "error",
+          });
         }
       },
     });

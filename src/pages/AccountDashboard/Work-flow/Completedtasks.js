@@ -169,7 +169,7 @@ import { useParams } from "react-router-dom";
 
 import { accountTasksAPI } from "../../../services/api";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 
 // ✅ shadcn/ui imports
 import { Card, CardContent } from "../../../components/ui/card";
@@ -222,6 +222,7 @@ const isLightColor = (hex) => {
 };
 
 const Completedtasks = () => {
+  const {showToast} = useToastContext();
   const { accountId } = useParams();
 
   const [tasks, setTasks] = useState([]);
@@ -240,7 +241,10 @@ const Completedtasks = () => {
       setTasks(res.data.list || []);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch completed tasks");
+      showToast({
+        title: "Failed to fetch completed tasks",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -267,10 +271,16 @@ const Completedtasks = () => {
             prev.filter((task) => task.id !== taskId)
           );
 
-          toast.success("Task deleted successfully");
+          showToast({
+            title: "Task deleted successfully",
+            type: "success",
+          });
         } catch (err) {
           console.error(err);
-          toast.error("Failed to delete task");
+          showToast({
+            title: "Failed to delete task",
+            type: "error",
+          });
         }
       },
     });

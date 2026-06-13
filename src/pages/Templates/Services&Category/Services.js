@@ -477,7 +477,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
-import { toast } from 'react-toastify';
+import {useToastContext} from "../../../context/ToastContext"
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import { Switch } from '../../../components/ui/switch';
@@ -487,6 +487,7 @@ import { templateAPI } from '../../../services/api';
 import { useConfirm } from '../../../components/ConfirmDialogContext';
 const Service = () => {
   const confirm = useConfirm();
+  const {showToast} = useToastContext();
   // ================= STATE =================
   const [serviceDrawerOpen, setServiceDrawerOpen] = useState(false);
   const [serviceId, setServiceId] = useState(null);
@@ -516,7 +517,10 @@ const Service = () => {
       const res = await templateAPI.getAllCategories();
       setCategoryData(res.data.category || []);
     } catch (error) {
-      toast.error("Failed to fetch categories");
+      showToast({
+        title: "Failed to fetch categories",
+        type: "error",
+      });
     }
   };
 
@@ -527,7 +531,10 @@ const Service = () => {
       const res = await templateAPI.getAllServiceTemplates();
       setServiceTemplates(res.data.serviceTemplate || []);
     } catch (error) {
-      toast.error("Failed to fetch services");
+      showToast({
+        title: "Failed to fetch services",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -609,36 +616,57 @@ const Service = () => {
     try {
       if (serviceId) {
         await templateAPI.updateServiceTemplate(serviceId, data);
-        toast.success("Service updated successfully");
+        showToast({
+          title: "Service updated successfully",
+          type: "success",
+        });
       } else {
         await templateAPI.createServiceTemplate(data);
-        toast.success("Service created successfully");
+        showToast({
+          title: "Service created successfully",
+          type: "success",
+        });
       }
       fetchServices();
       closeServiceDrawer();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save service");
+      showToast({
+        title: "Failed to save service",
+        type: "error",
+      });
     }
   };
 
   // ================= SAVE CATEGORY =================
   const saveCategory = async () => {
-    if (!categoryName) return toast.error("Category name is required");
+    if (!categoryName) return showToast({
+      title: "Category name is required",
+      type: "error",
+    });
 
     const data = { categoryName };
 
     try {
       if (categoryId) {
         await templateAPI.updateCategory(categoryId, data);
-        toast.success("Category updated successfully");
+        showToast({
+          title: "Category updated successfully",
+          type: "success",
+        });
       } else {
         await templateAPI.createCategory(data);
-        toast.success("Category created successfully");
+        showToast({
+          title: "Category created successfully",
+          type: "success",
+        });
       }
       fetchCategories();
       closeCategoryDrawer();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save category");
+      showToast({
+        title: "Failed to save category",
+        type: "error",
+      });
     }
   };
 
@@ -717,11 +745,17 @@ const Service = () => {
       onConfirm: async () => {
         try {
           await templateAPI.deleteServiceTemplate(row.original._id);
-          toast.success("Service deleted successfully");
+          showToast({
+            title: "Service deleted successfully",
+            type: "success",
+          });
           fetchServices();
         } catch (error) {
           console.error(error);
-          toast.error("Failed to delete service");
+          showToast({
+            title: "Failed to delete service",
+            type: "error",
+          });
         }
       },
     });

@@ -291,7 +291,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "../../../components/ui/form";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -310,7 +310,7 @@ const FolderTemplateList = () => {
   const [error, setError] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
-
+const {showToast} = useToastContext();
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -361,7 +361,11 @@ const FolderTemplateList = () => {
         newName: templatename,
       });
 
-      toast.success("Template Renamed successfully");
+      showToast({
+        title: "Template Renamed successfully",
+        type: "success",
+        description: "The template has been renamed."
+      });
       setTemplates((prev) =>
         prev.map((t) =>
           t._id === selectedTemplate._id ? { ...t, templatename } : t
@@ -372,7 +376,11 @@ const FolderTemplateList = () => {
       setSelectedTemplate(null);
     } catch (error) {
       console.error("Error renaming template:", error);
-      toast.error("Failed to rename template");
+      showToast({
+        title: "Failed to rename template",
+        type: "error",
+        description: "An error occurred while renaming the template"
+      });
     }
   };
 
@@ -387,7 +395,11 @@ const FolderTemplateList = () => {
     try {
       await folderManagementAPI.deleteFolderTemplate(selectedTemplate._id);
 
-      toast.success("Template Deleted successfully");
+      showToast({
+        title: "Template Deleted successfully",
+        type: "success",
+        description: "The template has been deleted."
+      });
       setTemplates((prev) =>
         prev.filter((t) => t._id !== selectedTemplate._id)
       );
@@ -396,7 +408,11 @@ const FolderTemplateList = () => {
       setSelectedTemplate(null);
     } catch (error) {
       console.error("Error deleting template:", error);
-      toast.error("Failed to delete template");
+      showToast({
+        title: "Failed to delete template",
+        type: "error",
+        description: "An error occurred while deleting the template"
+      });
     }
   };
 

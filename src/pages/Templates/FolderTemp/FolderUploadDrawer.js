@@ -285,7 +285,7 @@
 
 
 import React, { useState, useEffect, useRef } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import JSZip from "jszip";
 import { docAPI } from "../../../services/api";
 import { 
@@ -312,6 +312,7 @@ const FolderUploadDrawer = ({
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState(0);
   const hiddenFileInput = useRef(null);
+  const {showToast} = useToastContext();
 
   const handleClick = () => {
     hiddenFileInput.current.click();
@@ -345,7 +346,11 @@ const FolderUploadDrawer = ({
 
   const handleUpload = async () => {
     if (!files.length) {
-      toast.error("Please select a folder first!");
+      showToast({
+        title: "No files selected",
+        type: "error",
+        description: "Please select a folder first!"
+      });
       return;
     }
 
@@ -379,7 +384,11 @@ const FolderUploadDrawer = ({
       const res = await docAPI.uploadFolderZip(formData, targetFolderPath);
       setProgress(100);
       setMessage(res.data.message || "Uploaded successfully!");
-      toast.success(res.data.message || "Folder uploaded successfully!");
+      showToast({
+        title: "Folder uploaded successfully",
+        type: "success",
+        description: res.data.message || "Folder uploaded successfully!"
+      });
       setTimeout(() => {
         onClose();
         fetchFolderTree();
@@ -387,7 +396,11 @@ const FolderUploadDrawer = ({
     } catch (err) {
       console.error(err);
       setMessage("Upload failed!");
-      toast.error("Upload failed!");
+      showToast({
+        title: "Upload failed",
+        type: "error",
+        description: "An error occurred while uploading the folder"
+      });
       setProgress(0);
     }
   };

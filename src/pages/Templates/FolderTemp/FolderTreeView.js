@@ -704,10 +704,12 @@ import {
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
 import { docAPI } from "../../../services/api";
+import { useToastContext } from '../../../context/ToastContext';
 
 const FolderTreeView = () => {
   const { templateId } = useParams();
   const location = useLocation();
+  const {showToast} = useToastContext();
   const templateName = location.state?.templateName || "Unknown Template";
   const navigate = useNavigate();
   const decodedTemplateId = decodeURIComponent(templateId);
@@ -806,11 +808,19 @@ const FolderTreeView = () => {
       };
 
       const res = await docAPI.updateStatus(body);
-      alert(res.data.message || "Status updated successfully");
+      showToast({
+        title: "Status updated successfully",
+        type: "success",
+        description: res.data.message || "Status updated successfully"
+      });
       fetchFolderTree(templateId);
     } catch (err) {
       console.error(err);
-      alert("Error updating status");
+      showToast({
+        title: "Error updating status",
+        type: "error",
+        description: "An error occurred while updating the status"
+      });
     }
   };
 

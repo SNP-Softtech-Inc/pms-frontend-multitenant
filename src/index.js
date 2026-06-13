@@ -5,7 +5,8 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "sonner";
+import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter } from "react-router-dom";
 import { ConfirmProvider } from "./components/ConfirmDialogContext";
@@ -33,22 +34,19 @@ root.render(
         <CssBaseline />
         <BrowserRouter basename="/admin">
           <AuthProvider>
+             <ToastProvider>
              <ConfirmProvider>
             <App />
             {/* <ToastContainer position="top-right" autoClose={3000} /> */}
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="light"
-            />
+             <Toaster
+                    position="top-right"
+                    richColors
+                    closeButton
+                    duration={3000}
+                    theme="light"
+                  />
             </ConfirmProvider>
+            </ToastProvider>
           </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>

@@ -231,7 +231,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { useToastContext } from '../../../context/ToastContext';
 import { docAPI } from "../../../services/api";
 import { 
   FolderInput, 
@@ -256,7 +256,7 @@ const MoveDrawer = ({
   const [sourcePath, setSourcePath] = useState("");
   const [message, setMessage] = useState("");
   const [isMoving, setIsMoving] = useState(false);
-
+const {showToast} = useToastContext();
   useEffect(() => {
     if (isOpen && selectedFolderForMenu) {
       setSourcePath(selectedFolderForMenu.path);
@@ -275,14 +275,22 @@ const MoveDrawer = ({
 
       if (!sourcePath || !destinationPath) {
         setMessage("Please select both source and destination paths.");
-        toast.error("Please select both source and destination paths.");
+        showToast({
+          title: "Invalid paths",
+          type: "error",
+          description: "Please select both source and destination paths."
+        });
         setIsMoving(false);
         return;
       }
 
       if (sourcePath === destinationPath) {
         setMessage("Source and destination paths cannot be the same.");
-        toast.error("Source and destination paths cannot be the same.");
+        showToast({
+          title: "Invalid paths",
+          type: "error",
+          description: "Source and destination paths cannot be the same."
+        });
         setIsMoving(false);
         return;
       }
@@ -295,7 +303,11 @@ const MoveDrawer = ({
       const successMsg = res.data.message || "Moved successfully";
 
       setMessage(successMsg);
-      toast.success(successMsg);
+      showToast({
+        title: "Item moved successfully",
+        type: "success",
+        description: successMsg
+      });
 
       setTimeout(() => {
         onClose();
@@ -306,7 +318,16 @@ const MoveDrawer = ({
 
       const errorMsg = err.response?.data?.error || "Move failed";
       setMessage(errorMsg);
-      toast.error(errorMsg);
+      showToast({
+        title: "Move failed",
+        type: "error",
+        description: errorMsg
+      });
+      // showToast({
+      //   title: "Move failed",
+      //   type: "error",
+      //   description: errorMsg
+      // });
     } finally {
       setIsMoving(false);
     }

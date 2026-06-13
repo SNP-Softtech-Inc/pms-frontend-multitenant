@@ -2213,7 +2213,7 @@
 // export default AccountOrganizer;
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../../context/ToastContext";
 import { format } from "date-fns";
 
 import { organizerAPI, accountsAPI } from "../../../services/api";
@@ -2265,7 +2265,7 @@ import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 const AccountOrganizer = () => {
   const { accountId } = useParams();
-
+const { showToast } = useToastContext();
   const [organizerTemplate, setOrganizerTemplate] = useState([]);
   const [selectedOrganizerTemplate, setSelectedOrganizerTemplate] =
     useState("");
@@ -2288,7 +2288,10 @@ const AccountOrganizer = () => {
       setOrganizerTemplate(result.data.OrganizerTemplates || []);
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast.error("Failed to fetch organizer templates");
+      showToast({
+        title: "Failed to fetch organizer templates",
+        type: "error",
+      });
     }
   };
 
@@ -2324,7 +2327,10 @@ const AccountOrganizer = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Failed to fetch accounts");
+      showToast({
+        title: "Failed to fetch accounts",
+        type: "error",
+      });
     }
   };
 
@@ -2354,7 +2360,10 @@ const AccountOrganizer = () => {
       setOrganizerName(result.data.organizerTemplate.organizerName);
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast.error("Failed to fetch organizer template details");
+      showToast({
+        title: "Failed to fetch organizer template details",
+        type: "error",
+      });
     }
   };
 
@@ -2749,12 +2758,18 @@ const AccountOrganizer = () => {
       setShowOrganizerForm(true);
       setSelectedOrganizerTemplate(selectedOrganizerTemplate);
       console.log(selectedOrganizerTemplate);
-      toast.success("New organizer created successfully");
+      showToast({
+        title: "New organizer created successfully",
+        type: "success",
+      });
 
       navigate(`/clients/accounts/accountsdash/organizers/${accountId}`);
     } catch (error) {
       console.error("Error creating organizer:", error);
-      toast.error("Failed to create organizer");
+      showToast({
+        title: "Failed to create organizer",
+        type: "error",
+      });
     }
   };
 

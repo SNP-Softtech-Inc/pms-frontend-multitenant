@@ -380,7 +380,7 @@ import {
   Lock
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../../context/ToastContext";
 import { accountDocsAPI } from "../../../../services/api";
 
 const MoveDrawer = ({
@@ -398,7 +398,7 @@ const MoveDrawer = ({
   const [sourcePaths, setSourcePaths] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
+const {showToast} = useToastContext();
   useEffect(() => {
     if (isOpen) {
       if (isBulkOperation && selectedPaths.length > 0) {
@@ -423,13 +423,19 @@ const MoveDrawer = ({
 
       if (sourcePaths.length === 0) {
         setMessage("No source items selected.");
-        toast.warning("No items selected");
+        showToast({
+          title: "No items selected",
+          type: "warning",
+        });
         return;
       }
 
       if (!destinationPath) {
         setMessage("Please select a destination folder.");
-        toast.warning("Select destination folder");
+        showToast({
+          title: "Select destination folder",
+          type: "warning",
+        });
         return;
       }
 
@@ -454,7 +460,10 @@ const MoveDrawer = ({
       const successMsg = res?.data?.message || "Moved successfully";
 
       setMessage(successMsg);
-      toast.success(successMsg);
+      showToast({
+        title: successMsg,
+        type: "success",
+      });
 
       // callback for parent (important for bulk UI refresh)
       if (onMoveComplete && typeof onMoveComplete === "function") {
@@ -472,7 +481,10 @@ const MoveDrawer = ({
         "Move failed";
 
       setMessage(errorMessage);
-      toast.error(errorMessage);
+      showToast({
+        title: errorMessage,
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"; // ✅ adjust path
 import { accountsAPI } from "../../services/api"; // ✅ adjust path
 
 const ProfilePictureUpload = ({
@@ -18,7 +18,7 @@ const ProfilePictureUpload = ({
 }) => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
-
+const { showToast } = useToastContext(); // ✅ get showToast from context
   const [isUploading, setIsUploading] = useState(false);
 const ACCOUNT_URL = process.env.REACT_APP_ACCOUNT_CONTACT ;
   // ✅ Handle preview update
@@ -48,7 +48,10 @@ const ACCOUNT_URL = process.env.REACT_APP_ACCOUNT_CONTACT ;
   // ✅ Upload using accountsAPI
   const handleUpload = async () => {
     if (!image) {
-      toast.warning("Please select an image first");
+      showToast({
+        title: "Please select an image first",
+        type: "warning",
+      });
       return;
     }
 
@@ -60,7 +63,10 @@ const ACCOUNT_URL = process.env.REACT_APP_ACCOUNT_CONTACT ;
 
       await accountsAPI.uploadProfilePicture(accountId, formData);
 
-      toast.success("Profile picture updated successfully");
+      showToast({
+        title: "Profile picture updated successfully",
+        type: "success",
+      });
 
       // Refresh parent data
       if (onUploadSuccess) {
@@ -70,9 +76,10 @@ const ACCOUNT_URL = process.env.REACT_APP_ACCOUNT_CONTACT ;
       setImage(null);
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(
-        error?.response?.data?.message || "Failed to upload profile picture"
-      );
+     showToast({
+        title: "Failed to upload profile picture",
+        type: "error",
+      });
     } finally {
       setIsUploading(false);
     }

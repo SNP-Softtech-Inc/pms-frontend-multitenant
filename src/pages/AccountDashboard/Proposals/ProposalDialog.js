@@ -593,7 +593,7 @@ import SignatureCanvas from "react-signature-canvas";
 import axios from "axios";
 import { X, CheckCircle2, ChevronDown } from "lucide-react";
 import HTMLReactParser from "html-react-parser";
-import { toast } from "react-toastify";
+
 
 const ProposalPreviewDialog = ({ open, handleClose, proposal }) => {
   const [activeStep, setActiveStep] = useState("general");

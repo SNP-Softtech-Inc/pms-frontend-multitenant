@@ -171,7 +171,7 @@
 
 import React, { useEffect, useState } from "react";
 import { authAPI } from "../../services/api";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import { X, Check, ChevronsUpDown } from "lucide-react";
 
 import {
@@ -192,7 +192,7 @@ const CreateGroupDrawer = ({ open, onClose, onSuccess, editData }) => {
   const [members, setMembers] = useState([]);
   const [leader, setLeader] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
-
+const {showToast}= useToastContext()
   const [leaderOpen, setLeaderOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
 
@@ -264,7 +264,12 @@ const CreateGroupDrawer = ({ open, onClose, onSuccess, editData }) => {
   const handleSubmit = async () => {
     try {
       if (!name || !leader) {
-        return toast.error("Group name and leader required");
+        showToast({
+          title: "Invalid input",
+          description: "Group name and leader are required.",
+          type: "error",
+        });
+        return;
       }
 
       const payload = {
@@ -275,16 +280,28 @@ const CreateGroupDrawer = ({ open, onClose, onSuccess, editData }) => {
 
       if (editData) {
         await authAPI.updateGroup(editData._id, payload);
-        toast.success("Group updated");
+        showToast({
+          title: "Group updated",
+          description: "Group updated successfully.",
+          type: "success",
+        });
       } else {
         await authAPI.createGroup(payload);
-        toast.success("Group created");
+        showToast({
+          title: "Group created",
+          description: "Group created successfully.",
+          type: "success",
+        });
       }
 
       onSuccess();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Error");
+      showToast({
+        title: "Failed to create group",
+        description: err.response?.data?.message || "Failed to create group.",
+        type: "error",
+      });
     }
   };
 

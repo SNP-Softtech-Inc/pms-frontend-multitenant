@@ -431,7 +431,7 @@ import React, { useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { accountsAPI, jobAPI } from "../../services/api";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { 
   ArrowLeft, 
   Plus, 
@@ -469,6 +469,7 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const { user,  } = useAuth();
+  const {showToast}=useToastContext()
 
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -499,7 +500,11 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
   const deleteMutation = useMutation({
     mutationFn: (jobId) => jobAPI.deleteJob(jobId),
     onSuccess: () => {
-      toast.success("Job deleted");
+      showToast({
+        title: "Job deleted",
+        description: "The job has been deleted successfully.",
+        type: "success",
+      });
       queryClient.invalidateQueries(["pipeline-jobs", isActive, pipeline._id]);
     },
   });
@@ -520,11 +525,19 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
     },
     onSuccess: (_, variables) => {
       const stageObj = pipeline.stages.find((s) => s._id === variables.stageId);
-      toast.success(`Moved to "${stageObj?.name}"`);
+      showToast({
+        title: "Job updated",
+        description: `Moved to "${stageObj?.name}"`,
+        type: "success",
+      });
     },
     onError: (_, __, context) => {
       queryClient.setQueryData(["pipeline-jobs", isActive, pipeline._id], context?.prevData);
-      toast.error("Failed to update");
+      showToast({
+        title: "Error",
+        description: "Failed to update job",
+        type: "error",
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries(["pipeline-jobs", isActive, pipeline._id]);

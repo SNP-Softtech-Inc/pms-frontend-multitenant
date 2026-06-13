@@ -418,7 +418,7 @@
 import React, { useEffect, useState } from "react";
 import Editor from "../../components/Editor";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
@@ -448,7 +448,7 @@ const NoteApp = () => {
   const { accountId } = useParams();
   const { user } = useAuth();
   const confirm = useConfirm();
-
+const {showToast} = useToastContext()
   const [view, setView] = useState("active");
   const [notes, setNotes] = useState([]);
 
@@ -498,7 +498,10 @@ const NoteApp = () => {
 
     try {
       await accountNoteAPI.createNote(payload);
-      toast.success("Note created");
+      showToast({
+        title: "Note created",
+        type: "success",
+      });
       setNewNoteText("");
       setNewNoteVisible(false);
       handleFetchNotesByAccId(accountId);
@@ -522,13 +525,19 @@ const NoteApp = () => {
   // ---------------- ARCHIVE ----------------
   const handleArchive = async (id) => {
     await accountNoteAPI.updateNote(id, { active: false });
-    toast.success("Archived");
+    showToast({
+      title: "Note archived",
+      type: "success",
+    });
     handleFetchNotesByAccId(accountId);
   };
 
   const handleUnarchive = async (id) => {
     await accountNoteAPI.updateNote(id, { active: true });
-    toast.success("Restored");
+    showToast({
+      title: "Note restored",
+      type: "success",
+    });
     handleFetchNotesByAccId(accountId);
   };
 
@@ -539,7 +548,10 @@ const NoteApp = () => {
       description: "This action cannot be undone.",
       onConfirm: async () => {
         await accountNoteAPI.deleteNote(id);
-        toast.success("Deleted");
+        showToast({
+          title: "Note deleted",
+          type: "success",
+        });
         handleFetchNotesByAccId(accountId);
       },
     });

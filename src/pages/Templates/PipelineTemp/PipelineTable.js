@@ -176,7 +176,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../../context/ToastContext";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { DataTable } from "../../../components/data-table/data-table";
@@ -195,7 +195,7 @@ const PipelineTable = () => {
   const [pipelineData, setPipelineData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
-
+const {showToast} = useToastContext();
   useEffect(() => {
     fetchPipelineData();
   }, []);
@@ -223,15 +223,21 @@ const PipelineTable = () => {
       onConfirm: async () => {
         try {
           await templateAPI.deletePipeline(id);
-          toast.success("Pipeline deleted successfully");
-          
+          showToast({
+            title: "Pipeline deleted successfully",
+            type: "success",
+            description: "The pipeline has been deleted successfully"
+          });
+
           // ✅ Optimistic UI update (better UX)
           setPipelineData((prev) => prev.filter((p) => p._id !== id));
         } catch (error) {
           console.error("Error deleting pipeline:", error);
-          toast.error(
-            error?.response?.data?.message || "Failed to delete pipeline"
-          );
+          showToast({
+            title: "Failed to delete pipeline",
+            type: "error",
+            description: error?.response?.data?.message || "An error occurred while deleting the pipeline"
+          });
         }
       },
     });

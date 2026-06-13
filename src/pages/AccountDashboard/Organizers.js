@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import { MoreHorizontal, Trash2, CheckSquare, Square } from "lucide-react";
 
 import { Button } from "../../components/ui/button";
@@ -48,7 +48,7 @@ const Organizers = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirm();
-
+const {showToast} = useToastContext()
   const [organizerTemplatesData, setOrganizerTemplatesData] = useState([]);
   const [activeButton, setActiveButton] = useState("active");
   const [isActiveTrue, setIsActiveTrue] = useState(true);
@@ -75,7 +75,10 @@ const Organizers = () => {
       console.log("organizer list by accountid", res.data.organizerAccountWise);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch organizers");
+      showToast({
+        title: "Failed to fetch organizers",
+        type: "error",
+      });
     }
   };
 
@@ -99,10 +102,16 @@ const Organizers = () => {
       await organizerAPI.updateOrganizerStatus(_id, {
         active: !isActive,
       });
-      toast.success("Updated successfully");
+      showToast({
+        title: "Updated successfully",
+        type: "success",
+      });
       fetchOrganizerTemplates();
     } catch {
-      toast.error("Failed to update");
+      showToast({
+        title: "Failed to update",
+        type: "error",
+      });
     }
   };
 
@@ -113,10 +122,16 @@ const Organizers = () => {
         issealed,
         ...(issealed === false && { status: "In Progress" }),
       });
-      toast.success("Updated successfully");
+      showToast({
+        title: "Updated successfully",
+        type: "success",
+      });
       fetchOrganizerTemplates();
     } catch {
-      toast.error("Failed");
+      showToast({
+        title: "Failed to update",
+        type: "error",
+      });
     }
   };
 
@@ -128,10 +143,16 @@ const Organizers = () => {
       onConfirm: async () => {
         try {
           await organizerAPI.deleteOrganizerAccountWise(_id);
-          toast.success("Deleted");
+          showToast({
+            title: "Organizer deleted",
+            type: "success",
+          });
           fetchOrganizerTemplates();
         } catch {
-          toast.error("Delete failed");
+          showToast({
+            title: "Failed to delete organizer",
+            type: "error",
+          });
         }
       },
     });
@@ -144,7 +165,10 @@ const handleBulkDelete = () => {
   const selectedIds = selectedRows.map((row) => row._id);
 
   if (selectedIds.length === 0) {
-    toast.warning("Select items first");
+    showToast({
+      title: "Select items first",
+      type: "warning",
+    });
     return;
   }
 
@@ -159,13 +183,19 @@ const handleBulkDelete = () => {
           )
         );
 
-        toast.success("Deleted");
+        showToast({
+          title: "Selected items deleted",
+          type: "success",
+        });
 
         setRowSelection({});
         fetchOrganizerTemplates();
       } catch (error) {
         console.log(error);
-        toast.error("Bulk delete failed");
+        showToast({
+          title: "Failed to delete selected items",
+          type: "error",
+        });
       }
     },
   });
@@ -187,9 +217,15 @@ const handleBulkDelete = () => {
         )
       );
 
-      toast.success("Renamed");
+      showToast({
+        title: "Renamed",
+        type: "success",
+      });
     } catch {
-      toast.error("Rename failed");
+      showToast({
+        title: "Rename failed",
+        type: "error",
+      });
     }
   };
 

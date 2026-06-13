@@ -27,7 +27,7 @@ import {
   CommandList,
 } from "../../components/ui/command";
 import { AiOutlinePlusCircle, AiOutlineDelete } from "react-icons/ai";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import { useQueryClient } from "@tanstack/react-query";
 import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 
@@ -35,7 +35,7 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
   const [phoneNumbers, setPhoneNumbers] = useState([]);
   const queryClient = useQueryClient();
   const [selectedCountry, setSelectedCountry] = useState(null);
-
+const { showToast } = useToastContext();
   // Individual state hooks for form fields
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -222,7 +222,10 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
     const hasPhone = phoneNumbers.some((p) => p.phone && p.phone.trim() !== "");
 
     if (!hasEmail && !hasPhone) {
-      toast.info("At least Email or Phone Number is required");
+      showToast({
+        title: "At least Email or Phone Number is required",
+        type: "info",
+      });
       // setEmaileError("Email or Phone Number is required");
       isValid = false;
     } else {
@@ -270,16 +273,25 @@ const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
           selectedContact._id,
           payload,
         );
-        toast.success("Contact updated successfully!");
+        showToast({
+          title: "Contact updated successfully!",
+          type: "success",
+        });
       } else {
         await contactsAPI.createContact(payload);
-        toast.success("Contact created successfully!");
+        showToast({
+          title: "Contact created successfully!",
+          type: "success",
+        });
       }
 
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
       onClose();
     } catch (error) {
-      toast.error("Something went wrong");
+      showToast({
+        title: "Something went wrong",
+        type: "error",
+      });
     }
   };
 

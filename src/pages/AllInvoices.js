@@ -5,7 +5,7 @@ import { invoiceAPI, accountsAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../components/ConfirmDialogContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import { useToastContext } from "../context/ToastContext";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import CreateInvoiceDrawer from "./AccountDashboard/Invoices/CreateInvoiceDrawer";
 
@@ -25,7 +25,7 @@ const InvoiceTable = () => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const navigate = useNavigate();
-
+const {showToast}= useToastContext()
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   const [filterStatus, setFilterStatus] = useState("active");
 
@@ -101,11 +101,20 @@ const filteredInvoices = useMemo(() => {
       await Promise.all(ids.map((id) => invoiceAPI.deleteInvoice(id)));
     },
     onSuccess: () => {
-      toast.success("Invoice(s) deleted successfully");
+     showToast({
+      title: "Invoice(s) deleted successfully",
+      description: "The selected invoices have been removed.",
+      type: "success",
+    });
+
       queryClient.invalidateQueries(["invoices"]);
       setSelectedInvoices([]);
     },
-    onError: () => toast.error("Delete failed"),
+    onError: () => showToast({
+      title: "Error",
+      description: "Failed to delete invoices",
+      type: "error",
+    }),
   });
 
   // ================= HANDLERS =================

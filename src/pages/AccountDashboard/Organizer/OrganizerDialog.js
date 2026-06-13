@@ -1015,7 +1015,7 @@ import { cn } from "../../../lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, X, ArrowLeft, ArrowRight } from "lucide-react";
 import { useState, useEffect, useCallback, useContext } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 import dayjs from "dayjs";
 import { debounce } from "lodash";
 
@@ -1024,6 +1024,7 @@ import { organizerAPI } from "../../../services/api";
 const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
   const sections = organizer?.sections;
   console.log("sections", sections);
+  const { showToast } = useToastContext();
   const [selectedDropdownValues, setSelectedDropdownValues] = useState({});
   const [inputValues, setInputValues] = useState({});
   const [selectedYesNoValues, setSelectedYesNoValues] = useState({});
@@ -1309,11 +1310,17 @@ const OrganizerDialog = ({ open, handleClose, organizer, accountid }) => {
         await organizerAPI.updateOrganizerAccountWise(organizer._id, data);
       }
 
-      toast.success("Organizer updated successfully");
+      showToast({
+        title: "Organizer updated successfully",
+        type: "success",
+      });
       handleClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update organizer");
+      showToast({
+        title: "Failed to update organizer",
+        type: "error",
+      });
     }
   };
 

@@ -1056,13 +1056,13 @@ import IntroductionStep from "./Steps/IntroductionStep";
 import TermsStep from "./Steps/TermsStep";
 import ServicesInvoicesStep from "./Steps/ServicesInvoicesStep";
 import PaymentStep from "./Steps/PaymentStep";
-import { toast } from "react-toastify";
+import {useToastContext} from '../../../context/ToastContext';
 import Cookies from "js-cookie";
 import { proposalAPI, accountsAPI } from "../../../services/api";
 
 const ProposalForm = () => {
   const { accountId } = useParams();
-
+const {showToast} = useToastContext();
   console.log("accountid", accountId);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -1675,11 +1675,17 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
       if (proposalId) {
         const res = await proposalAPI.updateAccountProposal(proposalId, submissionData);
         result = res.data;
-        toast.success("Proposal updated successfully!");
+        showToast({
+          title: "Proposal updated successfully!",
+          type: "success",
+        });
       } else {
         const res = await proposalAPI.createAccountProposal(submissionData);
         result = res.data;
-        toast.success("Proposal submitted successfully!");
+        showToast({
+          title: "Proposal submitted successfully!",
+          type: "success",
+        });
       }
 
       console.log(proposalId ? "Updated proposal:" : "Created proposal:", result);
@@ -1693,7 +1699,10 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
       console.error("Error:", error);
       const errorMessage = error?.response?.data?.message || error.message;
       setError("Error submitting proposal: " + errorMessage);
-      toast.error(errorMessage);
+      showToast({
+        title: "Error submitting proposal",
+        type: "error",
+      });
     }
   };
 

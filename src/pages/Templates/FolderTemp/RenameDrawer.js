@@ -109,7 +109,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+
 import { docAPI } from "../../../services/api";
 import { 
   PenLine, 
@@ -121,7 +121,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-
+import { useToastContext } from "../../../context/ToastContext";
 const RenameDrawer = ({
   isOpen,
   onClose,
@@ -134,7 +134,7 @@ const RenameDrawer = ({
   const [currentType, setCurrentType] = useState("");
   const [message, setMessage] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
-
+const {showToast} = useToastContext();
   useEffect(() => {
     if (isOpen && selectedFolderForMenu) {
       setCurrentPath(selectedFolderForMenu.path);
@@ -156,13 +156,21 @@ const RenameDrawer = ({
   const handleRename = async () => {
     if (!newName.trim()) {
       setMessage("New name is required!");
-      toast.error("New name is required!");
+      showToast({
+        title: "Invalid name",
+        type: "error",
+        description: "New name is required!"
+      });
       return;
     }
 
     if (newName.trim() === currentName) {
       setMessage("New name is the same as current name.");
-      toast.info("New name is the same as current name.");
+      showToast({
+        title: "Invalid name",
+        type: "error",
+        description: "New name is the same as current name."
+      });
       return;
     }
 
@@ -178,7 +186,11 @@ const RenameDrawer = ({
       const successMsg = res.data.message || "Renamed successfully";
 
       setMessage(`✓ ${successMsg}`);
-      toast.success(successMsg);
+      showToast({
+        title: "Item renamed successfully",
+        type: "success",
+        description: successMsg
+      });
 
       setTimeout(() => {
         onClose();
@@ -189,7 +201,11 @@ const RenameDrawer = ({
 
       const errorMsg = err.response?.data?.error || "Server Error";
       setMessage(`✗ ${errorMsg}`);
-      toast.error(errorMsg);
+      showToast({
+        title: "Rename failed",
+        type: "error",
+        description: errorMsg
+      });
     } finally {
       setIsRenaming(false);
     }

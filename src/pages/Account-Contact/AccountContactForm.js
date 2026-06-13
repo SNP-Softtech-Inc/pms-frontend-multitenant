@@ -6,7 +6,7 @@ import { Card,CardContent } from "../../components/ui/card";
 // import { Button } from "../../components/ui/button";
 import AccountForm from "./AccountForm";
 import ContactForm from "./ContactForm";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext"; // adjust path
 import { accountsAPI, contactsAPI,docAPI } from "../../services/api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,6 +26,7 @@ export default function AccountContactForm({
 }) {
   const [activeStep, setActiveStep] = useState(0);
   const queryClient = useQueryClient();
+  const {showToast} = useToastContext();
   const { accountData, contacts, selectedContacts } = useSelector(
     (state) => state.accountContact,
   );
@@ -228,7 +229,10 @@ const assignfoldertemp = async (accountId, foldertempId) => {
   if (event) event.preventDefault();
 
   if (!accountData.accountName?.trim()) {
-    toast.warning("Account Name is required");
+    showToast({
+      title: "Account Name is required",
+      type: "error",
+    });
     setActiveStep(0);
     return;
   }
@@ -237,7 +241,10 @@ const assignfoldertemp = async (accountId, foldertempId) => {
     accountData.clientType === "Company" &&
     !accountData.companyName?.trim()
   ) {
-    toast.warning("Company Name is required");
+    showToast({
+      title: "Company Name is required",
+      type: "error",
+    });
     setActiveStep(0);
     return;
   }
@@ -254,7 +261,10 @@ const assignfoldertemp = async (accountId, foldertempId) => {
     );
 
     if (duplicates.length > 0) {
-      toast.error(`Duplicate emails: ${duplicates.join(", ")}`);
+      showToast({
+        title: `Duplicate emails: ${duplicates.join(", ")}`,
+        type: "error",
+      });
       return;
     }
 
@@ -266,7 +276,10 @@ const assignfoldertemp = async (accountId, foldertempId) => {
         );
 
         if (res.data.exists) {
-          toast.error("Account name already exists");
+          showToast({
+            title: "Account name already exists",
+            type: "error",
+          });
           setActiveStep(0);
           return;
         }
@@ -304,7 +317,10 @@ const assignfoldertemp = async (accountId, foldertempId) => {
           });
         } catch (err) {
           if (err.response?.status === 409) {
-            toast.error(`Email ${contact.email} already exists`);
+            showToast({
+              title: `Email ${contact.email} already exists`,
+              type: "error",
+            });
             return;
           }
 
@@ -449,7 +465,10 @@ for (let contact of selectedContacts) {
       );
     }
 
-    toast.success("Account saved successfully!");
+    showToast({
+      title: "Account saved successfully!",
+      type: "success",
+    });
 
     // ===== REFRESH ACCOUNT TABLE =====
     queryClient.invalidateQueries({
@@ -460,7 +479,10 @@ for (let contact of selectedContacts) {
     if (handleDrawerClose) handleDrawerClose();
   } catch (err) {
     console.error(err);
-    toast.error("Something went wrong");
+    showToast({
+      title: "Something went wrong",
+      type: "error",
+    });
   }
 };
   const stepDescription = activeStep === 0

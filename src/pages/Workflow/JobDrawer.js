@@ -1083,7 +1083,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { templateAPI, jobAPI, accountsAPI } from "../../services/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import dayjs from "dayjs";
 import { X } from "lucide-react";
 
@@ -1132,7 +1132,7 @@ const JobDrawer = ({ open, onClose, fetchJobData, selectedPipeline }) => {
   console.log("selectedPipeline in JobDrawer:", selectedPipeline);
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
-  
+  const {showToast}= useToastContext();
   // States
   const [selectedaccount, setSelectedaccount] = useState([]);
   const [pipelines, setPipelines] = useState([]);
@@ -1239,7 +1239,10 @@ console.log("active pipeline",activePipeline)
       setPipelines(response.data.pipeline || []);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load pipelines");
+      showToast({
+        title: "Failed to load pipelines",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -1259,7 +1262,10 @@ console.log("active pipeline",activePipeline)
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load stages");
+      showToast({
+        title: "Failed to load stages",
+        type: "error",
+      });
     } finally {
       setStagesLoading(false);
     }
@@ -1280,7 +1286,10 @@ console.log("active pipeline",activePipeline)
       setClientFacingJobs(response.data.clientFacingJobStatues || []);
     } catch (error) {
       console.error("Error fetching client facing jobs:", error);
-      toast.error("Failed to fetch client facing jobs");
+      showToast({
+        title: "Failed to fetch client facing jobs",
+        type: "error",
+      });
     }
   };
 
@@ -1363,7 +1372,10 @@ console.log("active pipeline",activePipeline)
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load job template details");
+      showToast({
+        title: "Failed to load job template details",
+        type: "error",
+      });
     }
   };
 
@@ -1422,7 +1434,11 @@ console.log("active pipeline",activePipeline)
     mutationFn: (jobData) => jobAPI.createJob(jobData),
     onSuccess: (response) => {
       if (response?.data) {
-        toast.success("Job created successfully!");
+        showToast({
+          title: "Job created successfully",
+          
+          type: "success",
+        });
         queryClient.invalidateQueries(["jobs-all"]);
         handleClose();
         resetForm();
@@ -1430,28 +1446,47 @@ console.log("active pipeline",activePipeline)
     },
     onError: (error) => {
       console.error("Failed to create job:", error);
-      toast.error(error.response?.data?.message || "Failed to create job");
+      showToast({
+        title: "Failed to create job",
+        type: "error",
+      });
     },
   });
 
   const handleSaveJob = async () => {
     if (!activePipeline) {
-      toast.error("Please select a pipeline");
+      showToast({
+        title: "Please select a pipeline",
+        description: "A pipeline must be selected to create a job",
+        type: "error",
+      });
       return;
     }
 
     if (!selectedStage) {
-      toast.error("Please select a stage");
+      showToast({
+        title: "Please select a stage",
+        description:"Select the stage",
+        type: "error",
+      });
       return;
     }
 
     if (!jobName.trim()) {
-      toast.error("Please enter a job name");
+      showToast({
+        title: "Please enter a job name",
+        description: "Job name cannot be empty",
+        type: "error",
+      });
       return;
     }
 
     if (selectedaccount.length === 0) {
-      toast.error("Please select at least one account");
+      showToast({
+        title: "Please select at least one account",
+        description: "At least one account must be selected to create a job",
+        type: "error",
+      });
       return;
     }
 
@@ -1514,7 +1549,11 @@ console.log("stages for the job drawer",stages)
       createJobMutation.mutate(jobData);
     } catch (error) {
       console.error("Failed to create job:", error);
-      toast.error(error.response?.data?.message || "Failed to create job");
+      showToast({
+        title: "Failed to create job",
+        description: error.response?.data?.message || "Failed to create job",
+        type: "error",
+      });
     } finally {
       setIsSaving(false);
     }

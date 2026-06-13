@@ -332,7 +332,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import JSZip from "jszip";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../../context/ToastContext";
 import { Button } from "../../../../components/ui/button";
 import { 
   Folder, 
@@ -366,7 +366,7 @@ const FolderUploadDrawer = ({
   const [folderName, setFolderName] = useState("my-uploaded-folder");
   const [files, setFiles] = useState([]);
   const hiddenFileInput = useRef(null);
-
+const {showToast} = useToastContext();
   const handleClick = () => {
     hiddenFileInput.current.click();
   };
@@ -398,12 +398,18 @@ const FolderUploadDrawer = ({
 
   const handleUpload = async () => {
     if (!files.length) {
-      toast.error("Please select a folder first!");
+      showToast({
+        title: "Please select a folder first!",
+        type: "error",
+      });
       return;
     }
 
     if (!selectedFolder || selectedFolder.trim() === "") {
-      toast.error("Please select target path first!");
+      showToast({
+        title: "Please select target path first!",
+        type: "error",
+      });
       return;
     }
 
@@ -436,14 +442,20 @@ const FolderUploadDrawer = ({
       const successMsg = res?.data?.message || "Uploaded successfully!";
 
       setMessage(successMsg);
-      toast.success("Folder uploaded successfully");
+      showToast({
+        title: "Folder uploaded successfully",
+        type: "success",
+      });
 
       await fetchFolderTree();
       onClose();
     } catch (err) {
       console.error(err);
       const errorMsg = err?.response?.data?.error || "Upload failed!";
-      toast.error(errorMsg);
+      showToast({
+        title: errorMsg,
+        type: "error",
+      });
       setMessage(`❌ ${errorMsg}`);
     }
   };

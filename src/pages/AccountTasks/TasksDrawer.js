@@ -596,7 +596,7 @@ import {
 } from "../../services/api";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { X } from "lucide-react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import {
   Popover,
   PopoverContent,
@@ -625,7 +625,7 @@ import dayjs from "dayjs";
 import SingleSelectDropdown from "../../components/SingleSelectDropdown";
 const TasksDrawer = ({ open, onClose }) => {
   const { user } = useAuth();
-
+const { showToast } = useToastContext();
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
 
@@ -784,7 +784,10 @@ console.log("gets task details by task id",template)
     );
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load job template details");
+      showToast({
+        title: "Failed to load job template details",
+        type: "error",
+      });
     }
   };
 
@@ -810,12 +813,18 @@ console.log("gets task details by task id",template)
   const handleCreateTask = async () => {
     try {
       if (!selectedAccount?.value) {
-        toast.error("Please select account");
+        showToast({
+          title: "Please select account",
+          type: "error",
+        });
         return;
       }
 
       if (!templatename) {
-        toast.error("Please enter task name");
+        showToast({
+          title: "Please enter task name",
+          type: "error",
+        });
         return;
       }
 
@@ -852,7 +861,10 @@ console.log("gets task details by task id",template)
 
       setSaving(false);
 
-      toast.success("Task created successfully 🎉");
+      showToast({
+        title: "Task created successfully 🎉",
+        type: "success",
+      });
 
       resetForm();
 
@@ -860,7 +872,10 @@ console.log("gets task details by task id",template)
     } catch (error) {
       console.error(error);
       setSaving(false);
-      toast.error("Failed to create task");
+      showToast({
+        title: "Failed to create task",
+        type: "error",
+      });
     }
   };
 

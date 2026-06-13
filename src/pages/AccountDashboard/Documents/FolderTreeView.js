@@ -2106,7 +2106,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext"
 
 // shadcn/ui imports
 import { Button } from "../../../components/ui/button";
@@ -2163,6 +2163,7 @@ import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 export const FolderTreeView = ({ accountId }) => {
   const confirm = useConfirm();
+  const { showToast } = useToastContext();
   const [clientEmail, setClientEmail] = useState("");
   const [expandedFolders, setExpandedFolders] = useState({});
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
@@ -2401,13 +2402,22 @@ export const FolderTreeView = ({ accountId }) => {
           });
         }
         handleMenuClose();
-        toast.success(res.data.message || "Updated successfully");
+        showToast({
+          title: res.data.message || "Updated successfully",
+          type: "success",
+        });
       } else {
-        toast.error("Error: " + (res.data.error || "Failed to update"));
+        showToast({
+          title: "Error: " + (res.data.error || "Failed to update"),
+          type: "error",
+        });
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update read-only status");
+      showToast({
+        title: "Failed to update read-only status",
+        type: "error",
+      });
     }
   };
 
@@ -2425,16 +2435,25 @@ export const FolderTreeView = ({ accountId }) => {
           });
 
           if (response.data?.success) {
-            toast.success(response.data.message || "Moved to trash");
+            showToast({
+              title: response.data.message || "Moved to trash",
+              type: "success",
+            });
             setTimeout(() => {
               fetchFolderTree();
             }, 500);
           } else {
-            toast.error(response.data?.message || "Failed to move to trash");
+            showToast({
+              title: response.data?.message || "Failed to move to trash",
+              type: "error",
+            });
           }
         } catch (err) {
           console.error("Error trashing item:", err);
-          toast.error("Error moving item to trash");
+          showToast({
+            title: "Error moving item to trash",
+            type: "error",
+          });
         }
 
         handleMenuClose();
@@ -2445,7 +2464,10 @@ export const FolderTreeView = ({ accountId }) => {
   // Bulk trash - Using accountDocsAPI
   const handleBulkTrash = async () => {
     if (selectedItems.size === 0) {
-      toast.warning("Please select items to move to trash");
+      showToast({
+        title: "Please select items to move to trash",
+        type: "warning",
+      });
       return;
     }
 
@@ -2463,20 +2485,30 @@ export const FolderTreeView = ({ accountId }) => {
       });
 
       if (response.data?.success) {
-        toast.success(
-          `${response.data.trashedItems?.length || selectedItems.size} item(s) moved to trash successfully`,
-        );
+        showToast({
+          title: `${response.data.trashedItems?.length || selectedItems.size} item(s) moved to trash successfully`,
+          type: "success",
+        });
         if (response.data.failedItems?.length > 0) {
-          toast.warning(`${response.data.failedItems.length} item(s) failed`);
+          showToast({
+            title: `${response.data.failedItems.length} item(s) failed`,
+            type: "warning",
+          });
         }
         setSelectedItems(new Set());
         fetchFolderTree();
       } else {
-        toast.error(response.data?.message || "Failed to trash items");
+        showToast({
+          title: response.data?.message || "Failed to trash items",
+          type: "error",
+        });
       }
     } catch (err) {
       console.error("Bulk trash error:", err);
-      toast.error("Error moving items to trash: " + err.message);
+      showToast({
+        title: "Error moving items to trash: " + err.message,
+        type: "error",
+      });
     } finally {
       setBulkOperationLoading(false);
     }
@@ -2485,7 +2517,10 @@ export const FolderTreeView = ({ accountId }) => {
   // Bulk delete - Using accountDocsAPI
   const handleBulkDelete = async () => {
     if (selectedItems.size === 0) {
-      toast.warning("Please select items to delete");
+      showToast({
+        title: "Please select items to delete",
+        type: "warning",
+      });
       return;
     }
 
@@ -2500,22 +2535,30 @@ export const FolderTreeView = ({ accountId }) => {
       const response = await accountDocsAPI.bulkDeleteItems({ paths });
 
       if (response.data?.success) {
-        toast.success(
-          `${response.data.summary?.success || selectedItems.size} item(s) deleted successfully`,
-        );
+        showToast({
+          title: `${response.data.summary?.success || selectedItems.size} item(s) deleted successfully`,
+          type: "success",
+        });
         if (response.data.errors?.length > 0) {
-          toast.warning(
-            `${response.data.errors.length} item(s) failed to delete`,
-          );
+          showToast({
+            title: `${response.data.errors.length} item(s) failed to delete`,
+            type: "warning",
+          });
         }
         setSelectedItems(new Set());
         fetchFolderTree();
       } else {
-        toast.error(response.data?.message || "Failed to delete items");
+        showToast({
+          title: response.data?.message || "Failed to delete items",
+          type: "error",
+        });
       }
     } catch (err) {
       console.error("Bulk delete error:", err);
-      toast.error("Error deleting items: " + err.message);
+      showToast({
+        title: "Error deleting items: " + err.message,
+        type: "error",
+      });
     } finally {
       setBulkOperationLoading(false);
     }
@@ -2524,7 +2567,10 @@ export const FolderTreeView = ({ accountId }) => {
   // Bulk lock/unlock - Using accountDocsAPI
   const handleBulkLock = async (lockStatus) => {
     if (selectedItems.size === 0) {
-      toast.warning("Please select items to lock/unlock");
+      showToast({
+        title: "Please select items to lock/unlock",
+        type: "warning",
+      });
       return;
     }
 
@@ -2537,18 +2583,25 @@ export const FolderTreeView = ({ accountId }) => {
       });
 
       if (response.data?.success) {
-        toast.success(
-          `${response.data.summary?.success || selectedItems.size} item(s) ${lockStatus === "lock" ? "locked" : "unlocked"} successfully`,
-        );
+        showToast({
+          title: `${response.data.summary?.success || selectedItems.size} item(s) ${lockStatus === "lock" ? "locked" : "unlocked"} successfully`,
+          type: "success",
+        });
         setSelectedItems(new Set());
         fetchFolderTree();
         setBulkLockDialogOpen(false);
       } else {
-        toast.error(response.data?.message || `Failed to ${lockStatus} items`);
+        showToast({
+          title: response.data?.message || `Failed to ${lockStatus} items`,
+          type: "error",
+        });
       }
     } catch (err) {
       console.error("Bulk lock error:", err);
-      toast.error(`Error ${lockStatus}ing items`);
+      showToast({
+        title: `Error ${lockStatus}ing items`,
+        type: "error",
+      });
     } finally {
       setBulkOperationLoading(false);
     }
@@ -2557,7 +2610,10 @@ export const FolderTreeView = ({ accountId }) => {
   // Bulk download - Using accountDocsAPI
   const handleBulkDownload = async () => {
     if (selectedItems.size === 0) {
-      toast.warning("Please select items to download");
+      showToast({
+        title: "Please select items to download",
+        type: "warning",
+      });
       return;
     }
 
@@ -2575,10 +2631,16 @@ export const FolderTreeView = ({ accountId }) => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Download started");
+      showToast({
+        title: "Download started",
+        type: "success",
+      });
     } catch (err) {
       console.error("Bulk download error:", err);
-      toast.error("Failed to download items");
+      showToast({
+        title: "Failed to download items",
+        type: "error",
+      });
     } finally {
       setBulkOperationLoading(false);
     }
@@ -2741,7 +2803,10 @@ export const FolderTreeView = ({ accountId }) => {
 
     if (isLocked) {
       if (!invoiceIds.length) {
-        toast.error("No invoice mapped!");
+        showToast({
+          title: "No invoice mapped!",
+          type: "error",
+        });
         return;
       }
 
@@ -2751,10 +2816,16 @@ export const FolderTreeView = ({ accountId }) => {
           invoiceIds,
           action: "unlock",
         });
-        toast.success("Invoice unlocked");
+        showToast({
+          title: "Invoice unlocked",
+          type: "success",
+        });
         fetchFolderTree();
       } catch (err) {
-        toast.error("Unlock failed");
+        showToast({
+          title: "Unlock failed",
+          type: "error",
+        });
       }
       return;
     }
@@ -2764,7 +2835,10 @@ export const FolderTreeView = ({ accountId }) => {
       const pendingInvoices = res.data?.invoice || [];
 
       if (pendingInvoices.length === 0) {
-        toast.info("No pending invoices available");
+        showToast({
+          title: "No pending invoices available",
+          type: "info",
+        });
         return;
       }
 
@@ -2772,14 +2846,20 @@ export const FolderTreeView = ({ accountId }) => {
       setSelectedDoc(item);
       setInvoiceDialogOpen(true);
     } catch (error) {
-      toast.error("Failed to fetch invoices");
+      showToast({
+        title: "Failed to fetch invoices",
+        type: "error",
+      });
       console.error(error);
     }
   };
 
   const handleSubmit = () => {
     if (selectedInvoices.length === 0) {
-      toast.warning("Select at least one invoice");
+      showToast({
+        title: "Select at least one invoice",
+        type: "warning",
+      });
       return;
     }
     confirmInvoiceLock(selectedInvoices);
@@ -2792,11 +2872,17 @@ export const FolderTreeView = ({ accountId }) => {
         invoiceIds,
         action: "lock",
       });
-      toast.success("Invoice locked successfully");
+      showToast({
+        title: "Invoice locked successfully",
+        type: "success",
+      });
       setInvoiceDialogOpen(false);
       fetchFolderTree();
     } catch (err) {
-      toast.error("Lock failed");
+      showToast({
+        title: "Lock failed",
+        type: "error",
+      });
       console.log(err);
     }
   };

@@ -10,12 +10,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { useParams } from "react-router-dom";
 import { jobAPI } from "../../../services/api";
-import { toast } from "react-toastify";
+import {useToastContext} from '../../../context/ToastContext';
 const ActiveJobsList = () => {
   const { accountId } = useParams(); // ✅ HERE
   console.log("accountid for the atcive job,",accountId)
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const {showToast} = useToastContext();
 
   const [selected, setSelected] = useState([]);
 
@@ -63,7 +64,10 @@ const ActiveJobsList = () => {
     await Promise.all(ids.map((id) => jobAPI.deleteJob(id)));
   },
   onSuccess: () => {
-    toast.success("Job(s) deleted successfully 🗑️");
+    showToast({
+      title: "Job(s) deleted successfully 🗑️",
+      type: "success",
+    });
 
     queryClient.invalidateQueries({
       queryKey: ["jobs-by-account", accountId],
@@ -72,7 +76,10 @@ const ActiveJobsList = () => {
     setSelected([]);
   },
   onError: (error) => {
-    toast.error(error?.message || "Failed to delete job ❌");
+    showToast({
+      title: "Failed to delete job ❌",
+      type: "error",
+    });
   },
 });
 
@@ -93,7 +100,10 @@ const archiveMutation = useMutation({
     await jobAPI.updateJob(id, { active: false });
   },
   onSuccess: () => {
-    toast.success("Job archived successfully 📦");
+    showToast({
+      title: "Job archived successfully 📦",
+      type: "success",
+    });
 
     queryClient.invalidateQueries({
       queryKey: ["jobs-by-account", accountId],
@@ -101,7 +111,10 @@ const archiveMutation = useMutation({
     });
   },
   onError: (error) => {
-    toast.error(error?.message || "Failed to archive job ❌");
+    showToast({
+      title: "Failed to archive job ❌",
+      type: "error",
+    });
   },
 });
   const handleSelect = (id) => {

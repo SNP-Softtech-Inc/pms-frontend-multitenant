@@ -653,7 +653,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 import dayjs from "dayjs";
 import { X, ChevronDown, Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -694,7 +694,7 @@ import ShortcodeTextField from "../../components/ShortcodeTextField";
 
 const EditJobDrawer = ({ open, onClose, jobId }) => {
   const queryClient = useQueryClient();
-
+const { showToast } = useToastContext();
   // ================= STATE =================
   const [jobName, setJobName] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
@@ -855,7 +855,10 @@ const EditJobDrawer = ({ open, onClose, jobId }) => {
       setClientFacingJobs(response.data.clientFacingJobStatues || []);
     } catch (error) {
       console.error("Error fetching client facing jobs:", error);
-      toast.error("Failed to fetch client facing jobs");
+      showToast({
+        title: "Failed to fetch client facing jobs",
+        type: "error",
+      });
     }
   };
 
@@ -992,14 +995,20 @@ const EditJobDrawer = ({ open, onClose, jobId }) => {
         });
       }
 
-      toast.success("Job updated successfully");
+      showToast({
+        title: "Job updated successfully",
+        type: "success",
+      });
       queryClient.invalidateQueries(["jobs-all"]);
       queryClient.invalidateQueries(["accounts-all"]);
 
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("Update failed");
+      showToast({
+        title: "Update failed",
+        type: "error",
+      });
     }
   };
 

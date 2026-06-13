@@ -667,7 +667,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import StagesSection from "./StagesSection";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext"
 import MultiSelectDropdown from "../../../components/MultiSelectDropdown";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "../../../components/ui/form";
@@ -719,7 +719,7 @@ const PipelineForm = () => {
   const [sortbyjobs, setSortbyJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedSortByJob, setSelectedSortByJob] = useState(null);
-
+const { showToast } = useToastContext();
   useEffect(() => {
     fetchSortByJob();
   }, []);
@@ -916,7 +916,12 @@ const PipelineForm = () => {
       }
     } catch (error) {
       console.error("Error fetching pipeline data:", error);
-      toast.error("Failed to load pipeline data");
+      // toast.error("Failed to load pipeline data");
+      showToast({
+            title: "failed to load",
+            type: "error",
+            description: error?.response?.data?.message || "An error occurred while deleting the pipeline"
+          });
     } finally {
       setLoading(false);
     }
@@ -924,7 +929,10 @@ const PipelineForm = () => {
 
   const handleSavePipeline = async (formValues, exitAfterSave = false) => {
     if (stages.length < 2) {
-      toast.error("Please add at least 2 stages");
+      showToast({
+        title: "Please add at least 2 stages",
+        type: "error",
+      });
       return;
     }
 
@@ -933,7 +941,10 @@ const PipelineForm = () => {
     );
     if (stageErrors.some((e) => e !== "")) {
       setStageNameErrors(stageErrors);
-      toast.error(`${stageErrors.filter((e) => e !== "").length} stage name(s) are required`);
+      showToast({
+        title: `${stageErrors.filter((e) => e !== "").length} stage name(s) are required`,
+        type: "error",
+      });
       return;
     }
 
@@ -1006,22 +1017,101 @@ const PipelineForm = () => {
       }
 
       const successMessage = isEditMode || pipelineId ? "updated" : "created";
-      toast.success(`Pipeline ${successMessage} successfully!`);
+      showToast({
+        title: `Pipeline ${successMessage} successfully!`,
+        type: "success",
+      });
 
       if (exitAfterSave) {
         navigate("/firmtemp/pipelines");
       }
     } catch (error) {
       console.error("Error saving pipeline:", error);
-      toast.error(
-        error?.response?.data?.message ||
-        `Failed to ${isEditMode ? "update" : "save"} pipeline. Please try again.`
-      );
+      showToast({
+        title:
+          error?.response?.data?.message ||
+          `Failed to ${isEditMode ? "update" : "save"} pipeline. Please try again.`,
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
+// const handleSavePipeline = async (formValues, exitAfterSave = false) => {
+//   if (stages.length < 2) {
+//     showToast({
+//       title: "Please add at least 2 stages",
+//       type: "error",
+//     });
+//     return;
+//   }
 
+//   const stageErrors = stages.map((stage, i) =>
+//     !stage.name.trim() ? `Stage ${i + 1} name is required` : ""
+//   );
+
+//   if (stageErrors.some((e) => e !== "")) {
+//     setStageNameErrors(stageErrors);
+
+//     showToast({
+//       title: `${stageErrors.filter((e) => e !== "").length} stage name(s) are required`,
+//       type: "error",
+//     });
+
+//     return;
+//   }
+
+//   setLoading(true);
+
+//   try {
+//     // ... your existing pipelineData code
+
+//     let result;
+
+//     if (isEditMode || pipelineId) {
+//       const { data } = await templateAPI.updatePipeline(
+//         pipelineId,
+//         pipelineData
+//       );
+//       result = data;
+//     } else {
+//       const { data } = await templateAPI.createPipeline(
+//         pipelineData
+//       );
+//       result = data;
+
+//       if (data.pipeline?._id) {
+//         setPipelineId(data.pipeline._id);
+//         setIsEditMode(true);
+//       }
+//     }
+
+//     const successMessage =
+//       isEditMode || pipelineId ? "updated" : "created";
+
+//     showToast({
+//       title: `Pipeline ${successMessage} successfully!`,
+//       type: "success",
+//     });
+
+//     if (exitAfterSave) {
+//       navigate("/firmtemp/pipelines");
+//     }
+//   } catch (error) {
+//     console.error("Error saving pipeline:", error);
+
+//     showToast({
+//       title:
+//         error?.response?.data?.message ||
+//         `Failed to ${
+//           isEditMode ? "update" : "save"
+//         } pipeline. Please try again.`,
+//       type: "error",
+//     });
+//   } finally {
+//     setLoading(false);
+//   }
+// };
   const navigate = useNavigate();
 
   const handleCancel = () => {

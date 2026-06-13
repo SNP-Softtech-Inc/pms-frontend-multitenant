@@ -214,7 +214,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, MoreVertical } from 'lucide-react';
-import { toast } from 'react-toastify';
+import {useToastContext} from '../../../context/ToastContext';
 import { Button } from '../../../components/ui/button';
 import { DataTable } from '../../../components/data-table/data-table';
 import { DataTableToolbar } from '../../../components/data-table/toolbar';
@@ -223,6 +223,7 @@ import { proposalAPI } from '../../../services/api';
 
 const ProposalsTable = () => {
   const confirm = useConfirm();
+  const {showToast} = useToastContext();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -251,11 +252,17 @@ const ProposalsTable = () => {
   const handleDeleteProposal = async (proposalId) => {
     try {
       await proposalAPI.deleteProposal(proposalId);
-      toast.success("Proposal deleted successfully");
+      showToast({
+        title: "Proposal deleted successfully",
+        type: "success",
+      });
       setProposals((prev) => prev.filter((p) => p._id !== proposalId));
     } catch (err) {
       console.error("Delete error:", err);
-      toast.error("Failed to delete proposal");
+      showToast({
+        title: "Failed to delete proposal",
+        type: "error",
+      });
     }
   };
 

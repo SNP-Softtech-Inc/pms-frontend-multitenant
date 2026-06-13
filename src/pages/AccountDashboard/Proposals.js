@@ -333,7 +333,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"; // ✅ adjust path
 import { proposalAPI } from "../../services/api";
 import ProposalPreviewDialog from "./Proposals/ProposalDialog";
 import { useConfirm } from "../../components/ConfirmDialogContext";
@@ -356,7 +356,7 @@ const AccountProposalTable = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirm();
-  
+  const {showToast} = useToastContext();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -411,7 +411,10 @@ const AccountProposalTable = () => {
             proposalIds: selectedIds,
           });
 
-          toast.success(res.data.message || "Deleted successfully");
+          showToast({
+            title: res.data.message || "Deleted successfully",
+            type: "success",
+          });
 
           setProposals((prev) =>
             prev.filter((p) => !selectedIds.includes(p._id))
@@ -421,7 +424,10 @@ const AccountProposalTable = () => {
           setRowSelection({});
         } catch (err) {
           console.error(err);
-          toast.error(err.response?.data?.message || "Delete failed");
+          showToast({
+            title: err.response?.data?.message || "Delete failed",
+            type: "error",
+          });
         }
       },
     });
@@ -437,14 +443,20 @@ const AccountProposalTable = () => {
             proposalIds: [proposal._id],
           });
 
-          toast.success(res.data.message || "Deleted successfully");
+          showToast({
+            title: res.data.message || "Deleted successfully",
+            type: "success",
+          });
 
           setProposals((prev) =>
             prev.filter((p) => p._id !== proposal._id)
           );
         } catch (err) {
           console.error(err);
-          toast.error(err.response?.data?.message || "Delete failed");
+          showToast({
+            title: err.response?.data?.message || "Delete failed",
+            type: "error",
+          });
         }
       },
     });

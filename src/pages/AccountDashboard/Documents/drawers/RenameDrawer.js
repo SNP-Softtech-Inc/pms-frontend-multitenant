@@ -117,7 +117,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../../context/ToastContext";
 import { Button } from "../../../../components/ui/button";
 import { X, Edit2, AlertCircle } from "lucide-react";
 import { accountDocsAPI } from "../../../../services/api";
@@ -131,7 +131,7 @@ const RenameDrawer = ({
   const [newName, setNewName] = useState("");
   const [currentPath, setCurrentPath] = useState("");
   const [message, setMessage] = useState("");
-
+const {showToast} = useToastContext();
   // ✅ Pre-fill selected item info
   useEffect(() => {
     if (isOpen && selectedFolderForMenu) {
@@ -161,7 +161,10 @@ const RenameDrawer = ({
       const successMsg = res?.data?.message || "Renamed successfully";
 
       setMessage(`✅ ${successMsg}`);
-      toast.success(successMsg);
+      showToast({
+        title: successMsg,
+        type: "success",
+      });
 
       await fetchFolderTree(); // refresh
       onClose();
@@ -173,7 +176,10 @@ const RenameDrawer = ({
         err?.response?.data?.message ||
         "Server Error";
 
-      toast.error(errorMsg);
+      showToast({
+        title: errorMsg,
+        type: "error",
+      });
 
       setMessage(`❌ ${errorMsg}`);
     }

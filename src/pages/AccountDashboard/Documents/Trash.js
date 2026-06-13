@@ -575,7 +575,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { accountDocsAPI } from "../../../services/api";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../../context/ToastContext";
 
 import {
   Folder as FolderClosedIcon,
@@ -622,6 +622,7 @@ import { MoreVertical, Trash2, RotateCcw, Download } from "lucide-react";
 
 const Trash = () => {
   const { accountId } = useParams();
+  const {showToast} = useToastContext();
 console.log("Account ID in Trash component:", accountId);
   const FolderTreeView = ({ accountId }) => {
     const [expandedFolders, setExpandedFolders] = useState({});
@@ -663,10 +664,16 @@ console.log("Account ID in Trash component:", accountId);
         const res = await accountDocsAPI.restoreItem({
           targetPath: item.path,
         });
-        toast.success(res?.data?.message || "Item restored successfully");
+        showToast({
+          title: res?.data?.message || "Item restored successfully",
+          type: "success",
+        });
         await fetchFolderTree(accountId);
       } catch (err) {
-        toast.error(err?.response?.data?.message || "Restore failed");
+        showToast({
+          title: err?.response?.data?.message || "Restore failed",
+          type: "error",
+        });
       }
     };
 
@@ -686,7 +693,10 @@ console.log("Account ID in Trash component:", accountId);
 
         window.URL.revokeObjectURL(url);
       } catch (err) {
-        toast.error(err?.response?.data?.error || "Download failed");
+        showToast({
+          title: err?.response?.data?.error || "Download failed",
+          type: "error",
+        });
       }
     };
 
@@ -695,10 +705,16 @@ console.log("Account ID in Trash component:", accountId);
         const res = await accountDocsAPI.deleteItem({
           targetPath: item.path,
         });
-        toast.success(res?.data?.message || "Deleted successfully");
+        showToast({
+          title: res?.data?.message || "Deleted successfully",
+          type: "success",
+        });
         await fetchFolderTree(accountId);
       } catch (err) {
-        toast.error(err?.response?.data?.message || "Delete failed");
+        showToast({
+          title: err?.response?.data?.message || "Delete failed",
+          type: "error",
+        });
       }
     };
 

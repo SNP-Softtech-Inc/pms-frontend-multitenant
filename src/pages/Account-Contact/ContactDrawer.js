@@ -773,14 +773,14 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext"
 // import "react-phone-number-input/style.css";
 import TagsMultiSelectDropDown from "./TagsMultiSelectDropDown";
 import countryList from "react-select-country-list";
 
 const ContactForm = ({ open, onClose, contact, onSave }) => {
   const CONTACT_API = process.env.REACT_APP_CONTACTS_URL;
-
+const { showToast } = useToastContext();
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -921,7 +921,10 @@ const ContactForm = ({ open, onClose, contact, onSave }) => {
         prevPhoneNumbers.filter((item) => item.id !== id)
       );
     } else {
-      toast.warning("At least one phone number is required");
+      showToast({
+        title: "At least one phone number is required",
+        type: "warning",
+      });
     }
   };
 
@@ -1007,7 +1010,10 @@ const ContactForm = ({ open, onClose, contact, onSave }) => {
       
       const result = await response.json();
       
-      toast.success(`Contact ${contact ? 'updated' : 'created'} successfully!`);
+      showToast({
+        title: `Contact ${contact ? 'updated' : 'created'} successfully!`,
+        type: "success",
+      });
       
       if (onSave) {
         onSave(result); // Callback for parent component
@@ -1017,7 +1023,10 @@ const ContactForm = ({ open, onClose, contact, onSave }) => {
       onClose();
     } catch (error) {
       console.error('Error:', error);
-      toast.error(`Failed to ${contact ? 'update' : 'create'} contact`);
+      showToast({
+        title: `Failed to ${contact ? 'update' : 'create'} contact`,
+        type: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
