@@ -70,6 +70,68 @@ const ChatDetails = ({
     }
   }, [user, chat.clienttasks]);
 
+  const getUserOptions = () => {
+  const options = [];
+
+  // Group Name
+  if (user?.group?.name) {
+    options.push({
+      label: user.group.name,
+      value: user.group.name,
+    });
+  }
+
+  // Logged-in User
+  options.push({
+    label: user.username,
+    value: user.username,
+  });
+
+  // Other Group Members
+  user?.group?.members?.forEach((member) => {
+    if (member._id !== user.id) {
+      options.push({
+        label: member.username,
+        value: member.username,
+      });
+    }
+  });
+
+  return options;
+};
+const [changeUserOpen, setChangeUserOpen] = useState(false);
+const [selectedMessage, setSelectedMessage] = useState(null);
+const [selectedSender, setSelectedSender] = useState("");
+const handleChangeUser = (message) => {
+  setSelectedMessage(message);
+  setSelectedSender(message.senderid || "");
+  setChangeUserOpen(true);
+};
+const handleSaveUserChange = async () => {
+  try {
+    await chatAPI.updateMessage({
+      chatId: chatId,
+      messageId: selectedMessage._id,
+      senderid: selectedSender,
+    });
+
+    showToast({
+      title: "User updated successfully",
+      type: "success",
+    });
+
+    setChangeUserOpen(false);
+    setSelectedMessage(null);
+
+    getsChatDetails();
+    accountwiseChatlist(data, isActiveTrue);
+  } catch (error) {
+    showToast({
+      title: "Failed to update user",
+      type: "error",
+    });
+  }
+};
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
     const day = date.getDate();
@@ -722,6 +784,42 @@ const ChatDetails = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* chnage user dialog box */}
+
+      <Dialog open={changeUserOpen} onOpenChange={setChangeUserOpen}>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Change User</DialogTitle>
+    </DialogHeader>
+
+ <select
+  className="w-full border rounded-md p-2"
+  value={selectedSender}
+  onChange={(e) => setSelectedSender(e.target.value)}
+>
+  <option value="">Select User</option>
+
+  {getUserOptions().map((option) => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
+</select>
+
+    <DialogFooter>
+      <Button
+        variant="outline"
+        onClick={() => setChangeUserOpen(false)}
+      >
+        Cancel
+      </Button>
+
+      <Button onClick={handleSaveUserChange}>
+        Save
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
       {/* Main Chat Area */}
       <div
@@ -842,6 +940,8 @@ const ChatDetails = ({
                   handleDeleteMessage={handleDeleteMessage}
                   handleEditMessage={handleEditMessage}
                   canEditMessage={canEditMessage}
+                   user={user}
+  handleChangeUser={handleChangeUser}
                 />
               );
             })}
@@ -974,7 +1074,7 @@ const MessageItem = ({
   formatDate,
   handleDeleteMessage,
   handleEditMessage,
-  canEditMessage,
+  canEditMessage,user,handleChangeUser,
 }) => {
   const isClient = desc.fromwhome?.toLowerCase() === "client";
   const isAdmin = desc.fromwhome?.toLowerCase() === "admin";
@@ -1026,6 +1126,12 @@ const MessageItem = ({
                       Edit
                     </DropdownMenuItem>
                   )}
+                      {user?.role === "team_member" && (
+      <DropdownMenuItem onClick={() => handleChangeUser(desc)}>
+        Change User
+      </DropdownMenuItem>
+    )}
+
                   <DropdownMenuItem
                     onClick={() => handleDeleteMessage(desc)}
                     className="text-destructive"

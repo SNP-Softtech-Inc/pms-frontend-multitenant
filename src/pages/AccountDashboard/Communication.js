@@ -113,17 +113,7 @@ const Communication = () => {
   };
 
   // ================= CHAT ACTIONS =================
-  // const handleShowChat = async (chatId) => {
-  //   try {
-  //     await chatAPI.markAllAsRead(chatId, accountId, "client");
-  //     const chat = chatList.find((c) => c._id === chatId);
-  //     setSelectedChat(chat);
-  //     setChatId(chatId);
-  //     accountwiseChatlist(accountId, isActiveTrue);
-  //   } catch (error) {
-  //     console.error("Mark read error:", error);
-  //   }
-  // };
+
 const handleShowChat = async (chatId) => {
   try {
     await chatAPI.markAllAsRead(chatId, accountId, "client");

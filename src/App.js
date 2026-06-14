@@ -287,14 +287,14 @@ function App() {
           path="firmtemp/pipelines/pipelineform"
           element={<PipelineForm />}
         />
-        {/* <Route path="firmtemp/teammember" element={<TeamMember />} /> */}
+        <Route path="firmtemp/teammember" element={<TeamMember />} />
 
-      <Route path="firmtemp/teammember" element={<TeamMember />}>
+      {/* <Route path="firmtemp/teammember" element={<TeamMember />}>
   <Route index element={<ActiveMember />} />
   <Route path="active" element={<ActiveMember />} />
   <Route path="deactive" element={<Deactivatemember />} />
   <Route path="groups" element={<ActiveGroups />} />
-</Route>
+</Route> */}
         <Route path="firmtemp/tags" element={<Tags />} />
         <Route path="firmtemp/service" element={<Service />} />
 

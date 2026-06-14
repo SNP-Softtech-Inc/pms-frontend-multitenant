@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, ChevronDown, Plus, Trash2 } from "lucide-react";
 import {useToastContext} from "../../../context/ToastContext";
 import { useAuth } from "../../../context/AuthContext";
-import { templateAPI, chatAPI } from "../../../services/api";
+import { templateAPI, chatAPI ,authAPI} from "../../../services/api";
 
 import AccountMultiSelectDropdown from "../../../components/AccountMultiSelectDropdown";
 import EditorShortcodes from "../../../components/EditorShortcodes";
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
+import GroupUserSelect from "../../../components/GroupUserSelect";
 
 const NewChatDrawer = ({
   open,
@@ -35,7 +36,8 @@ const NewChatDrawer = ({
 const {showToast} = useToastContext();
   const [inputText, setInputText] = useState("");
   const [description, setDescription] = useState("");
-
+const [groups, setGroups] = useState([]);
+const [selectedUser, setSelectedUser] = useState("");
   const [absoluteDate, setAbsoluteDates] = useState(false);
   const [daysuntilNextReminder, setDaysuntilNextReminder] = useState("3");
   const [noOfReminder, setNoOfReminder] = useState(1);
@@ -89,7 +91,40 @@ const {showToast} = useToastContext();
       console.error(err);
     }
   };
+useEffect(() => {
+  fetchGroupedUsers();
+}, []);
 
+const fetchGroupedUsers = async () => {
+  try {
+    const res = await authAPI.getGroupedUsers();
+
+    if (res.data.success) {
+      const groupedData = {};
+
+      res.data.users.forEach((user) => {
+        const groupName = user.group?.name || "Ungrouped Users";
+
+        if (!groupedData[groupName]) {
+          groupedData[groupName] = {
+            groupId: user.group?._id || null,
+            groupName,
+            leader: user.group?.leader || null,
+            users: [],
+          };
+        }
+
+        groupedData[groupName].users.push(user);
+      });
+
+      setGroups(Object.values(groupedData));
+
+      console.log("Grouped Data", Object.values(groupedData));
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
   // ================= SHORTCODES =================
   const [anchorEl, setAnchorEl] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -395,6 +430,11 @@ const {showToast} = useToastContext();
                 </Select>
               </div>
             </div>
+{/* <GroupUserSelect
+  groups={groups}
+  value={selectedUser}
+  onChange={setSelectedUser}
+/> */}
 
             {/* SUBJECT */}
             <div

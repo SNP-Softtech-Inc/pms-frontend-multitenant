@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   Select,
   SelectContent,
@@ -6,59 +8,53 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../components/ui/select";
 
 const GroupUserSelect = ({
-  groups,
+  groups = [],
   value,
   onChange,
 }) => {
   return (
-   <Select value={selectedUser} onValueChange={setSelectedUser}>
-  <SelectTrigger className="w-full">
-    <SelectValue placeholder="Select User" />
-  </SelectTrigger>
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select User" />
+      </SelectTrigger>
 
-  <SelectContent>
-    {groups?.map((group) => (
-      <SelectGroup key={group._id}>
-        <SelectLabel>
-          {group.groupName} (Leader: {group.leader?.username})
-        </SelectLabel>
+      <SelectContent className="max-h-[300px] overflow-y-auto">
+        {groups.map((group) => (
+          <SelectGroup
+            key={group.groupId || group.groupName}
+          >
+            <SelectLabel className="text-xs font-semibold text-gray-500">
+              {group.groupName}
+            </SelectLabel>
 
-        {group.leader && (
-          <SelectItem value={group.leader._id}>
-            👑 {group.leader.username}
-          </SelectItem>
+            {group.users?.map((user) => {
+              const isLeader =
+                group.leader?._id === user._id;
+
+              return (
+                <SelectItem
+                  key={user._id}
+                  value={user._id}
+                >
+                  {isLeader
+                    ? `👑 ${user.username}`
+                    : user.username}
+                </SelectItem>
+              );
+            })}
+          </SelectGroup>
+        ))}
+
+        {groups.length === 0 && (
+          <div className="p-2 text-sm text-gray-500">
+            No users available
+          </div>
         )}
-
-        {group.members?.map((member) => (
-          <SelectItem
-            key={member._id}
-            value={member._id}
-          >
-            {member.username}
-          </SelectItem>
-        ))}
-      </SelectGroup>
-    ))}
-
-    {ungroupedUsers?.length > 0 && (
-      <SelectGroup>
-        <SelectLabel>Ungrouped Users</SelectLabel>
-
-        {ungroupedUsers.map((user) => (
-          <SelectItem
-            key={user._id}
-            value={user._id}
-          >
-            {user.username}
-          </SelectItem>
-        ))}
-      </SelectGroup>
-    )}
-  </SelectContent>
-</Select>
+      </SelectContent>
+    </Select>
   );
 };
 

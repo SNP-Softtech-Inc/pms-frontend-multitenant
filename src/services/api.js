@@ -238,7 +238,10 @@ login: ({ email, password, expiryTime, userId }) =>
   verifyPassword: (data) => authUserApi.post("/api/auth/verify-password", data),
 changePassword: (data) => authUserApi.post("/api/auth/change-password", data),
 updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data),
+  // ======================= GROUPED USERS APIs ===============================
 
+  getGroupedUsers: () =>
+    authUserApi.get("/api/auth/grouped-users"),
 
   // ======================= TEAMMEMBERS APIs ===============================
 
