@@ -102,7 +102,7 @@ import React, { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { toast } from "react-toastify";
+import {useToastContext} from "../context/ToastContext";
 import { authAPI } from "../services/api";
 import micropms from "../Images/logoAdmin.png";
 import { NavLink } from "react-router-dom";
@@ -110,9 +110,13 @@ import { NavLink } from "react-router-dom";
 const ForgotPassword = () => {
     const ADMIN_URL = process.env.REACT_APP_CLIENT_URL
     const [email, setEmail] = useState("");
-
+const { showToast } = useToastContext();
     const handleSubmit = async () => {
-        if (!email) return toast.error("Enter email");
+        if (!email) return showToast({
+            title: "Enter email",
+            description: "Please enter your email address.",
+            type: "error",
+        });
 
         try {
             await authAPI.forgotPassword({
@@ -120,9 +124,17 @@ const ForgotPassword = () => {
                 url: `${ADMIN_URL}/admin/reset-password`,
             });
 
-            toast.success("Reset link sent to email");
+            showToast({
+                title: "Reset link sent",
+                description: "A password reset link has been sent to your email.",
+                type: "success",
+            });
         } catch (err) {
-            toast.error(err.response?.data?.message || "Error");
+            showToast({
+                title: "Error",
+                description: err.response?.data?.message || "An error occurred.",
+                type: "error",
+            });
         }
     };
 

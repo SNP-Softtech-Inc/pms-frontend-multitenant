@@ -3,8 +3,9 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { FileSignature } from "lucide-react";
 const Signatures = () => {
-   const { accountId } = useParams();
-   const SIGNATURE_API =process.env.REACT_APP_ESIGNATURE_API
+ const { accountId } = useParams();
+ console.log("accoiunt id for sign",accountId)
+   const SIGNATURE_API =process.env.REACT_APP_ESIGNATURE_API;
    const [signatureList,setSignatureList]=useState([])
     const { data } = useParams();
   useEffect(() => {
@@ -13,6 +14,7 @@ const Signatures = () => {
         const res = await axios.get(
           `${SIGNATURE_API}/signautrelist/${accountId}`
         );
+        console.log("Signature list response:", res.data);
         setSignatureList(res.data || []);
       } catch (err) {
         console.error("Error fetching approvals:", err);

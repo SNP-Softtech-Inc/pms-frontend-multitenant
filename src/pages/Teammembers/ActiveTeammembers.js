@@ -198,13 +198,28 @@ const handleDeactivate = (id, memberName) => {
      <div className="flex justify-between items-center">
         <h6 className="text-lg font-semibold">Active Team Members</h6>
       </div>
-      <DataTable
+      {/* <DataTable
         data={rows}
         columns={columns}
         toolbar={<DataTableToolbar />}
         pageSize={5}
         pageSizeOptions={[5, 10, 20]}
-      />
+      /> */}
+       <DataTableToolbar
+              searchKey="name"
+              searchPlaceholder="Search groups..."
+            />
+            
+            <div >
+              <DataTable
+                columns={columns}
+                data={rows}
+                pageSize={5}
+                rowsPerPageOptions={[5, 10, 20]}
+                pagination
+                disableSelectionOnClick
+              />
+              </div>
     </div>
   );
 };

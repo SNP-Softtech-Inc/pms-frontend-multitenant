@@ -2149,7 +2149,7 @@ import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
 
 // API imports
-import { accountDocsAPI, accountsAPI, invoiceAPI } from "../../../services/api";
+import { accountDocsAPI, accountsAPI, invoiceAPI,esignAPI } from "../../../services/api";
 import axios from "axios";
 // Custom CSS
 import "./docuseal-dark-theme.css";
@@ -2161,8 +2161,10 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
+import { useAuth } from "../../../context/AuthContext";
 export const FolderTreeView = ({ accountId }) => {
   const confirm = useConfirm();
+    const { tenantId } = useAuth();
   const { showToast } = useToastContext();
   const [clientEmail, setClientEmail] = useState("");
   const [expandedFolders, setExpandedFolders] = useState({});
@@ -2694,43 +2696,77 @@ export const FolderTreeView = ({ accountId }) => {
   };
 
   // Toggle sign status
-  const toggleSignStatus = async (item) => {
-    try {
-      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
-      const fileName = item.name;
-      const res = await fetch(
-        `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
-      );
-      const data = await res.json();
-      console.log("token data", data);
-      setToken(data.token);
-      setShowBuilderFor(item);
-      setOpenDialog(true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const toggleSignStatus = async (item) => {
+  //   try {
+  //     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
+  //     const fileName = item.name;
+  //     const res = await fetch(
+  //       `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
+  //     );
+  //     const data = await res.json();
+  //     console.log("token data", data);
+  //     setToken(data.token);
+  //     setShowBuilderFor(item);
+  //     setOpenDialog(true);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+const toggleSignStatus = async (item) => {
+  try {
+    const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
 
+    const { data } = await esignAPI.generateToken({
+      url: fileUrl,
+      name: item.name,
+      accountId,
+    });
+
+    console.log("token data", data);
+
+    setToken(data.token);
+    setShowBuilderFor(item);
+    setOpenDialog(true);
+  } catch (err) {
+    console.error(err);
+  }
+};
   // Cancel signature
-  const cancelSignature = async (item) => {
-    try {
-      await axios.delete(
-        `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
-        {
-          data: {
-            folder: item.meta.folder,
-            name: item.meta.name,
-          },
-        },
-      );
-      alert("Signature request cancelled.");
-      fetchFolderTree();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to cancel signature");
-    }
-  };
+  // const cancelSignature = async (item) => {
+  //   try {
+  //     await axios.delete(
+  //       `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
+  //       {
+  //         data: {
+  //           folder: item.meta.folder,
+  //           name: item.meta.name,
+  //         },
+  //       },
+  //     );
+  //     alert("Signature request cancelled.");
+  //     fetchFolderTree();
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Failed to cancel signature");
+  //   }
+  // };
+const cancelSignature = async (item) => {
+  try {
+    await esignAPI.cancelSignature(
+      item.meta.esignRequestId,
+      {
+        folder: item.meta.folder,
+        name: item.meta.name,
+      }
+    );
 
+    alert("Signature request cancelled.");
+    fetchFolderTree();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to cancel signature");
+  }
+};
   // Toggle approval status
   const toggleApprovalStatus = (item) => {
     handleMenuClose();

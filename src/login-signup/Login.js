@@ -311,8 +311,7 @@
 // export default Login;
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useToastContext } from "..//context/ToastContext";
 import { NavLink, useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import logo from "../Images/logoAdmin.png";
@@ -729,7 +728,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   const { login, isAuthenticated, loading } = useAuth();
-
+const {showToast} = useToastContext()
   const [apiError, setApiError] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
@@ -799,9 +798,10 @@ console.log("entred emawil",cleanEmail)
         setSelectedUser(null);
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Error fetching users"
-      );
+     showToast({
+  title: error.response?.data?.message || "Error fetching users",
+  type: "error",
+});
     }
   };
 
@@ -820,34 +820,62 @@ console.log("entred emawil",cleanEmail)
   const password = inpval.password.trim();
   const expiryTime = inpval.expiryTime;
     if (!email) {
-      return toast.error("Email required");
+      return showToast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        type: "error",
+      });
     }
 
     if (!email.includes("@")) {
-      return toast.error("Invalid email");
+      return showToast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        type: "error",
+      });
     }
 
     if (!password) {
-      return toast.error("Password required");
+      return showToast({
+        title: "Password required",
+        description: "Please enter your password.",
+        type: "error",
+      });
     }
 
     if (password.length < 6) {
-      return toast.error("Minimum 6 characters");
+      return showToast({
+        title: "Invalid password",
+        description: "Password must be at least 6 characters long.",
+        type: "error",
+      });
     }
 
     if (!expiryTime) {
-      return toast.error("Select expiry time");
+      return showToast({
+        title: "Expiry time required",
+        description: "Please select an expiry time.",
+        type: "error",
+      });
     }
 
     if (!agreeToTerms) {
-      return toast.error("Accept terms & conditions");
+      return showToast({
+        title: "Terms & conditions required",
+        description: "Please accept the terms and conditions.",
+        type: "error",
+      });
     }
 
     // ✅ Must select account
     if (userList.length > 1 && !selectedUser) {
       setOpenUserDialog(true);
 
-      return toast.error("Please select account");
+      return showToast({
+        title: "Please select account",
+        description: "Multiple accounts found for this email.",
+        type: "error",
+      });
     }
 
     setApiError("");
@@ -869,7 +897,11 @@ console.log("entred emawil",cleanEmail)
       }
 
       if (result.success) {
-        toast.success("Login successful");
+        showToast({
+          title: "Login successful",
+          description: "You have been logged in successfully.",
+          type: "success",
+        });
 
         setInpval({
           email: "",
@@ -884,10 +916,18 @@ console.log("entred emawil",cleanEmail)
       } else {
         setApiError(result.error);
 
-        toast.error(result.error);
+        showToast({
+          title: "Login failed",
+          description: result.error,
+          type: "error",
+        });
       }
     } catch (error) {
-      toast.error("Login failed");
+      showToast({
+        title: "Login failed",
+        description: "An error occurred while logging in.",
+        type: "error",
+      });
     }
   };
 

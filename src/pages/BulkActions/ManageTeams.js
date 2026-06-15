@@ -174,7 +174,7 @@
 // export default ManageTeams;
 
 import React, { useEffect, useState, useMemo, forwardRef, useImperativeHandle } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext";
 import { Users, Loader2, UserPlus, UserMinus } from "lucide-react";
 import { accountsAPI, authAPI } from "../../services/api";
 import { cn } from "../../lib/utils";
@@ -184,7 +184,7 @@ const ManageTeams = forwardRef(
     const [teamMembers, setTeamMembers] = useState([]);
     const [actions, setActions] = useState({});
     const [loading, setLoading] = useState(false);
-
+const {showToast} = useToastContext();
     // ================= FETCH TEAM =================
     useEffect(() => {
       fetchTeamMembers();
@@ -207,7 +207,11 @@ const ManageTeams = forwardRef(
         setActions(initial);
       } catch (err) {
         console.error(err);
-        toast.error("Failed to fetch team members");
+        showToast({
+          title: "Failed to fetch team members",
+          description: "An error occurred while fetching team members.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -257,13 +261,21 @@ const ManageTeams = forwardRef(
           });
         }
 
-        toast.success("Team updated successfully");
+        showToast({
+          title: "Team updated successfully",
+          description: "The selected team members have been updated successfully.",
+          type: "success",
+        });
 
         fetchData(); // refresh table
         onClose();   // close drawer
       } catch (err) {
         console.error(err);
-        toast.error("Something went wrong");
+        showToast({
+          title: "Failed to update team",
+          description: "An error occurred while updating the team.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }

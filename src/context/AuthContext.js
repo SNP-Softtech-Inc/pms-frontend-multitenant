@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI } from "../services/api";
-import { toast } from "react-toastify";
+import {useToastContext} from "./ToastContext"
 import Cookies from "js-cookie";
 
 // ================= CREATE CONTEXT =================
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const navigationRef = useRef(navigate);
   const logoutTimerRef = useRef(null);
-
+const {showToast}= useToastContext()
   useEffect(() => {
     navigationRef.current = navigate;
   }, [navigate]);
@@ -59,7 +59,10 @@ export const AuthProvider = ({ children }) => {
             new Date().getTime() > parseInt(storedExpiry)
           ) {
             clearAuthData();
-            toast.info("Session expired. Please login again.");
+            showToast({
+              title: "Session expired. Please login again.",
+              type: "info",
+            });
           } else {
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
@@ -152,7 +155,10 @@ export const AuthProvider = ({ children }) => {
 
   //     if (timeLeft > 0) {
   //       logoutTimerRef.current = setTimeout(() => {
-  //         toast.warning("Session expired. Please login again.");
+  //         showToast({
+  //           title: "Session expired. Please login again.",
+  //           type: "warning",
+  //         });
   //         logout(false);
   //       }, timeLeft);
   //     }
@@ -171,7 +177,10 @@ const setupAutoLogout = useCallback(
     if (timeLeft > 0) {
       logoutTimerRef.current = setTimeout(async () => {
         try {
-          toast.warning("Session expired. Please login again.");
+          showToast({
+            title: "Session expired. Please login again.",
+            type: "warning",
+          });
 
           // clear all auth data
           clearAuthData();
@@ -265,10 +274,16 @@ const response = await authAPI.login({
           } else {
             await authAPI.logout();
           }
-          toast.success("Logged out successfully");
+          showToast({
+            title: "Logged out successfully",
+            type: "success",
+          });
         } catch (err) {
           console.warn("Logout API failed:", err);
-          toast.info("Session cleared locally");
+          showToast({
+            title: "Session cleared locally",
+            type: "info",
+          });
         }
       }
     } catch (error) {

@@ -189,7 +189,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext";
 import { Loader2, Tag as TagIcon } from "lucide-react";
 
 import { accountsAPI, templateAPI } from "../../services/api";
@@ -199,7 +199,7 @@ const ManageTags = forwardRef(({ selectedAccounts, onClose, fetchData }, ref) =>
   const [tags, setTags] = useState([]);
   const [tagActions, setTagActions] = useState({});
   const [loading, setLoading] = useState(false);
-
+const {showToast} = useToastContext();
   // ================= FETCH TAGS =================
   useEffect(() => {
     fetchTags();
@@ -222,7 +222,11 @@ const ManageTags = forwardRef(({ selectedAccounts, onClose, fetchData }, ref) =>
       setTagActions(initial);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch tags");
+      showToast({
+        title: "Failed to fetch tags",
+        description: "An error occurred while fetching tags.",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -272,12 +276,20 @@ const ManageTags = forwardRef(({ selectedAccounts, onClose, fetchData }, ref) =>
         });
       }
 
-      toast.success("Tags updated successfully");
+      showToast({
+        title: "Tags updated successfully",
+        description: "The selected tags have been updated successfully.",
+        type: "success",
+      });
       fetchData();
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong");
+      showToast({
+        title: "Failed to update tags",
+        description: "An error occurred while updating tags.",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

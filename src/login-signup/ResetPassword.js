@@ -113,7 +113,7 @@ import { Button } from "..//components/ui/button";
 import { Input } from "..//components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "..//components/ui/card";
 import { Label } from "..//components/ui/label";
-import { toast } from "react-toastify";
+import { useToastContext } from "../context/ToastContext";
 import { authAPI } from "../services/api";
 import micropms from "../Images/logoAdmin.png";
 import { Eye, EyeOff } from "lucide-react";
@@ -121,27 +121,53 @@ import { Eye, EyeOff } from "lucide-react";
 const ResetPassword = () => {
   const { id, token } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToastContext();
   const [showPassword, setShowPassword] = useState(false);
   const [comfirShowPassword, setComfirmShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = async () => {
-    if (!password) return toast.error("Enter password");
-    if (password.length < 6) return toast.error("Min 6 chars");
-    if (password !== confirmPassword)
-      return toast.error("Passwords do not match");
+    if (!password) {
+      return showToast({
+        title: "Password required",
+        description: "Please enter a password.",
+        type: "error",
+      });
+    }
+    if (password.length < 6) {
+      return showToast({
+        title: "Invalid password",
+        description: "Password must be at least 6 characters long.",
+        type: "error",
+      });
+    }
+    if (password !== confirmPassword) {
+      return showToast({
+        title: "Passwords do not match",
+        description: "Please ensure both passwords match.",
+        type: "error",
+      });
+    }
 
     try {
       await authAPI.resetPassword(id, token, { password });
 
-      toast.success("Password updated successfully");
+      showToast({
+        title: "Password updated successfully",
+        description: "Your password has been updated successfully.",
+        type: "success",
+      });
 
       setTimeout(() => {
         navigate("/login");
       }, 1500);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Error");
+      showToast({
+        title: "Password reset failed",
+        description: err.response?.data?.message || "Error",
+        type: "error",
+      });
     }
   };
 

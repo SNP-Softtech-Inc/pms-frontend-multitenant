@@ -308,7 +308,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 
-import { toast } from "react-toastify";
+import { useToastContext } from "../../context/ToastContext";
 import { organizerAPI, accountsAPI } from "../../services/api";
 
 import AccountMultiSelectDropdown from "../../components/AccountMultiSelectDropdown";
@@ -329,7 +329,7 @@ import { Loader2 } from "lucide-react";
 const SendOrganizer = forwardRef(
   ({ selectedAccounts, onClose, fetchData }, ref) => {
     const [loading, setLoading] = useState(false);
-
+const { showToast } = useToastContext();
     const [templates, setTemplates] = useState([]);
     const [selectedTemplate, setSelectedTemplate] = useState("");
 
@@ -353,7 +353,11 @@ const SendOrganizer = forwardRef(
         const res = await organizerAPI.getOrganizerTemplates();
         setTemplates(res.data.OrganizerTemplates || []);
       } catch (err) {
-        toast.error("Failed to fetch templates");
+        showToast({
+          title: "Failed to fetch templates",
+          description: "An error occurred while fetching templates.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -377,7 +381,11 @@ const SendOrganizer = forwardRef(
         setSections(data.sections);
         setOrganizerName(data.organizerName);
       } catch (error) {
-        toast.error("Failed to fetch organizer template details");
+        showToast({
+          title: "Failed to fetch organizer template details",
+          description: "An error occurred while fetching the organizer template details.",
+          type: "error",
+        });
       }
     };
 
@@ -385,13 +393,25 @@ const SendOrganizer = forwardRef(
     const handleSubmit = async () => {
       try {
         if (!selectedTemplate)
-          return toast.error("Please select organizer template");
+          return showToast({
+            title: "Select organizer template",
+            description: "Please select an organizer template.",
+            type: "error",
+          });
 
         if (!selectedaccount.length)
-          return toast.error("No accounts selected");
+          return showToast({
+            title: "No accounts selected",
+            description: "Please select at least one account.",
+            type: "error",
+          });
 
         if (!selectedOrganizerTempData)
-          return toast.error("Template data not loaded");
+          return showToast({
+            title: "Template data not loaded",
+            description: "An error occurred while loading the template data.",
+            type: "error",
+          });
 
         setLoading(true);
 
@@ -471,12 +491,20 @@ const SendOrganizer = forwardRef(
 
         await Promise.all(promises);
 
-        toast.success("Organizers sent successfully");
+        showToast({
+          title: "Organizers sent successfully",
+          description: "The selected organizers have been sent successfully.",
+          type: "success",
+        });
 
         fetchData();
         onClose();
       } catch (error) {
-        toast.error("Failed to send organizers");
+        showToast({
+          title: "Failed to send organizers",
+          description: "An error occurred while sending the organizers.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }

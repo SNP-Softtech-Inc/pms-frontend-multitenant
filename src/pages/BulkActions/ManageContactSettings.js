@@ -208,7 +208,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext";
 import { User, Bell, Mail } from "lucide-react";
 
 import { accountsAPI } from "../../services/api";
@@ -222,6 +222,7 @@ const ManageContactSettings = forwardRef(
       notify: "Do nothing",
       emailSync: "Do nothing",
     });
+    const {showToast} = useToastContext();
 
     // ================= HANDLE CHANGE =================
     const handleSettingChange = (key, value) => {
@@ -289,7 +290,12 @@ const ManageContactSettings = forwardRef(
     const handleSubmit = async () => {
       try {
         if (updates.length === 0) {
-          toast.info("No changes selected");
+          // showToast("No changes selected", "info");
+          showToast({
+            title: "No changes selected",
+            description: "Please select at least one setting to update.",
+            type: "info",
+          });
           return;
         }
 
@@ -303,7 +309,11 @@ const ManageContactSettings = forwardRef(
           )
         );
 
-        toast.success("Contact settings updated");
+        showToast({
+          title: "Contact settings updated",
+          description: "The selected contact settings have been updated successfully.",
+          type: "success",
+        });
 
         fetchData();
         onClose();

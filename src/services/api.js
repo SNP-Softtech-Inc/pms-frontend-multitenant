@@ -15,6 +15,7 @@ const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
 const INTERNAL_CHAT_URL = process.env.REACT_APP_TEAMMATES_CHAT;
 const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
 const ACCOUNT_NOTE = process.env.REACT_APP_ACCOUNT_NOTE;
+const SIGNATURE_API = process.env.REACT_APP_ESIGNATURE_API;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -107,6 +108,12 @@ const accNoteApi = axios.create({
 
   }
 });
+const signatureApi = axios.create({ 
+  baseURL: SIGNATURE_API,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 // ================= COMMON INTERCEPTORS =================
 const attachInterceptors = (api) => {
   // REQUEST INTERCEPTOR (Attach Token)
@@ -180,6 +187,7 @@ attachInterceptors(accountTasksApi);
 attachInterceptors(internalChatApi);
 attachInterceptors(emailSyncApi);
 attachInterceptors(accNoteApi);
+attachInterceptors(signatureApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -1022,6 +1030,74 @@ export const folderManagementAPI = {
     folderManagementApi.delete(`/tempfolder/foldertemp/delete/${id}`),
 };
 
+
+// ================= ESIGN APIs =================
+
+export const esignAPI = {
+  // Generate DocuSeal token
+  generateToken: (params) =>
+    signatureApi.get("/api/generate-token", {
+      params,
+    }),
+
+  // DocuSeal embedded token
+  getDocusealToken: (templateId) =>
+    signatureApi.get("/api/docuseal-token", {
+      params: { templateId },
+    }),
+
+  // Get signed submission file
+  getSubmissionFile: (submissionId) =>
+    signatureApi.get("/api/get-submission-file", {
+      params: { submissionId },
+    }),
+
+  // Get DocuSeal submissions
+  getSubmissions: () =>
+    signatureApi.get("/api/submissions"),
+
+  // Notify admin
+  notifyAdmin: (data) =>
+    signatureApi.post("/notify-admin", data),
+
+  // Get signature by ID
+  getSignatureById: (id) =>
+    signatureApi.get(`/signature/byid/${id}`),
+
+  // Cancel signature request
+  cancelSignature: (id, data) =>
+    signatureApi.delete(`/signature/cancel/${id}`, {
+      data,
+    }),
+
+  // Pending signatures by account
+  getSignatureList: (accountId) =>
+    signatureApi.get(`/signautrelist/${accountId}`),
+
+  // Signature records by externalId
+  getSignatureListByExternalId: (externalId) =>
+    signatureApi.get(`/signautrelist/list/${externalId}`),
+
+  // Check completion status
+  checkCompletion: (externalId) =>
+    signatureApi.get(
+      `/signautrelist/check-completion/${externalId}`
+    ),
+
+  // Update signature status
+  updateSignature: (externalId, data) =>
+    signatureApi.patch(
+      `/signautrelist/update/${externalId}`,
+      data
+    ),
+
+  // Update submitter status
+  updateSubmitterStatus: (externalId, data) =>
+    signatureApi.patch(
+      `/signautrelist/update-submitter/${externalId}`,
+      data
+    ),
+};
 // ================= DOC MANAGEMENT APIs =================
 export const docAPI = {
   // ================= FOLDER =================

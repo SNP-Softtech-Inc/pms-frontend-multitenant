@@ -33,8 +33,9 @@ root.render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BrowserRouter basename="/admin">
+         <ToastProvider>
           <AuthProvider>
-             <ToastProvider>
+            
              <ConfirmProvider>
             <App />
             {/* <ToastContainer position="top-right" autoClose={3000} /> */}
@@ -46,8 +47,9 @@ root.render(
                     theme="light"
                   />
             </ConfirmProvider>
-            </ToastProvider>
+           
           </AuthProvider>
+           </ToastProvider>
         </BrowserRouter>
       </ThemeProvider>
     </Provider>

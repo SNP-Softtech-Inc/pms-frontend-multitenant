@@ -163,37 +163,7 @@ const Tasks = () => {
     setSubtasks(items);
   };
 
-  // Build Payload
-  // const buildPayload = (values) => {
-  //   const subtaskData = subtasks.map((s) => ({
-  //     id: s.id,
-  //     text: s.text,
-  //     checked: checkedSubtasks.includes(s.id),
-  //   }));
 
-  //   return {
-  //     templatename: values.templatename,
-  //     status: values.status,
-  //     priority: values.priority,
-  //     description: values.description,
-  //     absolutedates: values.absoluteDate,
-  //     taskassignees: values.assignees.map((a) => a.value),
-  //     tasktags: values.tags.map((t) => t.value),
-  //     issubtaskschecked: values.SubtaskSwitch,
-  //     ...(values.absoluteDate
-  //       ? {
-  //           startDate: values.startDate,
-  //           dueDate: values.dueDate,
-  //         }
-  //       : {
-  //           startsin: values.startsin,
-  //           startsinduration: values.startsInDuration,
-  //           duein: values.duein,
-  //           dueinduration: values.dueinduration,
-  //         }),
-  //     subtasks: subtaskData,
-  //   };
-  // };
 const buildPayload = (values) => {
   const subtaskData = subtasks.map((s) => ({
     id: s.id,

@@ -4,12 +4,7 @@ import { useRef } from "react";
 import cn from "classnames";
 import FullLogo from "../Images/snp.png";
 import Logo from "../Images/only s.png";
-import {
-  LayoutDashboard,
-  ChevronDown,
-  ChevronUp,
-  Menu,
-} from "lucide-react";
+import { LayoutDashboard, ChevronDown, ChevronUp, Menu } from "lucide-react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import LogoutButton from "../components/LogoutButton";
 import { sidebarAPI, leftSidebarAPI } from "../services/api";
@@ -45,17 +40,17 @@ const Dashboard = () => {
 
   const [isSmUp, setIsSmUp] = useState(window.innerWidth >= 640);
 
-useEffect(() => {
-  const handleResize = () => {
-    setIsSmUp(window.innerWidth >= 640);
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmUp(window.innerWidth >= 640);
+    };
 
-  window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize);
 
-  return () => {
-    window.removeEventListener("resize", handleResize);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -319,93 +314,97 @@ useEffect(() => {
     }
   };
 
-
   const handlePlusClose = () => {
     setPlusAnchorEl(null);
   };
- 
 
   return (
-  <>
-    {/* ══════════════════════════════════════════════════════
+    <>
+      {/* ══════════════════════════════════════════════════════
         ROOT FLEX LAYOUT
     ══════════════════════════════════════════════════════ */}
-    <div className="flex h-screen bg-background overflow-hidden" style={{ fontFamily: "var(--font-family)" }}>
-      {/* ════════════════════════════════════════════════
+      <div
+        className="flex h-screen bg-background overflow-hidden"
+        style={{ fontFamily: "var(--font-family)" }}
+      >
+        {/* ════════════════════════════════════════════════
           SIDEBAR PANEL
       ════════════════════════════════════════════════ */}
-      {mobileOpen && !isSmUp && (
-  <div
-    className="fixed inset-0 bg-black/50 z-40"
-    onClick={() => setMobileOpen(false)}
-  />
-)}
-      {/* <aside
+        {mobileOpen && !isSmUp && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+        {/* <aside
         className={`flex flex-col border-r bg-background transition-all duration-300 
       ${open ? "w-[240px]" : "w-[70px]"} 
       ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
       > */}
-      <aside
-  className={cn(
-    "flex flex-col border-r bg-background transition-all duration-300",
-    open ? "w-[240px]" : "w-[70px]",
-    !isSmUp &&
-      (mobileOpen
-        ? "fixed left-0 top-0 bottom-0 z-50"
-        : "-translate-x-full fixed left-0 top-0 bottom-0 z-50")
-  )}
->
-        {/* ── Sidebar Header ───────────────────────── */}
-        <div
-          onClick={handleDrawerToggle}
+        <aside
           className={cn(
-            "flex h-16 shrink-0 items-center border-b border-border/40 cursor-pointer",
-            open ? "px-4 justify-center" : "px-2 justify-center",
+            "flex flex-col border-r bg-background transition-all duration-300",
+            open ? "w-[240px]" : "w-[70px]",
+            !isSmUp &&
+              (mobileOpen
+                ? "fixed left-0 top-0 bottom-0 z-50"
+                : "-translate-x-full fixed left-0 top-0 bottom-0 z-50"),
           )}
         >
-          {open ? (
-            <img
-              src={FullLogo}
-              alt="logo"
-              className="h-10 w-auto object-contain"
-            />
-          ) : (
-            <img
-              src={Logo}
-              alt="logo"
-              className="h-8 w-auto object-contain"
-            />
-          )}
-        </div>
+          {/* ── Sidebar Header ───────────────────────── */}
+          <div
+            onClick={handleDrawerToggle}
+            className={cn(
+              "flex h-16 shrink-0 items-center border-b border-border/40 cursor-pointer",
+              open ? "px-4 justify-center" : "px-2 justify-center",
+            )}
+          >
+            {open ? (
+              <img
+                src={FullLogo}
+                alt="logo"
+                className="h-10 w-auto object-contain"
+              />
+            ) : (
+              <img
+                src={Logo}
+                alt="logo"
+                className="h-8 w-auto object-contain"
+              />
+            )}
+          </div>
 
-        {/* ── Sidebar Menu ─────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
-          {/* ───────── MAIN SECTION ───────── */}
-          {open && (
-            <p 
-              className="px-2 font-semibold uppercase tracking-widest text-muted-foreground/50 select-none"
-              style={{ fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)" }}
-            >
-              Main
-            </p>
-          )}
+          {/* ── Sidebar Menu ─────────────────────────── */}
+          <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
+            {/* ───────── MAIN SECTION ───────── */}
+            {open && (
+              <p
+                className="px-2 font-semibold uppercase tracking-widest text-muted-foreground/50 select-none"
+                style={{
+                  fontSize:
+                    "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
+                }}
+              >
+                Main
+              </p>
+            )}
 
-          {sidebarItems.slice(0, 4).map((item, index) => {
-            const active = isActive(item.path, item.submenu);
+            {sidebarItems.slice(0, 4).map((item, index) => {
+              const active = isActive(item.path, item.submenu);
 
-            return (
-              <div key={index}>
-                {/* Main Item */}
-                <button
-                  onClick={() => {
-                    if (item.submenu?.length) {
-                      handleToggleMenu(index);
-                    } else {
-                      navigate(item.path);
-                      if (!isSmUp) setMobileOpen(false);
-                    }
-                  }}
-                  className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 transition
+              return (
+                <div key={index}>
+                  {/* Main Item */}
+                  <button
+                    onClick={() => {
+                      if (item.submenu?.length) {
+                        handleToggleMenu(index);
+                      } else {
+                        navigate(item.path);
+                        if (!isSmUp) setMobileOpen(false);
+                      }
+                    }}
+                    className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 transition
                   ${
                     active
                       ? "bg-primary/10 text-primary font-semibold"
@@ -413,92 +412,108 @@ useEffect(() => {
                   }
                   ${!open && "justify-center px-2"}
                 `}
-                style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
-                >
-                  <span style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}>
-                    {getIcon(item.icon)}
-                  </span>
-
-                  {open && (
-                    <span className="flex-1 text-left truncate">
-                      {item.label}
+                    style={{
+                      fontSize:
+                        "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize:
+                          "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)",
+                      }}
+                    >
+                      {getIcon(item.icon)}
                     </span>
-                  )}
 
-                  {item.submenu?.length > 0 &&
-                    open &&
-                    (openMenus[index] ? (
-                      <ChevronUp size={16} />
-                      // <ExpandLess style={{ fontSize: "var(--text-body)" }} />
-                    ) : (
-                      <ChevronDown size={16} />
-                      // <ExpandMore style={{ fontSize: "var(--text-body)" }} />
-                    ))}
-                </button>
+                    {open && (
+                      <span className="flex-1 text-left truncate">
+                        {item.label}
+                      </span>
+                    )}
 
-                {/* Submenu */}
-                {item.submenu?.length > 0 && openMenus[index] && (
-                  <div className="ml-4 mt-1 border-l pl-3 space-y-1">
-                    {item.submenu.map((sub, i) => {
-                      const subActive = isSubActive(sub.path);
+                    {item.submenu?.length > 0 &&
+                      open &&
+                      (openMenus[index] ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        // <ExpandLess style={{ fontSize: "var(--text-body)" }} />
+                        <ChevronDown size={16} />
+                        // <ExpandMore style={{ fontSize: "var(--text-body)" }} />
+                      ))}
+                  </button>
 
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            navigate(sub.path);
-                            if (!isSmUp) setMobileOpen(false);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition
+                  {/* Submenu */}
+                  {item.submenu?.length > 0 && openMenus[index] && (
+                    <div className="ml-4 mt-1 border-l pl-3 space-y-1">
+                      {item.submenu.map((sub, i) => {
+                        const subActive = isSubActive(sub.path);
+
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              navigate(sub.path);
+                              if (!isSmUp) setMobileOpen(false);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition
                           ${
                             subActive
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           }
                         `}
-                        style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
-                        >
-                          <span style={{ fontSize: "var(--text-body)" }}>{getIcon(sub.icon)}</span>
-                          {open && <span>{sub.label}</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                            style={{
+                              fontSize:
+                                "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                            }}
+                          >
+                            <span style={{ fontSize: "var(--text-body)" }}>
+                              {getIcon(sub.icon)}
+                            </span>
+                            {open && <span>{sub.label}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
-          {/* ───────── DIVIDER ───────── */}
-          <div className="h-px bg-border/40 my-2" />
+            {/* ───────── DIVIDER ───────── */}
+            <div className="h-px bg-border/40 my-2" />
 
-          {/* ───────── TOOLS SECTION ───────── */}
-          {open && (
-            <p 
-              className="px-2 font-semibold uppercase tracking-widest text-muted-foreground/50 select-none"
-              style={{ fontSize: "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)" }}
-            >
-              Tools
-            </p>
-          )}
+            {/* ───────── TOOLS SECTION ───────── */}
+            {open && (
+              <p
+                className="px-2 font-semibold uppercase tracking-widest text-muted-foreground/50 select-none"
+                style={{
+                  fontSize:
+                    "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
+                }}
+              >
+                Tools
+              </p>
+            )}
 
-          {sidebarItems.slice(4).map((item, index) => {
-            const realIndex = index + 4;
-            const active = isActive(item.path, item.submenu);
+            {sidebarItems.slice(4).map((item, index) => {
+              const realIndex = index + 4;
+              const active = isActive(item.path, item.submenu);
 
-            return (
-              <div key={realIndex}>
-                {/* Main Item */}
-                <button
-                  onClick={() => {
-                    if (item.submenu?.length) {
-                      handleToggleMenu(realIndex);
-                    } else {
-                      navigate(item.path);
-                      if (!isSmUp) setMobileOpen(false);
-                    }
-                  }}
-                  className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 transition
+              return (
+                <div key={realIndex}>
+                  {/* Main Item */}
+                  <button
+                    onClick={() => {
+                      if (item.submenu?.length) {
+                        handleToggleMenu(realIndex);
+                      } else {
+                        navigate(item.path);
+                        if (!isSmUp) setMobileOpen(false);
+                      }
+                    }}
+                    className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 transition
                   ${
                     active
                       ? "bg-primary/10 text-primary font-semibold"
@@ -506,74 +521,86 @@ useEffect(() => {
                   }
                   ${!open && "justify-center px-2"}
                 `}
-                style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
-                >
-                  <span style={{ fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)" }}>
-                    {getIcon(item.icon)}
-                  </span>
-
-                  {open && (
-                    <span className="flex-1 text-left truncate">
-                      {item.label}
+                    style={{
+                      fontSize:
+                        "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize:
+                          "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)",
+                      }}
+                    >
+                      {getIcon(item.icon)}
                     </span>
-                  )}
 
-                  {item.submenu?.length > 0 &&
-                    open &&
-                    (openMenus[realIndex] ? (
-                      <ChevronUp size={16} />
-                    ) : (
-                      <ChevronDown size={16} />
-                    ))}
-                </button>
+                    {open && (
+                      <span className="flex-1 text-left truncate">
+                        {item.label}
+                      </span>
+                    )}
 
-                {/* Submenu */}
-                {item.submenu?.length > 0 && openMenus[realIndex] && (
-                  <div className="ml-4 mt-1 border-l pl-3 space-y-1">
-                    {item.submenu.map((sub, i) => {
-                      const subActive = isSubActive(sub.path);
+                    {item.submenu?.length > 0 &&
+                      open &&
+                      (openMenus[realIndex] ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      ))}
+                  </button>
 
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            navigate(sub.path);
-                            if (!isSmUp) setMobileOpen(false);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition
+                  {/* Submenu */}
+                  {item.submenu?.length > 0 && openMenus[realIndex] && (
+                    <div className="ml-4 mt-1 border-l pl-3 space-y-1">
+                      {item.submenu.map((sub, i) => {
+                        const subActive = isSubActive(sub.path);
+
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              navigate(sub.path);
+                              if (!isSmUp) setMobileOpen(false);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition
                           ${
                             subActive
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           }
                         `}
-                        style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
-                        >
-                          <span style={{ fontSize: "var(--text-body)" }}>{getIcon(sub.icon)}</span>
-                          {open && <span>{sub.label}</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </aside>
+                            style={{
+                              fontSize:
+                                "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                            }}
+                          >
+                            <span style={{ fontSize: "var(--text-body)" }}>
+                              {getIcon(sub.icon)}
+                            </span>
+                            {open && <span>{sub.label}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </aside>
 
-      {/* ════════════════════════════════════════════════
+        {/* ════════════════════════════════════════════════
           MAIN CONTENT AREA
       ════════════════════════════════════════════════ */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* ── Header ─────────────────────────────── */}
-        <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
-          {/* Left Section */}
-          <div className="flex items-center gap-3">
-         
-            <button
-  onClick={handleDrawerToggle}
-  className="
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* ── Header ─────────────────────────────── */}
+          <header className="flex items-center justify-between border-b px-4 h-14 bg-background sticky top-0 z-20">
+            {/* Left Section */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleDrawerToggle}
+                className="
     group
     flex items-center justify-center
     w-10 h-10
@@ -591,145 +618,178 @@ useEffect(() => {
     focus:ring-2
     focus:ring-ring
   "
-  style={{
-    fontSize:
-      "calc(var(--text-heading-sub, 1rem) * parseFloat(var(--font-scale)) / 100)",
-    fontFamily: "var(--font-family)",
-  }}
->
- <Menu
-  size={18}
-  className="group-hover:scale-110 transition-transform duration-200"
-/>
-</button>
+                style={{
+                  fontSize:
+                    "calc(var(--text-heading-sub, 1rem) * parseFloat(var(--font-scale)) / 100)",
+                  fontFamily: "var(--font-family)",
+                }}
+              >
+                <Menu
+                  size={18}
+                  className="group-hover:scale-110 transition-transform duration-200"
+                />
+              </button>
 
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-primary-foreground hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)",
+                      lineHeight: "1",
+                    }}
+                  >
+                    +
+                  </button>
+                </DropdownMenuTrigger>
 
-<DropdownMenu>
-  <DropdownMenuTrigger asChild>
-    <button
-      className="flex items-center justify-center h-8 w-8 rounded-md bg-primary text-primary-foreground hover:opacity-90 outline-none focus:outline-none border-0 ring-0 focus:ring-0"
-      style={{ 
-        fontFamily: "var(--font-family)",
-        fontSize: "calc(var(--text-heading-sub) * parseFloat(var(--font-scale)) / 100)",
-        lineHeight: "1"
-      }}
-    >
-      +
-    </button>
-  </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="w-56 mt-2 rounded-xl overflow-hidden border bg-popover text-popover-foreground shadow-lg animate-in fade-in zoom-in-95"
+                  style={{
+                    fontFamily: "var(--font-family)",
+                    fontSize:
+                      "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                  }}
+                >
+                  {plusMenuItems.length > 0 ? (
+                    plusMenuItems.map((item, index) => (
+                      <DropdownMenuItem
+                        key={index}
+                        onClick={() => {
+                          if (item.label === "Account") handleDrawerOpen();
+                          else if (item.label === "Contact")
+                            handleContactDrawerOpen();
+                          else if (item.label === "Invoice")
+                            setInvoiceDrawer(true);
+                          else if (item.label === "Chat")
+                            handleChatDrawerOpen();
+                          else if (item.label === "Jobs") handleJobDrawerOpen();
+                          else if (item.label === "Task")
+                            handleTasksDrawerOpen();
+                          else navigate(item.path);
+                        }}
+                        className="flex items-center gap-2 cursor-pointer text-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        {/* Synchronized icon sizing wrapped in a styled container */}
+                        <span
+                          className="flex items-center justify-center m-0 p-0 text-muted-foreground"
+                          style={{
+                            width:
+                              "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                            height:
+                              "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                          }}
+                        >
+                          {getIcon(item.icon)}
+                        </span>
 
-  <DropdownMenuContent
-    align="start"
-    className="w-56 mt-2 rounded-xl overflow-hidden border bg-popover text-popover-foreground shadow-lg animate-in fade-in zoom-in-95"
-    style={{ 
-      fontFamily: "var(--font-family)",
-      fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" 
-    }}
-  >
-    {plusMenuItems.length > 0 ? (
-      plusMenuItems.map((item, index) => (
-        <DropdownMenuItem
-          key={index}
-          onClick={() => {
-            if (item.label === "Account") handleDrawerOpen();
-            else if (item.label === "Contact") handleContactDrawerOpen();
-            else if (item.label === "Invoice") setInvoiceDrawer(true);
-            else if (item.label === "Chat") handleChatDrawerOpen();
-            else if (item.label === "Jobs") handleJobDrawerOpen();
-            else if (item.label === "Task") handleTasksDrawerOpen();
-            else navigate(item.path);
-          }}
-          className="flex items-center gap-2 cursor-pointer text-foreground focus:bg-accent focus:text-accent-foreground"
-        >
-          {/* Synchronized icon sizing wrapped in a styled container */}
-          <span 
-            className="flex items-center justify-center m-0 p-0 text-muted-foreground"
-            style={{ 
-              width: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)", 
-              height: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" 
-            }}
-          >
-            {getIcon(item.icon)}
-          </span>
-          
-          <span style={{ lineHeight: "1.2" }}>{item.label}</span>
-        </DropdownMenuItem>
-      ))
-    ) : (
-      <DropdownMenuItem disabled className="text-muted-foreground">
-        No items found
-      </DropdownMenuItem>
-    )}
-  </DropdownMenuContent>
-</DropdownMenu>
-            {/* Search */}
-            <div className="w-[300px]">
-              <SearchComponent />
+                        <span style={{ lineHeight: "1.2" }}>{item.label}</span>
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <DropdownMenuItem
+                      disabled
+                      className="text-muted-foreground"
+                    >
+                      No items found
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {/* Search */}
+              <div className="w-[300px]">
+                <SearchComponent />
+              </div>
             </div>
-          </div>
 
-          {/* Right Section */}
-          <LogoutButton />
-        </header>
+            {/* Right Section */}
+            <LogoutButton />
+          </header>
 
-        {/* ── Page Content ───────────────────────── */}
-        <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
-          <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
-            <Outlet />
-          </div>
-        </main>
-      </div>
+          {/* ── Page Content ───────────────────────── */}
+          <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
+            <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
+              <Outlet />
+            </div>
+          </main>
+        </div>
 
-      {/* ════════════════════════════════════════════════
+        {/* ════════════════════════════════════════════════
           PLUS MENU (ShadCN style)
       ════════════════════════════════════════════════ */}
-      {plusAnchorEl && (
-        <div 
-          className="fixed top-14 left-[260px] z-50 w-56 rounded-xl border shadow-lg animate-in fade-in zoom-in-95"
-          style={{ fontSize: "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)" }}
-        >
-          <div className="p-1">
-            {plusMenuItems.length > 0 ? (
-              plusMenuItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    if (item.label === "Account") handleDrawerOpen();
-                    else if (item.label === "Contact") handleContactDrawerOpen();
-                    else if (item.label === "Invoice") setInvoiceDrawer(true);
-                    else if (item.label === "Chat") handleChatDrawerOpen();
-                    else if (item.label === "Jobs") handleJobDrawerOpen();
-                    else if (item.label === "Task") handleTasksDrawerOpen();
-                    else navigate(item.path);
+        {plusAnchorEl && (
+          <div
+            className="fixed top-14 left-[260px] z-50 w-56 rounded-xl border shadow-lg animate-in fade-in zoom-in-95"
+            style={{
+              fontSize:
+                "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            <div className="p-1">
+              {plusMenuItems.length > 0 ? (
+                plusMenuItems.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      if (item.label === "Account") handleDrawerOpen();
+                      else if (item.label === "Contact")
+                        handleContactDrawerOpen();
+                      else if (item.label === "Invoice") setInvoiceDrawer(true);
+                      else if (item.label === "Chat") handleChatDrawerOpen();
+                      else if (item.label === "Jobs") handleJobDrawerOpen();
+                      else if (item.label === "Task") handleTasksDrawerOpen();
+                      else navigate(item.path);
 
-                    handlePlusClose();
-                  }}
-                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 transition"
-                >
-                  <span style={{ fontSize: "var(--text-body)" }}>{getIcon(item.icon)}</span>
-                  <span className="flex-1 text-left">{item.label}</span>
-                </button>
-              ))
-            ) : (
-              <div className="p-3 text-gray-400">No items found</div>
-            )}
+                      handlePlusClose();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 transition"
+                  >
+                    <span style={{ fontSize: "var(--text-body)" }}>
+                      {getIcon(item.icon)}
+                    </span>
+                    <span className="flex-1 text-left">{item.label}</span>
+                  </button>
+                ))
+              ) : (
+                <div className="p-3 text-gray-400">No items found</div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ════════════════════════════════════════════════
+        {/* ════════════════════════════════════════════════
           DRAWERS (UNCHANGED)
       ════════════════════════════════════════════════ */}
-      <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
-      <NewContactDrawer open={contactDrawerOpen} onClose={handleContactDrawerClose} />
-      <CreateInvoiceDrawer open={invoiceDrawer} onClose={() => setInvoiceDrawer(false)} />
-      <NewChatDrawer open={chatDrawerOpen} handleClose={handleChatDrawerClose} accountwiseChatlist={() => {}} data={null} isActiveTrue={true} />
-      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
-      <TasksDrawer open={tasksDrawerOpen} onClose={() => setTasksDrawerOpen(false)} />
-    </div>
-  </>
-);
-
+        <AccountContactDrawer open={openDrawer} onClose={handleDrawerClose} />
+        <NewContactDrawer
+          open={contactDrawerOpen}
+          onClose={handleContactDrawerClose}
+        />
+        <CreateInvoiceDrawer
+          open={invoiceDrawer}
+          onClose={() => setInvoiceDrawer(false)}
+        />
+        <NewChatDrawer
+          open={chatDrawerOpen}
+          handleClose={handleChatDrawerClose}
+          accountwiseChatlist={() => {}}
+          data={null}
+          isActiveTrue={true}
+        />
+        <JobDrawer
+          open={jobDrawerOpen}
+          onClose={() => setJobDrawerOpen(false)}
+        />
+        <TasksDrawer
+          open={tasksDrawerOpen}
+          onClose={() => setTasksDrawerOpen(false)}
+        />
+      </div>
+    </>
+  );
 };
 
 export default Dashboard;

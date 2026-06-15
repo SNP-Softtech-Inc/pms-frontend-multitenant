@@ -2173,7 +2173,7 @@
 // export default MyForm;
 import React, { useState, useEffect } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { toast } from "react-toastify";
+import {useToastContext} from "../context/ToastContext";
 import OtpInput from "react-otp-input";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -2277,7 +2277,7 @@ const MyForm = () => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [apiSuccess, setApiSuccess] = useState("");
-
+const {showToast} = useToastContext();
   const handleAdminLogin = () => {
     navigate("/login");
   };
@@ -2454,7 +2454,11 @@ const MyForm = () => {
   // OTP Handlers
   const handleSendOTP = async () => {
     if (!email) {
-      toast.error("Email is required!");
+      showToast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        type: "error",
+      });
       return;
     }
 
@@ -2465,11 +2469,19 @@ const MyForm = () => {
       await authAPI.sendOTP(email);
       setShowEmailContent(true);
       setApiSuccess("OTP sent to your email");
-      toast.success("OTP sent to your email");
+      showToast({
+        title: "OTP sent",
+        description: "OTP sent to your email",
+        type: "success",
+      });
     } catch (error) {
       console.error("Send OTP error:", error);
       setApiError(error.response?.data?.message || "Failed to send OTP");
-      toast.error(error.response?.data?.message || "Failed to send OTP");
+      showToast({
+        title: "Failed to send OTP",
+        description: error.response?.data?.message || "Failed to send OTP",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -2477,7 +2489,11 @@ const MyForm = () => {
 
   const handleVerifyOTP = async () => {
     if (!otp || otp.length !== 6) {
-      toast.error("Please enter 6-digit OTP");
+      showToast({
+        title: "Invalid OTP",
+        description: "Please enter a valid 6-digit OTP",
+        type: "error",
+      });
       return;
     }
 
@@ -2488,12 +2504,20 @@ const MyForm = () => {
       await authAPI.verifyOTP(email, otp);
       setIsEmailVerified(true);
       setApiSuccess("Email verified successfully");
-      toast.success("Email verified successfully");
+      showToast({
+        title: "Email verified successfully",
+        description: "Your email has been verified successfully.",
+        type: "success",
+      });
       handleNext();
     } catch (error) {
       console.error("Verify OTP error:", error);
       setApiError(error.response?.data?.message || "Failed to verify OTP");
-      toast.error(error.response?.data?.message || "Failed to verify OTP");
+      showToast({
+        title: "Failed to verify OTP",
+        description: error.response?.data?.message || "Failed to verify OTP",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -2506,11 +2530,19 @@ const MyForm = () => {
     try {
       await authAPI.resendOTP(email);
       setApiSuccess("OTP resent successfully");
-      toast.success("OTP resent successfully");
+      showToast({
+        title: "OTP resent",
+        description: "OTP resent to your email",
+        type: "success",
+      });
     } catch (error) {
       console.error("Resend OTP error:", error);
       setApiError(error.response?.data?.message || "Failed to resend OTP");
-      toast.error(error.response?.data?.message || "Failed to resend OTP");
+      showToast({
+        title: "Failed to resend OTP",
+        description: error.response?.data?.message || "Failed to resend OTP",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -2542,11 +2574,19 @@ const MyForm = () => {
 
   const createAccount = async () => {
     if (!email) {
-      toast.error("Email is required!");
+      showToast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        type: "error",
+      });
       return;
     }
     if (!isChecked) {
-      toast.error("Accept terms and conditions");
+      showToast({
+        title: "Terms and conditions",
+        description: "Please accept the terms and conditions.",
+        type: "error",
+      });
       return;
     }
     await handleSendOTP();
@@ -2556,11 +2596,23 @@ const MyForm = () => {
   const submitUserinfo = (e) => {
     e.preventDefault();
     if (firstname === "") {
-      toast.error("First Name Required!");
+      showToast({
+        title: "First Name Required",
+        description: "Please enter your first name.",
+        type: "error",
+      });
     } else if (lastName === "") {
-      toast.error("Last Name Required!");
+      showToast({
+        title: "Last Name Required",
+        description: "Please enter your last name.",
+        type: "error",
+      });
     } else if (phoneNumber === "") {
-      toast.error("Phone number required");
+      showToast({
+        title: "Phone Number Required",
+        description: "Please enter your phone number.",
+        type: "error",
+      });
     } else {
       handleNext();
     }
@@ -2569,11 +2621,23 @@ const MyForm = () => {
   const submitFerminfo = (e) => {
     e.preventDefault();
     if (firmName === "") {
-      toast.error("Firm Name Required!");
+      showToast({
+        title: "Firm Name Required",
+        description: "Please enter your firm name.",
+        type: "error",
+      });
     } else if (selectedCountry === "") {
-      toast.error("Select Country!");
+      showToast({
+        title: "Country Required",
+        description: "Please select a country.",
+        type: "error",
+      });
     } else if (selectedState === "") {
-      toast.error("Select state!");
+      showToast({
+        title: "State Required",
+        description: "Please select a state.",
+        type: "error",
+      });
     } else {
       handleNext();
     }
@@ -2582,9 +2646,17 @@ const MyForm = () => {
   const submitFirmDetail = (e) => {
     e.preventDefault();
     if (firmSize === 0) {
-      toast.error("Select Firm Size!");
+      showToast({
+        title: "Firm Size Required",
+        description: "Please select your firm size.",
+        type: "error",
+      });
     } else if (!referenceFrom) {
-      toast.error("Select how you heard about us!");
+      showToast({
+        title: "Reference Required",
+        description: "Please select how you heard about us.",
+        type: "error",
+      });
     } else {
       handleNext();
     }
@@ -2611,7 +2683,11 @@ const MyForm = () => {
   const submitService = (e) => {
     e.preventDefault();
     if (selectedServicesList.length === 0) {
-      toast.error("Select at least one service!");
+      showToast({
+        title: "Services Required",
+        description: "Please select at least one service.",
+        type: "error",
+      });
     } else {
       handleNext();
     }
@@ -2620,7 +2696,11 @@ const MyForm = () => {
   const submitRole = (e) => {
     e.preventDefault();
     if (!role) {
-      toast.error("Select your role!");
+      showToast({
+        title: "Role Required",
+        description: "Please select your role.",
+        type: "error",
+      });
     } else {
       handleNext();
     }
@@ -2629,11 +2709,23 @@ const MyForm = () => {
   const submiturl = (e) => {
     e.preventDefault();
     if (url === "") {
-      toast.error("Choose web URL!");
+      showToast({
+        title: "Web URL Required",
+        description: "Please choose a web URL.",
+        type: "error",
+      });
     } else if (!selectedCurrency) {
-      toast.error("Select Currency!");
+      showToast({
+        title: "Currency Required",
+        description: "Please select a currency.",
+        type: "error",
+      });
     } else if (!selectedLanguage) {
-      toast.error("Select language!");
+      showToast({
+        title: "Language Required",
+        description: "Please select a language.",
+        type: "error",
+      });
     } else {
       handleNext();
     }
@@ -2643,25 +2735,45 @@ const MyForm = () => {
     e.preventDefault();
 
     if (password === "") {
-      toast.error("Password is required!");
+      showToast({
+        title: "Password Required",
+        description: "Please enter a password.",
+        type: "error",
+      });
       return;
     }
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters!");
+      showToast({
+        title: "Invalid Password",
+        description: "Password must be at least 8 characters.",
+        type: "error",
+      });
       return;
     }
     if (confirmPassword === "") {
-      toast.error("Confirm password is required!");
+      showToast({
+        title: "Confirm Password Required",
+        description: "Please confirm your password.",
+        type: "error",
+      });
       return;
     }
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match!");
+      showToast({
+        title: "Password Mismatch",
+        description: "Passwords do not match.",
+        type: "error",
+      });
       return;
     }
 
     const isValid = Object.values(passwordValidation).every(v => v === true);
     if (!isValid) {
-      toast.error("Password does not meet requirements!");
+      showToast({
+        title: "Invalid Password",
+        description: "Password does not meet requirements.",
+        type: "error",
+      });
       return;
     }
 
@@ -2696,14 +2808,22 @@ const MyForm = () => {
 
       const response = await authAPI.registerAdmin(registrationData);
       
-      toast.success("Registration successful!");
-      
+      showToast({
+        title: "Registration Successful",
+        description: "Your account has been created successfully.",
+        type: "success",
+      });
+
       setTimeout(() => {
         navigate("/login");
       }, 2000);
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error(error.response?.data?.message || "Registration failed");
+      showToast({
+        title: "Registration Failed",
+        description: error.response?.data?.message || "Registration failed",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

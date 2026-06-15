@@ -240,16 +240,7 @@ const ActiveGroups = ({ refresh, onEdit }) => {
     fetchGroups();
   }, [refresh]);
 
-  // const handleDelete = async (id) => {
-  //   if (!window.confirm("Delete this group?")) return;
-  //   console.log("Deleting group with id:", id);
-  //   try {
-  //     await authAPI.deleteGroup(id);
-  //     fetchGroups();
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
+ 
 
     const handleDelete = (id) => {
     confirm({
@@ -391,7 +382,7 @@ const ActiveGroups = ({ refresh, onEdit }) => {
         searchPlaceholder="Search groups..."
       />
       
-      <div className="h-[500px]">
+      <div >
         <DataTable
           columns={columns}
           data={rows}

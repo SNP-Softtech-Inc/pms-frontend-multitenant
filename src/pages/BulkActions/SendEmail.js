@@ -870,8 +870,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from "react";
-
-import { toast } from "react-toastify";
+import {useToastContext} from "../../context/ToastContext";
 import { accountsAPI, templateAPI, authAPI } from "../../services/api";
 
 import Editor from "../../components/EditorShortcodes";
@@ -886,7 +885,7 @@ import { Label } from "../../components/ui/label";
 const SendEmail = forwardRef(
   ({ selectedAccounts, onClose, fetchData }, ref) => {
     const [loading, setLoading] = useState(false);
-
+const {showToast} = useToastContext();
     const [templates, setTemplates] = useState([]);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
 
@@ -917,7 +916,11 @@ const SendEmail = forwardRef(
         const res = await templateAPI.getEmailTemplates();
         setTemplates(res.data.emailTemplate || []);
       } catch (err) {
-        toast.error("Failed to fetch templates");
+        showToast({
+          title: "Failed to fetch templates",
+          description: "An error occurred while fetching templates.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -1019,16 +1022,32 @@ const SendEmail = forwardRef(
           if (userOption) setSelectedUser(userOption);
         }
       } catch {
-        toast.error("Failed to load template");
+        showToast({
+          title: "Failed to load template",
+          description: "An error occurred while loading the template.",
+          type: "error",
+        });
       }
     };
 
     // ================= SUBMIT =================
     const handleSubmit = async () => {
       try {
-        if (!inputText) return toast.error("Subject required");
-        if (!emailBody) return toast.error("Body required");
-        if (!selecteduser) return toast.error("Select sender");
+        if (!inputText) return showToast({
+          title: "Subject required",
+          description: "Please enter a subject for the email.",
+          type: "error",
+        });
+        if (!emailBody) return showToast({
+          title: "Body required",
+          description: "Please enter a body for the email.",
+          type: "error",
+        });
+        if (!selecteduser) return showToast({
+          title: "Select sender",
+          description: "Please select a sender for the email.",
+          type: "error",
+        });
 
         setLoading(true);
 
@@ -1041,10 +1060,18 @@ const SendEmail = forwardRef(
 
         await accountsAPI.sendBulkEmails(payload);
 
-        toast.success("Emails sent");
+        showToast({
+          title: "Emails sent successfully",
+          description: "The selected emails have been sent successfully.",
+          type: "success",
+        });
         onClose();
       } catch {
-        toast.error("Failed to send emails");
+        showToast({
+          title: "Failed to send emails",
+          description: "An error occurred while sending the emails.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
