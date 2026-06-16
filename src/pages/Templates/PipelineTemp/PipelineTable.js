@@ -219,7 +219,16 @@ const {showToast} = useToastContext();
   const handleDelete = async (id, pipelineName) => {
     confirm({
       title: "Delete Pipeline",
-      description: `Are you sure you want to delete "${pipelineName}"?`,
+      // description: `Are you sure you want to delete "${pipelineName}"?`,
+       description: (
+        <>
+          Are you sure you want to delete this orgnizer{" "}
+          <span className="font-semibold text-red-600">
+            "{pipelineName}"
+          </span>
+          ?
+        </>
+      ),
       onConfirm: async () => {
         try {
           await templateAPI.deletePipeline(id);

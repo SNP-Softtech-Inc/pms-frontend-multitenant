@@ -529,10 +529,19 @@ const Clientfacing = () => {
   };
 
   // ================= DELETE =================
-  const deleteJobFacing = (id) => {
+  const deleteJobFacing = (id,templateName) => {
     confirm({
       title: "Delete Job Status",
-      description: "Are you sure you want to delete this job status?",
+      // description: "Are you sure you want to delete this job status?",
+      description: (
+        <>
+          Are you sure you want to delete this job status{" "}
+          <span className="font-semibold text-red-600">
+            "{templateName}"
+          </span>
+          ?
+        </>
+      ),
       onConfirm: async () => {
         try {
           await templateAPI.deleteJobStatus(id);
@@ -634,7 +643,7 @@ const Clientfacing = () => {
             <Pencil className="h-3.5 w-3.5" />
           </button>
           <button
-            onClick={() => deleteJobFacing(row.original._id)}
+            onClick={() => deleteJobFacing(row.original._id,row.original.clientfacingName)}
             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-destructive hover:bg-destructive/10"
             title="Delete"
           >

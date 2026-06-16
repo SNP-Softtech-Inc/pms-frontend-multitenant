@@ -568,7 +568,7 @@ const {showToast} = useToastContext();
             <h3 className="text-lg font-semibold">Delete Template</h3>
             <p className="text-sm text-muted-foreground">
               Are you sure you want to delete{" "}
-              <strong>{selectedTemplate?.templatename}</strong>?
+              <span className="font-semibold text-red-600">{selectedTemplate?.templatename}</span>?
             </p>
             <div className="flex justify-end gap-2">
               <Button

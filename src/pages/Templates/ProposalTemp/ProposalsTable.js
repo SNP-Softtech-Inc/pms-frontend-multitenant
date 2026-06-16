@@ -269,7 +269,16 @@ const ProposalsTable = () => {
   const handleDeleteClick = (proposal) => {
     confirm({
       title: "Delete Proposal",
-      description: `Are you sure you want to delete "${proposal.templatename}"?`,
+      // description: `Are you sure you want to delete "${proposal.templatename}"?`,
+      description: (
+        <>
+          Are you sure you want to delete this proposal{" "}
+          <span className="font-semibold text-red-600">
+            "{proposal.templatename}"
+          </span>
+          ?
+        </>
+      ),
       confirmText: "Delete",
       cancelText: "Cancel",
       onConfirm: async () => {

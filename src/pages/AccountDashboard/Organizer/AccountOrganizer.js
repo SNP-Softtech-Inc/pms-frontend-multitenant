@@ -1124,7 +1124,7 @@
 //                       disabled={activeStep === 0}
 //                       onClick={handleBack}
 //                       variant="contained"
-                     
+
 //                     >
 //                       Back
 //                     </Button>
@@ -1132,7 +1132,7 @@
 //                       onClick={handleNext}
 //                       disabled={activeStep === totalSteps - 1}
 //                       variant="contained"
-                     
+
 //                     >
 //                       Next
 //                     </Button>
@@ -1148,7 +1148,6 @@
 // };
 
 // export default AccountOrganizer;
-
 
 // import {
 //   Box,
@@ -1225,7 +1224,7 @@
 
 //       if (Array.isArray(accounts)) {
 //         setAccountData(accounts);
-        
+
 //         // If accountId is provided in URL, pre-select it
 //         if (accountId) {
 //           const preselectedAccount = accounts
@@ -1234,7 +1233,7 @@
 //               label: acc.accountName,
 //               value: acc._id,
 //             }));
-          
+
 //           if (preselectedAccount.length) {
 //             setSelectedAccount(preselectedAccount);
 //           }
@@ -2265,7 +2264,7 @@ import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 const AccountOrganizer = () => {
   const { accountId } = useParams();
-const { showToast } = useToastContext();
+  const { showToast } = useToastContext();
   const [organizerTemplate, setOrganizerTemplate] = useState([]);
   const [selectedOrganizerTemplate, setSelectedOrganizerTemplate] =
     useState("");
@@ -2303,21 +2302,24 @@ const { showToast } = useToastContext();
 
   const fetchAccountsData = async () => {
     try {
-      const response = await accountsAPI.getAccountNamesByStatus({ active: true });
+      const response = await accountsAPI.getAccountNamesByStatus({
+        active: true,
+      });
       const result = response.data;
-      const accounts = result.accounts || result.accountlist || result.teamAccounts || [];
+      const accounts =
+        result.accounts || result.accountlist || result.teamAccounts || [];
 
       if (Array.isArray(accounts)) {
         setAccountData(accounts);
-        
+
         if (accountId) {
           const preselectedAccount = accounts
-            .filter(account => account._id === accountId)
-            .map(acc => ({
+            .filter((account) => account._id === accountId)
+            .map((acc) => ({
               label: acc.accountName,
               value: acc._id,
             }));
-          
+
           if (preselectedAccount.length) {
             setSelectedAccount(preselectedAccount);
           }
@@ -2351,9 +2353,13 @@ const { showToast } = useToastContext();
     setOrganizerName(e.target.value);
   };
 
-  const fetchOrganizerTemplateDataByTempId = async (selectedOrganizerTempid) => {
+  const fetchOrganizerTemplateDataByTempId = async (
+    selectedOrganizerTempid,
+  ) => {
     try {
-      const result = await organizerAPI.getOrganizerTemplateById(selectedOrganizerTempid);
+      const result = await organizerAPI.getOrganizerTemplateById(
+        selectedOrganizerTempid,
+      );
       console.log("Organizer Template Details:", result);
       setSelectedOrganizerTempData(result.data.organizerTemplate);
       setSections(result.data.organizerTemplate.sections);
@@ -2416,8 +2422,15 @@ const { showToast } = useToastContext();
       for (const key in radioValues) {
         const [checkSectionId] = key.split("_");
         const numericCheckSectionId = Number(checkSectionId);
-        if (!Object.values(repeatedSections).flat().includes(numericCheckSectionId)) {
-          if (key.endsWith(`_${condition.question}`) && radioValues[key] === condition.answer) {
+        if (
+          !Object.values(repeatedSections)
+            .flat()
+            .includes(numericCheckSectionId)
+        ) {
+          if (
+            key.endsWith(`_${condition.question}`) &&
+            radioValues[key] === condition.answer
+          ) {
             conditionMet = true;
             break;
           }
@@ -2432,8 +2445,15 @@ const { showToast } = useToastContext();
       for (const key in checkboxValues) {
         const [checkSectionId] = key.split("_");
         const numericCheckSectionId = Number(checkSectionId);
-        if (!Object.values(repeatedSections).flat().includes(numericCheckSectionId)) {
-          if (key.endsWith(`_${condition.question}`) && checkboxValues[key]?.[condition.answer]) {
+        if (
+          !Object.values(repeatedSections)
+            .flat()
+            .includes(numericCheckSectionId)
+        ) {
+          if (
+            key.endsWith(`_${condition.question}`) &&
+            checkboxValues[key]?.[condition.answer]
+          ) {
             conditionMet = true;
             break;
           }
@@ -2448,8 +2468,15 @@ const { showToast } = useToastContext();
       for (const key in selectedDropdownValues) {
         const [checkSectionId] = key.split("_");
         const numericCheckSectionId = Number(checkSectionId);
-        if (!Object.values(repeatedSections).flat().includes(numericCheckSectionId)) {
-          if (key.endsWith(`_${condition.question}`) && selectedDropdownValues[key] === condition.answer) {
+        if (
+          !Object.values(repeatedSections)
+            .flat()
+            .includes(numericCheckSectionId)
+        ) {
+          if (
+            key.endsWith(`_${condition.question}`) &&
+            selectedDropdownValues[key] === condition.answer
+          ) {
             conditionMet = true;
             break;
           }
@@ -2464,8 +2491,15 @@ const { showToast } = useToastContext();
       for (const key in selectedYesNoValues) {
         const [checkSectionId] = key.split("_");
         const numericCheckSectionId = Number(checkSectionId);
-        if (!Object.values(repeatedSections).flat().includes(numericCheckSectionId)) {
-          if (key.endsWith(`_${condition.question}`) && selectedYesNoValues[key] === condition.answer) {
+        if (
+          !Object.values(repeatedSections)
+            .flat()
+            .includes(numericCheckSectionId)
+        ) {
+          if (
+            key.endsWith(`_${condition.question}`) &&
+            selectedYesNoValues[key] === condition.answer
+          ) {
             conditionMet = true;
             break;
           }
@@ -2546,7 +2580,8 @@ const { showToast } = useToastContext();
       for (const key in radioValues) {
         const [keySectionId] = key.split("_");
         const numericKeySectionId = Number(keySectionId);
-        const numericCurrentSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+        const numericCurrentSectionId =
+          typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
         if (
           numericKeySectionId === numericCurrentSectionId &&
@@ -2566,7 +2601,8 @@ const { showToast } = useToastContext();
       for (const key in checkboxValues) {
         const [keySectionId] = key.split("_");
         const numericKeySectionId = Number(keySectionId);
-        const numericCurrentSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+        const numericCurrentSectionId =
+          typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
         if (
           numericKeySectionId === numericCurrentSectionId &&
@@ -2586,7 +2622,8 @@ const { showToast } = useToastContext();
       for (const key in selectedDropdownValues) {
         const [keySectionId] = key.split("_");
         const numericKeySectionId = Number(keySectionId);
-        const numericCurrentSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+        const numericCurrentSectionId =
+          typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
         if (
           numericKeySectionId === numericCurrentSectionId &&
@@ -2606,7 +2643,8 @@ const { showToast } = useToastContext();
       for (const key in selectedYesNoValues) {
         const [keySectionId] = key.split("_");
         const numericKeySectionId = Number(keySectionId);
-        const numericCurrentSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+        const numericCurrentSectionId =
+          typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
         if (
           numericKeySectionId === numericCurrentSectionId &&
@@ -2710,39 +2748,51 @@ const { showToast } = useToastContext();
         noofreminders: noOfReminder,
         daysuntilnextreminder: daysuntilNextReminder,
         fileUploadPath: "",
-        sections: selectedOrganizerTempData?.sections?.map((section) => ({
-          name: section?.text || "",
-          id: section?.id?.toString() || "",
-          text: section?.text || "",
-          sectionsettings: {
-            sectionRepeatingMode: section?.sectionsettings?.sectionRepeatingMode || false,
-            buttonName: section?.sectionsettings?.buttonName || "Repeat Section",
-            conditional: section?.sectionsettings?.conditional || false,
-            conditions: section?.sectionsettings?.conditions || [],
-            mode: section?.sectionsettings?.mode || "Any",
-          },
-          formElements: section?.formElements?.map((question) => ({
-            type: question?.type || "",
-            id: question?.id || "",
-            sectionid: question?.sectionid || "",
-            options: question?.options?.map((option) => ({
-              id: option?.id || "",
-              text: option?.text || "",
-              selected: option?.selected || false,
-            })) || [],
-            text: question?.text || "",
-            textvalue: question?.textvalue || "",
-            questionsectionsettings: {
-              required: question?.questionsectionsettings?.required || false,
-              prefilled: question?.questionsectionsettings?.prefilled || false,
-              conditional: question?.questionsectionsettings?.conditional || false,
-              conditions: question?.questionsectionsettings?.conditions || [],
-              descriptionEnabled: question?.questionsectionsettings?.descriptionEnabled || false,
-              description: question?.questionsectionsettings?.description || "",
-              mode: question?.questionsectionsettings?.mode || "Any",
+        sections:
+          selectedOrganizerTempData?.sections?.map((section) => ({
+            name: section?.text || "",
+            id: section?.id?.toString() || "",
+            text: section?.text || "",
+            sectionsettings: {
+              sectionRepeatingMode:
+                section?.sectionsettings?.sectionRepeatingMode || false,
+              buttonName:
+                section?.sectionsettings?.buttonName || "Repeat Section",
+              conditional: section?.sectionsettings?.conditional || false,
+              conditions: section?.sectionsettings?.conditions || [],
+              mode: section?.sectionsettings?.mode || "Any",
             },
+            formElements:
+              section?.formElements?.map((question) => ({
+                type: question?.type || "",
+                id: question?.id || "",
+                sectionid: question?.sectionid || "",
+                options:
+                  question?.options?.map((option) => ({
+                    id: option?.id || "",
+                    text: option?.text || "",
+                    selected: option?.selected || false,
+                  })) || [],
+                text: question?.text || "",
+                textvalue: question?.textvalue || "",
+                questionsectionsettings: {
+                  required:
+                    question?.questionsectionsettings?.required || false,
+                  prefilled:
+                    question?.questionsectionsettings?.prefilled || false,
+                  conditional:
+                    question?.questionsectionsettings?.conditional || false,
+                  conditions:
+                    question?.questionsectionsettings?.conditions || [],
+                  descriptionEnabled:
+                    question?.questionsectionsettings?.descriptionEnabled ||
+                    false,
+                  description:
+                    question?.questionsectionsettings?.description || "",
+                  mode: question?.questionsectionsettings?.mode || "Any",
+                },
+              })) || [],
           })) || [],
-        })) || [],
         status: "Pending",
         active: true,
       };
@@ -2775,46 +2825,49 @@ const { showToast } = useToastContext();
 
   const handleAccountSelectionChange = (selectedAccounts) => {
     setSelectedAccount(selectedAccounts);
-    if (selectedAccounts.length > 0 && accountId !== selectedAccounts[0].value) {
-      navigate(`/clients/accounts/accountsdash/organizers/${selectedAccounts[0].value}`);
+    if (
+      selectedAccounts.length > 0 &&
+      accountId !== selectedAccounts[0].value
+    ) {
+      navigate(
+        `/clients/accounts/accountsdash/organizers/${selectedAccounts[0].value}`,
+      );
     }
   };
   return (
-  <TooltipProvider>
-    <div className="space-y-6 text-foreground bg-background">
-
-      {/* HEADER */}
-      <div className="border-b border-border pb-4 mt-3">
-        <h2 className="text-xl font-bold text-foreground">
-          Create organizer
-        </h2>
-      </div>
-
-      <div className="space-y-5">
-
-        {/* ACCOUNTS */}
-        <div>
-          <Label className="mb-2 block text-foreground">Accounts</Label>
-          <AccountMultiSelectDropdown
-            value={selectedAccount}
-            onChange={selectedAccount}
-          />
+    <TooltipProvider>
+      <div className="space-y-6 text-foreground bg-background">
+        {/* HEADER */}
+        <div className="border-b border-border pb-4 mt-3">
+          <h2 className="text-xl font-bold text-foreground">
+            Create organizer
+          </h2>
         </div>
 
-        {/* TEMPLATE */}
-        <div>
-          <Label className="mb-2 block text-foreground">
-            Organizer Template
-          </Label>
+        <div className="space-y-5">
+          {/* ACCOUNTS */}
+          <div>
+            <Label className="mb-2 block text-foreground">Accounts</Label>
+            <AccountMultiSelectDropdown
+              value={selectedAccount}
+              onChange={handleAccountSelectionChange}
+            />
+          </div>
 
-          <Select
-            value={selectedOrganizerTemplate || "none"}
-            onValueChange={(value) =>
-              handleOrganizerTemplateChange(value === "none" ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className="
+          {/* TEMPLATE */}
+          <div>
+            <Label className="mb-2 block text-foreground">
+              Organizer Template
+            </Label>
+
+            <Select
+              value={selectedOrganizerTemplate || "none"}
+              onValueChange={(value) =>
+                handleOrganizerTemplateChange(value === "none" ? "" : value)
+              }
+            >
+              <SelectTrigger
+                className="
                 w-full
                 rounded-xl
                 border-border
@@ -2822,123 +2875,115 @@ const { showToast } = useToastContext();
                 text-foreground
                 focus:ring-2 focus:ring-primary/20
               "
-            >
-              <SelectValue placeholder="Select organizer template" />
-            </SelectTrigger>
+              >
+                <SelectValue placeholder="Select organizer template" />
+              </SelectTrigger>
 
-            <SelectContent className="bg-popover border-border text-foreground">
-              <SelectItem value="none">None</SelectItem>
-              {OrganizerTemplateOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              <SelectContent className="bg-popover border-border text-foreground">
+                <SelectItem value="none">None</SelectItem>
+                {OrganizerTemplateOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* ORGANIZER NAME */}
-        <div>
-          <Input
-            placeholder="Organizer Name"
-            value={organizerName || ""}
-            onChange={handleOrganizerNameChange}
-            className="
+          {/* ORGANIZER NAME */}
+          <div>
+            <Input
+              placeholder="Organizer Name"
+              value={organizerName || ""}
+              onChange={handleOrganizerNameChange}
+              className="
               h-11 rounded-xl
               border-border
               bg-background
               text-foreground
               focus-visible:ring-2 focus-visible:ring-primary/20
             "
-          />
-        </div>
-
-        {/* PREVIEW */}
-        <div>
-          <Button
-            onClick={handlePreview}
-            className="rounded-xl"
-          >
-            Preview Mode
-          </Button>
-        </div>
-
-        {/* REMINDER TOGGLE */}
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={reminder}
-            onCheckedChange={handleAbsolutesDates}
-            id="reminder-mode"
-          />
-          <Label htmlFor="reminder-mode" className="text-foreground">
-            Reminders
-          </Label>
-        </div>
-
-        {/* REMINDER FIELDS */}
-        {reminder && (
-          <div className="flex flex-col md:flex-row gap-4 mt-2">
-            <div className="flex-1">
-              <Label className="mb-2 block text-foreground">
-                Days until next reminder
-              </Label>
-              <Input
-                value={daysuntilNextReminder}
-                onChange={(e) =>
-                  setDaysuntilNextReminder(e.target.value)
-                }
-                className="
-                  h-11 rounded-xl
-                  border-border
-                  bg-background
-                  text-foreground
-                  focus-visible:ring-2 focus-visible:ring-primary/20
-                "
-              />
-            </div>
-
-            <div className="flex-1">
-              <Label className="mb-2 block text-foreground">
-                No Of reminders
-              </Label>
-              <Input
-                value={noOfReminder}
-                onChange={(e) => setNoOfReminder(e.target.value)}
-                className="
-                  h-11 rounded-xl
-                  border-border
-                  bg-background
-                  text-foreground
-                  focus-visible:ring-2 focus-visible:ring-primary/20
-                "
-              />
-            </div>
+            />
           </div>
-        )}
 
-        {/* ACTIONS */}
-        <div className="flex gap-4 items-center">
-          <Button
-            onClick={createOrganizerOfAccount}
-            className="rounded-xl"
-          >
-            Create
-          </Button>
+          {/* PREVIEW */}
+          <div>
+            <Button onClick={handlePreview} className="rounded-xl">
+              Preview Mode
+            </Button>
+          </div>
 
-          <Button
-            onClick={handleOrganizerFormClose}
-            variant="outline"
-            className="rounded-xl border-border hover:bg-muted"
-          >
-            Cancel
-          </Button>
+          {/* REMINDER TOGGLE */}
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={reminder}
+              onCheckedChange={handleAbsolutesDates}
+              id="reminder-mode"
+            />
+            <Label htmlFor="reminder-mode" className="text-foreground">
+              Reminders
+            </Label>
+          </div>
+
+          {/* REMINDER FIELDS */}
+          {reminder && (
+            <div className="flex flex-col md:flex-row gap-4 mt-2">
+              <div className="flex-1">
+                <Label className="mb-2 block text-foreground">
+                  Days until next reminder
+                </Label>
+                <Input
+                  value={daysuntilNextReminder}
+                  onChange={(e) => setDaysuntilNextReminder(e.target.value)}
+                  className="
+                  h-11 rounded-xl
+                  border-border
+                  bg-background
+                  text-foreground
+                  focus-visible:ring-2 focus-visible:ring-primary/20
+                "
+                />
+              </div>
+
+              <div className="flex-1">
+                <Label className="mb-2 block text-foreground">
+                  No Of reminders
+                </Label>
+                <Input
+                  value={noOfReminder}
+                  onChange={(e) => setNoOfReminder(e.target.value)}
+                  className="
+                  h-11 rounded-xl
+                  border-border
+                  bg-background
+                  text-foreground
+                  focus-visible:ring-2 focus-visible:ring-primary/20
+                "
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ACTIONS */}
+          <div className="flex gap-4 items-center">
+            <Button onClick={createOrganizerOfAccount} className="rounded-xl">
+              Create
+            </Button>
+
+            <Button
+              onClick={handleOrganizerFormClose}
+              variant="outline"
+              className="rounded-xl border-border hover:bg-muted"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* ================= PREVIEW DIALOG ================= */}
-     <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-  <DialogContent
-    className="
+        {/* ================= PREVIEW DIALOG ================= */}
+        <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+          <DialogContent
+            className="
       max-w-[95vw]
       xl:max-w-6xl
       h-[92vh]
@@ -2952,91 +2997,90 @@ const { showToast } = useToastContext();
       shadow-2xl
       rounded-3xl
     "
-  >
-    {/* Scrollable Area */}
-    <div className="flex-1 min-h-0 overflow-y-auto">
-      <div className="p-6 md:p-8">
-
-        {/* HEADER */}
-        <div className="mb-8 pb-5 border-b border-border flex flex-col gap-2">
-          <h3 className="text-2xl font-bold tracking-tight">
-            Preview mode
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            The client sees your organizer like this
-          </p>
-        </div>
-
-        {/* ORGANIZER NAME */}
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            {organizerName}
-          </h2>
-        </div>
-
-        {/* SECTION SELECT */}
-        <div className="mb-6 space-y-2">
-          <Label className="text-sm font-medium text-muted-foreground">
-            Sections
-          </Label>
-
-          <Select
-            value={activeStep.toString()}
-            onValueChange={handleDropdownChange}
           >
-            <SelectTrigger className="h-12 rounded-2xl border-border bg-card">
-              <SelectValue placeholder="Select section" />
-            </SelectTrigger>
+            {/* Scrollable Area */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <div className="p-6 md:p-8">
+                {/* HEADER */}
+                <div className="mb-8 pb-5 border-b border-border flex flex-col gap-2">
+                  <h3 className="text-2xl font-bold tracking-tight">
+                    Preview mode
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    The client sees your organizer like this
+                  </p>
+                </div>
 
-            <SelectContent className="rounded-2xl border-border bg-popover">
-              {visibleSections.map((section, index) => {
-                const visibleElements = section.formElements.filter((el) =>
-                  shouldShowElement(el, section.id)
-                );
+                {/* ORGANIZER NAME */}
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                    {organizerName}
+                  </h2>
+                </div>
 
-                const answeredCount = visibleElements.reduce(
-                  (count, element) => {
-                    const key = `${section.id}_${element.text}`;
-                    return count + (answeredElements[key] ? 1 : 0);
-                  },
-                  0
-                );
+                {/* SECTION SELECT */}
+                <div className="mb-6 space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Sections
+                  </Label>
 
-                return (
-                  <SelectItem
-                    key={section.id}
-                    value={index.toString()}
-                    className="rounded-xl"
+                  <Select
+                    value={activeStep.toString()}
+                    onValueChange={handleDropdownChange}
                   >
-                    {section.text} ({answeredCount}/{visibleElements.length})
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+                    <SelectTrigger className="h-12 rounded-2xl border-border bg-card">
+                      <SelectValue placeholder="Select section" />
+                    </SelectTrigger>
 
-        {/* PROGRESS */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm mb-2 text-muted-foreground">
-            <span>Progress</span>
-            <span className="text-foreground font-medium">
-              {activeStep + 1}/{totalSteps}
-            </span>
-          </div>
+                    <SelectContent className="rounded-2xl border-border bg-popover">
+                      {visibleSections.map((section, index) => {
+                        const visibleElements = section.formElements.filter(
+                          (el) => shouldShowElement(el, section.id),
+                        );
 
-          <Progress value={((activeStep + 1) / totalSteps) * 100} />
-        </div>
+                        const answeredCount = visibleElements.reduce(
+                          (count, element) => {
+                            const key = `${section.id}_${element.text}`;
+                            return count + (answeredElements[key] ? 1 : 0);
+                          },
+                          0,
+                        );
 
-        {/* CONTENT */}
-        <div className="max-w-4xl mx-auto space-y-8">
+                        return (
+                          <SelectItem
+                            key={section.id}
+                            value={index.toString()}
+                            className="rounded-xl"
+                          >
+                            {section.text} ({answeredCount}/
+                            {visibleElements.length})
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {visibleSections.map(
-            (section, sectionIndex) =>
-              sectionIndex === activeStep && (
-                <div
-                  key={section.id}
-                  className="
+                {/* PROGRESS */}
+                <div className="mb-8">
+                  <div className="flex justify-between text-sm mb-2 text-muted-foreground">
+                    <span>Progress</span>
+                    <span className="text-foreground font-medium">
+                      {activeStep + 1}/{totalSteps}
+                    </span>
+                  </div>
+
+                  <Progress value={((activeStep + 1) / totalSteps) * 100} />
+                </div>
+
+                {/* CONTENT */}
+                <div className="max-w-4xl mx-auto space-y-8">
+                  {visibleSections.map(
+                    (section, sectionIndex) =>
+                      sectionIndex === activeStep && (
+                        <div
+                          key={section.id}
+                          className="
                     rounded-3xl
                     border border-border
                     bg-card
@@ -3044,237 +3088,262 @@ const { showToast } = useToastContext();
                     p-6 md:p-8
                     space-y-6
                   "
-                >
-
-                  {/* SECTION TITLE */}
-                  <div className="pb-4 border-b border-border">
-                    <h3 className="text-xl font-semibold">
-                      {section.text}
-                    </h3>
-                  </div>
-
-                  {/* ELEMENTS */}
-                  {section.formElements.map(
-                    (element) =>
-                      shouldShowElement(element, section.id) && (
-                        <div
-                          key={`${section.id}_${element.id}`}
-                          className="space-y-3"
                         >
+                          {/* SECTION TITLE */}
+                          <div className="pb-4 border-b border-border">
+                            <h3 className="text-xl font-semibold">
+                              {section.text}
+                            </h3>
+                          </div>
 
-                          {/* TEXT */}
-                          {element.type === "Text Editor" && (
-                            <div className="p-4 rounded-2xl bg-muted/40 border border-border">
-                              <p>{stripHtmlTags(element.text)}</p>
-                            </div>
-                          )}
+                          {/* ELEMENTS */}
+                          {section.formElements.map(
+                            (element) =>
+                              shouldShowElement(element, section.id) && (
+                                <div
+                                  key={`${section.id}_${element.id}`}
+                                  className="space-y-3"
+                                >
+                                  {/* TEXT */}
+                                  {element.type === "Text Editor" && (
+                                    <div className="p-4 rounded-2xl bg-muted/40 border border-border">
+                                      <p>{stripHtmlTags(element.text)}</p>
+                                    </div>
+                                  )}
 
-                          {/* INPUT */}
-                          {(element.type === "Free Entry" ||
-                            element.type === "Email") && (
-                            <div className="space-y-2">
-                              <Label className="font-medium">
-                                {element.text}
-                              </Label>
-                              <Textarea
-                                value={inputValues[`${section.id}_${element.text}`] || ""}
-                                onChange={(e) =>
-                                  onInputChange(e, element.text, section.id)
-                                }
-                                className="rounded-2xl border-border bg-background"
-                              />
-                            </div>
-                          )}
+                                  {/* INPUT */}
+                                  {(element.type === "Free Entry" ||
+                                    element.type === "Email") && (
+                                    <div className="space-y-2">
+                                      <Label className="font-medium">
+                                        {element.text}
+                                      </Label>
+                                      <Textarea
+                                        value={
+                                          inputValues[
+                                            `${section.id}_${element.text}`
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          onInputChange(
+                                            e,
+                                            element.text,
+                                            section.id,
+                                          )
+                                        }
+                                        className="rounded-2xl border-border bg-background"
+                                      />
+                                    </div>
+                                  )}
 
-                          {/* NUMBER */}
-                          {element.type === "Number" && (
-                            <div className="space-y-2">
-                              <Label>{element.text}</Label>
-                              <Input
-                                value={inputValues[`${section.id}_${element.text}`] || ""}
-                                onChange={(e) => {
-                                  const val = e.target.value.replace(/\D/g, "");
-                                  handleInputChange(
-                                    { target: { value: val } },
-                                    element.text,
-                                    section.id
-                                  );
-                                }}
-                                className="h-12 rounded-2xl border-border bg-background"
-                              />
-                            </div>
-                          )}
+                                  {/* NUMBER */}
+                                  {element.type === "Number" && (
+                                    <div className="space-y-2">
+                                      <Label>{element.text}</Label>
+                                      <Input
+                                        value={
+                                          inputValues[
+                                            `${section.id}_${element.text}`
+                                          ] || ""
+                                        }
+                                        onChange={(e) => {
+                                          const val = e.target.value.replace(
+                                            /\D/g,
+                                            "",
+                                          );
+                                          handleInputChange(
+                                            { target: { value: val } },
+                                            element.text,
+                                            section.id,
+                                          );
+                                        }}
+                                        className="h-12 rounded-2xl border-border bg-background"
+                                      />
+                                    </div>
+                                  )}
 
-                          {/* RADIO */}
-                          {element.type === "Radio Buttons" && (
-                            <div className="space-y-2">
-                              <Label>{element.text}</Label>
-                              <div className="flex gap-2 flex-wrap">
-                                {element.options.map((option) => (
-                                  <Button
-                                    key={option.text}
-                                    variant={
-                                      radioValues[`${section.id}_${element.text}`] === option.text
-                                        ? "default"
-                                        : "outline"
-                                    }
-                                    className="rounded-xl"
-                                    onClick={() =>
-                                      handleRadioChange(option.text, element.text, section.id)
-                                    }
-                                  >
-                                    {option.text}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                                  {/* RADIO */}
+                                  {element.type === "Radio Buttons" && (
+                                    <div className="space-y-2">
+                                      <Label>{element.text}</Label>
+                                      <div className="flex gap-2 flex-wrap">
+                                        {element.options.map((option) => (
+                                          <Button
+                                            key={option.text}
+                                            variant={
+                                              radioValues[
+                                                `${section.id}_${element.text}`
+                                              ] === option.text
+                                                ? "default"
+                                                : "outline"
+                                            }
+                                            className="rounded-xl"
+                                            onClick={() =>
+                                              handleRadioChange(
+                                                option.text,
+                                                element.text,
+                                                section.id,
+                                              )
+                                            }
+                                          >
+                                            {option.text}
+                                          </Button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
 
-                          {/* CHECKBOX */}
-                          {element.type === "Checkboxes" && (
-                            <div className="space-y-2">
-                              <Label>{element.text}</Label>
-                              <div className="flex gap-2 flex-wrap">
-                                {element.options.map((option) => (
-                                  <Button
-                                    key={option.text}
-                                    variant={
-                                      checkboxValues[`${section.id}_${element.text}`]?.[
-                                        option.text
-                                      ]
-                                        ? "default"
-                                        : "outline"
-                                    }
-                                    className="rounded-xl"
-                                    onClick={() =>
-                                      handleCheckboxChange(option.text, element.text, section.id)
-                                    }
-                                  >
-                                    {option.text}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                                  {/* CHECKBOX */}
+                                  {element.type === "Checkboxes" && (
+                                    <div className="space-y-2">
+                                      <Label>{element.text}</Label>
+                                      <div className="flex gap-2 flex-wrap">
+                                        {element.options.map((option) => (
+                                          <Button
+                                            key={option.text}
+                                            variant={
+                                              checkboxValues[
+                                                `${section.id}_${element.text}`
+                                              ]?.[option.text]
+                                                ? "default"
+                                                : "outline"
+                                            }
+                                            className="rounded-xl"
+                                            onClick={() =>
+                                              handleCheckboxChange(
+                                                option.text,
+                                                element.text,
+                                                section.id,
+                                              )
+                                            }
+                                          >
+                                            {option.text}
+                                          </Button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
 
-                          {/* YES/NO */}
-                          {element.type === "Yes/No" && (
-                            <div className="space-y-2">
-                              <Label>{element.text}</Label>
-                              <div className="flex gap-2">
-                                {element.options.map((option) => (
-                                  <Button
-                                    key={option.text}
-                                    variant={
-                                      selectedYesNoValues[`${section.id}_${element.text}`] ===
-                                      option.text
-                                        ? "default"
-                                        : "outline"
-                                    }
-                                    className="rounded-xl"
-                                    onClick={() =>
-                                      onYesNoChange(option.text, element.text, section.id)
-                                    }
-                                  >
-                                    {option.text}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                                  {/* YES/NO */}
+                                  {element.type === "Yes/No" && (
+                                    <div className="space-y-2">
+                                      <Label>{element.text}</Label>
+                                      <div className="flex gap-2">
+                                        {element.options.map((option) => (
+                                          <Button
+                                            key={option.text}
+                                            variant={
+                                              selectedYesNoValues[
+                                                `${section.id}_${element.text}`
+                                              ] === option.text
+                                                ? "default"
+                                                : "outline"
+                                            }
+                                            className="rounded-xl"
+                                            onClick={() =>
+                                              onYesNoChange(
+                                                option.text,
+                                                element.text,
+                                                section.id,
+                                              )
+                                            }
+                                          >
+                                            {option.text}
+                                          </Button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
 
-                          {/* DROPDOWN */}
-                          {element.type === "Dropdown" && (
-                            <div className="space-y-2">
-                              <Label>{element.text}</Label>
-                              <Select
-                                value={selectedDropdownValues[`${section.id}_${element.text}`] || ""}
-                                onValueChange={(value) =>
-                                  onDropdownValueChange(
-                                    { target: { value } },
-                                    element.text,
-                                    section.id
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="h-12 rounded-2xl border-border bg-background">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </Select>
-                            </div>
-                          )}
- {element.type ===
-                              "File Upload" && (
-                              <div className="space-y-3">
-                                <Label className="text-base font-semibold text-foreground">
-                                  {element.text}
-                                </Label>
+                                  {/* DROPDOWN */}
+                                  {element.type === "Dropdown" && (
+                                    <div className="space-y-2">
+                                      <Label>{element.text}</Label>
+                                      <Select
+                                        value={
+                                          selectedDropdownValues[
+                                            `${section.id}_${element.text}`
+                                          ] || ""
+                                        }
+                                        onValueChange={(value) =>
+                                          onDropdownValueChange(
+                                            { target: { value } },
+                                            element.text,
+                                            section.id,
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger className="h-12 rounded-2xl border-border bg-background">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                      </Select>
+                                    </div>
+                                  )}
+                                  {element.type === "File Upload" && (
+                                    <div className="space-y-3">
+                                      <Label className="text-base font-semibold text-foreground">
+                                        {element.text}
+                                      </Label>
 
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <div className="relative w-full">
-                                        <Input
-                                          disabled
-                                          placeholder="Add Document"
-                                          className="
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div className="relative w-full">
+                                              <Input
+                                                disabled
+                                                placeholder="Add Document"
+                                                className="
                                             h-12
                                             rounded-2xl
                                             cursor-not-allowed
                                             opacity-60
                                             border-border
                                           "
-                                        />
-                                      </div>
-                                    </TooltipTrigger>
+                                              />
+                                            </div>
+                                          </TooltipTrigger>
 
-                                    <TooltipContent>
-                                      <p>
-                                        Unavailable
-                                        in preview
-                                        mode
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
-                            )}
+                                          <TooltipContent>
+                                            <p>Unavailable in preview mode</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </div>
+                                  )}
+                                </div>
+                              ),
+                          )}
+
+                          {/* NAVIGATION */}
+                          <div className="flex justify-between pt-6 border-t border-border">
+                            <Button
+                              variant="outline"
+                              disabled={activeStep === 0}
+                              onClick={handleBack}
+                              className="rounded-2xl"
+                            >
+                              Back
+                            </Button>
+
+                            <Button
+                              disabled={activeStep === totalSteps - 1}
+                              onClick={handleNext}
+                              className="rounded-2xl"
+                            >
+                              Next
+                            </Button>
+                          </div>
                         </div>
-                      )
+                      ),
                   )}
-
-                  {/* NAVIGATION */}
-                  <div className="flex justify-between pt-6 border-t border-border">
-                    <Button
-                      variant="outline"
-                      disabled={activeStep === 0}
-                      onClick={handleBack}
-                      className="rounded-2xl"
-                    >
-                      Back
-                    </Button>
-
-                    <Button
-                      disabled={activeStep === totalSteps - 1}
-                      onClick={handleNext}
-                      className="rounded-2xl"
-                    >
-                      Next
-                    </Button>
-                  </div>
-
                 </div>
-              )
-          )}
-
-        </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
-  </DialogContent>
-</Dialog>
-    </div>
-  </TooltipProvider>
-);
+    </TooltipProvider>
+  );
 
   // return (
   //   <TooltipProvider>
@@ -3375,7 +3444,7 @@ const { showToast } = useToastContext();
   //           <DialogHeader>
   //             <DialogTitle>Preview Mode</DialogTitle>
   //           </DialogHeader>
-            
+
   //           <div>
   //             <div className="border-2 border-blue-400 p-4 mb-6 rounded-lg bg-blue-100 flex items-center justify-between">
   //               <div>
@@ -3390,8 +3459,8 @@ const { showToast } = useToastContext();
   //             <p className="mb-4">{organizerName}</p>
 
   //             <div className="mb-4">
-  //               <Select 
-  //                 value={activeStep.toString()} 
+  //               <Select
+  //                 value={activeStep.toString()}
   //                 onValueChange={handleDropdownChange}
   //               >
   //                 <SelectTrigger>

@@ -237,12 +237,3 @@ code {
   isolation: isolate;
 }
 
-
-.ql-emoji-picker {
-  z-index: 99999 !important;
-  pointer-events: auto !important;
-}
-
-.ql-emoji-picker * {
-  pointer-events: auto !important;
-}

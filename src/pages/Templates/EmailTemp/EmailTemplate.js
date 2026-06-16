@@ -1351,7 +1351,16 @@ const EmailTemp = () => {
               onClick={() => {
                 confirm({
                   title: "Delete Template",
-                  description: "Are you sure you want to delete this template?",
+                  // description: "Are you sure you want to delete this template?",
+                  description: (
+        <>
+          Are you sure you want to delete this email{" "}
+          <span className="font-semibold text-red-600">
+            "{row.original.templatename}"
+          </span>
+          ?
+        </>
+      ),
                   onConfirm: async () => {
                     await handleDelete(row.original._id);
                   },

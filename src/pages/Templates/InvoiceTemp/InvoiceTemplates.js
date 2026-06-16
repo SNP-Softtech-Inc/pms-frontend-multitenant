@@ -697,10 +697,19 @@ const handleSwitchAddShortcut = (shortcut) => {
     setSelectedTemplateId(null);
   }, []);
 
-  const handleDelete = useCallback((_id) => {
+  const handleDelete = useCallback((_id,templateName) => {
     confirm({
       title: "Delete Invoice Template",
-      description: "Are you sure you want to delete this invoice template?",
+      // description: "Are you sure you want to delete this invoice template?",
+       description: (
+        <>
+          Are you sure you want to delete this invoice{" "}
+          <span className="font-semibold text-red-600">
+            "{templateName}"
+          </span>
+          ?
+        </>
+      ),
       onConfirm: async () => {
         try {
           await templateAPI.deleteInvoiceTemplate(_id);

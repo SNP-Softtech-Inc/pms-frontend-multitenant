@@ -733,34 +733,28 @@ export default function Editor({ initialContent, onChange, value }) {
         modules={modules}
         formats={formats}
         theme="snow"
-        className="
+       className="
           [&_.ql-toolbar]:rounded-t-xl
           [&_.ql-toolbar]:border-0
           [&_.ql-toolbar]:border-b
           [&_.ql-toolbar]:border-slate-200
           [&_.ql-toolbar]:bg-slate-50
-          [&_.ql-toolbar]:px-3
-          [&_.ql-toolbar]:py-2
 
-          [&_.ql-container]:rounded-b-xl
           [&_.ql-container]:border-0
-          [&_.ql-container]:font-sans
+          [&_.ql-container]:w-full
+          [&_.ql-container]:overflow-hidden
 
           [&_.ql-editor]:min-h-[150px]
-          [&_.ql-editor]:px-4
-          [&_.ql-editor]:py-3
+          [&_.ql-editor]:w-full
+          [&_.ql-editor]:max-w-full
+          [&_.ql-editor]:break-words
+          [&_.ql-editor]:whitespace-pre-wrap
+          [&_.ql-editor]:overflow-wrap-anywhere
           [&_.ql-editor]:text-sm
           [&_.ql-editor]:leading-6
-          [&_.ql-editor]:text-slate-800
 
-          [&_.ql-editor.ql-blank::before]:text-slate-400
           [&_.ql-editor.ql-blank::before]:not-italic
-
-          [&_.ql-picker-label]:text-slate-700
-          [&_.ql-stroke]:stroke-slate-600
-          [&_.ql-fill]:fill-slate-600
-          [&_.ql-active_.ql-stroke]:stroke-blue-600
-          [&_.ql-active_.ql-fill]:fill-blue-600
+          [&_.ql-editor.ql-blank::before]:text-slate-400
         "
       />
     </div>

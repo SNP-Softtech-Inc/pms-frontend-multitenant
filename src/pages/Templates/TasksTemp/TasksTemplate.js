@@ -444,7 +444,16 @@ dueDate: data.enddate
               onClick={() => {
                 confirm({
                   title: "Delete Template",
-                  description: "Are you sure you want to delete this template?",
+                   description: (
+        <>
+          Are you sure you want to delete the template{" "}
+          <span className="font-semibold text-red-600">
+            "{row.original.templatename}"
+          </span>
+          ?
+        </>
+      ),
+                  // description: "Are you sure you want to delete this template ?",
                   onConfirm: async () => {
                     await handleDelete(row.original._id);
                   },

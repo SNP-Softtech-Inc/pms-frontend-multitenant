@@ -2491,11 +2491,20 @@ const {showToast} = useToastContext()
     fetchTemplateForEdit(_id);
   };
 
-  const handleDelete = async (_id) => {
+  const handleDelete = async (_id,organizerName) => {
     confirm({
       title: "Delete Organizer Template",
-      description:
-        "Are you sure you want to delete this organizer template? This action cannot be undone.",
+       description: (
+        <>
+          Are you sure you want to delete this orgnizer{" "}
+          <span className="font-semibold text-red-600">
+            "{organizerName}"
+          </span>
+          ?
+        </>
+      ),
+      // description:
+      //   "Are you sure you want to delete this organizer template? This action cannot be undone.",
       confirmText: "Delete",
       confirmColor: "error",
       onConfirm: async () => {
@@ -3207,7 +3216,10 @@ const {showToast} = useToastContext()
               <ClipboardList className="h-3.5 w-3.5" />
             </button>
             <button
-              onClick={() => handleDelete(row.original._id)}
+              // onClick={() => handleDelete(row.original._id)}
+                onClick={() =>
+    handleDelete(row.original._id, row.original.templatename)
+  }
               className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-destructive hover:bg-destructive/10"
               title="Delete"
             >

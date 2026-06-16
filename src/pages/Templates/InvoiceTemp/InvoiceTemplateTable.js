@@ -194,7 +194,7 @@ const InvoiceTemplateTable = ({
             <DropdownMenuItem onClick={() => onEdit(row.original._id)}>
               <RiEdit2Line className="mr-2" /> Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(row.original._id)}>
+            <DropdownMenuItem onClick={() => onDelete(row.original._id,row.original.templatename)}>
               <RiDeleteBin6Line className="mr-2 text-red-500" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

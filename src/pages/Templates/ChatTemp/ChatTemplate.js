@@ -731,10 +731,19 @@ const handleEdit = (template) => {
     setCheckedSubtasks([]);
   };
 
-const handleDelete = (id) => {
+const handleDelete = (id,templateName) => {
   confirm({
     title: "Delete Template",
-    description: "Are you sure you want to delete this chat template?",
+    // description: "Are you sure you want to delete this chat template?",
+   description: (
+        <>
+          Are you sure you want to delete this chat{" "}
+          <span className="font-semibold text-red-600">
+            "{templateName}"
+          </span>
+          ?
+        </>
+      ),
     onConfirm: async () => {
       try {
         await templateAPI.deleteChatTemplate(id);
@@ -924,7 +933,7 @@ const saveSchat = form.handleSubmit(
             <Pencil className="h-3.5 w-3.5" />
           </button>
           <button
-            onClick={() => handleDelete(row.original._id)}
+            onClick={() => handleDelete(row.original._id,row.original.templatename)}
             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-destructive hover:bg-destructive/10"
             title="Delete"
           >

@@ -213,10 +213,19 @@ const handleUpdate = async () => {
   //     },
   //   });
   // };
-  const handleDelete = (id) => {
+  const handleDelete = (id, tagName) => {
   confirm({
     title: "Delete Tag",
-    description: "Are you sure you want to delete this tag?",
+      description: (
+        <>
+          Are you sure you want to delete the tag{" "}
+          <span className="font-semibold text-red-600">
+            "{tagName}"
+          </span>
+          ?
+        </>
+      ),
+  //  description: `Are you sure you want to delete the tag "${tagName}"?`,
     onConfirm: async () => {
       try {
         await templateAPI.deleteTags(id);
@@ -301,7 +310,10 @@ const handleUpdate = async () => {
           </button>
 
           <button
-            onClick={() => handleDelete(row.original._id)}
+           onClick={() =>
+    handleDelete(row.original._id, row.original.tagName)
+  }
+            // onClick={() => handleDelete(row.original._id)}
             className="p-1 hover:bg-destructive/10 rounded text-destructive"
           >
             <Trash2 className="h-4 w-4" />
