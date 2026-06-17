@@ -676,7 +676,7 @@ import { Button } from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
 import { Loader2, ChevronLeft } from "lucide-react";
 import { templateAPI, authAPI } from "../../../services/api";
-
+import { Checkbox } from "../../../components/ui/checkbox";
 const pipelineSchema = z.object({
   pipelineName: z.string().min(1, "Pipeline name is required"),
   availableto: z.array(z.any()).optional(),
@@ -697,24 +697,63 @@ const pipelineSchema = z.object({
 const PipelineForm = () => {
   const form = useForm({
     resolver: zodResolver(pipelineSchema),
+    // defaultValues: {
+    //   pipelineName: "",
+    //   availableto: [],
+    //   sortjobsby: null,
+    //   defaultjobtemplate: null,
+    //   accountId: false,
+    //   days_on_Stage: false,
+    //   accounttags: false,
+    //   clientFacing_status: false,
+    //   startdate: false,
+    //   name: false,
+    //   duedate: false,
+    //   description: false,
+    //   assignees: false,
+    //   priority: false,
+    // },
     defaultValues: {
-      pipelineName: "",
-      availableto: [],
-      sortjobsby: null,
-      defaultjobtemplate: null,
-      accountId: false,
-      days_on_Stage: false,
-      accounttags: false,
-      clientFacing_status: false,
-      startdate: false,
-      name: false,
-      duedate: false,
-      description: false,
-      assignees: false,
-      priority: false,
-    },
+  pipelineName: "",
+  availableto: [],
+  sortjobsby: null,
+  defaultjobtemplate: null,
+  accountId: false,
+  accounttags: false,
+  stageTimeLimit: false,
+  name: false,
+  description: false,
+  priority: false,
+  startdate: false,
+  duedate: false,
+  intakeDate: false,
+  internalDeadlineDate: false,
+  timeBudget: false,
+  tracked: false,
+  timeVariance: false,
+  budgetTimeSpent: false,
+  assignees: false,
+  clientFacingStatus: false,
+  daysInStage: false,
+  days_on_Stage: false, // Keep for backward compatibility if needed
+},
   });
-
+const CheckboxRow = ({ name, label }) => (
+  <Controller
+    control={form.control}
+    name={name}
+    render={({ field }) => (
+      <label className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group">
+        <Checkbox
+          checked={!!field.value}
+          onCheckedChange={field.onChange}
+          className="h-4 w-4"
+        />
+        <span className="text-sm text-foreground select-none">{label}</span>
+      </label>
+    )}
+  />
+);
   // sort jobs
   const [sortbyjobs, setSortbyJobs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -865,16 +904,34 @@ const { showToast } = useToastContext();
         defaultjobtemplate: pipeline.defaultjobtemplate
           ? { value: pipeline.defaultjobtemplate._id, label: pipeline.defaultjobtemplate.templatename }
           : null,
-        accountId: pipeline.accountId || false,
-        days_on_Stage: pipeline.days_on_Stage || false,
-        accounttags: pipeline.accounttags || false,
-        clientFacing_status: pipeline.clientFacing_status || false,
-        startdate: pipeline.startdate || false,
-        name: pipeline.name || false,
-        duedate: pipeline.duedate || false,
-        priority: pipeline.priority || false,
-        description: pipeline.description || false,
-        assignees: pipeline.assignees || false,
+        // accountId: pipeline.accountId || false,
+        // days_on_Stage: pipeline.days_on_Stage || false,
+        // accounttags: pipeline.accounttags || false,
+        // clientFacing_status: pipeline.clientFacing_status || false,
+        // startdate: pipeline.startdate || false,
+        // name: pipeline.name || false,
+        // duedate: pipeline.duedate || false,
+        // priority: pipeline.priority || false,
+        // description: pipeline.description || false,
+        // assignees: pipeline.assignees || false,
+         accountId: pipeline.accountId || false,
+      accounttags: pipeline.accounttags || false,
+      stageTimeLimit: pipeline.stageTimeLimit || false,
+      name: pipeline.name || false,
+      description: pipeline.description || false,
+      priority: pipeline.priority || false,
+      startdate: pipeline.startdate || false,
+      duedate: pipeline.duedate || false,
+      intakeDate: pipeline.intakeDate || false,
+      internalDeadlineDate: pipeline.internalDeadlineDate || false,
+      timeBudget: pipeline.timeBudget || false,
+      tracked: pipeline.tracked || false,
+      timeVariance: pipeline.timeVariance || false,
+      budgetTimeSpent: pipeline.budgetTimeSpent || false,
+      assignees: pipeline.assignees || false,
+      clientFacingStatus: pipeline.clientFacingStatus || false,
+      daysInStage: pipeline.daysInStage || false,
+      days_on_Stage: pipeline.days_on_Stage || false,
       };
       form.reset(patchValues);
 
@@ -956,16 +1013,34 @@ const { showToast } = useToastContext();
         availableto: (formValues.availableto || []).map((o) => o.value),
         sortjobsby: formValues.sortjobsby?.value,
         defaultjobtemplate: formValues.defaultjobtemplate?.value,
-        accountId: formValues.accountId,
-        description: formValues.description,
-        duedate: formValues.duedate,
-        accounttags: formValues.accounttags,
-        priority: formValues.priority,
-        days_on_Stage: formValues.days_on_Stage,
-        assignees: formValues.assignees,
-        name: formValues.name,
-        clientFacing_status: formValues.clientFacing_status,
-        startdate: formValues.startdate,
+        // accountId: formValues.accountId,
+        // description: formValues.description,
+        // duedate: formValues.duedate,
+        // accounttags: formValues.accounttags,
+        // priority: formValues.priority,
+        // days_on_Stage: formValues.days_on_Stage,
+        // assignees: formValues.assignees,
+        // name: formValues.name,
+        // clientFacing_status: formValues.clientFacing_status,
+        // startdate: formValues.startdate,
+         accountId: formValues.accountId,
+      accounttags: formValues.accounttags,
+      stageTimeLimit: formValues.stageTimeLimit,
+      name: formValues.name,
+      description: formValues.description,
+      priority: formValues.priority,
+      startdate: formValues.startdate,
+      duedate: formValues.duedate,
+      intakeDate: formValues.intakeDate,
+      internalDeadlineDate: formValues.internalDeadlineDate,
+      timeBudget: formValues.timeBudget,
+      tracked: formValues.tracked,
+      timeVariance: formValues.timeVariance,
+      budgetTimeSpent: formValues.budgetTimeSpent,
+      assignees: formValues.assignees,
+      clientFacingStatus: formValues.clientFacingStatus,
+      daysInStage: formValues.daysInStage,
+      days_on_Stage: formValues.days_on_Stage,
         stages: stages.map((stage, index) => ({
           ...(stage._id && { _id: stage._id }),
           name: stage.name.trim(),
@@ -1037,81 +1112,7 @@ const { showToast } = useToastContext();
       setLoading(false);
     }
   };
-// const handleSavePipeline = async (formValues, exitAfterSave = false) => {
-//   if (stages.length < 2) {
-//     showToast({
-//       title: "Please add at least 2 stages",
-//       type: "error",
-//     });
-//     return;
-//   }
 
-//   const stageErrors = stages.map((stage, i) =>
-//     !stage.name.trim() ? `Stage ${i + 1} name is required` : ""
-//   );
-
-//   if (stageErrors.some((e) => e !== "")) {
-//     setStageNameErrors(stageErrors);
-
-//     showToast({
-//       title: `${stageErrors.filter((e) => e !== "").length} stage name(s) are required`,
-//       type: "error",
-//     });
-
-//     return;
-//   }
-
-//   setLoading(true);
-
-//   try {
-//     // ... your existing pipelineData code
-
-//     let result;
-
-//     if (isEditMode || pipelineId) {
-//       const { data } = await templateAPI.updatePipeline(
-//         pipelineId,
-//         pipelineData
-//       );
-//       result = data;
-//     } else {
-//       const { data } = await templateAPI.createPipeline(
-//         pipelineData
-//       );
-//       result = data;
-
-//       if (data.pipeline?._id) {
-//         setPipelineId(data.pipeline._id);
-//         setIsEditMode(true);
-//       }
-//     }
-
-//     const successMessage =
-//       isEditMode || pipelineId ? "updated" : "created";
-
-//     showToast({
-//       title: `Pipeline ${successMessage} successfully!`,
-//       type: "success",
-//     });
-
-//     if (exitAfterSave) {
-//       navigate("/firmtemp/pipelines");
-//     }
-//   } catch (error) {
-//     console.error("Error saving pipeline:", error);
-
-//     showToast({
-//       title:
-//         error?.response?.data?.message ||
-//         `Failed to ${
-//           isEditMode ? "update" : "save"
-//         } pipeline. Please try again.`,
-//       type: "error",
-//     });
-//   } finally {
-//     setLoading(false);
-//   }
-// };
   const navigate = useNavigate();
 
   const handleCancel = () => {
@@ -1245,7 +1246,7 @@ const { showToast } = useToastContext();
           </div>
 
           {/* RIGHT – Job card fields */}
-          <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+          {/* <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Job Card Fields</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
               <div className="space-y-1">
@@ -1265,7 +1266,80 @@ const { showToast } = useToastContext();
                 <SwitchRow name="priority" label="Priority" />
               </div>
             </div>
-          </div>
+          </div> */}
+          {/* RIGHT – Job card fields */}
+{/* <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Job Card Fields</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
+    <div className="space-y-1">
+      <SwitchRow name="accountId" label="Account ID" />
+      <SwitchRow name="accounttags" label="Account tags" />
+      <SwitchRow name="stageTimeLimit" label="Stage time limit" />
+      <SwitchRow name="name" label="Name" />
+    </div>
+    <div className="space-y-1">
+      <SwitchRow name="description" label="Description" />
+      <SwitchRow name="priority" label="Priority" />
+      <SwitchRow name="startdate" label="Start date" />
+      <SwitchRow name="duedate" label="Due date" />
+    </div>
+    <div className="space-y-1">
+      <SwitchRow name="intakeDate" label="Intake date" />
+      <SwitchRow name="internalDeadlineDate" label="Internal deadline date" />
+      <SwitchRow name="timeBudget" label="Time budget" />
+      <SwitchRow name="tracked" label="Tracked" />
+    </div>
+  </div>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 mt-1">
+    <div className="space-y-1">
+      <SwitchRow name="timeVariance" label="Time variance" />
+      <SwitchRow name="budgetTimeSpent" label="Budget Time Spent" />
+    </div>
+    <div className="space-y-1">
+      <SwitchRow name="assignees" label="Assignees" />
+      <SwitchRow name="clientFacingStatus" label="Client-facing status" />
+    </div>
+    <div className="space-y-1">
+      <SwitchRow name="daysInStage" label="Days in stage" />
+    </div>
+  </div>
+</div> */}
+<div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Job Card Fields</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
+    <div className="space-y-1">
+      <CheckboxRow name="accountId" label="Account ID" />
+      <CheckboxRow name="accounttags" label="Account tags" />
+      <CheckboxRow name="stageTimeLimit" label="Stage time limit" />
+      <CheckboxRow name="name" label="Name" />
+    </div>
+    <div className="space-y-1">
+      <CheckboxRow name="description" label="Description" />
+      <CheckboxRow name="priority" label="Priority" />
+      <CheckboxRow name="startdate" label="Start date" />
+      <CheckboxRow name="duedate" label="Due date" />
+    </div>
+    <div className="space-y-1">
+      <CheckboxRow name="intakeDate" label="Intake date" />
+      <CheckboxRow name="internalDeadlineDate" label="Internal deadline date" />
+      <CheckboxRow name="timeBudget" label="Time budget" />
+      <CheckboxRow name="tracked" label="Tracked" />
+    </div>
+  </div>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 mt-1">
+    <div className="space-y-1">
+      <CheckboxRow name="timeVariance" label="Time variance" />
+      <CheckboxRow name="budgetTimeSpent" label="Budget Time Spent" />
+    </div>
+    <div className="space-y-1">
+      <CheckboxRow name="assignees" label="Assignees" />
+      <CheckboxRow name="clientFacingStatus" label="Client-facing status" />
+    </div>
+    <div className="space-y-1">
+      <CheckboxRow name="daysInStage" label="Days in stage" />
+    </div>
+  </div>
+</div>
         </div>
 
         {/* Stages Section */}

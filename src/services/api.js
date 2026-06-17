@@ -350,9 +350,13 @@ updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data)
   // ======================= EMAIL SYNC APIs ===============================
 
 // Get notification emails
-getEmailNotifications: () =>
-  authUserApi.get("/api/emailsync/notifications"),
-
+// getEmailNotifications: () =>
+//   authUserApi.get("/api/emailsync/notifications"),
+// In your authAPI or API service file
+getEmailNotifications: (archived = false) => {
+  // Pass archived as query parameter
+  return authUserApi.get(`/api/emailsync/notifications?archived=${archived}`);
+},
 // Get communication emails
 getEmailCommunications: () =>
   authUserApi.get("/api/emailsync/communications"),
@@ -362,7 +366,7 @@ getEmailCommunications: () =>
     threadId
   ) =>
     emailSyncApi.put(
-      `/emailsync/messagesList/mark-read/${threadId}`
+      `/api/emailsync/mark-read/${threadId}`
     ),
 
   // Archive thread
@@ -370,7 +374,7 @@ getEmailCommunications: () =>
     threadId
   ) =>
     emailSyncApi.put(
-      `/api/emailsync/messagesList/archive/${threadId}`
+      `/api/emailsync/archive/${threadId}`
     ),
 
   // Unarchive thread
@@ -378,8 +382,11 @@ getEmailCommunications: () =>
     threadId
   ) =>
     emailSyncApi.put(
-      `/api/emailsync/messagesList/unarchive/${threadId}`
+      `/api/emailsync/unarchive/${threadId}`
     ),
+    // Get attachment data by attachment ID
+  getAttachmentData: (attachmentId) =>
+    authUserApi.get(`/api/emailsync/attachment/${attachmentId}`),
 };
 
 // ================= SIDEBAR APIs =================
