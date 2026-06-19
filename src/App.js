@@ -70,6 +70,7 @@ import Sent from "./pages/AccountDashboard/Email/Sent";
 import ActiveMember from "./pages/Teammembers/ActiveTeammembers";
 import Deactivatemember from "./pages/Teammembers/Deactivatemember";
 import ActiveGroups from "./pages/Teammembers/ActiveGroups";
+import NewProposalForm from "./pages/NewProposalForm"
 function App() {
   return (
     <Routes>
@@ -219,7 +220,7 @@ function App() {
           path="/billing/proposalsandels/new"
           element={
             <ProtectedRoute>
-              <AccountProposalForm />
+              <NewProposalForm />
             </ProtectedRoute>
           }
         />

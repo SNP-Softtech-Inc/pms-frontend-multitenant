@@ -33,7 +33,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../components/ui/dropdown-menu";
-
+import Cookies from "js-cookie";
 const Dashboard = () => {
   const { user } = useAuth();
   const [permissions, setPermissions] = useState(null);
@@ -271,6 +271,7 @@ const Dashboard = () => {
         }
 
         setPlusMenuItems(data);
+        console.log("sidebar new data",data)
       } catch (err) {
         console.error("Plus menu fetch error:", err);
       }
@@ -278,7 +279,71 @@ const Dashboard = () => {
 
     fetchPlusMenu();
   }, [user, permissions]);
+const handlePlusMenuClick = (item) => {
+  const accountId = Cookies.get("accountId");
+  const accountName = Cookies.get("accountName");
 
+  let selectedAccounts = [];
+  try {
+    selectedAccounts = JSON.parse(
+      Cookies.get("selectedAccounts") || "[]"
+    );
+  } catch (err) {
+    console.error("Error parsing selectedAccounts cookie", err);
+  }
+
+  const accountData = {
+    accountId,
+    accountName,
+    // selectedAccounts,
+  };
+
+  console.log("Account Data:", accountData);
+
+  if (item.label === "Account") {
+    handleDrawerOpen(accountData);
+  } else if (item.label === "Contact") {
+    handleContactDrawerOpen(accountData);
+  } else if (item.label === "Invoice") {
+    setInvoiceDrawer(true);
+
+    // Example: store in state for invoice drawer
+    // setSelectedAccountData(accountData);
+  } else if (item.label === "Chat") {
+    handleChatDrawerOpen(accountData);
+  } else if (item.label === "Jobs") {
+    handleJobDrawerOpen(accountData);
+  } else if (item.label === "Task") {
+    handleTasksDrawerOpen(accountData);
+  } else {
+    navigate(item.path, {
+      state: accountData,
+    });
+  }
+};
+//   const handlePlusMenuClick = (item) => {
+//   const accountId = Cookies.get("accountId");
+//   const accountName = Cookies.get("accountName");
+//   const selectedAccounts = Cookies.get("selectedAccounts");
+
+//   console.log(accountId, accountName, selectedAccounts);
+
+//   if (item.label === "Account") {
+//     handleDrawerOpen();
+//   } else if (item.label === "Contact") {
+//     handleContactDrawerOpen();
+//   } else if (item.label === "Invoice") {
+//     setInvoiceDrawer(true);
+//   } else if (item.label === "Chat") {
+//     handleChatDrawerOpen();
+//   } else if (item.label === "Jobs") {
+//     handleJobDrawerOpen();
+//   } else if (item.label === "Task") {
+//     handleTasksDrawerOpen();
+//   } else {
+//     navigate(item.path);
+//   }
+// };
   // Auto open submenu
   useEffect(() => {
     const newOpenMenus = {};
@@ -658,19 +723,21 @@ const Dashboard = () => {
                     plusMenuItems.map((item, index) => (
                       <DropdownMenuItem
                         key={index}
-                        onClick={() => {
-                          if (item.label === "Account") handleDrawerOpen();
-                          else if (item.label === "Contact")
-                            handleContactDrawerOpen();
-                          else if (item.label === "Invoice")
-                            setInvoiceDrawer(true);
-                          else if (item.label === "Chat")
-                            handleChatDrawerOpen();
-                          else if (item.label === "Jobs") handleJobDrawerOpen();
-                          else if (item.label === "Task")
-                            handleTasksDrawerOpen();
-                          else navigate(item.path);
-                        }}
+                        onClick={() => handlePlusMenuClick(item)}
+
+                        // onClick={() => {
+                        //   if (item.label === "Account") handleDrawerOpen();
+                        //   else if (item.label === "Contact")
+                        //     handleContactDrawerOpen();
+                        //   else if (item.label === "Invoice")
+                        //     setInvoiceDrawer(true);
+                        //   else if (item.label === "Chat")
+                        //     handleChatDrawerOpen();
+                        //   else if (item.label === "Jobs") handleJobDrawerOpen();
+                        //   else if (item.label === "Task")
+                        //     handleTasksDrawerOpen();
+                        //   else navigate(item.path);
+                        // }}
                         className="flex items-center gap-2 cursor-pointer text-foreground focus:bg-accent focus:text-accent-foreground"
                       >
                         {/* Synchronized icon sizing wrapped in a styled container */}

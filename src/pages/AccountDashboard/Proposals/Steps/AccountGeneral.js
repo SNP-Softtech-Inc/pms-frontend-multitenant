@@ -904,6 +904,7 @@ import {
   SelectValue,
 } from "../../../../components/ui/select";
 import { InfoIcon } from "lucide-react";
+import { useLocation } from "react-router-dom";
 const GeneralStep = ({
   formData,
   updateFormData,
@@ -914,7 +915,7 @@ const GeneralStep = ({
   const { accountId } = useParams();
   const { user } = useAuth();
 
-  console.log("GeneralStep render - formData:", formData);
+  // console.log("GeneralStep render - formData:", formData);
   const [accounts, setAccounts] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -994,45 +995,148 @@ const GeneralStep = ({
     fetchInvoiceTemplates();
     fetchTeamMembers();
   }, []);
+const location = useLocation();
 
-  const fetchAccounts = async () => {
-    try {
-      // 🔹 1. CHECK COOKIES FIRST (no API call needed)
-      const accountIdCookie = Cookies.get("accountId");
-      const accountName = Cookies.get("accountName");
+console.log("location.state",location.state);
+  // const fetchAccounts = async () => {
+  //   try {
+  //     // 🔹 1. CHECK COOKIES FIRST (no API call needed)
+  //     const accountIdCookie = Cookies.get("accountId");
+  //     const accountName = Cookies.get("accountName");
 
-      if (accountIdCookie && accountName) {
-        const selectedAccount = {
-          label: accountName,
-          value: accountIdCookie,
-        };
+  //     if (accountIdCookie && accountName) {
+  //       const selectedAccount = {
+  //         label: accountName,
+  //         value: accountIdCookie,
+  //       };
 
-        updateFormData("general", {
-          account: selectedAccount, // Now storing a single object, not array
+  //       updateFormData("general", {
+  //         account: selectedAccount, // Now storing a single object, not array
+  //       });
+
+  //       if (stepErrors.account) {
+  //         setStepErrors((prev) => {
+  //           const newErrors = { ...prev };
+  //           delete newErrors.account;
+  //           return newErrors;
+  //         });
+  //       }
+
+  //       // console.log("Account set from cookies:", selectedAccount);
+  //       return; // ✅ STOP HERE (no API call needed)
+  //     }
+
+  //     // 🔹 2. ROLE-BASED API CALL
+  //     let response;
+
+  //     if (user?.role === "team_member") {
+  //       response = await accountsAPI.getAccountsByTeamMember(true);
+  //     } else {
+  //       response = await accountsAPI.getAccountsList(true);
+  //     }
+
+      // const result = response?.data || {};
+      // console.log("accounts list for proposals",result)
+      // const accountList = Array.isArray(result.accountlist)
+      //   ? result.accountlist
+      //   : [];
+
+      // setAccounts(accountList);
+      // console.log("Fetched accounts:", accountList);
+
+      // // 🔹 3. AUTO-SELECT FROM PARAMS (if exists)
+      // const selectedAccountData = accountList.find(
+      //   (account) => account._id === accountId
+      // );
+
+      // if (selectedAccountData) {
+      //   const selectedAccount = {
+      //     label: selectedAccountData.accountName,
+      //     value: selectedAccountData._id,
+      //   };
+
+      //   updateFormData("general", {
+      //     account: selectedAccount,
+      //   });
+
+      //   if (stepErrors.account) {
+      //     setStepErrors((prev) => {
+      //       const newErrors = { ...prev };
+      //       delete newErrors.account;
+      //       return newErrors;
+      //     });
+      //   }
+
+  //       // console.log("Auto-selected account:", selectedAccount);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching accounts:", error);
+  //   }
+  // };
+const fetchAccounts = async () => {
+  try {
+    // 🔹 1. CHECK LOCATION STATE FIRST
+    if (
+      location.state?.accountId &&
+      location.state?.accountName
+    ) {
+      const selectedAccount = {
+        label: location.state.accountName,
+        value: location.state.accountId,
+      };
+
+      updateFormData("general", {
+        account: selectedAccount,
+      });
+
+      if (stepErrors.account) {
+        setStepErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.account;
+          return newErrors;
         });
-
-        if (stepErrors.account) {
-          setStepErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors.account;
-            return newErrors;
-          });
-        }
-
-        console.log("Account set from cookies:", selectedAccount);
-        return; // ✅ STOP HERE (no API call needed)
       }
 
-      // 🔹 2. ROLE-BASED API CALL
-      let response;
+      console.log("Account set from location.state", selectedAccount);
+      return;
+    }
 
-      if (user?.role === "team_member") {
-        response = await accountsAPI.getAccountsByTeamMember(true);
-      } else {
-        response = await accountsAPI.getAccountNamesByStatus(true);
+    // 🔹 2. CHECK COOKIES
+    const accountIdCookie = Cookies.get("accountId");
+    const accountNameCookie = Cookies.get("accountName");
+
+    if (accountIdCookie && accountNameCookie) {
+      const selectedAccount = {
+        label: accountNameCookie,
+        value: accountIdCookie,
+      };
+
+      updateFormData("general", {
+        account: selectedAccount,
+      });
+
+      if (stepErrors.account) {
+        setStepErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.account;
+          return newErrors;
+        });
       }
 
-      const result = response?.data || {};
+      console.log("Account set from cookies", selectedAccount);
+      return;
+    }
+
+    // 🔹 3. API CALL
+    let response;
+
+    if (user?.role === "team_member") {
+      response = await accountsAPI.getAccountsByTeamMember(true);
+    } else {
+      response = await accountsAPI.getAccountsList(true);
+    }
+  const result = response?.data || {};
+      console.log("accounts list for proposals",result)
       const accountList = Array.isArray(result.accountlist)
         ? result.accountlist
         : [];
@@ -1063,19 +1167,19 @@ const GeneralStep = ({
           });
         }
 
-        console.log("Auto-selected account:", selectedAccount);
+        // console.log("Auto-selected account:", selectedAccount);
       }
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
-    }
-  };
-
+    // ...rest of your code
+  } catch (error) {
+    console.error("Error fetching accounts:", error);
+  }
+};
   const fetchTemplates = async () => {
     try {
       setLoading(true);
       const response = await proposalAPI.getAllProposals();
       setTemplates(response.data.proposallist || []);
-      console.log("proposal template", response.data.proposallist);
+      // console.log("proposal template", response.data.proposallist);
     } catch (error) {
       console.error("Error fetching templates:", error);
     } finally {
@@ -1100,7 +1204,7 @@ const GeneralStep = ({
         status: "active",
       });
 
-      console.log("API RESPONSE:", response.data);
+      // console.log("API RESPONSE:", response.data);
 
       // Handle different response structures
       let users = [];
@@ -1122,7 +1226,7 @@ const GeneralStep = ({
         email: user.email, // Keep email for display if needed
       }));
 
-      console.log("FORMATTED USERS:", formatted);
+      // console.log("FORMATTED USERS:", formatted);
       setInternalOptions(formatted);
     } catch (err) {
       console.error("User fetch error:", err?.response || err);
@@ -1136,7 +1240,7 @@ const GeneralStep = ({
       const response = await proposalAPI.getProposalById(templateId);
       const templateData = response.data;
 
-      console.log("Template data received:", templateData);
+      // console.log("Template data received:", templateData);
 
       // Transform the template data
       const transformedData = transformTemplateToForm(templateData);
@@ -1359,7 +1463,7 @@ const GeneralStep = ({
       })
       .filter(Boolean); // Remove any undefined/null values
 
-    console.log("Selected users:", selectedUsers);
+    // console.log("Selected users:", selectedUsers);
     return selectedUsers;
   };
 
@@ -1367,7 +1471,7 @@ const GeneralStep = ({
     // Extract just the IDs from the user objects
     const selectedIds = newSelectedUsers.map((user) => user.value);
     
-    console.log("Team members changed:", selectedIds);
+    // console.log("Team members changed:", selectedIds);
     
     updateFormData("general", {
       teamMembers: selectedIds,
@@ -1415,7 +1519,7 @@ const GeneralStep = ({
 const getCurrentAccountValue = () => {
   const account = formData.general.account;
   
-  console.log("Getting current account value:", account);
+  // console.log("Getting current account value:", account);
   
   // If account is null or undefined, return null
   if (!account) return null;
@@ -1541,57 +1645,6 @@ const getCurrentAccountValue = () => {
     setShowDropdown(false);
   };
 
-  // const StepCard = ({ title, description, checked, onChange, name }) => (
-  //   <Card
-  //     variant="outlined"
-  //     sx={{
-  //       mb: 2,
-  //       borderColor: checked ? "primary.main" : "grey.300",
-  //       borderWidth: checked ? 2 : 1,
-  //       backgroundColor: checked ? "primary.50" : "background.paper",
-  //       transition: "all 0.2s ease-in-out",
-  //       "&:hover": {
-  //         borderColor: "primary.light",
-  //         boxShadow: 1,
-  //       },
-  //     }}
-  //   >
-  //     <CardContent sx={{ "&:last-child": { pb: 2 } }}>
-  //       <FormControlLabel
-  //         control={
-  //           <Switch
-  //             checked={checked}
-  //             onChange={(e) => onChange(name, e.target.checked)}
-  //             color="primary"
-  //           />
-  //         }
-  //         label={
-  //           <Typography variant="h6" component="span" color="text.primary">
-  //             {title}
-  //           </Typography>
-  //         }
-  //         sx={{ width: "100%", mb: 1 }}
-  //       />
-  //       <Box sx={{ display: "flex", alignItems: "flex-start", ml: 6 }}>
-  //         <InfoOutlined
-  //           sx={{
-  //             fontSize: 16,
-  //             color: "text.secondary",
-  //             mr: 1,
-  //             mt: 0.25,
-  //           }}
-  //         />
-  //         <Typography
-  //           variant="body2"
-  //           color="text.secondary"
-  //           sx={{ lineHeight: 1.5 }}
-  //         >
-  //           {description}
-  //         </Typography>
-  //       </Box>
-  //     </CardContent>
-  //   </Card>
-  // );
 const StepCard = ({ title, description, checked, onChange, name }) => (
   <div
     className={`
@@ -1812,174 +1865,7 @@ return (
       </div>
     </div>
 );
-  // return (
-  //   <Box>
-  //     <Typography
-  //       variant="h4"
-  //       gutterBottom
-  //       color="primary"
-  //       fontWeight="600"
-  //       sx={{ mb: 4 }}
-  //     >
-  //       General Information
-  //     </Typography>
-
-  //     {loading && (
-  //       <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-  //         <CircularProgress />
-  //         <Typography sx={{ ml: 2 }}>Loading template data...</Typography>
-  //       </Box>
-  //     )}
-
-  //     <Paper elevation={0} sx={{ p: 3, mb: 4 }}>
-  //       <Typography variant="h6" gutterBottom color="primary" sx={{ mb: 3 }}>
-  //         Basic Details
-  //       </Typography>
-
-  //       {/* Account Selection - Updated to use SingleSelectDropdown */}
-  //       <Box sx={{ mb: 3 }}>
-  //         <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
-  //           Account *
-  //         </Typography>
-  //         <SingleSelectDropdown
-  //           value={getCurrentAccountValue()}
-  //           onChange={handleAccountChange}
-  //           options={accountOptions}
-  //           placeholder="Select an account..."
-  //         />
-  //         {stepErrors.account && (
-  //           <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-  //             {stepErrors.account}
-  //           </Typography>
-  //         )}
-  //       </Box>
-
-  //       {/* Template Selection */}
-  //       <FormControl fullWidth error={!!stepErrors.template} sx={{ mb: 3 }}>
-  //         <Autocomplete
-  //           options={templateOptions}
-  //           value={getCurrentTemplateValue()}
-  //           onChange={handleTemplateChange}
-  //           isOptionEqualToValue={(option, value) =>
-  //             option?.value === value?.value
-  //           }
-  //           getOptionLabel={(option) => option?.label || ""}
-  //           renderInput={(params) => (
-  //             <TextField
-  //               {...params}
-  //               error={!!stepErrors.proposalTemp}
-  //               helperText={
-  //                 stepErrors.proposalTemp ||
-  //                 "Choose a template to pre-fill the proposal"
-  //               }
-  //               placeholder="Search for a template..."
-  //             />
-  //           )}
-  //           loading={loading}
-  //         />
-  //       </FormControl>
-
-  //       {/* Proposal Name with Shortcode Support */}
-  //       <Box sx={{ mb: 2 }}>
-  //         <ShortcodeTextField
-  //           label="Proposal name (visible to clients)"
-  //           value={formData.general.proposalName || ""}
-  //           onChange={(e) => {
-  //             const { value, selectionStart } = e.target;
-  //             handleInputChange("proposalName", value);
-  //             setCursorPosition(selectionStart);
-  //           }}
-  //           onClick={(e) => setCursorPosition(e.target.selectionStart)}
-  //           inputRef={textFieldRef}
-  //           required
-  //           error={!!stepErrors.proposalName}
-  //           helperText={stepErrors.proposalName}
-  //           placeholder="Proposal name (visible to clients)"
-  //           shortcuts={filteredShortcuts}
-  //           showShortcutDropdown={showDropdown}
-  //           anchorElShortcut={anchorEl}
-  //           onToggleShortcutDropdown={toggleDropdown}
-  //           onCloseShortcutDropdown={handleCloseDropdown}
-  //           onAddShortcut={(shortcut) => {
-  //             const current = formData.general.proposalName || "";
-  //             const newValue =
-  //               current.slice(0, cursorPosition) +
-  //               `[${shortcut}]` +
-  //               current.slice(cursorPosition);
-  //             updateFormData("general", { proposalName: newValue });
-  //             setTimeout(() => {
-  //               if (textFieldRef.current) {
-  //                 const newCursor = cursorPosition + shortcut.length + 2;
-  //                 textFieldRef.current.focus();
-  //                 textFieldRef.current.setSelectionRange(newCursor, newCursor);
-  //                 setCursorPosition(newCursor);
-  //               }
-  //             }, 0);
-  //           }}
-  //         />
-  //       </Box>
-
-  //       {/* Team Members */}
-  //       <Box sx={{ mt: 2 }}>
-  //         <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
-  //           Team Members *
-  //         </Typography>
-
-  //         <MultiSelectDropdown
-  //           value={getSelectedUsers()}
-  //           onChange={handleTeamMembersChange}
-  //           placeholder="Team Member"
-  //           options={internalOptions}
-  //         />
-  //       </Box>
-  //     </Paper>
-
-  //     <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: "divider" }}>
-  //       <Typography variant="h6" gutterBottom color="primary" sx={{ mb: 3 }}>
-  //         Configure Proposal Steps
-  //       </Typography>
-
-  //       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-  //         Customize which steps to include in your proposal. Each step helps
-  //         communicate different aspects of your service to clients.
-  //       </Typography>
-
-  //       <FormGroup>
-  //         <StepCard
-  //           title="Introduction Step"
-  //           description="Explain to your clients who you are, what services you provide, the value you bring, and any other information you want to share"
-  //           checked={formData.general.introductionEnabled || false}
-  //           onChange={handleVisibilityChange}
-  //           name="introductionEnabled"
-  //         />
-
-  //         <StepCard
-  //           title="Terms Step"
-  //           description="Engagement letter or contractual agreement that outlines the terms of the relationship between your firm and clients. The section title can be renamed."
-  //           checked={formData.general.termsEnabled || false}
-  //           onChange={handleVisibilityChange}
-  //           name="termsEnabled"
-  //         />
-
-  //         <StepCard
-  //           title="Services & Invoices Step"
-  //           description="Specify the services your firm will provide. Add one-time or recurring invoices to get paid automatically."
-  //           checked={formData.general.servicesEnabled || false}
-  //           onChange={handleVisibilityChange}
-  //           name="servicesEnabled"
-  //         />
-
-  //         <StepCard
-  //           title="Payment Step"
-  //           description="Configure payment methods and terms for your proposal."
-  //           checked={formData.general.paymentsEnabled || false}
-  //           onChange={handleVisibilityChange}
-  //           name="paymentsEnabled"
-  //         />
-  //       </FormGroup>
-  //     </Paper>
-  //   </Box>
-  // );
+  
 };
 
 export default GeneralStep;

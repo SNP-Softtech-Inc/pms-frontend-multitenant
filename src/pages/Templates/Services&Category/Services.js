@@ -1,19 +1,16 @@
-
-
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
-import {useToastContext} from "../../../context/ToastContext"
-import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Switch } from '../../../components/ui/switch';
-import { DataTable } from '../../../components/data-table/data-table';
-import { DataTableToolbar } from '../../../components/data-table/toolbar';
-import { templateAPI } from '../../../services/api';
-import { useConfirm } from '../../../components/ConfirmDialogContext';
+import React, { useState, useEffect, useMemo } from "react";
+import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { useToastContext } from "../../../context/ToastContext";
+import { Button } from "../../../components/ui/button";
+import { Badge } from "../../../components/ui/badge";
+import { Switch } from "../../../components/ui/switch";
+import { DataTable } from "../../../components/data-table/data-table";
+import { DataTableToolbar } from "../../../components/data-table/toolbar";
+import { templateAPI } from "../../../services/api";
+import { useConfirm } from "../../../components/ConfirmDialogContext";
 const Service = () => {
   const confirm = useConfirm();
-  const {showToast} = useToastContext();
+  const { showToast } = useToastContext();
   // ================= STATE =================
   const [serviceDrawerOpen, setServiceDrawerOpen] = useState(false);
   const [serviceId, setServiceId] = useState(null);
@@ -23,7 +20,7 @@ const Service = () => {
   const [tax, setTax] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
-  
+
   const options = [
     { label: "Item", value: "item" },
     { label: "Hour", value: "hour" },
@@ -165,10 +162,11 @@ const Service = () => {
 
   // ================= SAVE CATEGORY =================
   const saveCategory = async () => {
-    if (!categoryName) return showToast({
-      title: "Category name is required",
-      type: "error",
-    });
+    if (!categoryName)
+      return showToast({
+        title: "Category name is required",
+        type: "error",
+      });
 
     const data = { categoryName };
 
@@ -197,113 +195,135 @@ const Service = () => {
   };
 
   // ================= HANDLE RATE CHANGE =================
-  const handleRateChange = (e) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    setRate(`$ ${value}`);
-  };
+  // const handleRateChange = (e) => {
+  //   const value = e.target.value.replace(/[^0-9.]/g, "");
+  //   setRate(`$ ${value}`);
+  // };
 
+  const handleRateChange = (e) => {
+  let value = e.target.value.replace(/[^0-9.]/g, "");
+
+  // Allow only one decimal point
+  const parts = value.split(".");
+  if (parts.length > 2) {
+    value = parts[0] + "." + parts.slice(1).join("");
+  }
+
+  // Limit to 2 decimal places
+  if (value.includes(".")) {
+    const [whole, decimal] = value.split(".");
+    value = `${whole}.${decimal.slice(0, 2)}`;
+  }
+
+  setRate(`$ ${value}`);
+};
   // ================= TABLE COLUMNS =================
-  const serviceColumns = useMemo(() => [
-    {
-      accessorKey: "serviceName",
-      header: "Name",
-      cell: ({ getValue, row }) => (
-        <button
-          onClick={() => openServiceDrawer(row.original)}
-          className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors text-left"
-        >
-          {getValue()}
-        </button>
-      ),
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-muted-foreground max-w-[200px] truncate block">
-          {getValue() || "-"}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "rate",
-      header: "Rate",
-      cell: ({ getValue }) => (
-        <span className="text-sm font-medium text-foreground">{getValue()}</span>
-      ),
-    },
-    {
-      accessorKey: "ratetype",
-      header: "Rate Type",
-      cell: ({ getValue }) => {
-        const val = getValue();
-        return val ? <Badge variant="secondary">{val}</Badge> : null;
-      },
-    },
-    {
-      accessorKey: "category",
-      header: "Category",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-muted-foreground">
-          {getValue()?.categoryName || "-"}
-        </span>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      size: 80,
-      enableSorting: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-0.5">
+  const serviceColumns = useMemo(
+    () => [
+      {
+        accessorKey: "serviceName",
+        header: "Name",
+        cell: ({ getValue, row }) => (
           <button
             onClick={() => openServiceDrawer(row.original)}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
-            title="Edit"
+            className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors text-left"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            {getValue()}
           </button>
-        <button
-  onClick={() => {
-    confirm({
-      title: "Delete Service",
-        description: (
-        <>
-          Are you sure you want to delete this service{" "}
-          <span className="font-semibold text-red-600">
-            "{row.original.serviceName}"
-          </span>
-          ?
-        </>
-      ),
-      // description: "Are you sure you want to delete this service? This action cannot be undone.",
-      onConfirm: async () => {
-        try {
-          await templateAPI.deleteServiceTemplate(row.original._id);
-          showToast({
-            title: "Service deleted successfully",
-            type: "success",
-          });
-          fetchServices();
-        } catch (error) {
-          console.error(error);
-          showToast({
-            title: "Failed to delete service",
-            type: "error",
-          });
-        }
+        ),
       },
-    });
-  }}
-  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-destructive hover:bg-destructive/10"
-  title="Delete"
->
-  <Trash2 className="h-3.5 w-3.5" />
-</button>
-        </div>
-      ),
-    },
-  ], []);
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ getValue }) => (
+          <span className="text-sm text-muted-foreground max-w-[200px] truncate block">
+            {getValue() || "-"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "rate",
+        header: "Rate",
+        cell: ({ getValue }) => (
+          <span className="text-sm font-medium text-foreground">
+            {getValue()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "ratetype",
+        header: "Rate Type",
+        cell: ({ getValue }) => {
+          const val = getValue();
+          return val ? <Badge variant="secondary">{val}</Badge> : null;
+        },
+      },
+      {
+        accessorKey: "category",
+        header: "Category",
+        cell: ({ getValue }) => (
+          <span className="text-sm text-muted-foreground">
+            {getValue()?.categoryName || "-"}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        size: 80,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => openServiceDrawer(row.original)}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
+              title="Edit"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => {
+                confirm({
+                  title: "Delete Service",
+                  description: (
+                    <>
+                      Are you sure you want to delete this service{" "}
+                      <span className="font-semibold text-red-600">
+                        "{row.original.serviceName}"
+                      </span>
+                      ?
+                    </>
+                  ),
+                  // description: "Are you sure you want to delete this service? This action cannot be undone.",
+                  onConfirm: async () => {
+                    try {
+                      await templateAPI.deleteServiceTemplate(row.original._id);
+                      showToast({
+                        title: "Service deleted successfully",
+                        type: "success",
+                      });
+                      fetchServices();
+                    } catch (error) {
+                      console.error(error);
+                      showToast({
+                        title: "Failed to delete service",
+                        type: "error",
+                      });
+                    }
+                  },
+                });
+              }}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-destructive hover:bg-destructive/10"
+              title="Delete"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
 
   // ================= FETCH DATA ON MOUNT =================
   useEffect(() => {
@@ -324,9 +344,9 @@ const Service = () => {
         </Button>
       </div>
 
-      <DataTableToolbar 
-        globalFilter={globalFilter} 
-        onGlobalFilterChange={setGlobalFilter} 
+      <DataTableToolbar
+        globalFilter={globalFilter}
+        onGlobalFilterChange={setGlobalFilter}
       />
 
       <DataTable
@@ -345,20 +365,23 @@ const Service = () => {
       {/* ================= SERVICE DRAWER ================= */}
       {serviceDrawerOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={closeServiceDrawer} />
+          <div
+            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+            onClick={closeServiceDrawer}
+          />
           <div className="absolute right-0 top-0 h-full w-full sm:w-[650px] bg-background shadow-xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <h2 className="text-base font-semibold text-foreground">
                 {serviceId ? "Edit Service" : "Create Service"}
               </h2>
-              <button 
-                onClick={closeServiceDrawer} 
+              <button
+                onClick={closeServiceDrawer}
                 className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-5">
                 <div>
@@ -406,16 +429,20 @@ const Service = () => {
                       Rate Type
                     </label>
                     <select
-                      value={selectedOption?.value || ''}
+                      value={selectedOption?.value || ""}
                       onChange={(e) => {
-                        const opt = options.find(o => o.value === e.target.value);
+                        const opt = options.find(
+                          (o) => o.value === e.target.value,
+                        );
                         setSelectedOption(opt || null);
                       }}
                       className="flex h-10 w-full rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                     >
                       <option value="">Select Rate Type</option>
-                      {options.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -423,28 +450,36 @@ const Service = () => {
 
                 {/* Tax Toggle */}
                 <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 px-4 py-3">
-                  <span className="text-sm font-medium text-foreground">Tax</span>
+                  <span className="text-sm font-medium text-foreground">
+                    Tax
+                  </span>
                   <Switch checked={tax} onCheckedChange={setTax} />
                 </div>
 
                 {/* Category Section */}
                 <div className="pt-2">
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Category</h3>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">
+                    Category
+                  </h3>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5">
                       Select Category
                     </label>
                     <select
-                      value={selectedCategory?.value || ''}
+                      value={selectedCategory?.value || ""}
                       onChange={(e) => {
-                        const opt = categoryOptions.find(o => o.value === e.target.value);
+                        const opt = categoryOptions.find(
+                          (o) => o.value === e.target.value,
+                        );
                         setSelectedCategory(opt || null);
                       }}
                       className="flex h-10 w-full rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                     >
                       <option value="">Select Category</option>
-                      {categoryOptions.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      {categoryOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -459,7 +494,7 @@ const Service = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
               <button
                 onClick={closeServiceDrawer}
@@ -481,20 +516,23 @@ const Service = () => {
       {/* ================= CATEGORY DRAWER ================= */}
       {categoryDrawerOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={closeCategoryDrawer} />
+          <div
+            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+            onClick={closeCategoryDrawer}
+          />
           <div className="absolute right-0 top-0 h-full w-full sm:w-[450px] bg-background shadow-xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <h2 className="text-base font-semibold text-foreground">
                 {categoryId ? "Edit Category" : "Create Category"}
               </h2>
-              <button 
-                onClick={closeCategoryDrawer} 
+              <button
+                onClick={closeCategoryDrawer}
                 className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -509,7 +547,7 @@ const Service = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
               <button
                 onClick={closeCategoryDrawer}
