@@ -736,10 +736,16 @@ showToast({
 
                     {/* Warning for Account Tags Automation */}
                     {automation.type === "Update account tags" && (
-                      <Alert variant="destructive" className="mt-2">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                          This automation can affect conditions for automations below
+                      // <Alert variant="destructive" className="mt-2">
+                      //   <AlertCircle className="h-4 w-4" />
+                      //   <AlertDescription>
+                      //     This automation can affect conditions for automations below
+                      //   </AlertDescription>
+                      // </Alert>
+                        <Alert className="border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/30">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-700 dark:text-amber-300">
+                          This automation can affect conditions for automations below.
                         </AlertDescription>
                       </Alert>
                     )}

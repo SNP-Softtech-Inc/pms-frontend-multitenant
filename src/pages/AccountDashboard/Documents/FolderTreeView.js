@@ -2106,7 +2106,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
-import {useToastContext} from "../../../context/ToastContext"
+import { useToastContext } from "../../../context/ToastContext";
 
 // shadcn/ui imports
 import { Button } from "../../../components/ui/button";
@@ -2149,7 +2149,12 @@ import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
 
 // API imports
-import { accountDocsAPI, accountsAPI, invoiceAPI,esignAPI } from "../../../services/api";
+import {
+  accountDocsAPI,
+  accountsAPI,
+  invoiceAPI,
+  esignAPI,
+} from "../../../services/api";
 import axios from "axios";
 // Custom CSS
 import "./docuseal-dark-theme.css";
@@ -2164,7 +2169,7 @@ import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { useAuth } from "../../../context/AuthContext";
 export const FolderTreeView = ({ accountId }) => {
   const confirm = useConfirm();
-    const { tenantId } = useAuth();
+  const { tenantId } = useAuth();
   const { showToast } = useToastContext();
   const [clientEmail, setClientEmail] = useState("");
   const [expandedFolders, setExpandedFolders] = useState({});
@@ -2712,61 +2717,40 @@ export const FolderTreeView = ({ accountId }) => {
   //     console.error(err);
   //   }
   // };
-const toggleSignStatus = async (item) => {
-  try {
-    const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
+  const toggleSignStatus = async (item) => {
+    try {
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
 
-    const { data } = await esignAPI.generateToken({
-      url: fileUrl,
-      name: item.name,
-      accountId,
-    });
+      const { data } = await esignAPI.generateToken({
+        url: fileUrl,
+        name: item.name,
+        accountId,
+      });
 
-    console.log("token data", data);
+      console.log("token data", data);
 
-    setToken(data.token);
-    setShowBuilderFor(item);
-    setOpenDialog(true);
-  } catch (err) {
-    console.error(err);
-  }
-};
-  // Cancel signature
-  // const cancelSignature = async (item) => {
-  //   try {
-  //     await axios.delete(
-  //       `${SIGNATURE_API}/signature/cancel/${item.meta.esignRequestId}`,
-  //       {
-  //         data: {
-  //           folder: item.meta.folder,
-  //           name: item.meta.name,
-  //         },
-  //       },
-  //     );
-  //     alert("Signature request cancelled.");
-  //     fetchFolderTree();
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Failed to cancel signature");
-  //   }
-  // };
-const cancelSignature = async (item) => {
-  try {
-    await esignAPI.cancelSignature(
-      item.meta.esignRequestId,
-      {
+      setToken(data.token);
+      setShowBuilderFor(item);
+      setOpenDialog(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const cancelSignature = async (item) => {
+    try {
+      await esignAPI.cancelSignature(item.meta.esignRequestId, {
         folder: item.meta.folder,
         name: item.meta.name,
-      }
-    );
+      });
 
-    alert("Signature request cancelled.");
-    fetchFolderTree();
-  } catch (err) {
-    console.error(err);
-    alert("Failed to cancel signature");
-  }
-};
+      alert("Signature request cancelled.");
+      fetchFolderTree();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel signature");
+    }
+  };
   // Toggle approval status
   const toggleApprovalStatus = (item) => {
     handleMenuClose();
@@ -3132,10 +3116,12 @@ const cancelSignature = async (item) => {
           handleFileClick(fullPath, item.name, meta);
         }
       };
-return (
-  <React.Fragment key={fullPath}>
-    <TableRow
-      className={`
+
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
+      return (
+        <React.Fragment key={fullPath}>
+          <TableRow
+            className={`
         group
         border-b border-border/50
         transition-all duration-200
@@ -3149,43 +3135,43 @@ return (
               : "bg-muted/20"
         }
       `}
-    >
-      {/* Checkbox */}
-      <TableCell className="w-[52px] px-4 py-3 align-middle">
-        <div className="flex items-center justify-center">
-          {isFolder ? (
-            <Checkbox
-              checked={isSelected}
-              data-indeterminate={isPartiallySelected}
-              onCheckedChange={() => handleFolderSelect(item)}
-              className="border-border"
-            />
-          ) : (
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={() => handleSelectItem(fullPath)}
-              className="border-border"
-            />
-          )}
-        </div>
-      </TableCell>
+          >
+            {/* Checkbox */}
+            <TableCell className="w-[52px] px-4 py-3 align-middle">
+              <div className="flex items-center justify-center">
+                {isFolder ? (
+                  <Checkbox
+                    checked={isSelected}
+                    data-indeterminate={isPartiallySelected}
+                    onCheckedChange={() => handleFolderSelect(item)}
+                    className="border-border"
+                  />
+                ) : (
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => handleSelectItem(fullPath)}
+                    className="border-border"
+                  />
+                )}
+              </div>
+            </TableCell>
 
-      {/* Name */}
-      <TableCell
-        className="py-3 pr-3 align-middle"
-        style={{
-          paddingLeft: `${level * 20 + 12}px`,
-          fontFamily: "var(--font-family)",
-        }}
-      >
-        <div className="flex items-center">
-          {isFolder ? (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="
+            {/* Name */}
+            <TableCell
+              className="py-3 pr-3 align-middle"
+              style={{
+                paddingLeft: `${level * 20 + 12}px`,
+                fontFamily: "var(--font-family)",
+              }}
+            >
+              <div className="flex items-center">
+                {isFolder ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="
                   mr-2
                   h-7
                   w-7
@@ -3195,27 +3181,27 @@ return (
                   hover:bg-muted
                   hover:text-foreground
                 "
-                onClick={() => toggleFolder(fullPath, meta.readOnly)}
-                disabled={meta.readOnly}
-              >
-                {expandedFolders[fullPath] ? (
-                  <ChevronDown className="h-4 w-4 text-primary" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
+                      onClick={() => toggleFolder(fullPath, meta.readOnly)}
+                      disabled={meta.readOnly}
+                    >
+                      {expandedFolders[fullPath] ? (
+                        <ChevronDown className="h-4 w-4 text-primary" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
 
-              <div
-                className="
+                    <div
+                      className="
                   flex
                   cursor-pointer
                   items-center
                   gap-2
                 "
-                onClick={() => toggleFolder(fullPath, meta.readOnly)}
-              >
-                <div
-                  className="
+                      onClick={() => toggleFolder(fullPath, meta.readOnly)}
+                    >
+                      <div
+                        className="
                     flex
                     h-9
                     w-9
@@ -3227,40 +3213,40 @@ return (
                     shadow-sm
                     border border-primary/10
                   "
-                >
-                  <FolderIcon className="h-4 w-4" />
-                </div>
+                      >
+                        <FolderIcon className="h-4 w-4" />
+                      </div>
 
-                <div className="flex flex-col">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span
-                      className={`
+                      <div className="flex flex-col">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span
+                            className={`
                         text-sm
                         font-semibold
                         transition-colors
 
                         
                       `}
-                      style={{
-                        fontSize:
-                          "calc(0.875rem * var(--font-scale, 100) / 100)",
-                      }}
-                    >
-                      {item.name}
-                    </span>
+                            style={{
+                              fontSize:
+                                "calc(0.875rem * var(--font-scale, 100) / 100)",
+                            }}
+                          >
+                            {item.name}
+                          </span>
 
-                    {meta.readOnly && (
-                      <Badge
-                        variant="destructive"
-                        className="rounded-md text-[10px]"
-                      >
-                        Locked
-                      </Badge>
-                    )}
+                          {meta.readOnly && (
+                            <Badge
+                              variant="destructive"
+                              className="rounded-md text-[10px]"
+                            >
+                              Locked
+                            </Badge>
+                          )}
 
-                    {inheritedNewTag && (
-                      <Badge
-                        className="
+                          {inheritedNewTag && (
+                            <Badge
+                              className="
                           h-5
                           rounded-md
                           px-1.5
@@ -3269,31 +3255,31 @@ return (
                           text-white
                           border-0
                         "
-                        style={{
-                          backgroundColor: inheritedNewTag.tagColour,
-                        }}
-                      >
-                        {inheritedNewTag.tagName}
-                      </Badge>
-                    )}
-                  </div>
+                              style={{
+                                backgroundColor: inheritedNewTag.tagColour,
+                              }}
+                            >
+                              {inheritedNewTag.tagName}
+                            </Badge>
+                          )}
+                        </div>
 
-                  <span
-                    className="text-xs text-muted-foreground"
-                    style={{
-                      fontSize:
-                        "calc(0.75rem * var(--font-scale, 100) / 100)",
-                    }}
-                  >
-                    {folderCount} folders • {fileCount} files
-                  </span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div
-                className="
+                        <span
+                          className="text-xs text-muted-foreground"
+                          style={{
+                            fontSize:
+                              "calc(0.75rem * var(--font-scale, 100) / 100)",
+                          }}
+                        >
+                          {folderCount} folders • {fileCount} files
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="
                   flex
                   h-9
                   w-9
@@ -3304,13 +3290,13 @@ return (
                   shadow-sm
                   border border-border/50
                 "
-              >
-                {getFileIcon(item.name)}
-              </div>
+                    >
+                      {getFileIcon(item.name)}
+                    </div>
 
-              <div className="flex flex-col">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <button
+                    <div className="flex flex-col">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {/* <button
                     type="button"
                     className={`
                       text-left
@@ -3327,21 +3313,48 @@ return (
                     onClick={handleSafeFileClick}
                   >
                     {item.name}
-                  </button>
+                  </button> */}
+                        <a
+                          href={fileUrl}
+                          className="
+    text-left
+    text-sm
+    font-medium
+    text-primary
+    hover:underline
+    cursor-pointer
+  "
+                          onClick={(e) => {
+                            // Let browser handle modifier clicks
+                            if (
+                              e.ctrlKey || // Windows/Linux
+                              e.metaKey || // Mac Cmd
+                              e.shiftKey ||
+                              e.button === 1
+                            ) {
+                              return;
+                            }
 
-                  {meta.readOnly && (
-                    <Badge
-                      variant="destructive"
-                      className="rounded-md text-[10px]"
-                    >
-                      Locked
-                    </Badge>
-                  )}
+                            // Normal left click keeps existing functionality
+                            e.preventDefault();
+                            handleSafeFileClick();
+                          }}
+                        >
+                          {item.name}
+                        </a>
+                        {meta.readOnly && (
+                          <Badge
+                            variant="destructive"
+                            className="rounded-md text-[10px]"
+                          >
+                            Locked
+                          </Badge>
+                        )}
 
-                  {meta.tags?.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      className="
+                        {meta.tags?.map((tag, index) => (
+                          <Badge
+                            key={index}
+                            className="
                         h-5
                         rounded-md
                         px-1.5
@@ -3350,34 +3363,34 @@ return (
                         text-white
                         border-0
                       "
-                      style={{
-                        backgroundColor: tag.tagColour || "#64748b",
-                      }}
-                    >
-                      {tag.tagName}
-                    </Badge>
-                  ))}
-                </div>
+                            style={{
+                              backgroundColor: tag.tagColour || "#64748b",
+                            }}
+                          >
+                            {tag.tagName}
+                          </Badge>
+                        ))}
+                      </div>
 
-                <span
-                  className="text-xs text-muted-foreground"
-                  style={{
-                    fontSize:
-                      "calc(0.75rem * var(--font-scale, 100) / 100)",
-                  }}
-                >
-                  File document
-                </span>
+                      <span
+                        className="text-xs text-muted-foreground"
+                        style={{
+                          fontSize:
+                            "calc(0.75rem * var(--font-scale, 100) / 100)",
+                        }}
+                      >
+                        File document
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
-        </div>
-      </TableCell>
+            </TableCell>
 
-      {/* Content */}
-      <TableCell className="px-3 py-3 align-middle">
-        <div
-          className="
+            {/* Content */}
+            <TableCell className="px-3 py-3 align-middle">
+              <div
+                className="
             inline-flex
             items-center
             rounded-full
@@ -3390,87 +3403,85 @@ return (
             text-muted-foreground
             backdrop-blur-sm
           "
-          style={{
-            fontSize: "calc(0.75rem * var(--font-scale, 100) / 100)",
-          }}
-        >
-          {folderCount} folders • {fileCount} files
-        </div>
-      </TableCell>
+                style={{
+                  fontSize: "calc(0.75rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                {folderCount} folders • {fileCount} files
+              </div>
+            </TableCell>
 
-      {/* Status */}
-      <TableCell className="px-3 py-3 align-middle">
-        <div className="flex items-center">
-          {getStatusChip(meta, isFolder)}
-        </div>
-      </TableCell>
+            {/* Status */}
+            <TableCell className="px-3 py-3 align-middle">
+              <div className="flex items-center">
+                {getStatusChip(meta, isFolder)}
+              </div>
+            </TableCell>
 
-      {/* Uploaded */}
-      <TableCell className="px-3 py-3 align-middle">
-        <div className="flex flex-col">
-          <span
-            className="text-sm font-medium text-foreground"
-            style={{
-              fontSize:
-                "calc(0.875rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            {formatUploadedAt(meta.uploadedAt)}
-          </span>
+            {/* Uploaded */}
+            <TableCell className="px-3 py-3 align-middle">
+              <div className="flex flex-col">
+                <span
+                  className="text-sm font-medium text-foreground"
+                  style={{
+                    fontSize: "calc(0.875rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  {formatUploadedAt(meta.uploadedAt)}
+                </span>
 
-          {/* <span className="text-xs text-muted-foreground">
+                {/* <span className="text-xs text-muted-foreground">
             Uploaded date
           </span> */}
-        </div>
-      </TableCell>
+              </div>
+            </TableCell>
 
-      {/* User */}
-      <TableCell className="px-3 py-3 align-middle">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 border border-border">
-            <AvatarFallback
-              className="
+            {/* User */}
+            <TableCell className="px-3 py-3 align-middle">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8 border border-border">
+                  <AvatarFallback
+                    className="
                 bg-muted
                 text-xs
                 font-semibold
                 text-foreground
               "
-            >
-              {meta.uploadedBy
-                ?.split(" ")
-                ?.map((n) => n[0])
-                ?.join("")
-                ?.slice(0, 2)
-                ?.toUpperCase() || "S"}
-            </AvatarFallback>
-          </Avatar>
+                  >
+                    {meta.uploadedBy
+                      ?.split(" ")
+                      ?.map((n) => n[0])
+                      ?.join("")
+                      ?.slice(0, 2)
+                      ?.toUpperCase() || "S"}
+                  </AvatarFallback>
+                </Avatar>
 
-          <div className="flex flex-col">
-            <span
-              className="text-sm font-medium text-foreground"
-              style={{
-                fontSize:
-                  "calc(0.875rem * var(--font-scale, 100) / 100)",
-              }}
-            >
-              {meta.uploadedBy || "system"}
-            </span>
+                <div className="flex flex-col">
+                  <span
+                    className="text-sm font-medium text-foreground"
+                    style={{
+                      fontSize: "calc(0.875rem * var(--font-scale, 100) / 100)",
+                    }}
+                  >
+                    {meta.uploadedBy || "system"}
+                  </span>
 
-            {/* <span className="text-xs text-muted-foreground">
+                  {/* <span className="text-xs text-muted-foreground">
               Uploaded by
             </span> */}
-          </div>
-        </div>
-      </TableCell>
+                </div>
+              </div>
+            </TableCell>
 
-      {/* Actions */}
-      <TableCell className="px-3 py-3 text-right align-middle">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
+            {/* Actions */}
+            <TableCell className="px-3 py-3 text-right align-middle">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="
                 h-9
                 w-9
                 rounded-xl
@@ -3479,22 +3490,22 @@ return (
                 hover:bg-muted
                 hover:text-foreground
               "
-              onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
+                    onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
 
-    {isFolder &&
-      expandedFolders[fullPath] &&
-      item.children &&
-      item.children.length > 0 &&
-      renderTableRows(item.children, level + 1, fullPath)}
-  </React.Fragment>
-);
+          {isFolder &&
+            expandedFolders[fullPath] &&
+            item.children &&
+            item.children.length > 0 &&
+            renderTableRows(item.children, level + 1, fullPath)}
+        </React.Fragment>
+      );
       // return (
       //   <React.Fragment key={fullPath}>
       //     <TableRow
@@ -3820,8 +3831,11 @@ return (
       // );
     });
   };
-return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+  return (
+    <div
+      className="min-h-screen"
+      style={{ background: "hsl(var(--background))" }}
+    >
       <div className="mx-auto w-full max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
         {/* TOP ACTION BAR */}
         <div className="mx-auto mb-6 max-w-[1200px]">
@@ -3895,7 +3909,10 @@ return (
                     {selectedItems.size}
                   </div>
 
-                  <span className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: "hsl(var(--foreground))" }}
+                  >
                     item(s) selected
                   </span>
                 </div>
@@ -4043,7 +4060,8 @@ return (
           style={{
             borderColor: "hsl(var(--border))",
             background: "hsl(var(--card))",
-            boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05)",
+            boxShadow:
+              "0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05)",
           }}
         >
           {/* HEADER */}
@@ -4063,11 +4081,17 @@ return (
               </div>
 
               <div>
-                <h2 className="text-lg font-bold" style={{ color: "hsl(var(--foreground))" }}>
+                <h2
+                  className="text-lg font-bold"
+                  style={{ color: "hsl(var(--foreground))" }}
+                >
                   Document Explorer
                 </h2>
 
-                <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                <p
+                  className="text-sm"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
                   Manage folders, files, approvals and signatures
                 </p>
               </div>
@@ -4096,27 +4120,45 @@ return (
                       />
                     </th>
 
-                    <th className="px-4 py-4 text-left text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                    <th
+                      className="px-4 py-4 text-left text-sm font-semibold"
+                      style={{ color: "hsl(var(--foreground))" }}
+                    >
                       Name
                     </th>
 
-                    <th className="px-4 py-4 text-left text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                    <th
+                      className="px-4 py-4 text-left text-sm font-semibold"
+                      style={{ color: "hsl(var(--foreground))" }}
+                    >
                       Content
                     </th>
 
-                    <th className="px-4 py-4 text-left text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                    <th
+                      className="px-4 py-4 text-left text-sm font-semibold"
+                      style={{ color: "hsl(var(--foreground))" }}
+                    >
                       Status
                     </th>
 
-                    <th className="px-4 py-4 text-left text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                    <th
+                      className="px-4 py-4 text-left text-sm font-semibold"
+                      style={{ color: "hsl(var(--foreground))" }}
+                    >
                       Uploaded
                     </th>
 
-                    <th className="px-4 py-4 text-left text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                    <th
+                      className="px-4 py-4 text-left text-sm font-semibold"
+                      style={{ color: "hsl(var(--foreground))" }}
+                    >
                       User
                     </th>
 
-                    <th className="px-4 py-4 text-right text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                    <th
+                      className="px-4 py-4 text-right text-sm font-semibold"
+                      style={{ color: "hsl(var(--foreground))" }}
+                    >
                       Actions
                     </th>
                   </tr>
@@ -4130,14 +4172,23 @@ return (
                   className="mb-4 flex h-20 w-20 items-center justify-center rounded-full"
                   style={{ background: "hsl(var(--muted))" }}
                 >
-                  <FolderIcon className="h-10 w-10" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  <FolderIcon
+                    className="h-10 w-10"
+                    style={{ color: "hsl(var(--muted-foreground))" }}
+                  />
                 </div>
 
-                <h3 className="text-lg font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                <h3
+                  className="text-lg font-semibold"
+                  style={{ color: "hsl(var(--foreground))" }}
+                >
                   No folders or files found
                 </h3>
 
-                <p className="mt-1 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                <p
+                  className="mt-1 text-sm"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
                   Upload files or create folders to get started
                 </p>
               </div>
@@ -4577,7 +4628,7 @@ return (
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        
+
         {/* FILE VIEWER DIALOG */}
         <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
           <DialogContent
@@ -4594,12 +4645,18 @@ return (
                 background: "hsl(var(--muted))",
               }}
             >
-              <DialogTitle className="truncate text-lg font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+              <DialogTitle
+                className="truncate text-lg font-semibold"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 {selectedFileName}
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+            <div
+              className="flex-1 overflow-hidden"
+              style={{ background: "hsl(var(--muted))" }}
+            >
               <iframe
                 src={selectedFileUrl}
                 title="File Preview"
@@ -4618,13 +4675,25 @@ return (
               background: "hsl(var(--background))",
             }}
           >
-            <DialogHeader className="border-b px-6 py-5" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted))" }}>
-              <DialogTitle className="truncate text-lg font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+            <DialogHeader
+              className="border-b px-6 py-5"
+              style={{
+                borderColor: "hsl(var(--border))",
+                background: "hsl(var(--muted))",
+              }}
+            >
+              <DialogTitle
+                className="truncate text-lg font-semibold"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 {selectedFileName}
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+            <div
+              className="flex-1 overflow-hidden"
+              style={{ background: "hsl(var(--muted))" }}
+            >
               <iframe
                 src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
                   selectedFileUrl,
@@ -4645,8 +4714,14 @@ return (
               background: "hsl(var(--card))",
             }}
           >
-            <DialogHeader className="border-b pb-4" style={{ borderColor: "hsl(var(--border))" }}>
-              <DialogTitle className="truncate text-lg font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+            <DialogHeader
+              className="border-b pb-4"
+              style={{ borderColor: "hsl(var(--border))" }}
+            >
+              <DialogTitle
+                className="truncate text-lg font-semibold"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 {selectedFileName}
               </DialogTitle>
             </DialogHeader>
@@ -4658,7 +4733,10 @@ return (
                 background: "hsl(var(--muted))",
               }}
             >
-              <pre className="whitespace-pre-wrap font-mono text-sm" style={{ color: "hsl(var(--foreground))" }}>
+              <pre
+                className="whitespace-pre-wrap font-mono text-sm"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 {textContent}
               </pre>
             </ScrollArea>
@@ -4674,13 +4752,25 @@ return (
               background: "hsl(var(--background))",
             }}
           >
-            <DialogHeader className="border-b px-6 py-5" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted))" }}>
-              <DialogTitle className="truncate text-lg font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+            <DialogHeader
+              className="border-b px-6 py-5"
+              style={{
+                borderColor: "hsl(var(--border))",
+                background: "hsl(var(--muted))",
+              }}
+            >
+              <DialogTitle
+                className="truncate text-lg font-semibold"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 {selectedFileName}
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+            <div
+              className="flex-1 overflow-hidden"
+              style={{ background: "hsl(var(--muted))" }}
+            >
               <iframe
                 src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
                   selectedFileUrl,
@@ -4694,12 +4784,21 @@ return (
 
         {/* LOCK/UNLOCK */}
         <Dialog open={bulkLockDialogOpen} onOpenChange={setBulkLockDialogOpen}>
-          <DialogContent className="sm:max-w-md" style={{ background: "hsl(var(--card))" }}>
+          <DialogContent
+            className="sm:max-w-md"
+            style={{ background: "hsl(var(--card))" }}
+          >
             <DialogHeader>
-              <DialogTitle className="text-xl" style={{ color: "hsl(var(--foreground))" }}>
+              <DialogTitle
+                className="text-xl"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 Lock/Unlock Selected Items
               </DialogTitle>
-              <DialogDescription className="text-base mt-2" style={{ color: "hsl(var(--muted-foreground))" }}>
+              <DialogDescription
+                className="text-base mt-2"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
                 Do you want to lock or unlock the {selectedItems.size} selected
                 item(s)?
               </DialogDescription>
@@ -4728,15 +4827,23 @@ return (
             </div>
           </DialogContent>
         </Dialog>
-        
+
         {/* APPROVAL */}
         <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
-          <DialogContent className="sm:max-w-lg" style={{ background: "hsl(var(--card))" }}>
+          <DialogContent
+            className="sm:max-w-lg"
+            style={{ background: "hsl(var(--card))" }}
+          >
             <DialogHeader>
-              <DialogTitle className="text-xl" style={{ color: "hsl(var(--foreground))" }}>
+              <DialogTitle
+                className="text-xl"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 Request Approval
               </DialogTitle>
-              <DialogDescription style={{ color: "hsl(var(--muted-foreground))" }}>
+              <DialogDescription
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
                 Send an approval request for this document
               </DialogDescription>
             </DialogHeader>
@@ -4775,12 +4882,18 @@ return (
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        
+
         {/* SIGNATURE */}
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col" style={{ background: "hsl(var(--card))" }}>
+          <DialogContent
+            className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col"
+            style={{ background: "hsl(var(--card))" }}
+          >
             <DialogHeader className="p-6 pb-0">
-              <DialogTitle className="text-xl" style={{ color: "hsl(var(--foreground))" }}>
+              <DialogTitle
+                className="text-xl"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 {selectedFolderForMenu?.name || "Document"}
               </DialogTitle>
             </DialogHeader>
@@ -4800,39 +4913,73 @@ return (
             </div>
           </DialogContent>
         </Dialog>
-        
+
         {/* INVOICE LOCK */}
         <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-          <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col" style={{ background: "hsl(var(--card))" }}>
+          <DialogContent
+            className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col"
+            style={{ background: "hsl(var(--card))" }}
+          >
             <DialogHeader>
-              <DialogTitle className="text-xl" style={{ color: "hsl(var(--foreground))" }}>
+              <DialogTitle
+                className="text-xl"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
                 Select Invoices To Lock
               </DialogTitle>
-              <DialogDescription style={{ color: "hsl(var(--muted-foreground))" }}>
+              <DialogDescription
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
                 Choose invoices to associate with this document
               </DialogDescription>
             </DialogHeader>
             <div className="overflow-auto flex-1">
               {invoiceList.length === 0 && (
-                <div className="text-center p-8" style={{ color: "hsl(var(--muted-foreground))" }}>
+                <div
+                  className="text-center p-8"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
                   No invoices found
                 </div>
               )}
               <div className="overflow-x-auto mt-1">
                 <Table>
-                  <TableHeader className="sticky top-0" style={{ background: "hsl(var(--card))" }}>
+                  <TableHeader
+                    className="sticky top-0"
+                    style={{ background: "hsl(var(--card))" }}
+                  >
                     <TableRow style={{ borderColor: "hsl(var(--border))" }}>
-                      <TableHead className="w-[60px]" style={{ color: "hsl(var(--foreground))" }}>Select</TableHead>
-                      <TableHead style={{ color: "hsl(var(--foreground))" }}>Invoice #</TableHead>
-                      <TableHead style={{ color: "hsl(var(--foreground))" }}>Description</TableHead>
-                      <TableHead style={{ color: "hsl(var(--foreground))" }}>Created At</TableHead>
-                      <TableHead className="text-right" style={{ color: "hsl(var(--foreground))" }}>Amount</TableHead>
+                      <TableHead
+                        className="w-[60px]"
+                        style={{ color: "hsl(var(--foreground))" }}
+                      >
+                        Select
+                      </TableHead>
+                      <TableHead style={{ color: "hsl(var(--foreground))" }}>
+                        Invoice #
+                      </TableHead>
+                      <TableHead style={{ color: "hsl(var(--foreground))" }}>
+                        Description
+                      </TableHead>
+                      <TableHead style={{ color: "hsl(var(--foreground))" }}>
+                        Created At
+                      </TableHead>
+                      <TableHead
+                        className="text-right"
+                        style={{ color: "hsl(var(--foreground))" }}
+                      >
+                        Amount
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {invoiceList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                        <TableCell
+                          colSpan={5}
+                          className="text-center"
+                          style={{ color: "hsl(var(--muted-foreground))" }}
+                        >
                           No invoices found.
                         </TableCell>
                       </TableRow>
@@ -4861,16 +5008,26 @@ return (
                             <TableCell>
                               <Checkbox checked={checked} />
                             </TableCell>
-                            <TableCell className="font-medium" style={{ color: "hsl(var(--foreground))" }}>
+                            <TableCell
+                              className="font-medium"
+                              style={{ color: "hsl(var(--foreground))" }}
+                            >
                               {inv.invoicenumber}
                             </TableCell>
-                            <TableCell style={{ color: "hsl(var(--foreground))" }}>
+                            <TableCell
+                              style={{ color: "hsl(var(--foreground))" }}
+                            >
                               {inv.description || "—"}
                             </TableCell>
-                            <TableCell style={{ color: "hsl(var(--foreground))" }}>
+                            <TableCell
+                              style={{ color: "hsl(var(--foreground))" }}
+                            >
                               {new Date(inv.createdAt).toLocaleDateString()}
                             </TableCell>
-                            <TableCell className="text-right font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                            <TableCell
+                              className="text-right font-semibold"
+                              style={{ color: "hsl(var(--foreground))" }}
+                            >
                               ₹{inv.summary?.total?.toLocaleString()}
                             </TableCell>
                           </TableRow>
@@ -4881,7 +5038,10 @@ return (
                 </Table>
               </div>
             </div>
-            <DialogFooter className="mt-4 pt-4 border-t" style={{ borderColor: "hsl(var(--border))" }}>
+            <DialogFooter
+              className="mt-4 pt-4 border-t"
+              style={{ borderColor: "hsl(var(--border))" }}
+            >
               <Button
                 variant="outline"
                 onClick={() => setInvoiceDialogOpen(false)}

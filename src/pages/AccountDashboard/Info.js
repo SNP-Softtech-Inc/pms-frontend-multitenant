@@ -639,6 +639,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
+import {Badge} from "../../components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -1086,6 +1087,7 @@ const AccountDetails = () => {
       <div
         key={c.contact._id}
         className="
+        
           group
           rounded-2xl
           border border-border/50
@@ -1099,6 +1101,20 @@ const AccountDetails = () => {
           hover:shadow-sm
         "
       >
+        {/* {c.canLogin && c.contact.isActivated === false && (
+    <Badge
+      className="
+        absolute top-3 right-3
+        z-10
+        bg-amber-100 text-amber-700
+        border border-amber-200
+        hover:bg-amber-100
+        text-[10px]
+      "
+    >
+      Pending Activation
+    </Badge>
+  )} */}
         <div
           className="
             grid grid-cols-[1fr_auto]
@@ -1158,9 +1174,25 @@ const AccountDetails = () => {
             >
               {c.contact.email || "—"}
             </span>
+           
           </div>
 
           {/* Actions */}
+          <div className="flex flex-col items-end gap-2">
+  {c.canLogin && c.contact.isActivated === false && (
+    <Badge
+      className="
+        bg-amber-100
+        text-amber-700
+        border border-amber-200
+        hover:bg-amber-100
+        text-[10px]
+        font-medium
+      "
+    >
+      Pending Activation
+    </Badge>
+  )}
           <div className="flex items-center gap-4 sm:gap-5">
             {/* Login */}
             <div className="flex flex-col items-center gap-1">
@@ -1236,6 +1268,7 @@ const AccountDetails = () => {
                 onResetPassword={handleResetPassword}
               />
             </div>
+          </div>
           </div>
         </div>
       </div>
