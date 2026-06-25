@@ -34,6 +34,7 @@ import {
   DropdownMenuItem,
 } from "../components/ui/dropdown-menu";
 import Cookies from "js-cookie";
+import OfflinePaymentDrawer from "./AccountDashboard/Invoices/OfflinePaymentDrawer";
 const Dashboard = () => {
   const { user } = useAuth();
   const [permissions, setPermissions] = useState(null);
@@ -78,6 +79,8 @@ const Dashboard = () => {
   const [invoiceDrawer, setInvoiceDrawer] = useState(false);
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
   const [tasksDrawerOpen, setTasksDrawerOpen] = useState(false);
+  const [offlinePaymentDrawerOpen, setOfflinePaymentDrawerOpen] =
+    useState(false);
   const handleChatDrawerOpen = () => setChatDrawerOpen(true);
   const handleChatDrawerClose = () => setChatDrawerOpen(false);
   const handleDrawerOpen = () => setOpenDrawer(true);
@@ -87,6 +90,9 @@ const Dashboard = () => {
   const handleJobDrawerOpen = () => setJobDrawerOpen(true);
   const handleTasksDrawerOpen = () => setTasksDrawerOpen(true);
   const handleTasksDrawerClose = () => setTasksDrawerOpen(false);
+  const handleOfflinePaymentDrawerOpen = () =>
+    setOfflinePaymentDrawerOpen(false);
+
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
     return IconComponent ? <IconComponent size={20} /> : <LayoutDashboard />;
@@ -271,7 +277,7 @@ const Dashboard = () => {
         }
 
         setPlusMenuItems(data);
-        console.log("sidebar new data",data)
+        console.log("sidebar new data", data);
       } catch (err) {
         console.error("Plus menu fetch error:", err);
       }
@@ -279,71 +285,71 @@ const Dashboard = () => {
 
     fetchPlusMenu();
   }, [user, permissions]);
-const handlePlusMenuClick = (item) => {
-  const accountId = Cookies.get("accountId");
-  const accountName = Cookies.get("accountName");
+  const handlePlusMenuClick = (item) => {
+    const accountId = Cookies.get("accountId");
+    const accountName = Cookies.get("accountName");
 
-  let selectedAccounts = [];
-  try {
-    selectedAccounts = JSON.parse(
-      Cookies.get("selectedAccounts") || "[]"
-    );
-  } catch (err) {
-    console.error("Error parsing selectedAccounts cookie", err);
-  }
+    let selectedAccounts = [];
+    try {
+      selectedAccounts = JSON.parse(Cookies.get("selectedAccounts") || "[]");
+    } catch (err) {
+      console.error("Error parsing selectedAccounts cookie", err);
+    }
 
-  const accountData = {
-    accountId,
-    accountName,
-    // selectedAccounts,
+    const accountData = {
+      accountId,
+      accountName,
+      // selectedAccounts,
+    };
+
+    console.log("Account Data:", accountData);
+
+    if (item.label === "Account") {
+      handleDrawerOpen(accountData);
+    } else if (item.label === "Contact") {
+      handleContactDrawerOpen(accountData);
+    } else if (item.label === "Invoice") {
+      setInvoiceDrawer(true);
+    }else if (item.label === "Offline Payment") {
+      setOfflinePaymentDrawerOpen(true);
+    
+      // Example: store in state for invoice drawer
+      // setSelectedAccountData(accountData);
+    } else if (item.label === "Chat") {
+      handleChatDrawerOpen(accountData);
+    } else if (item.label === "Jobs") {
+      handleJobDrawerOpen(accountData);
+    } else if (item.label === "Task") {
+      handleTasksDrawerOpen(accountData);
+    } else {
+      navigate(item.path, {
+        state: accountData,
+      });
+    }
   };
+  //   const handlePlusMenuClick = (item) => {
+  //   const accountId = Cookies.get("accountId");
+  //   const accountName = Cookies.get("accountName");
+  //   const selectedAccounts = Cookies.get("selectedAccounts");
 
-  console.log("Account Data:", accountData);
+  //   console.log(accountId, accountName, selectedAccounts);
 
-  if (item.label === "Account") {
-    handleDrawerOpen(accountData);
-  } else if (item.label === "Contact") {
-    handleContactDrawerOpen(accountData);
-  } else if (item.label === "Invoice") {
-    setInvoiceDrawer(true);
-
-    // Example: store in state for invoice drawer
-    // setSelectedAccountData(accountData);
-  } else if (item.label === "Chat") {
-    handleChatDrawerOpen(accountData);
-  } else if (item.label === "Jobs") {
-    handleJobDrawerOpen(accountData);
-  } else if (item.label === "Task") {
-    handleTasksDrawerOpen(accountData);
-  } else {
-    navigate(item.path, {
-      state: accountData,
-    });
-  }
-};
-//   const handlePlusMenuClick = (item) => {
-//   const accountId = Cookies.get("accountId");
-//   const accountName = Cookies.get("accountName");
-//   const selectedAccounts = Cookies.get("selectedAccounts");
-
-//   console.log(accountId, accountName, selectedAccounts);
-
-//   if (item.label === "Account") {
-//     handleDrawerOpen();
-//   } else if (item.label === "Contact") {
-//     handleContactDrawerOpen();
-//   } else if (item.label === "Invoice") {
-//     setInvoiceDrawer(true);
-//   } else if (item.label === "Chat") {
-//     handleChatDrawerOpen();
-//   } else if (item.label === "Jobs") {
-//     handleJobDrawerOpen();
-//   } else if (item.label === "Task") {
-//     handleTasksDrawerOpen();
-//   } else {
-//     navigate(item.path);
-//   }
-// };
+  //   if (item.label === "Account") {
+  //     handleDrawerOpen();
+  //   } else if (item.label === "Contact") {
+  //     handleContactDrawerOpen();
+  //   } else if (item.label === "Invoice") {
+  //     setInvoiceDrawer(true);
+  //   } else if (item.label === "Chat") {
+  //     handleChatDrawerOpen();
+  //   } else if (item.label === "Jobs") {
+  //     handleJobDrawerOpen();
+  //   } else if (item.label === "Task") {
+  //     handleTasksDrawerOpen();
+  //   } else {
+  //     navigate(item.path);
+  //   }
+  // };
   // Auto open submenu
   useEffect(() => {
     const newOpenMenus = {};
@@ -724,7 +730,6 @@ const handlePlusMenuClick = (item) => {
                       <DropdownMenuItem
                         key={index}
                         onClick={() => handlePlusMenuClick(item)}
-
                         // onClick={() => {
                         //   if (item.label === "Account") handleDrawerOpen();
                         //   else if (item.label === "Contact")
@@ -808,6 +813,8 @@ const handlePlusMenuClick = (item) => {
                       else if (item.label === "Chat") handleChatDrawerOpen();
                       else if (item.label === "Jobs") handleJobDrawerOpen();
                       else if (item.label === "Task") handleTasksDrawerOpen();
+                      else if (item.label === "Offline Payment")
+                        setOfflinePaymentDrawerOpen(true);
                       else navigate(item.path);
 
                       handlePlusClose();
@@ -853,6 +860,10 @@ const handlePlusMenuClick = (item) => {
         <TasksDrawer
           open={tasksDrawerOpen}
           onClose={() => setTasksDrawerOpen(false)}
+        />
+        <OfflinePaymentDrawer
+          open={offlinePaymentDrawerOpen}
+          onClose={() => setOfflinePaymentDrawerOpen(false)}
         />
       </div>
     </>

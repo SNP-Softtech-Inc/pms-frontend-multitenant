@@ -3344,430 +3344,430 @@ const AccountOrganizer = () => {
       </div>
     </TooltipProvider>
   );
-
-  // return (
-  //   <TooltipProvider>
-  //     <div className="space-y-6">
-  //       <div className="border-b border-gray-200 pb-4 mt-3">
-  //         <h2 className="text-xl font-bold">Create organizer</h2>
-  //       </div>
-
-  //       <div className="space-y-4">
-  //         <div>
-  //           <Label className="mb-2 block">Accounts</Label>
-  //           <AccountMultiSelectDropdown
-  //             value={selectedAccount}
-  //             onChange={selectedAccount}
-  //           />
-  //         </div>
-
-  //         <div>
-  //           <Label className="mb-2 block">Organizer Template</Label>
-  //           <Select
-  //             value={selectedOrganizerTemplate || "none"}
-  //             onValueChange={(value) => handleOrganizerTemplateChange(value === "none" ? "" : value)}
-  //           >
-  //             <SelectTrigger className="w-full">
-  //               <SelectValue placeholder="Select organizer template" />
-  //             </SelectTrigger>
-  //             <SelectContent>
-  //               <SelectItem value="none">None</SelectItem>
-  //               {OrganizerTemplateOptions.map((option) => (
-  //                 <SelectItem key={option.value} value={option.value}>
-  //                   {option.label}
-  //                 </SelectItem>
-  //               ))}
-  //             </SelectContent>
-  //           </Select>
-  //         </div>
-
-  //         <div>
-  //           <Input
-  //             placeholder="Organizer Name"
-  //             value={organizerName || ""}
-  //             onChange={handleOrganizerNameChange}
-  //           />
-  //         </div>
-
-  //         <div>
-  //           <Button onClick={handlePreview} variant="default">
-  //             Preview Mode
-  //           </Button>
-  //         </div>
-
-  //         <div className="flex items-center gap-2">
-  //           <div className="flex items-center space-x-2">
-  //             <Switch
-  //               checked={reminder}
-  //               onCheckedChange={handleAbsolutesDates}
-  //               id="reminder-mode"
-  //             />
-  //             <Label htmlFor="reminder-mode">Reminders</Label>
-  //           </div>
-  //         </div>
-
-  //         {reminder && (
-  //           <div className="flex items-center gap-6 mt-2">
-  //             <div className="flex-1">
-  //               <Label className="mb-2 block">Days until next reminder</Label>
-  //               <Input
-  //                 value={daysuntilNextReminder}
-  //                 onChange={(e) => setDaysuntilNextReminder(e.target.value)}
-  //                 placeholder="Days until next reminder"
-  //               />
-  //             </div>
-
-  //             <div className="flex-1">
-  //               <Label className="mb-2 block">No Of reminders</Label>
-  //               <Input
-  //                 value={noOfReminder}
-  //                 onChange={(e) => setNoOfReminder(e.target.value)}
-  //                 placeholder="NoOfreminders"
-  //               />
-  //             </div>
-  //           </div>
-  //         )}
-
-  //         <div className="flex gap-4 items-center">
-  //           <Button onClick={createOrganizerOfAccount} variant="default">
-  //             Create
-  //           </Button>
-  //           <Button onClick={handleOrganizerFormClose} variant="outline">
-  //             Cancel
-  //           </Button>
-  //         </div>
-  //       </div>
-
-  //       {/* Preview Dialog */}
-  //       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-  //         <DialogContent className="max-w-6xl w-full h-[90vh] overflow-y-auto">
-  //           <DialogHeader>
-  //             <DialogTitle>Preview Mode</DialogTitle>
-  //           </DialogHeader>
-
-  //           <div>
-  //             <div className="border-2 border-blue-400 p-4 mb-6 rounded-lg bg-blue-100 flex items-center justify-between">
-  //               <div>
-  //                 <p className="font-bold">Preview mode</p>
-  //                 <p className="text-sm">The client sees your organizer like this</p>
-  //               </div>
-  //               <Button variant="ghost" onClick={handleClosePreview}>
-  //                 Back to edit
-  //               </Button>
-  //             </div>
-
-  //             <p className="mb-4">{organizerName}</p>
-
-  //             <div className="mb-4">
-  //               <Select
-  //                 value={activeStep.toString()}
-  //                 onValueChange={handleDropdownChange}
-  //               >
-  //                 <SelectTrigger>
-  //                   <SelectValue placeholder="Select section" />
-  //                 </SelectTrigger>
-  //                 <SelectContent>
-  //                   {visibleSections.map((section, index) => {
-  //                     const visibleElements = section.formElements.filter(
-  //                       (el) => shouldShowElement(el, section.id),
-  //                     );
-
-  //                     const answeredCount = visibleElements.reduce(
-  //                       (count, element) => {
-  //                         const key = `${section.id}_${element.text}`;
-  //                         return count + (answeredElements[key] ? 1 : 0);
-  //                       },
-  //                       0,
-  //                     );
-
-  //                     const totalVisibleElements = visibleElements.length;
-
-  //                     return (
-  //                       <SelectItem key={section.id} value={index.toString()}>
-  //                         {section.text} ({answeredCount}/{totalVisibleElements})
-  //                       </SelectItem>
-  //                     );
-  //                   })}
-  //                 </SelectContent>
-  //               </Select>
-  //             </div>
-
-  //             <div className="my-4">
-  //               <Progress value={((activeStep + 1) / totalSteps) * 100} />
-  //             </div>
-
-  //             <div className="px-20">
-  //               {visibleSections.map(
-  //                 (section, sectionIndex) =>
-  //                   sectionIndex === activeStep && (
-  //                     <div key={section.id} className="space-y-6">
-  //                       {section.formElements.map(
-  //                         (element) =>
-  //                           shouldShowElement(element, section.id) && (
-  //                             <div key={`${section.id}_${element.id}`} className="space-y-2">
-  //                               {/* Text Editor */}
-  //                               {element.type === "Text Editor" && (
-  //                                 <div className="my-2">
-  //                                   <p>{stripHtmlTags(element.text)}</p>
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Free Entry or Email */}
-  //                               {(element.type === "Free Entry" ||
-  //                                 element.type === "Email") && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-1 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <Textarea
-  //                                     placeholder={`${element.type} Answer`}
-  //                                     className="w-full"
-  //                                     value={
-  //                                       inputValues[
-  //                                         `${section.id}_${element.text}`
-  //                                       ] || ""
-  //                                     }
-  //                                     onChange={(e) =>
-  //                                       handleInputChange(
-  //                                         e,
-  //                                         element.text,
-  //                                         section.id,
-  //                                       )
-  //                                     }
-  //                                   />
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Number */}
-  //                               {element.type === "Number" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-1 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <Input
-  //                                     type="text"
-  //                                     placeholder={`${element.type} Answer`}
-  //                                     className="w-full"
-  //                                     value={
-  //                                       inputValues[
-  //                                         `${section.id}_${element.text}`
-  //                                       ] || ""
-  //                                     }
-  //                                     onChange={(e) => {
-  //                                       const numericValue =
-  //                                         e.target.value.replace(/\D/g, "");
-  //                                       handleInputChange(
-  //                                         { target: { value: numericValue } },
-  //                                         element.text,
-  //                                         section.id,
-  //                                       );
-  //                                     }}
-  //                                   />
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Radio Buttons */}
-  //                               {element.type === "Radio Buttons" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-2 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <RadioGroup
-  //                                     value={
-  //                                       radioValues[`${section.id}_${element.text}`]
-  //                                     }
-  //                                     onValueChange={(value) =>
-  //                                       handleRadioChange(value, element.text, section.id)
-  //                                     }
-  //                                     className="flex flex-wrap gap-4"
-  //                                   >
-  //                                     {element.options.map((option) => (
-  //                                       <div key={option.text} className="flex items-center space-x-2">
-  //                                         <RadioGroupItem value={option.text} id={`${section.id}_${element.id}_${option.text}`} />
-  //                                         <Label htmlFor={`${section.id}_${element.id}_${option.text}`}>
-  //                                           {option.text}
-  //                                         </Label>
-  //                                       </div>
-  //                                     ))}
-  //                                   </RadioGroup>
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Checkboxes */}
-  //                               {element.type === "Checkboxes" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-2 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <div className="flex flex-wrap gap-4">
-  //                                     {element.options.map((option) => (
-  //                                       <div key={option.text} className="flex items-center space-x-2">
-  //                                         <Checkbox
-  //                                           id={`${section.id}_${element.id}_${option.text}`}
-  //                                           checked={
-  //                                             checkboxValues[`${section.id}_${element.text}`]?.[option.text] || false
-  //                                           }
-  //                                           onCheckedChange={() =>
-  //                                             handleCheckboxChange(option.text, element.text, section.id)
-  //                                           }
-  //                                         />
-  //                                         <Label htmlFor={`${section.id}_${element.id}_${option.text}`}>
-  //                                           {option.text}
-  //                                         </Label>
-  //                                       </div>
-  //                                     ))}
-  //                                   </div>
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Yes/No */}
-  //                               {element.type === "Yes/No" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-2 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <RadioGroup
-  //                                     value={
-  //                                       selectedYesNoValues[`${section.id}_${element.text}`]
-  //                                     }
-  //                                     onValueChange={(value) =>
-  //                                       handleYesNoChange(value, element.text, section.id)
-  //                                     }
-  //                                     className="flex gap-4"
-  //                                   >
-  //                                     {element.options.map((option) => (
-  //                                       <div key={option.text} className="flex items-center space-x-2">
-  //                                         <RadioGroupItem value={option.text} id={`${section.id}_${element.id}_${option.text}`} />
-  //                                         <Label htmlFor={`${section.id}_${element.id}_${option.text}`}>
-  //                                           {option.text}
-  //                                         </Label>
-  //                                       </div>
-  //                                     ))}
-  //                                   </RadioGroup>
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Dropdown */}
-  //                               {element.type === "Dropdown" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-2 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <Select
-  //                                     value={
-  //                                       selectedDropdownValues[
-  //                                         `${section.id}_${element.text}`
-  //                                       ] || "none"
-  //                                     }
-  //                                     onValueChange={(value) =>
-  //                                       handleDropdownValueChange(value === "none" ? "" : value, element.text, section.id)
-  //                                     }
-  //                                   >
-  //                                     <SelectTrigger className="w-full">
-  //                                       <SelectValue placeholder="Select option" />
-  //                                     </SelectTrigger>
-  //                                     <SelectContent>
-  //                                       <SelectItem value="none">Select an option</SelectItem>
-  //                                       {element.options.map((option) => (
-  //                                         <SelectItem key={option.text} value={option.text}>
-  //                                           {option.text}
-  //                                         </SelectItem>
-  //                                       ))}
-  //                                     </SelectContent>
-  //                                   </Select>
-  //                                 </div>
-  //                               )}
-
-  //                               {/* Date */}
-  //                               {element.type === "Date" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-2 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <Popover>
-  //                                     <PopoverTrigger asChild>
-  //                                       <Button
-  //                                         variant="outline"
-  //                                         className={cn(
-  //                                           "w-full justify-start text-left font-normal",
-  //                                           !startDate && "text-muted-foreground"
-  //                                         )}
-  //                                         onClick={() =>
-  //                                           setAnsweredElements((prev) => ({
-  //                                             ...prev,
-  //                                             [`${section.id}_${element.text}`]: true,
-  //                                           }))
-  //                                         }
-  //                                       >
-  //                                         <CalendarIcon className="mr-2 h-4 w-4" />
-  //                                         {startDate ? format(startDate, "MM/dd/yyyy") : "Select date"}
-  //                                       </Button>
-  //                                     </PopoverTrigger>
-  //                                     <PopoverContent className="w-auto p-0">
-  //                                       <Calendar
-  //                                         mode="single"
-  //                                         selected={startDate}
-  //                                         onSelect={handleStartDateChange}
-  //                                         initialFocus
-  //                                       />
-  //                                     </PopoverContent>
-  //                                   </Popover>
-  //                                 </div>
-  //                               )}
-
-  //                               {/* File Upload */}
-  //                               {element.type === "File Upload" && (
-  //                                 <div>
-  //                                   <Label className="text-lg mb-2 block">
-  //                                     {element.text}
-  //                                   </Label>
-  //                                   <Tooltip>
-  //                                     <TooltipTrigger asChild>
-  //                                       <div className="relative w-full">
-  //                                         <Input
-  //                                           disabled
-  //                                           placeholder="Add Document"
-  //                                           className="cursor-not-allowed"
-  //                                         />
-  //                                       </div>
-  //                                     </TooltipTrigger>
-  //                                     <TooltipContent>
-  //                                       <p>Unavailable in preview mode</p>
-  //                                     </TooltipContent>
-  //                                   </Tooltip>
-  //                                 </div>
-  //                               )}
-  //                             </div>
-  //                           ),
-  //                       )}
-  //                     </div>
-  //                   ),
-  //               )}
-  //               <div className="flex gap-4 items-center mt-6">
-  //                 <Button
-  //                   onClick={handleBack}
-  //                   disabled={activeStep === 0}
-  //                   variant="default"
-  //                 >
-  //                   <ChevronLeft className="mr-1 h-4 w-4" />
-  //                   Back
-  //                 </Button>
-  //                 <Button
-  //                   onClick={handleNext}
-  //                   disabled={activeStep === totalSteps - 1}
-  //                   variant="default"
-  //                 >
-  //                   Next
-  //                   <ChevronRight className="ml-1 h-4 w-4" />
-  //                 </Button>
-  //               </div>
-  //             </div>
-  //           </div>
-  //         </DialogContent>
-  //       </Dialog>
-  //     </div>
-  //   </TooltipProvider>
-  // );
 };
 
 export default AccountOrganizer;
+
+// return (
+//   <TooltipProvider>
+//     <div className="space-y-6">
+//       <div className="border-b border-gray-200 pb-4 mt-3">
+//         <h2 className="text-xl font-bold">Create organizer</h2>
+//       </div>
+
+//       <div className="space-y-4">
+//         <div>
+//           <Label className="mb-2 block">Accounts</Label>
+//           <AccountMultiSelectDropdown
+//             value={selectedAccount}
+//             onChange={selectedAccount}
+//           />
+//         </div>
+
+//         <div>
+//           <Label className="mb-2 block">Organizer Template</Label>
+//           <Select
+//             value={selectedOrganizerTemplate || "none"}
+//             onValueChange={(value) => handleOrganizerTemplateChange(value === "none" ? "" : value)}
+//           >
+//             <SelectTrigger className="w-full">
+//               <SelectValue placeholder="Select organizer template" />
+//             </SelectTrigger>
+//             <SelectContent>
+//               <SelectItem value="none">None</SelectItem>
+//               {OrganizerTemplateOptions.map((option) => (
+//                 <SelectItem key={option.value} value={option.value}>
+//                   {option.label}
+//                 </SelectItem>
+//               ))}
+//             </SelectContent>
+//           </Select>
+//         </div>
+
+//         <div>
+//           <Input
+//             placeholder="Organizer Name"
+//             value={organizerName || ""}
+//             onChange={handleOrganizerNameChange}
+//           />
+//         </div>
+
+//         <div>
+//           <Button onClick={handlePreview} variant="default">
+//             Preview Mode
+//           </Button>
+//         </div>
+
+//         <div className="flex items-center gap-2">
+//           <div className="flex items-center space-x-2">
+//             <Switch
+//               checked={reminder}
+//               onCheckedChange={handleAbsolutesDates}
+//               id="reminder-mode"
+//             />
+//             <Label htmlFor="reminder-mode">Reminders</Label>
+//           </div>
+//         </div>
+
+//         {reminder && (
+//           <div className="flex items-center gap-6 mt-2">
+//             <div className="flex-1">
+//               <Label className="mb-2 block">Days until next reminder</Label>
+//               <Input
+//                 value={daysuntilNextReminder}
+//                 onChange={(e) => setDaysuntilNextReminder(e.target.value)}
+//                 placeholder="Days until next reminder"
+//               />
+//             </div>
+
+//             <div className="flex-1">
+//               <Label className="mb-2 block">No Of reminders</Label>
+//               <Input
+//                 value={noOfReminder}
+//                 onChange={(e) => setNoOfReminder(e.target.value)}
+//                 placeholder="NoOfreminders"
+//               />
+//             </div>
+//           </div>
+//         )}
+
+//         <div className="flex gap-4 items-center">
+//           <Button onClick={createOrganizerOfAccount} variant="default">
+//             Create
+//           </Button>
+//           <Button onClick={handleOrganizerFormClose} variant="outline">
+//             Cancel
+//           </Button>
+//         </div>
+//       </div>
+
+//       {/* Preview Dialog */}
+//       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+//         <DialogContent className="max-w-6xl w-full h-[90vh] overflow-y-auto">
+//           <DialogHeader>
+//             <DialogTitle>Preview Mode</DialogTitle>
+//           </DialogHeader>
+
+//           <div>
+//             <div className="border-2 border-blue-400 p-4 mb-6 rounded-lg bg-blue-100 flex items-center justify-between">
+//               <div>
+//                 <p className="font-bold">Preview mode</p>
+//                 <p className="text-sm">The client sees your organizer like this</p>
+//               </div>
+//               <Button variant="ghost" onClick={handleClosePreview}>
+//                 Back to edit
+//               </Button>
+//             </div>
+
+//             <p className="mb-4">{organizerName}</p>
+
+//             <div className="mb-4">
+//               <Select
+//                 value={activeStep.toString()}
+//                 onValueChange={handleDropdownChange}
+//               >
+//                 <SelectTrigger>
+//                   <SelectValue placeholder="Select section" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   {visibleSections.map((section, index) => {
+//                     const visibleElements = section.formElements.filter(
+//                       (el) => shouldShowElement(el, section.id),
+//                     );
+
+//                     const answeredCount = visibleElements.reduce(
+//                       (count, element) => {
+//                         const key = `${section.id}_${element.text}`;
+//                         return count + (answeredElements[key] ? 1 : 0);
+//                       },
+//                       0,
+//                     );
+
+//                     const totalVisibleElements = visibleElements.length;
+
+//                     return (
+//                       <SelectItem key={section.id} value={index.toString()}>
+//                         {section.text} ({answeredCount}/{totalVisibleElements})
+//                       </SelectItem>
+//                     );
+//                   })}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//             <div className="my-4">
+//               <Progress value={((activeStep + 1) / totalSteps) * 100} />
+//             </div>
+
+//             <div className="px-20">
+//               {visibleSections.map(
+//                 (section, sectionIndex) =>
+//                   sectionIndex === activeStep && (
+//                     <div key={section.id} className="space-y-6">
+//                       {section.formElements.map(
+//                         (element) =>
+//                           shouldShowElement(element, section.id) && (
+//                             <div key={`${section.id}_${element.id}`} className="space-y-2">
+//                               {/* Text Editor */}
+//                               {element.type === "Text Editor" && (
+//                                 <div className="my-2">
+//                                   <p>{stripHtmlTags(element.text)}</p>
+//                                 </div>
+//                               )}
+
+//                               {/* Free Entry or Email */}
+//                               {(element.type === "Free Entry" ||
+//                                 element.type === "Email") && (
+//                                 <div>
+//                                   <Label className="text-lg mb-1 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <Textarea
+//                                     placeholder={`${element.type} Answer`}
+//                                     className="w-full"
+//                                     value={
+//                                       inputValues[
+//                                         `${section.id}_${element.text}`
+//                                       ] || ""
+//                                     }
+//                                     onChange={(e) =>
+//                                       handleInputChange(
+//                                         e,
+//                                         element.text,
+//                                         section.id,
+//                                       )
+//                                     }
+//                                   />
+//                                 </div>
+//                               )}
+
+//                               {/* Number */}
+//                               {element.type === "Number" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-1 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <Input
+//                                     type="text"
+//                                     placeholder={`${element.type} Answer`}
+//                                     className="w-full"
+//                                     value={
+//                                       inputValues[
+//                                         `${section.id}_${element.text}`
+//                                       ] || ""
+//                                     }
+//                                     onChange={(e) => {
+//                                       const numericValue =
+//                                         e.target.value.replace(/\D/g, "");
+//                                       handleInputChange(
+//                                         { target: { value: numericValue } },
+//                                         element.text,
+//                                         section.id,
+//                                       );
+//                                     }}
+//                                   />
+//                                 </div>
+//                               )}
+
+//                               {/* Radio Buttons */}
+//                               {element.type === "Radio Buttons" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-2 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <RadioGroup
+//                                     value={
+//                                       radioValues[`${section.id}_${element.text}`]
+//                                     }
+//                                     onValueChange={(value) =>
+//                                       handleRadioChange(value, element.text, section.id)
+//                                     }
+//                                     className="flex flex-wrap gap-4"
+//                                   >
+//                                     {element.options.map((option) => (
+//                                       <div key={option.text} className="flex items-center space-x-2">
+//                                         <RadioGroupItem value={option.text} id={`${section.id}_${element.id}_${option.text}`} />
+//                                         <Label htmlFor={`${section.id}_${element.id}_${option.text}`}>
+//                                           {option.text}
+//                                         </Label>
+//                                       </div>
+//                                     ))}
+//                                   </RadioGroup>
+//                                 </div>
+//                               )}
+
+//                               {/* Checkboxes */}
+//                               {element.type === "Checkboxes" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-2 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <div className="flex flex-wrap gap-4">
+//                                     {element.options.map((option) => (
+//                                       <div key={option.text} className="flex items-center space-x-2">
+//                                         <Checkbox
+//                                           id={`${section.id}_${element.id}_${option.text}`}
+//                                           checked={
+//                                             checkboxValues[`${section.id}_${element.text}`]?.[option.text] || false
+//                                           }
+//                                           onCheckedChange={() =>
+//                                             handleCheckboxChange(option.text, element.text, section.id)
+//                                           }
+//                                         />
+//                                         <Label htmlFor={`${section.id}_${element.id}_${option.text}`}>
+//                                           {option.text}
+//                                         </Label>
+//                                       </div>
+//                                     ))}
+//                                   </div>
+//                                 </div>
+//                               )}
+
+//                               {/* Yes/No */}
+//                               {element.type === "Yes/No" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-2 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <RadioGroup
+//                                     value={
+//                                       selectedYesNoValues[`${section.id}_${element.text}`]
+//                                     }
+//                                     onValueChange={(value) =>
+//                                       handleYesNoChange(value, element.text, section.id)
+//                                     }
+//                                     className="flex gap-4"
+//                                   >
+//                                     {element.options.map((option) => (
+//                                       <div key={option.text} className="flex items-center space-x-2">
+//                                         <RadioGroupItem value={option.text} id={`${section.id}_${element.id}_${option.text}`} />
+//                                         <Label htmlFor={`${section.id}_${element.id}_${option.text}`}>
+//                                           {option.text}
+//                                         </Label>
+//                                       </div>
+//                                     ))}
+//                                   </RadioGroup>
+//                                 </div>
+//                               )}
+
+//                               {/* Dropdown */}
+//                               {element.type === "Dropdown" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-2 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <Select
+//                                     value={
+//                                       selectedDropdownValues[
+//                                         `${section.id}_${element.text}`
+//                                       ] || "none"
+//                                     }
+//                                     onValueChange={(value) =>
+//                                       handleDropdownValueChange(value === "none" ? "" : value, element.text, section.id)
+//                                     }
+//                                   >
+//                                     <SelectTrigger className="w-full">
+//                                       <SelectValue placeholder="Select option" />
+//                                     </SelectTrigger>
+//                                     <SelectContent>
+//                                       <SelectItem value="none">Select an option</SelectItem>
+//                                       {element.options.map((option) => (
+//                                         <SelectItem key={option.text} value={option.text}>
+//                                           {option.text}
+//                                         </SelectItem>
+//                                       ))}
+//                                     </SelectContent>
+//                                   </Select>
+//                                 </div>
+//                               )}
+
+//                               {/* Date */}
+//                               {element.type === "Date" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-2 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <Popover>
+//                                     <PopoverTrigger asChild>
+//                                       <Button
+//                                         variant="outline"
+//                                         className={cn(
+//                                           "w-full justify-start text-left font-normal",
+//                                           !startDate && "text-muted-foreground"
+//                                         )}
+//                                         onClick={() =>
+//                                           setAnsweredElements((prev) => ({
+//                                             ...prev,
+//                                             [`${section.id}_${element.text}`]: true,
+//                                           }))
+//                                         }
+//                                       >
+//                                         <CalendarIcon className="mr-2 h-4 w-4" />
+//                                         {startDate ? format(startDate, "MM/dd/yyyy") : "Select date"}
+//                                       </Button>
+//                                     </PopoverTrigger>
+//                                     <PopoverContent className="w-auto p-0">
+//                                       <Calendar
+//                                         mode="single"
+//                                         selected={startDate}
+//                                         onSelect={handleStartDateChange}
+//                                         initialFocus
+//                                       />
+//                                     </PopoverContent>
+//                                   </Popover>
+//                                 </div>
+//                               )}
+
+//                               {/* File Upload */}
+//                               {element.type === "File Upload" && (
+//                                 <div>
+//                                   <Label className="text-lg mb-2 block">
+//                                     {element.text}
+//                                   </Label>
+//                                   <Tooltip>
+//                                     <TooltipTrigger asChild>
+//                                       <div className="relative w-full">
+//                                         <Input
+//                                           disabled
+//                                           placeholder="Add Document"
+//                                           className="cursor-not-allowed"
+//                                         />
+//                                       </div>
+//                                     </TooltipTrigger>
+//                                     <TooltipContent>
+//                                       <p>Unavailable in preview mode</p>
+//                                     </TooltipContent>
+//                                   </Tooltip>
+//                                 </div>
+//                               )}
+//                             </div>
+//                           ),
+//                       )}
+//                     </div>
+//                   ),
+//               )}
+//               <div className="flex gap-4 items-center mt-6">
+//                 <Button
+//                   onClick={handleBack}
+//                   disabled={activeStep === 0}
+//                   variant="default"
+//                 >
+//                   <ChevronLeft className="mr-1 h-4 w-4" />
+//                   Back
+//                 </Button>
+//                 <Button
+//                   onClick={handleNext}
+//                   disabled={activeStep === totalSteps - 1}
+//                   variant="default"
+//                 >
+//                   Next
+//                   <ChevronRight className="ml-1 h-4 w-4" />
+//                 </Button>
+//               </div>
+//             </div>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   </TooltipProvider>
+// );
