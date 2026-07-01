@@ -1480,6 +1480,12 @@ export const invoiceAPI = {
   // ================= CREATE =================
   createInvoice: (data) =>
     invoiceApi.post("/account/invoicelist/invoice", data),
+ // ================= OFFLINE PAYMENT =================
+  offlinePayment: (data) =>
+    invoiceApi.post(
+      "/account/invoicelist/offline-payment",
+      data
+    ),
 
   // ================= GET =================
   getInvoices: () => invoiceApi.get("/account/invoicelist/invoice"),

@@ -1144,6 +1144,7 @@ import Editor from "../../../components/Editor";
 import SingleSelectDropdown from "../../../components/SingleSelectDropdown";
 import PreviewDrawer from "./PreviewDrawer";
 import { Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 // const CreateInvoiceDrawer = ({ open, onClose, fetchInvoices }) => {
 const CreateInvoiceDrawer = ({
   open,
@@ -1153,6 +1154,8 @@ const CreateInvoiceDrawer = ({
 }) => {
   const isEditMode = Boolean(editInvoiceId);
 const {showToast} = useToastContext();
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (open && editInvoiceId) {
       fetchInvoiceById(editInvoiceId);
@@ -1910,8 +1913,11 @@ const {showToast} = useToastContext();
         resetForm(); // Clear form
 
         onClose();
-
-        if (fetchInvoices) fetchInvoices();
+  // Refresh invoice list everywhere
+    queryClient.invalidateQueries({
+      queryKey: ["account-invoices", selectedAccount.value],
+    });
+        // if (fetchInvoices) fetchInvoices();
       } else {
         showToast({
           title: res?.data?.message || "Failed to create invoice",

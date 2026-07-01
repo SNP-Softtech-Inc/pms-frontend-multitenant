@@ -70,8 +70,8 @@ const renderLinkedSubject = (subject) => {
     return text;
   }
 
-  // Match "from", "for", or "by" and everything after it
-  const match = text.match(/^(.*?\b(from|for|by)\b\s+)(.+)$/i);
+  // Match "from", "for", "by", or "with" and everything after it
+  const match = text.match(/^(.*?\b(from|for|by|with)\b\s+)(.+)$/i);
 
   if (!match) {
     return (
@@ -1224,17 +1224,17 @@ const renderEmailThread = (messages) => {
                               {/* Header */}
                               <div className="flex items-start justify-between">
                                 <div className="flex gap-3">
-                                  <FileText
+                                  {/* <FileText
                                     size={18}
                                     className="text-gray-500 mt-1"
-                                  />
+                                  /> */}
 
                                   <div>
-                                    <div className="text-sm font-medium text-gray-800">
+                                    {/* <div className="text-sm font-medium text-gray-800">
                                       {renderLinkedSubject(
                                         thread.latest?.subject,
                                       )}
-                                    </div>
+                                    </div> */}
 
                                     {/* <div className="text-xs text-gray-500 mt-1">
                                       {msg.from}

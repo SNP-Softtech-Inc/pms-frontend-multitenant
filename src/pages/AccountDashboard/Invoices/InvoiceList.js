@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
@@ -9,9 +7,9 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
-import {useToastContext} from "../../../context/ToastContext";
+import { useToastContext } from "../../../context/ToastContext";
 import { useParams } from "react-router-dom";
-import { invoiceAPI } from "../../../services/api";
+import { invoiceAPI, accountsAPI } from "../../../services/api";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import CreateInvoiceDrawer from "./CreateInvoiceDrawer";
 import jsPDF from "jspdf";
@@ -26,15 +24,16 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { Card, CardContent } from "../../../components/ui/card";
-
+import { useQuery } from "@tanstack/react-query";
 const InvoiceTable = () => {
   const { accountId } = useParams();
-  const {showToast} = useToastContext();
+  const { showToast } = useToastContext();
   const confirm = useConfirm();
-  const [accountInvoicesData, setAccountInvoicesData] = useState([]);
+  // const [accountInvoicesData, setAccountInvoicesData] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [openDrawer, setOpenDrawer] = useState(false);
-const [editInvoiceId, setEditInvoiceId] = useState(null);
+  const [editInvoiceId, setEditInvoiceId] = useState(null);
+  // const [account, setAccount] = useState(null);
   // Check if an invoice is overdue
   const isInvoiceOverdue = (invoice, paymentTermDays = 5) => {
     if (!invoice.invoicedate || invoice.invoiceStatus === "Paid") return false;
@@ -74,49 +73,111 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
     return todayDateOnly > dueDateOnly && isUnpaid && hasBalanceDue;
   };
 
+  const {
+    data: account,
+    isLoading: accountLoading,
+    refetch: refetchAccount,
+  } = useQuery({
+    queryKey: ["account-details", accountId],
+    queryFn: async () => {
+      const res = await accountsAPI.getAccountById(accountId);
+      return res.data;
+    },
+    enabled: !!accountId,
+    refetchOnWindowFocus: true,
+  });
+  //   const fetchAccountDetails = async () => {
+  //   try {
+  //     const res = await accountsAPI.getAccountById(accountId);
+  //     setAccount(res.data);
+  //     console.log("selcted accounts details",res.data)
+  //   } catch (err) {
+  //     console.error("Error fetching account details:", err);
+  //   }
+  // };
+
   // Fetch invoices and update overdue status safely
-  const fetchInvoices = async () => {
-    try {
+  // const fetchInvoices = async () => {
+  //   try {
+  //     const res = await invoiceAPI.getInvoiceListByAccountId(accountId);
+  //     console.log("Fetched invoices:", res.data);
+
+  //     if (res.data?.invoice) {
+  //       const updatedInvoices = await Promise.all(
+  //         res.data.invoice.map(async (invoice) => {
+  //           const overdue = isInvoiceOverdue(invoice);
+
+  //           // Only update if overdue AND not already overdue
+  //           if (overdue && invoice.invoiceStatus !== "Overdue") {
+  //             try {
+  //               await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
+  //                 invoiceStatus: "Overdue",
+  //               });
+  //               return { ...invoice, invoiceStatus: "Overdue" };
+  //             } catch (err) {
+  //               console.error("Failed to update invoice status:", err);
+  //               return invoice; // fallback to original
+  //             }
+  //           }
+
+  //           return invoice;
+  //         }),
+  //       );
+
+  //       setAccountInvoicesData(updatedInvoices);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     showToast({
+  //       title: "Failed to fetch invoices",
+  //       type: "error",
+  //     });
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchInvoices();
+  //     // fetchAccountDetails();
+
+  // }, [accountId]);
+  const {
+    data: accountInvoicesData = [],
+    isLoading: invoiceLoading,
+    refetch: refetchInvoices,
+  } = useQuery({
+    queryKey: ["account-invoices", accountId],
+    queryFn: async () => {
       const res = await invoiceAPI.getInvoiceListByAccountId(accountId);
-      console.log("Fetched invoices:", res.data);
 
-      if (res.data?.invoice) {
-        const updatedInvoices = await Promise.all(
-          res.data.invoice.map(async (invoice) => {
-            const overdue = isInvoiceOverdue(invoice);
+      const updatedInvoices = await Promise.all(
+        (res.data?.invoice || []).map(async (invoice) => {
+          const overdue = isInvoiceOverdue(invoice);
 
-            // Only update if overdue AND not already overdue
-            if (overdue && invoice.invoiceStatus !== "Overdue") {
-              try {
-                await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
-                  invoiceStatus: "Overdue",
-                });
-                return { ...invoice, invoiceStatus: "Overdue" };
-              } catch (err) {
-                console.error("Failed to update invoice status:", err);
-                return invoice; // fallback to original
-              }
+          if (overdue && invoice.invoiceStatus !== "Overdue") {
+            try {
+              await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
+                invoiceStatus: "Overdue",
+              });
+
+              return {
+                ...invoice,
+                invoiceStatus: "Overdue",
+              };
+            } catch (err) {
+              console.error("Failed to update invoice status:", err);
+              return invoice;
             }
+          }
 
-            return invoice;
-          }),
-        );
+          return invoice;
+        }),
+      );
 
-        setAccountInvoicesData(updatedInvoices);
-      }
-    } catch (error) {
-      console.error(error);
-      showToast({
-        title: "Failed to fetch invoices",
-        type: "error",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchInvoices();
-  }, [accountId]);
-
+      return updatedInvoices;
+    },
+    enabled: !!accountId,
+    refetchOnWindowFocus: true,
+  });
   // Menu handlers
   const handleMenuClose = () => {
     setOpenMenuId(null);
@@ -135,9 +196,7 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
             type: "success",
           });
 
-          setAccountInvoicesData((prev) =>
-            prev.filter((inv) => inv._id !== id),
-          );
+          refetchInvoices();
         } catch (err) {
           showToast({
             title: "Delete failed",
@@ -163,7 +222,7 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
         title: "Duplicated successfully",
         type: "success",
       });
-      fetchInvoices();
+      refetchInvoices();
       handleMenuClose();
     } catch {
       showToast({
@@ -349,97 +408,87 @@ const [editInvoiceId, setEditInvoiceId] = useState(null);
         return "outline";
     }
   };
-const handleEdit = (invoice) => {
-  setEditInvoiceId(invoice._id);
-  setOpenDrawer(true);
-  handleMenuClose();
-};
-const invoiceSummary = accountInvoicesData.reduce(
-  (acc, invoice) => {
-    const total = Number(invoice.summary?.total || 0);
-    const paid = Number(invoice.paidAmount || 0);
-    const balance = total - paid;
+  const handleEdit = (invoice) => {
+    setEditInvoiceId(invoice._id);
+    setOpenDrawer(true);
+    handleMenuClose();
+  };
+  const invoiceSummary = accountInvoicesData.reduce(
+    (acc, invoice) => {
+      const total = Number(invoice.summary?.total || 0);
+      const paid = Number(invoice.paidAmount || 0);
+      const balance = total - paid;
 
-    acc.totalInvoices += 1;
-    acc.totalPaid += paid;
-    acc.totalUnpaid += balance > 0 ? balance : 0;
-    acc.netDue += balance;
+      acc.totalInvoices += 1;
+      acc.totalPaid += paid;
+      acc.totalUnpaid += balance > 0 ? balance : 0;
+      acc.netDue += balance;
 
-    // If you have a credit field in invoice
-    acc.creditAvailable += Number(invoice.creditAvailable || 0);
-
-    return acc;
-  },
-  {
-    totalInvoices: 0,
-    totalPaid: 0,
-    totalUnpaid: 0,
-    creditAvailable: 0,
-    netDue: 0,
-  }
-);
+      return acc;
+    },
+    {
+      totalInvoices: 0,
+      totalPaid: 0,
+      totalUnpaid: 0,
+      netDue: 0,
+    },
+  );
 
   return (
     <div className="mt-2 space-y-4">
       <div className="mb-2">
         <Button onClick={() => setOpenDrawer(true)}>Create Invoice</Button>
       </div>
-<div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-  <Card>
-    <CardContent className="p-4">
-      <div className="text-sm text-muted-foreground">
-        Number of Invoices
-      </div>
-      <div className="text-2xl font-bold">
-        {invoiceSummary.totalInvoices}
-      </div>
-    </CardContent>
-  </Card>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">
+              Number of Invoices
+            </div>
+            <div className="text-2xl font-bold">
+              {invoiceSummary.totalInvoices}
+            </div>
+          </CardContent>
+        </Card>
 
-  <Card>
-    <CardContent className="p-4">
-      <div className="text-sm text-muted-foreground">
-        Paid Amount
-      </div>
-      <div className="text-2xl font-bold text-green-600">
-        ${invoiceSummary.totalPaid.toFixed(2)}
-      </div>
-    </CardContent>
-  </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Paid Amount</div>
+            <div className="text-2xl font-bold text-green-600">
+              ${invoiceSummary.totalPaid.toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
 
-  <Card>
-    <CardContent className="p-4">
-      <div className="text-sm text-muted-foreground">
-        Unpaid Amount
-      </div>
-      <div className="text-2xl font-bold text-red-600">
-        ${invoiceSummary.totalUnpaid.toFixed(2)}
-      </div>
-    </CardContent>
-  </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Unpaid Amount</div>
+            <div className="text-2xl font-bold text-red-600">
+              ${invoiceSummary.totalUnpaid.toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
 
-  <Card>
-    <CardContent className="p-4">
-      <div className="text-sm text-muted-foreground">
-        Credit Available
-      </div>
-      <div className="text-2xl font-bold text-blue-600">
-        ${invoiceSummary.creditAvailable.toFixed(2)}
-      </div>
-    </CardContent>
-  </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">
+              Credit Available
+            </div>
+            <div className="text-2xl font-bold text-blue-600">
+              ${Number(account?.creaditAval || 0).toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
 
-  <Card>
-    <CardContent className="p-4">
-      <div className="text-sm text-muted-foreground">
-        Net Due
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Net Due</div>
+            <div className="text-2xl font-bold text-orange-600">
+              ${invoiceSummary.netDue.toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      <div className="text-2xl font-bold text-orange-600">
-        ${invoiceSummary.netDue.toFixed(2)}
-      </div>
-    </CardContent>
-  </Card>
-</div>
       <Card>
         <CardContent className="p-0">
           <div className="rounded-md border">
@@ -504,14 +553,12 @@ const invoiceSummary = accountInvoicesData.reduce(
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            {/* Show Edit only for Pending invoices */}
-  {row.invoiceStatus === "Pending" && (
-    <DropdownMenuItem
-      onClick={() => handleEdit(row)}
-    >
-      Edit
-    </DropdownMenuItem>
-  )}
+                          {/* Show Edit only for Pending invoices */}
+                          {row.invoiceStatus === "Pending" && (
+                            <DropdownMenuItem onClick={() => handleEdit(row)}>
+                              Edit
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => handleDelete(row._id)}
                           >
@@ -549,14 +596,14 @@ const invoiceSummary = accountInvoicesData.reduce(
         fetchInvoices={fetchInvoices}
       /> */}
       <CreateInvoiceDrawer
-  open={openDrawer}
-  onClose={() => {
-    setOpenDrawer(false);
-    setEditInvoiceId(null);
-  }}
-  fetchInvoices={fetchInvoices}
-  editInvoiceId={editInvoiceId}
-/>
+        open={openDrawer}
+        onClose={() => {
+          setOpenDrawer(false);
+          setEditInvoiceId(null);
+        }}
+        fetchInvoices={refetchInvoices}
+        editInvoiceId={editInvoiceId}
+      />
     </div>
   );
 };
