@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
+import logo from "../../../Images/snp.png";
 import { Card, CardContent } from "../../../components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 const InvoiceTable = () => {
@@ -233,75 +234,471 @@ const InvoiceTable = () => {
   };
 
   //print
+  // const handlePrint = async (_id) => {
+  //   try {
+  //     const res = await invoiceAPI.getInvoiceForPrint(_id);
+  //     const invoiceData = res.data;
+
+  //     const accountName =
+  //       invoiceData.invoice.account.accountName || "Unknown Account";
+
+  //     const printContent = `
+  //     <style>
+  //       body { font-family: Arial; padding: 20px; }
+  //       table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  //       th, td { border: 1px solid #ddd; padding: 8px; }
+  //       th { background: #f2f2f2; }
+  //     </style>
+
+  //     <h2>Invoice #${invoiceData.invoice.invoicenumber}</h2>
+  //     <p>Date: ${new Date(invoiceData.invoice.invoicedate).toLocaleDateString()}</p>
+  //     <p><strong>${accountName}</strong></p>
+  //     <p>${invoiceData.invoice.description}</p>
+
+  //     <table>
+  //       <thead>
+  //         <tr>
+  //           <th>Product</th>
+  //           <th>Rate</th>
+  //           <th>Qty</th>
+  //           <th>Amount</th>
+  //         </tr>
+  //       </thead>
+  //       <tbody>
+  //         ${invoiceData.invoice.lineItems
+  //           .map(
+  //             (item) => `
+  //           <tr>
+  //             <td>${item.productorService}</td>
+  //             <td>$${item.rate}</td>
+  //             <td>${item.quantity}</td>
+  //             <td>$${item.amount}</td>
+  //           </tr>
+  //         `,
+  //           )
+  //           .join("")}
+  //       </tbody>
+  //     </table>
+
+  //     <h3>Total: $${invoiceData.invoice.summary.total}</h3>
+  //   `;
+
+  //     const win = window.open("", "_blank");
+  //     win.document.write(`
+  //     <html>
+  //       <body onload="window.print(); window.close();">
+  //         ${printContent}
+  //       </body>
+  //     </html>
+  //   `);
+  //     win.document.close();
+
+  //     handleMenuClose();
+  //   } catch (error) {
+  //     console.error(error);
+  //     showToast({
+  //       title: "Failed to print invoice",
+  //       type: "error",
+  //     });
+  //   }
+  // };
+
   const handlePrint = async (_id) => {
     try {
       const res = await invoiceAPI.getInvoiceForPrint(_id);
-      const invoiceData = res.data;
 
-      const accountName =
-        invoiceData.invoice.account.accountName || "Unknown Account";
+      const invoice = res.data.invoice;
+
+      const account = invoice.account || {};
+      const summary = invoice.summary || {};
+
+      const company = {
+        name: "SNP Tax & Financials",
+        address: "3015 Hopyard Rd, Ste M Pleasanton, CA 94588 ",
+        phone: "(925) 800-3561",
+        email: "silpa@snptaxandfinancials.com",
+        website: "http://www.snptaxandfinancials.com",
+        logo, // <-- replace with your logo path
+      };
+
+      const isPaid =
+        invoice.invoiceStatus && invoice.invoiceStatus.toLowerCase() === "paid";
 
       const printContent = `
-      <style>
-        body { font-family: Arial; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background: #f2f2f2; }
-      </style>
+<!DOCTYPE html>
+<html>
 
-      <h2>Invoice #${invoiceData.invoice.invoicenumber}</h2>
-      <p>Date: ${new Date(invoiceData.invoice.invoicedate).toLocaleDateString()}</p>
-      <p><strong>${accountName}</strong></p>
-      <p>${invoiceData.invoice.description}</p>
+<head>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Rate</th>
-            <th>Qty</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${invoiceData.invoice.lineItems
-            .map(
-              (item) => `
-            <tr>
-              <td>${item.productorService}</td>
-              <td>$${item.rate}</td>
-              <td>${item.quantity}</td>
-              <td>$${item.amount}</td>
-            </tr>
-          `,
-            )
-            .join("")}
-        </tbody>
-      </table>
+<meta charset="UTF-8">
 
-      <h3>Total: $${invoiceData.invoice.summary.total}</h3>
-    `;
+<title>Invoice</title>
 
-      const win = window.open("", "_blank");
-      win.document.write(`
-      <html>
-        <body onload="window.print(); window.close();">
-          ${printContent}
-        </body>
-      </html>
-    `);
-      win.document.close();
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:Arial,Helvetica,sans-serif;
+    color:#333;
+    padding:40px;
+    margin:0;
+    position:relative;
+
+}
+
+.invoice{
+
+    width:100%;
+}
+
+.header{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom:2px solid #1976d2;
+    padding-bottom:20px;
+
+}
+
+.logo{
+
+    width:170px;
+
+}
+
+.company{
+
+    text-align:right;
+    line-height:1.6;
+}
+
+.company h2{
+
+    margin:0;
+    color:#1976d2;
+
+}
+
+.title{
+
+    margin-top:30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+
+}
+
+.title h1{
+
+    margin:0;
+    font-size:38px;
+    color:#1976d2;
+
+}
+
+.info{
+
+    display:flex;
+    justify-content:space-between;
+    margin-top:30px;
+
+}
+
+.billTo{
+
+    width:45%;
+}
+
+.invoiceInfo{
+
+    width:40%;
+}
+
+.invoiceInfo table{
+
+    width:100%;
+}
+
+.invoiceInfo td{
+
+    padding:5px 0;
+}
+
+.description{
+
+    margin-top:25px;
+}
+
+.description b{
+
+    color:#1976d2;
+}
+
+.items{
+
+    width:100%;
+    border-collapse:collapse;
+    margin-top:25px;
+
+}
+
+.items th{
+
+    background:#1976d2;
+    color:#fff;
+    padding:12px;
+    text-align:left;
+
+}
+
+.items td{
+
+    padding:12px;
+    border-bottom:1px solid #ddd;
+
+}
+
+.items tr:nth-child(even){
+
+    background:#fafafa;
+
+}
+
+.summary{
+
+    width:320px;
+    margin-left:auto;
+    margin-top:30px;
+}
+
+.summary table{
+
+    width:100%;
+    border-collapse:collapse;
+}
+
+.summary td{
+
+    padding:10px;
+    border-bottom:1px solid #ddd;
+
+}
+
+.total{
+
+    font-size:18px;
+    font-weight:bold;
+}
+
+.footer{
+
+    margin-top:70px;
+    text-align:center;
+    font-size:13px;
+    color:#666;
+    border-top:1px solid #ddd;
+    padding-top:20px;
+
+}
+
+.paid{
+
+    position:fixed;
+    top:55%;
+    left:50%;
+    transform:translate(-50%,-50%) rotate(-25deg);
+    font-size:85px;
+    font-weight:bold;
+    color:#c62828;
+    border:6px solid #c62828;
+    padding:12px 40px;
+    opacity:.18;
+    letter-spacing:5px;
+    pointer-events:none;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+${isPaid ? `<div class="paid">PAID</div>` : ""}
+
+<div class="invoice">
+
+<div class="header">
+
+<div>
+
+<img src="${company.logo}" class="logo">
+
+</div>
+
+<div class="company">
+
+<h2>${company.name}</h2>
+
+<div>${company.address}</div>
+
+
+
+<div>${company.email}</div>
+
+<div>${company.website}</div>
+
+
+<div>${company.phone}</div>
+
+</div>
+
+</div>
+
+<div class="title">
+
+<h1>Invoice</h1>
+
+</div>
+
+<div class="info">
+
+<div class="billTo">
+
+<h3>Bill To</h3>
+
+<div><b>${account.accountName || ""}</b></div>
+
+<div>${account.email || ""}</div>
+
+
+</div>
+
+<div class="invoiceInfo">
+
+<table>
+
+<tr>
+
+<td><b>Invoice #</b></td>
+
+<td>${invoice.invoicenumber}</td>
+
+</tr>
+
+<tr>
+
+<td><b>Invoice Date</b></td>
+
+<td>${new Date(invoice.invoicedate).toLocaleDateString()}</td>
+
+</tr>
+<tr>
+
+<td><b>Payment Method</b></td>
+
+<td>${invoice.paymentMethod || "-"}</td>
+
+</tr>
+<tr>
+
+<td><b>Paid Date</b></td>
+
+<td>${
+        invoice.updatedAt && invoice.invoiceStatus.toLowerCase() === "paid"
+          ? new Date(invoice.updatedAt).toLocaleDateString()
+          : "-"
+      }</td>
+
+</tr>
+
+
+
+
+
+</table>
+
+</div>
+
+</div>
+
+<div class="description">
+
+<b>Description</b>
+
+<p>${invoice.description || "-"}</p>
+
+</div>
+
+
+<div class="summary">
+
+<table>
+
+<tr>
+
+<td>Subtotal</td>
+
+<td align="right">$${Number(summary.subtotal || 0).toFixed(2)}</td>
+
+</tr>
+
+<tr>
+
+<td>Tax</td>
+
+<td align="right">$${Number(summary.taxTotal || 0).toFixed(2)}</td>
+
+</tr>
+
+<tr class="total">
+
+<td>Total</td>
+
+<td align="right">$${Number(summary.total || 0).toFixed(2)}</td>
+
+</tr>
+
+</table>
+
+</div>
+
+
+
+</div>
+
+</body>
+
+</html>
+`;
+
+      const printWindow = window.open("", "_blank");
+
+      printWindow.document.open();
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      };
 
       handleMenuClose();
     } catch (error) {
       console.error(error);
+
       showToast({
         title: "Failed to print invoice",
         type: "error",
       });
     }
   };
-
   //download
   const handleDownload = async (_id) => {
     try {
@@ -314,26 +711,119 @@ const InvoiceTable = () => {
       const accountName = invoice.account?.accountName || "Unknown Account";
 
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
 
+      doc.addImage(logo, "PNG", 15, 10, 35, 18); // logo
       // ================= HEADER =================
-      doc.setFontSize(16);
+      // doc.setFontSize(16);
+      // doc.setFont(undefined, "bold");
+      // doc.text(`Invoice #${invoice.invoicenumber}`, 10, 10);
+      doc.setFontSize(18);
       doc.setFont(undefined, "bold");
-      doc.text(`Invoice #${invoice.invoicenumber}`, 10, 10);
+      doc.text("SNP Tax & Financials", pageWidth - 15, 15, {
+        align: "right",
+      });
 
+      doc.setFontSize(10);
+      doc.setFont(undefined, "normal");
+
+      doc.text("3015 Hopyard Rd, Ste M Pleasanton, CA 94588 ", pageWidth - 15, 22, {
+        align: "right",
+      });
+
+      doc.text("(925) 800-3561", pageWidth - 15, 27, {
+        align: "right",
+      });
+
+      doc.text("silpa@snptaxandfinancials.com", pageWidth - 15, 32, {
+        align: "right",
+      });
+
+      doc.text("http://www.snptaxandfinancials.com", pageWidth - 15, 37, {
+        align: "right",
+      });
+
+      doc.setDrawColor(30, 136, 229);
+      doc.line(10, 45, 200, 45);
+
+      doc.setFontSize(24);
+      doc.setFont(undefined, "bold");
+
+      doc.text("INVOICE", 15, 58);
       doc.setFontSize(12);
       doc.setFont(undefined, "normal");
-      doc.text(
-        `Date: ${new Date(invoice.invoicedate).toLocaleDateString()}`,
-        10,
-        20,
-      );
+      // doc.text(
+      //   `Date: ${new Date(invoice.invoicedate).toLocaleDateString()}`,
+      //   10,
+      //   20,
+      // );
 
-      doc.text(`Account: ${accountName}`, 10, 30);
-      doc.text(`Description: ${invoice.description || "-"}`, 10, 40);
+      const account = invoice.account || {};
+
+      doc.setFontSize(12);
+      doc.setFont(undefined, "bold");
+
+      doc.text("Bill To", 15, 72);
+
+      doc.setFont(undefined, "normal");
+
+      doc.text(account.accountName || "", 15, 80);
+
+      doc.text(account.contactName || "", 15, 86);
+
+      doc.text(account.email || "", 15, 92);
+
+      doc.text(account.streetAddress || "", 15, 98);
+      doc.setFont(undefined, "bold");
+
+      doc.text("Invoice #", 140, 72);
+
+      doc.setFont(undefined, "normal");
+
+      doc.text(String(invoice.invoicenumber), 175, 72);
+
+      doc.setFont(undefined, "bold");
+
+      doc.text("Date", 140, 80);
+
+      doc.setFont(undefined, "normal");
+
+      doc.text(new Date(invoice.invoicedate).toLocaleDateString(), 175, 80);
+
+      doc.setFont(undefined, "bold");
+
+      doc.text("Status", 140, 88);
+
+      doc.setFont(undefined, "normal");
+
+      doc.text(invoice.invoiceStatus || "-", 175, 88);
+
+      doc.setFont(undefined, "bold");
+
+      doc.text("Paid Date", 140, 96);
+
+      doc.setFont(undefined, "normal");
+
+      doc.text(
+        invoice.updatedAt && invoice.invoiceStatus.toLowerCase() === "paid"
+          ? new Date(invoice.updatedAt).toLocaleDateString()
+          : "-",
+        175,
+        96,
+      );
+      doc.setFont(undefined, "bold");
+
+      doc.text("Description", 15, 110);
+
+      doc.setFont(undefined, "normal");
+
+      doc.text(invoice.description || "-", 15, 118);
+      // doc.text(`Account: ${accountName}`, 10, 30);
+      // doc.text(`Description: ${invoice.description || "-"}`, 10, 40);
 
       // ================= TABLE =================
       autoTable(doc, {
-        startY: 50,
+        startY: 130,
         head: [["Product/Service", "Rate", "Quantity", "Amount"]],
         body: invoice.lineItems.map((item) => [
           item.productorService,
@@ -342,42 +832,98 @@ const InvoiceTable = () => {
           `$${item.amount}`,
         ]),
         theme: "grid",
+        // headStyles: {
+        //   fillColor: [240, 240, 240],
+        //   textColor: [0, 0, 0],
+        // },
+        // styles: {
+        //   fontSize: 11,
+        // },
         headStyles: {
-          fillColor: [240, 240, 240],
-          textColor: [0, 0, 0],
+          fillColor: [25, 118, 210],
+          textColor: 255,
+          fontStyle: "bold",
         },
+
+        alternateRowStyles: {
+          fillColor: [248, 248, 248],
+        },
+
         styles: {
-          fontSize: 11,
+          fontSize: 10,
+          cellPadding: 4,
         },
       });
 
       // ================= SUMMARY =================
-      const summaryY = doc.lastAutoTable.finalY + 10;
-      const pageWidth = doc.internal.pageSize.getWidth();
+      // const summaryY = doc.lastAutoTable.finalY + 10;
+      // // const pageWidth = doc.internal.pageSize.getWidth();
 
-      doc.setFontSize(12);
+      // doc.setFontSize(12);
 
-      doc.text(
-        `Subtotal: $${invoice.summary.subtotal.toFixed(2)}`,
-        pageWidth - 70,
-        summaryY,
-      );
+      // doc.text(
+      //   `Subtotal: $${invoice.summary.subtotal.toFixed(2)}`,
+      //   pageWidth - 70,
+      //   summaryY,
+      // );
 
-      doc.text(
-        `Tax: $${invoice.summary.taxTotal.toFixed(2)}`,
-        pageWidth - 70,
-        summaryY + 10,
-      );
+      // doc.text(
+      //   `Tax: $${invoice.summary.taxTotal.toFixed(2)}`,
+      //   pageWidth - 70,
+      //   summaryY + 10,
+      // );
+
+      // doc.setFontSize(14);
+      // doc.setFont(undefined, "bold");
+
+      // doc.text(
+      //   `Total: $${invoice.summary.total.toFixed(2)}`,
+      //   pageWidth - 70,
+      //   summaryY + 20,
+      // );
+      const finalY = doc.lastAutoTable.finalY + 15;
+
+      doc.setFont(undefined, "normal");
+
+      doc.text("Subtotal", 140, finalY);
+
+      doc.text(`$${invoice.summary.subtotal.toFixed(2)}`, 195, finalY, {
+        align: "right",
+      });
+
+      doc.text("Tax", 140, finalY + 8);
+
+      doc.text(`$${invoice.summary.taxTotal.toFixed(2)}`, 195, finalY + 8, {
+        align: "right",
+      });
 
       doc.setFontSize(14);
+
       doc.setFont(undefined, "bold");
 
-      doc.text(
-        `Total: $${invoice.summary.total.toFixed(2)}`,
-        pageWidth - 70,
-        summaryY + 20,
-      );
+      doc.text("TOTAL", 140, finalY + 20);
 
+      doc.text(`$${invoice.summary.total.toFixed(2)}`, 195, finalY + 20, {
+        align: "right",
+      });
+      if (invoice.invoiceStatus?.toLowerCase() === "paid") {
+        doc.saveGraphicsState();
+
+        doc.setGState(new doc.GState({ opacity: 0.15 }));
+
+        doc.setTextColor(200, 0, 0);
+
+        doc.setFontSize(70);
+
+        doc.setFont(undefined, "bold");
+
+        doc.text("PAID", pageWidth / 2, 160, {
+          angle: 330,
+          align: "center",
+        });
+
+        doc.restoreGraphicsState();
+      }
       // ================= DOWNLOAD =================
       doc.save(`Invoice_${invoice.invoicenumber}.pdf`);
 
@@ -554,11 +1100,16 @@ const InvoiceTable = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {/* Show Edit only for Pending invoices */}
-                          {row.invoiceStatus === "Pending" && (
+                          {/* {row.invoiceStatus === "Pending" && (
                             <DropdownMenuItem onClick={() => handleEdit(row)}>
                               Edit
                             </DropdownMenuItem>
-                          )}
+                          )} */}
+                          {["Pending", "Overdue"].includes(row.invoiceStatus) && (
+  <DropdownMenuItem onClick={() => handleEdit(row)}>
+    Edit
+  </DropdownMenuItem>
+)}
                           <DropdownMenuItem
                             onClick={() => handleDelete(row._id)}
                           >

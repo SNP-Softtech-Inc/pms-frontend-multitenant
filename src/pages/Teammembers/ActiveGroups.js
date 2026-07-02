@@ -190,7 +190,7 @@
 
 // export default ActiveGroups;
 
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useMemo, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -211,6 +211,7 @@ const ActiveGroups = ({ refresh, onEdit }) => {
   const [loading, setLoading] = useState(false);
   const [editData, setEditData] = useState(null);
   const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const fetchGroups = async () => {
     try {
@@ -271,7 +272,8 @@ const ActiveGroups = ({ refresh, onEdit }) => {
     setGroupDrawerOpen(true);
   };
 
-  const columns = [
+  const columns = useMemo(
+    () => [
     {
       accessorKey: "name",
       header: "Group Name",
@@ -361,7 +363,8 @@ const ActiveGroups = ({ refresh, onEdit }) => {
         );
       },
     },
-  ];
+    ],[]
+  );
 
   if (loading) {
     return (
@@ -377,22 +380,25 @@ const ActiveGroups = ({ refresh, onEdit }) => {
         <h6 className="text-lg font-semibold">Active Groups</h6>
       </div>
 
-      <DataTableToolbar
-        searchKey="name"
-        searchPlaceholder="Search groups..."
-      />
-      
-      <div >
-        <DataTable
-          columns={columns}
-          data={rows}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          pagination
-          disableSelectionOnClick
-        />
-      </div>
 
+    {/* Toolbar */}
+    <DataTableToolbar
+      globalFilter={globalFilter}
+      onGlobalFilterChange={setGlobalFilter}
+    />
+
+    {/* Table */}
+    <DataTable
+      columns={columns}
+      data={rows}
+      loading={loading}
+      globalFilter={globalFilter}
+      onGlobalFilterChange={setGlobalFilter}
+      getRowId={(row) => row.id}
+      emptyMessage="No active team members found"
+      emptyDescription="There are currently no active team members."
+      pageSize={10}
+    />
       <CreateGroupDrawer
         open={groupDrawerOpen}
         onClose={() => {
