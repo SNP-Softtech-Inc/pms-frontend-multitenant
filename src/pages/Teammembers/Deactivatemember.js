@@ -40,6 +40,7 @@ const DeactiveTeammembers = ({ refresh, onEdit }) => {
       }));
 
       setRows(inactiveMembers);
+      console.log("Inactive Team Members:", inactiveMembers);
     } catch (error) {
       console.error(error);
     } finally {

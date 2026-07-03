@@ -1077,7 +1077,7 @@ const MessageItem = ({
   canEditMessage,user,handleChangeUser,
 }) => {
   const isClient = desc.fromwhome?.toLowerCase() === "client";
-  const isAdmin = desc.fromwhome?.toLowerCase() === "admin";
+  const isAdmin = desc.fromwhome === "Admin";
   const isEditable = isAdmin && canEditMessage(desc.time);
 
   return (

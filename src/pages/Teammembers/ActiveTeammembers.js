@@ -48,6 +48,7 @@ console.log("Fetched Team Members:", res.data.data);
         }));
 
       setRows(activeMembers);
+      console.log("Active Team Members:", activeMembers);
     } catch (error) {
       console.error(error);
     } finally {
