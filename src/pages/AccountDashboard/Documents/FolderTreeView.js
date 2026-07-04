@@ -2098,6 +2098,7 @@ import {
   Pencil,
   FileText,
 } from "lucide-react";
+import { History } from "lucide-react";
 import {
   FaFilePdf,
   FaFileWord,
@@ -2167,6 +2168,16 @@ import {
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  Search,
+  RefreshCw,
+  Settings,
+  Monitor,
+  Globe,
+} from "lucide-react";
+
+// import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
+// import { Badge } from "../../../components/ui/badge";
 export const FolderTreeView = ({ accountId }) => {
   const confirm = useConfirm();
   const { tenantId } = useAuth();
@@ -2660,7 +2671,10 @@ export const FolderTreeView = ({ accountId }) => {
       //   alert("This file is locked and cannot be opened.");
       //   return;
       // }
-
+  // Create VIEW audit
+    await accountDocsAPI.viewDocument({
+      filePath: fullPath,
+    });
       if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
         await accountDocsAPI.removeNewTag({ filePath: fullPath });
         await fetchFolderTree();
@@ -2912,6 +2926,27 @@ export const FolderTreeView = ({ accountId }) => {
     setDescription("");
     setSelectedItem(null);
   };
+  const [auditDialogOpen, setAuditDialogOpen] = useState(false);
+const [auditHistory, setAuditHistory] = useState([]);
+const [auditLoading, setAuditLoading] = useState(false);
+
+ const handleOpenAuditTrail = async (item) => {
+  try {
+    setAuditLoading(true);
+    setAuditDialogOpen(true);
+
+    const documentId = item.documentId || item.meta?.documentId || item.path;
+
+    const res = await accountDocsAPI.getDocumentAudit(documentId);
+
+    setAuditHistory(res.data.data || []);
+  } catch (err) {
+    console.error(err);
+    setAuditHistory([]);
+  } finally {
+    setAuditLoading(false);
+  }
+};
 
   const handleDownload = async (item) => {
     try {
@@ -4336,6 +4371,7 @@ export const FolderTreeView = ({ accountId }) => {
                         label: "Download",
                         action: () => handleDownload(item),
                       },
+
                       {
                         icon: <FolderUp className="h-4 w-4" />,
                         label: "Upload Folder",
@@ -4536,6 +4572,12 @@ export const FolderTreeView = ({ accountId }) => {
                         label: "Download",
                         action: () => handleDownload(item),
                       },
+                                              {
+    icon: <History className="h-4 w-4" />,
+    label: "Audit Trail",
+    action: () => handleOpenAuditTrail(item),
+  }
+,
                     );
                   } else if (docType === "private") {
                     menuItems.push(
@@ -4781,7 +4823,293 @@ export const FolderTreeView = ({ accountId }) => {
             </div>
           </DialogContent>
         </Dialog>
+{/* AUDIT TRAIL */}
+{/* <Dialog open={auditDialogOpen} onOpenChange={setAuditDialogOpen}>
+  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>Document Audit Trail</DialogTitle>
+      <DialogDescription>
+        View the complete activity history of this document.
+      </DialogDescription>
+    </DialogHeader>
 
+    {auditLoading ? (
+      <div className="py-8 text-center">
+        Loading audit history...
+      </div>
+    ) : auditHistory.length === 0 ? (
+      <div className="py-8 text-center text-gray-500">
+        No audit history found.
+      </div>
+    ) : (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date & Time</TableHead>
+            <TableHead>Event</TableHead>
+            <TableHead>User</TableHead>
+            
+            <TableHead>Remarks</TableHead>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody>
+          {auditHistory.map((audit) => (
+            <TableRow key={audit._id}>
+              <TableCell>
+                {new Date(audit.createdAt).toLocaleString()}
+              </TableCell>
+
+              <TableCell>
+                {audit.event}
+              </TableCell>
+
+              <TableCell>
+                {audit.user?.name}
+              </TableCell>
+
+              
+               
+
+              <TableCell>
+                {audit.remarks || "-"}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    )}
+  </DialogContent>
+</Dialog> */}
+<Dialog open={auditDialogOpen} onOpenChange={setAuditDialogOpen}>
+  <DialogContent className="!max-w-7xl h-[90vh] p-0 overflow-hidden">
+
+    {/* Header */}
+    <div className="border-b bg-white px-6 py-4">
+      <div className="flex items-center justify-between">
+
+        <div>
+          <h2 className="text-2xl font-bold">
+            Audit trail for file
+          </h2>
+
+          <p className="text-sm text-gray-500 mt-1 truncate">
+            {selectedFolderForMenu?.name}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+
+            <input
+              placeholder="Search..."
+              className="pl-10 h-10 w-72 rounded-lg border"
+            />
+          </div>
+
+          <Button variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+
+          <Button variant="outline" size="icon">
+            <Settings className="h-4 w-4" />
+          </Button>
+
+        </div>
+      </div>
+    </div>
+
+    {/* Table */}
+
+    <div className="overflow-auto h-full">
+
+      {auditLoading ? (
+        <div className="flex justify-center items-center h-96">
+          Loading...
+        </div>
+      ) : auditHistory.length === 0 ? (
+        <div className="flex justify-center items-center h-96 text-gray-500">
+          No audit history found.
+        </div>
+      ) : (
+        <Table>
+
+          <TableHeader className="sticky top-0 bg-gray-100 z-20">
+
+            <TableRow>
+
+              <TableHead className="w-[220px]">
+                Account Name
+              </TableHead>
+
+              <TableHead className="w-[260px]">
+                User
+              </TableHead>
+
+              <TableHead>
+                Event
+              </TableHead>
+
+              <TableHead>
+                Server Time
+              </TableHead>
+
+              <TableHead>
+                Remarks
+              </TableHead>
+
+              {/* <TableHead>
+                IP Address
+              </TableHead>
+
+              <TableHead>
+                Browser
+              </TableHead>
+
+              <TableHead>
+                OS
+              </TableHead> */}
+
+            </TableRow>
+
+          </TableHeader>
+
+          <TableBody>
+
+            {auditHistory.map((audit) => (
+
+              <TableRow
+                key={audit._id}
+                className="hover:bg-gray-50"
+              >
+
+                {/* Account */}
+
+                <TableCell className="font-medium">
+                  {audit.accountName}
+                </TableCell>
+
+                {/* User */}
+
+                <TableCell>
+
+                  <div className="flex gap-3">
+
+                    <Avatar className="h-10 w-10">
+
+                      <AvatarFallback>
+                        {audit.user?.name?.charAt(0)}
+                      </AvatarFallback>
+
+                    </Avatar>
+
+                    <div>
+
+                      <div className="font-semibold">
+                        {audit.user?.name}
+                      </div>
+
+                      <div className="text-xs text-blue-600">
+                        {audit.user?.email}
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </TableCell>
+
+                {/* Event */}
+
+                <TableCell>
+
+                  <Badge
+                    className={
+                      audit.event === "VIEW"
+                        ? "bg-blue-100 text-blue-700"
+                        : audit.event === "APPROVED"
+                        ? "bg-green-100 text-green-700"
+                        : audit.event === "SIGNED"
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-gray-100 text-gray-700"
+                    }
+                  >
+                    {audit.event}
+                  </Badge>
+
+                </TableCell>
+
+                {/* Time */}
+
+                <TableCell>
+
+                  <div>
+                    {new Date(audit.createdAt).toLocaleDateString()}
+                  </div>
+
+                  <div className="text-xs text-gray-500">
+                    {new Date(audit.createdAt).toLocaleTimeString()}
+                  </div>
+
+                </TableCell>
+
+                {/* Remarks */}
+
+                <TableCell>
+                  {audit.remarks || "-"}
+                </TableCell>
+
+                {/* IP */}
+
+                {/* <TableCell>
+
+                  <div className="flex items-center gap-2">
+
+                    <Globe className="h-4 w-4 text-gray-500" />
+
+                    {audit.ipAddress}
+
+                  </div>
+
+                </TableCell> */}
+
+                {/* Browser */}
+
+                {/* <TableCell>
+
+                  <div className="flex items-center gap-2">
+
+                    <Monitor className="h-4 w-4 text-gray-500" />
+
+                    {audit.browser ||
+                      audit.userAgent ||
+                      "Chrome"}
+
+                  </div>
+
+                </TableCell> */}
+
+                {/* OS */}
+
+                {/* <TableCell>
+                  {audit.os || "Windows"}
+                </TableCell> */}
+
+              </TableRow>
+
+            ))}
+
+          </TableBody>
+
+        </Table>
+      )}
+
+    </div>
+
+  </DialogContent>
+</Dialog>
         {/* LOCK/UNLOCK */}
         <Dialog open={bulkLockDialogOpen} onOpenChange={setBulkLockDialogOpen}>
           <DialogContent

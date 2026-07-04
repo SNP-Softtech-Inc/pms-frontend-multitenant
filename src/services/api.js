@@ -1238,7 +1238,9 @@ export const accountDocsAPI = {
         headers: { "Content-Type": "multipart/form-data" },
       },
     ),
-
+// View document (creates VIEW audit trail)
+viewDocument: (data) =>
+  folderManagementApi.post("/accounts/docs/view", data),
   // Lock / Unlock file
   setFileReadOnly: (data) =>
     folderManagementApi.post("/accounts/docs/file/readonly", data),
@@ -1381,6 +1383,28 @@ export const accountDocsAPI = {
 
   // Delete approval
   deleteApproval: (id) => folderManagementApi.delete(`/approvals/${id}`),
+
+  // ================= DOCUMENT AUDIT TRAIL =================
+
+  // Create audit log
+  createAudit: (data) =>
+    folderManagementApi.post("/audittrail", data),
+
+  // Get all audit logs
+  getAllAudits: () =>
+    folderManagementApi.get("/audittrail"),
+
+  // Get audit history of a document
+  getDocumentAudit: (documentId) =>
+    folderManagementApi.get(`/audittrail/document/${documentId}`),
+
+  // Get account-wise audit history
+  getAccountAudit: (accountId) =>
+    folderManagementApi.get(`/audittrail/account/${accountId}`),
+
+  // Delete audit log
+  deleteAudit: (id) =>
+    folderManagementApi.delete(`/audittrail/${id}`),
 };
 
 export const chatAPI = {
