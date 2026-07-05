@@ -684,7 +684,7 @@ export default function Editor({ initialContent, onChange }) {
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
         [{ 'color': [] }, { 'background': [] }],
         ['blockquote', 'code-block'],
-        ['link', 'image'],
+        ['link', 'image','document'],
         ['emoji'],
         [{ 'indent': '-1' }, { 'indent': '+1' }],
         ['clean']
@@ -699,7 +699,7 @@ export default function Editor({ initialContent, onChange }) {
     'bold', 'italic', 'underline', 'strike',
     'script', 'list', 'bullet', 'indent',
     'color', 'background', 'align',
-    'blockquote', 'code-block', 'link', 'image',
+    'blockquote', 'code-block', 'link', 'image', 'document',
     'emoji'
   ];
 

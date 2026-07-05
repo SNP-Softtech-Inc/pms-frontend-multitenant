@@ -689,7 +689,7 @@ export default function Editor({ initialContent, onChange, value }) {
       [{ list: 'ordered' }, { list: 'bullet' }],
       [{ color: [] }, { background: [] }],
       ['blockquote', 'code-block'],
-      ['link'],
+       ['link', 'image',],
       [{ emoji: true }],
       [{ indent: '-1' }, { indent: '+1' }],
       ['clean'],

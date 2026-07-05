@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import logo from "../../../Images/snp.png";
+import PayInvoice from "./payInvoiceDrawer";
 import { Card, CardContent } from "../../../components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 const InvoiceTable = () => {
@@ -699,6 +700,13 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
       });
     }
   };
+  const [payDrawerOpen, setPayDrawerOpen] = useState(false);
+const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+const handlePayInvoice = (invoice) => {
+  setSelectedInvoice(invoice);
+  setPayDrawerOpen(true);
+};
   //download
   const handleDownload = async (_id) => {
     try {
@@ -959,6 +967,7 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
     setOpenDrawer(true);
     handleMenuClose();
   };
+  
   const invoiceSummary = accountInvoicesData.reduce(
     (acc, invoice) => {
       const total = Number(invoice.summary?.total || 0);
@@ -979,6 +988,13 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
       netDue: 0,
     },
   );
+  const availableCredit = account?.creaditAval || 0;
+  const invoiceAmount = selectedInvoice?.summary?.total || 0;
+
+const amountToPay =
+  availableCredit >= invoiceAmount
+    ? 0
+    : invoiceAmount - availableCredit;
 
   return (
     <div className="mt-2 space-y-4">
@@ -1057,11 +1073,7 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
                   <TableRow key={row._id}>
                     <TableCell className="font-medium">
                       {row.invoicenumber}
-                      {/* {row.invoiceLabel && (
-                        <Badge variant="warning" className="ml-1">
-                          {row.invoiceLabel}
-                        </Badge>
-                      )} */}
+                      
                     </TableCell>
 
                     <TableCell>
@@ -1100,11 +1112,7 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {/* Show Edit only for Pending invoices */}
-                          {/* {row.invoiceStatus === "Pending" && (
-                            <DropdownMenuItem onClick={() => handleEdit(row)}>
-                              Edit
-                            </DropdownMenuItem>
-                          )} */}
+                          
                           {["Pending", "Overdue"].includes(row.invoiceStatus) && (
   <DropdownMenuItem onClick={() => handleEdit(row)}>
     Edit
@@ -1115,6 +1123,11 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
                           >
                             Delete
                           </DropdownMenuItem>
+                          {row.invoiceStatus === "Pending" && (
+  <DropdownMenuItem onClick={() => handlePayInvoice(row)}>
+    Pay Invoice
+  </DropdownMenuItem>
+)}
                           <DropdownMenuItem
                             onClick={() => handleDuplicate(row._id)}
                           >
@@ -1155,6 +1168,13 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
         fetchInvoices={refetchInvoices}
         editInvoiceId={editInvoiceId}
       />
+      <PayInvoice
+  open={payDrawerOpen}
+  setOpen={setPayDrawerOpen}
+  selectedInvoice={selectedInvoice}
+  availableCredit={account?.creaditAval || 0}
+  amountToPay={amountToPay}
+/>
     </div>
   );
 };

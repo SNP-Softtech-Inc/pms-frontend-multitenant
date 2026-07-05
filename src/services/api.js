@@ -1510,6 +1510,11 @@ export const invoiceAPI = {
       "/account/invoicelist/offline-payment",
       data
     ),
+  payAdminInvoice: (data) =>
+    invoiceApi.post(
+      "/account/invoicelist/pay-admin-invoice",
+      data
+    ),
 
   // ================= GET =================
   getInvoices: () => invoiceApi.get("/account/invoicelist/invoice"),
@@ -1564,6 +1569,33 @@ export const invoiceAPI = {
 
   deleteInvoicesByAccountId: (id) =>
     invoiceApi.delete(`/account/invoicelist/invoices/by-account/${id}`),
+
+
+// ================= OFFLINE PAYMENT APIs =================
+
+// Create Offline Payment
+createOfflinePayment: (data) =>
+  invoiceApi.post("/account/offline-payments", data),
+
+// Get All Offline Payments
+getOfflinePayments: () =>
+  invoiceApi.get("/account/offline-payments"),
+
+// Get Offline Payment By ID
+getOfflinePaymentById: (id) =>
+  invoiceApi.get(`/account/offline-payments/${id}`),
+
+// Get Offline Payments By Account ID
+getOfflinePaymentsByAccountId: (accountId) =>
+  invoiceApi.get(`/account/offline-payments/account/${accountId}`),
+
+// Update Offline Payment
+updateOfflinePayment: (id, data) =>
+  invoiceApi.put(`/account/offline-payments/${id}`, data),
+
+// Delete Offline Payment
+deleteOfflinePayment: (id) =>
+  invoiceApi.delete(`/account/offline-payments/${id}`),
 };
 
 // ================= JOB APIs =================
