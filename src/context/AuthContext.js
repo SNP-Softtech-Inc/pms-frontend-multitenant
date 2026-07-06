@@ -113,22 +113,6 @@ const {showToast}= useToastContext()
   }, []);
 
 
-  // ================= LOGOUT ON TAB/WINDOW CLOSE =================
-// useEffect(() => {
-//   const handleBeforeUnload = () => {
-//     clearAuthData();
-//   };
-
-//   window.addEventListener("beforeunload", handleBeforeUnload);
-
-//   return () => {
-//     window.removeEventListener(
-//       "beforeunload",
-//       handleBeforeUnload
-//     );
-//   };
-// }, [clearAuthData]);
-
   // ================= EXPIRY =================
   const calculateExpiry = useCallback((expiryTime) => {
     const now = new Date().getTime();

@@ -31,7 +31,7 @@ import {useToastContext} from "../../context/ToastContext"
 import { useQueryClient } from "@tanstack/react-query";
 import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 
-const NewContactDrawer = ({ open, onClose, selectedContact, mode }) => {
+const NewContactDrawer = ({ open, onClose, selectedContact, mode,onContactUpdated }) => {
   const [phoneNumbers, setPhoneNumbers] = useState([]);
   const queryClient = useQueryClient();
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -286,7 +286,9 @@ const { showToast } = useToastContext();
       }
 
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
+       onContactUpdated();
       onClose();
+    
     } catch (error) {
       showToast({
         title: "Something went wrong",

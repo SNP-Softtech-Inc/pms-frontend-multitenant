@@ -1123,7 +1123,8 @@ const amountToPay =
                           >
                             Delete
                           </DropdownMenuItem>
-                          {row.invoiceStatus === "Pending" && (
+                          {/* {row.invoiceStatus === "Pending" && ( */}
+                           {["Pending", "Overdue"].includes(row.invoiceStatus) && (
   <DropdownMenuItem onClick={() => handlePayInvoice(row)}>
     Pay Invoice
   </DropdownMenuItem>

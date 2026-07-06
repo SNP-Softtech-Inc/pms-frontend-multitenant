@@ -684,7 +684,7 @@ export default function Editor({ initialContent, onChange }) {
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
         [{ 'color': [] }, { 'background': [] }],
         ['blockquote', 'code-block'],
-        ['link', 'image','document'],
+        ['link', ],
         ['emoji'],
         [{ 'indent': '-1' }, { 'indent': '+1' }],
         ['clean']

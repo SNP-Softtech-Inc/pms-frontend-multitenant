@@ -208,7 +208,7 @@ export default function InboxPlus() {
     {
       key: "signatures",
       label: "Signatures",
-      keywords: ["signature", "sign", "approval", "authorized"],
+      keywords: ["signed", "sign", ],
     },
     {
       key: "proposals",
@@ -218,7 +218,7 @@ export default function InboxPlus() {
     {
       key: "approvals",
       label: "Approvals",
-      keywords: ["approved", "cancelled", "document"],
+      keywords: ["approved", "cancelled", "rejected", "approval"],
     },
   ];
 

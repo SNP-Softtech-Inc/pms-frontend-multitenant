@@ -2197,6 +2197,8 @@ export const FolderTreeView = ({ accountId }) => {
   const [folderTree, setFolderTree] = useState([]);
   const [selectedItem, setSelectedItem] = useState("");
   const [token, setToken] = useState("");
+
+const [submitters, setSubmitters] = useState([]);
   const [showBuilderFor, setShowBuilderFor] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
@@ -2732,24 +2734,45 @@ export const FolderTreeView = ({ accountId }) => {
   //   }
   // };
   const toggleSignStatus = async (item) => {
-    try {
-      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
+  try {
+    const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
 
-      const { data } = await esignAPI.generateToken({
-        url: fileUrl,
-        name: item.name,
-        accountId,
-      });
+    const { data } = await esignAPI.generateToken({
+      url: fileUrl,
+      name: item.name,
+      accountId,
+    });
 
-      console.log("token data", data);
+    console.log(data);
 
-      setToken(data.token);
-      setShowBuilderFor(item);
-      setOpenDialog(true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setToken(data.token);
+    setSubmitters(data.submitters);
+
+    setShowBuilderFor(item);
+    setOpenDialog(true);
+  } catch (err) {
+    console.error(err);
+  }
+};
+  // const toggleSignStatus = async (item) => {
+  //   try {
+  //     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
+
+  //     const { data } = await esignAPI.generateToken({
+  //       url: fileUrl,
+  //       name: item.name,
+  //       accountId,
+  //     });
+
+  //     console.log("token data", data);
+
+  //     setToken(data.token);
+  //     setShowBuilderFor(item);
+  //     setOpenDialog(true);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   const cancelSignature = async (item) => {
     try {
@@ -4824,68 +4847,12 @@ const [auditLoading, setAuditLoading] = useState(false);
           </DialogContent>
         </Dialog>
 {/* AUDIT TRAIL */}
-{/* <Dialog open={auditDialogOpen} onOpenChange={setAuditDialogOpen}>
-  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle>Document Audit Trail</DialogTitle>
-      <DialogDescription>
-        View the complete activity history of this document.
-      </DialogDescription>
-    </DialogHeader>
 
-    {auditLoading ? (
-      <div className="py-8 text-center">
-        Loading audit history...
-      </div>
-    ) : auditHistory.length === 0 ? (
-      <div className="py-8 text-center text-gray-500">
-        No audit history found.
-      </div>
-    ) : (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date & Time</TableHead>
-            <TableHead>Event</TableHead>
-            <TableHead>User</TableHead>
-            
-            <TableHead>Remarks</TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {auditHistory.map((audit) => (
-            <TableRow key={audit._id}>
-              <TableCell>
-                {new Date(audit.createdAt).toLocaleString()}
-              </TableCell>
-
-              <TableCell>
-                {audit.event}
-              </TableCell>
-
-              <TableCell>
-                {audit.user?.name}
-              </TableCell>
-
-              
-               
-
-              <TableCell>
-                {audit.remarks || "-"}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    )}
-  </DialogContent>
-</Dialog> */}
 <Dialog open={auditDialogOpen} onOpenChange={setAuditDialogOpen}>
-  <DialogContent className="!max-w-7xl h-[90vh] p-0 overflow-hidden">
+ <DialogContent className="max-w-7xl h-[90vh] p-0 overflow-hidden flex flex-col">
 
     {/* Header */}
-    <div className="border-b bg-white px-6 py-4">
+   <div className="border-b bg-white px-8 py-6 flex-shrink-0">
       <div className="flex items-center justify-between">
 
         <div>
@@ -4898,39 +4865,20 @@ const [auditLoading, setAuditLoading] = useState(false);
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-
-            <input
-              placeholder="Search..."
-              className="pl-10 h-10 w-72 rounded-lg border"
-            />
-          </div>
-
-          <Button variant="outline" size="icon">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-
-          <Button variant="outline" size="icon">
-            <Settings className="h-4 w-4" />
-          </Button>
-
-        </div>
+    
       </div>
     </div>
 
     {/* Table */}
 
-    <div className="overflow-auto h-full">
+   <div className="flex-1 overflow-auto">
 
       {auditLoading ? (
-        <div className="flex justify-center items-center h-96">
+        <div className="flex justify-center items-center ">
           Loading...
         </div>
       ) : auditHistory.length === 0 ? (
-        <div className="flex justify-center items-center h-96 text-gray-500">
+        <div className="flex justify-center items-center  text-gray-500">
           No audit history found.
         </div>
       ) : (
@@ -5230,6 +5178,8 @@ const [auditLoading, setAuditLoading] = useState(false);
               {token && showBuilderFor && (
                 <DocusealBuilder
                   token={token}
+                  submitters={submitters}
+
                   customCss={customCss}
                   onComplete={() => {
                     console.log("DocuSeal finished sending document");

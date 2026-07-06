@@ -278,10 +278,10 @@
 //               <Typography variant="h5" fontWeight="bold">
 //                 Account Details
 //               </Typography>
-//               <Tooltip 
+//               <Tooltip
 //                 title={
-//                   user?.role === 'team_member' && user?.manageAccounts === false 
-//                     ? "You don't have permission to edit accounts" 
+//                   user?.role === 'team_member' && user?.manageAccounts === false
+//                     ? "You don't have permission to edit accounts"
 //                     : ""
 //                 }
 //               >
@@ -620,7 +620,6 @@
 
 // export default AccountDetails;
 
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -639,7 +638,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
-import {Badge} from "../../components/ui/badge"
+import { Badge } from "../../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -659,7 +658,7 @@ import {
 } from "../../components/ui/drawer";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Checkbox } from "../../components/ui/checkbox";
-import { Loader, X ,Users} from "lucide-react";
+import { Loader, X, Users } from "lucide-react";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { ShieldCheck } from "lucide-react";
 const AccountDetails = () => {
@@ -685,9 +684,12 @@ const AccountDetails = () => {
   const [selectedContactForEdit, setSelectedContactForEdit] = useState(null);
 
   // Filter available contacts for search
-  const filteredAvailableContacts = availableContacts.filter(contact =>
-    contact.contactName?.toLowerCase().includes(contactSearch.toLowerCase()) ||
-    contact.email?.toLowerCase().includes(contactSearch.toLowerCase())
+  const filteredAvailableContacts = availableContacts.filter(
+    (contact) =>
+      contact.contactName
+        ?.toLowerCase()
+        .includes(contactSearch.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(contactSearch.toLowerCase()),
   );
 
   // ================= FETCH ACCOUNT DETAILS =================
@@ -864,7 +866,7 @@ const AccountDetails = () => {
         } catch (err) {
           console.error("Error unlinking contact:", err);
         }
-      }
+      },
     });
   };
   // const handleUnlinkContact = async (contact) => {
@@ -908,19 +910,27 @@ const AccountDetails = () => {
     setMode("edit");
   };
 
-  const handleContactUpdated = () => {
-    fetchAccountDetails();
-    setContactEditDrawerOpen(false);
-  };
+  // const handleContactUpdated = () => {
+  //   fetchAccountDetails(accountId);
+  //   setContactEditDrawerOpen(false);
+  // };
+const handleContactUpdated = async () => {
+  await fetchAccountDetails();
+  setContactEditDrawerOpen(false);
+};
+  const toggleCls =
+    "w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600";
+  const cancelBtnCls =
+    "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500";
 
-  const toggleCls = "w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600";
-  const cancelBtnCls = "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500";
-
-  if (!account) return (
-    <div className="flex items-center justify-center h-64">
-      <p className="text-muted-foreground"><Loader/></p>
-    </div>
-  );
+  if (!account)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">
+          <Loader />
+        </p>
+      </div>
+    );
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -928,12 +938,22 @@ const AccountDetails = () => {
         {/* LEFT — Account Details */}
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-            <h2 className="text-sm font-semibold text-foreground">Account Details</h2>
-            <span title={user?.role === 'team_member' && user?.manageAccounts === false ? "You don't have permission to edit accounts" : ""}>
+            <h2 className="text-sm font-semibold text-foreground">
+              Account Details
+            </h2>
+            <span
+              title={
+                user?.role === "team_member" && user?.manageAccounts === false
+                  ? "You don't have permission to edit accounts"
+                  : ""
+              }
+            >
               <Button
                 type="button"
                 onClick={() => setDrawerOpen(true)}
-                disabled={user?.role === 'team_member' && user?.manageAccounts === false}
+                disabled={
+                  user?.role === "team_member" && user?.manageAccounts === false
+                }
                 size="sm"
               >
                 Edit
@@ -950,8 +970,12 @@ const AccountDetails = () => {
                 onUploadSuccess={fetchAccountDetails}
               />
               <div>
-                <p className="font-semibold text-foreground">{account.accountName}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{account.clientType}</p>
+                <p className="font-semibold text-foreground">
+                  {account.accountName}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {account.clientType}
+                </p>
               </div>
             </div>
 
@@ -959,7 +983,9 @@ const AccountDetails = () => {
 
             {/* Tags */}
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tags</p>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                Tags
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {accountTags?.length > 0 ? (
                   accountTags.map((tag) => (
@@ -972,14 +998,18 @@ const AccountDetails = () => {
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-muted-foreground">No tags assigned</span>
+                  <span className="text-xs text-muted-foreground">
+                    No tags assigned
+                  </span>
                 )}
               </div>
             </div>
 
             {/* Team Members */}
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Team Members</p>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                Team Members
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {assignedMembers?.length > 0 ? (
                   assignedMembers.map((m) => (
@@ -991,7 +1021,9 @@ const AccountDetails = () => {
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-muted-foreground">No members assigned</span>
+                  <span className="text-xs text-muted-foreground">
+                    No members assigned
+                  </span>
                 )}
               </div>
             </div>
@@ -1002,91 +1034,42 @@ const AccountDetails = () => {
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">Contacts</h2>
-            <Button type="button" size="sm" onClick={() => setAddContactDrawerOpen(true)}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setAddContactDrawerOpen(true)}
+            >
               + Add Contact
             </Button>
           </div>
 
           {/* Column headers */}
           <div className="grid grid-cols-[1fr_auto] items-center px-5 py-2 bg-muted border-b border-border">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Contact</span>
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+              Contact
+            </span>
             <div className="flex items-center gap-5 mr-8">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide w-10 text-center">Login</span>
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide w-10 text-center">Notify</span>
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide w-14 text-center">Email Sync</span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide w-10 text-center">
+                Login
+              </span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide w-10 text-center">
+                Notify
+              </span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide w-14 text-center">
+                Email Sync
+              </span>
               <span className="w-8"></span>
             </div>
           </div>
 
           {/* Contact rows */}
-          {/* <div className="divide-y divide-border">
+
+          <div className="space-y-2">
             {account.contacts?.length > 0 ? (
               account.contacts.map((c) => (
-                <div key={c.contact._id} className="grid grid-cols-[1fr_auto] items-center px-5 py-3 hover:bg-muted/50 transition-colors">
-                  <div>
-                    <span
-                      title={user?.role === 'team_member' && user?.manageContacts === false ? "You don't have permission to edit contacts" : ""}
-                      className={`text-sm font-medium block ${
-                        user?.role === 'team_member' && user?.manageContacts === false
-                          ? 'text-muted-foreground cursor-not-allowed opacity-60'
-                          : 'text-foreground cursor-pointer hover:text-primary'
-                      }`}
-                      onClick={() => {
-                        if (user?.role === 'team_member' && user?.manageContacts === false) return;
-                        handleOpenContactEditDrawer(c);
-                      }}
-                    >
-                      {c.contact.contactName}
-                    </span>
-                    <span className="text-xs text-muted-foreground mt-0.5 block">{c.contact.email || "—"}</span>
-                  </div>
-                  <div className="flex items-center gap-5 mr-2">
-                    <Switch
-                      checked={c.canLogin}
-                      onCheckedChange={() => handleSwitchClick(c)}
-                      // disabled
-                      className="data-[state=checked]:bg-blue-600"
-                    />
-                    <Switch
-                      checked={c.canNotify}
-                      onCheckedChange={() => handleNotifyToggle(c)}
-                      // disabled
-                      className="data-[state=checked]:bg-blue-600"
-                    />
-                    <Switch
-                      checked={c.canEmailSync}
-                      onCheckedChange={() => handleEmailSyncToggle(c)}
-                      className="data-[state=checked]:bg-blue-600"
-                    />
-                    <MenuDropdown
-                      contact={c}
-                      onUnlink={handleUnlinkContact}
-                      onResetPassword={handleResetPassword}
-                    />
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 gap-2">
-                <p className="text-sm text-muted-foreground">No contacts linked</p>
-                <Button
-                  type="button"
-                  onClick={() => setAddContactDrawerOpen(true)}
-                  variant="link"
-                  size="sm"
-                  className="text-xs"
-                >
-                  Add a contact
-                </Button>
-              </div>
-            )}
-          </div> */}
-          <div className="space-y-2">
-  {account.contacts?.length > 0 ? (
-    account.contacts.map((c) => (
-      <div
-        key={c.contact._id}
-        className="
+                <div
+                  key={c.contact._id}
+                  className="
         
           group
           rounded-2xl
@@ -1100,88 +1083,72 @@ const AccountDetails = () => {
           hover:bg-muted/30
           hover:shadow-sm
         "
-      >
-        {/* {c.canLogin && c.contact.isActivated === false && (
-    <Badge
-      className="
-        absolute top-3 right-3
-        z-10
-        bg-amber-100 text-amber-700
-        border border-amber-200
-        hover:bg-amber-100
-        text-[10px]
-      "
-    >
-      Pending Activation
-    </Badge>
-  )} */}
-        <div
-          className="
+                >
+                  <div
+                    className="
             grid grid-cols-[1fr_auto]
             items-center gap-4
             px-5 py-4
           "
-        >
-          {/* Contact Info */}
-          <div className="min-w-0">
-            <span
-              title={
-                user?.role === "team_member" &&
-                user?.manageContacts === false
-                  ? "You don't have permission to edit contacts"
-                  : ""
-              }
-              className={`
+                  >
+                    {/* Contact Info */}
+                    <div className="min-w-0">
+                      <span
+                        title={
+                          user?.role === "team_member" &&
+                          user?.manageContacts === false
+                            ? "You don't have permission to edit contacts"
+                            : ""
+                        }
+                        className={`
                 block truncate
                 font-medium
                 transition-colors duration-200
 
                 ${
-                  user?.role === "team_member" &&
-                  user?.manageContacts === false
+                  user?.role === "team_member" && user?.manageContacts === false
                     ? "text-muted-foreground cursor-not-allowed opacity-60"
                     : "text-foreground cursor-pointer hover:text-primary"
                 }
               `}
-              style={{
-                fontFamily: "var(--font-family)",
-                fontSize:
-                  "calc(0.92rem * var(--font-scale, 100) / 100)",
-              }}
-              onClick={() => {
-                if (
-                  user?.role === "team_member" &&
-                  user?.manageContacts === false
-                )
-                  return;
+                        style={{
+                          fontFamily: "var(--font-family)",
+                          fontSize:
+                            "calc(0.92rem * var(--font-scale, 100) / 100)",
+                        }}
+                        onClick={() => {
+                          if (
+                            user?.role === "team_member" &&
+                            user?.manageContacts === false
+                          )
+                            return;
 
-                handleOpenContactEditDrawer(c);
-              }}
-            >
-              {c.contact.contactName}
-            </span>
+                          handleOpenContactEditDrawer(c);
+                        }}
+                      >
+                        {c.contact.contactName}
+                      </span>
 
-            <span
-              className="
+                      <span
+                        className="
                 mt-1 block truncate
                 text-muted-foreground
               "
-              style={{
-                fontFamily: "var(--font-family)",
-                fontSize:
-                  "calc(0.76rem * var(--font-scale, 100) / 100)",
-              }}
-            >
-              {c.contact.email || "—"}
-            </span>
-           
-          </div>
+                        style={{
+                          fontFamily: "var(--font-family)",
+                          fontSize:
+                            "calc(0.76rem * var(--font-scale, 100) / 100)",
+                        }}
+                      >
+                        {c.contact.email || "—"}
+                      </span>
+                    </div>
 
-          {/* Actions */}
-          <div className="flex flex-col items-end gap-2">
-  {c.canLogin && c.contact.isActivated === false && (
-    <Badge
-      className="
+                    {/* Actions */}
+                    <div className="flex flex-col items-end gap-2">
+                      {c.canLogin && c.contact.isActivated === false && (
+                        <Badge
+                          className="
         bg-amber-100
         text-amber-700
         border border-amber-200
@@ -1189,93 +1156,93 @@ const AccountDetails = () => {
         text-[10px]
         font-medium
       "
-    >
-      Pending Activation
-    </Badge>
-  )}
-          <div className="flex items-center gap-4 sm:gap-5">
-            {/* Login */}
-            <div className="flex flex-col items-center gap-1">
-              <span
-                className="text-[10px] text-muted-foreground"
-                style={{
-                  fontSize:
-                    "calc(0.62rem * var(--font-scale, 100) / 100)",
-                }}
-              >
-                Login
-              </span>
+                        >
+                          Pending Activation
+                        </Badge>
+                      )}
+                      <div className="flex items-center gap-4 sm:gap-5">
+                        {/* Login */}
+                        <div className="flex flex-col items-center gap-1">
+                          <span
+                            className="text-[10px] text-muted-foreground"
+                            style={{
+                              fontSize:
+                                "calc(0.62rem * var(--font-scale, 100) / 100)",
+                            }}
+                          >
+                            Login
+                          </span>
 
-              <Switch
-                checked={c.canLogin}
-                onCheckedChange={() => handleSwitchClick(c)}
-                className="
+                          <Switch
+                            checked={c.canLogin}
+                            onCheckedChange={() => handleSwitchClick(c)}
+                            className="
                   data-[state=checked]:bg-primary
                   data-[state=unchecked]:bg-muted-foreground/30
                 "
-              />
-            </div>
+                          />
+                        </div>
 
-            {/* Notify */}
-            <div className="flex flex-col items-center gap-1">
-              <span
-                className="text-[10px] text-muted-foreground"
-                style={{
-                  fontSize:
-                    "calc(0.62rem * var(--font-scale, 100) / 100)",
-                }}
-              >
-                Notify
-              </span>
+                        {/* Notify */}
+                        <div className="flex flex-col items-center gap-1">
+                          <span
+                            className="text-[10px] text-muted-foreground"
+                            style={{
+                              fontSize:
+                                "calc(0.62rem * var(--font-scale, 100) / 100)",
+                            }}
+                          >
+                            Notify
+                          </span>
 
-              <Switch
-                checked={c.canNotify}
-                onCheckedChange={() => handleNotifyToggle(c)}
-                className="
+                          <Switch
+                            checked={c.canNotify}
+                            onCheckedChange={() => handleNotifyToggle(c)}
+                            className="
                   data-[state=checked]:bg-primary
                   data-[state=unchecked]:bg-muted-foreground/30
                 "
-              />
-            </div>
+                          />
+                        </div>
 
-            {/* Email Sync */}
-            <div className="flex flex-col items-center gap-1">
-              <span
-                className="text-[10px] text-muted-foreground"
-                style={{
-                  fontSize:
-                    "calc(0.62rem * var(--font-scale, 100) / 100)",
-                }}
-              >
-                Sync
-              </span>
+                        {/* Email Sync */}
+                        <div className="flex flex-col items-center gap-1">
+                          <span
+                            className="text-[10px] text-muted-foreground"
+                            style={{
+                              fontSize:
+                                "calc(0.62rem * var(--font-scale, 100) / 100)",
+                            }}
+                          >
+                            Sync
+                          </span>
 
-              <Switch
-                checked={c.canEmailSync}
-                onCheckedChange={() => handleEmailSyncToggle(c)}
-                className="
+                          <Switch
+                            checked={c.canEmailSync}
+                            onCheckedChange={() => handleEmailSyncToggle(c)}
+                            className="
                   data-[state=checked]:bg-primary
                   data-[state=unchecked]:bg-muted-foreground/30
                 "
-              />
-            </div>
+                          />
+                        </div>
 
-            {/* Menu */}
-            <div className="ml-1">
-              <MenuDropdown
-                contact={c}
-                onUnlink={handleUnlinkContact}
-                onResetPassword={handleResetPassword}
-              />
-            </div>
-          </div>
-          </div>
-        </div>
-      </div>
-    ))
-  ) : (
-    <div
-      className="
+                        {/* Menu */}
+                        <div className="ml-1">
+                          <MenuDropdown
+                            contact={c}
+                            onUnlink={handleUnlinkContact}
+                            onResetPassword={handleResetPassword}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div
+                className="
         flex flex-col items-center justify-center
         rounded-2xl
         border border-dashed border-border/60
@@ -1283,59 +1250,56 @@ const AccountDetails = () => {
         py-14 px-6
         text-center
       "
-    >
-      <div
-        className="
+              >
+                <div
+                  className="
           mb-4 flex h-12 w-12 items-center justify-center
           rounded-full bg-muted
         "
-      >
-        <Users className="h-5 w-5 text-muted-foreground" />
-      </div>
+                >
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                </div>
 
-      <p
-        className="font-medium text-foreground"
-        style={{
-          fontFamily: "var(--font-family)",
-          fontSize:
-            "calc(0.92rem * var(--font-scale, 100) / 100)",
-        }}
-      >
-        No contacts linked
-      </p>
+                <p
+                  className="font-medium text-foreground"
+                  style={{
+                    fontFamily: "var(--font-family)",
+                    fontSize: "calc(0.92rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  No contacts linked
+                </p>
 
-      <p
-        className="mt-1 text-muted-foreground"
-        style={{
-          fontFamily: "var(--font-family)",
-          fontSize:
-            "calc(0.76rem * var(--font-scale, 100) / 100)",
-        }}
-      >
-        Add or link contacts to this account.
-      </p>
+                <p
+                  className="mt-1 text-muted-foreground"
+                  style={{
+                    fontFamily: "var(--font-family)",
+                    fontSize: "calc(0.76rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Add or link contacts to this account.
+                </p>
 
-      <Button
-        type="button"
-        onClick={() => setAddContactDrawerOpen(true)}
-        variant="outline"
-        size="sm"
-        className="
+                <Button
+                  type="button"
+                  onClick={() => setAddContactDrawerOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="
           mt-5
           rounded-xl
           border-border/60
           hover:bg-muted/50
         "
-        style={{
-          fontSize:
-            "calc(0.82rem * var(--font-scale, 100) / 100)",
-        }}
-      >
-        Add Contact
-      </Button>
-    </div>
-  )}
-</div>
+                  style={{
+                    fontSize: "calc(0.82rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Add Contact
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1350,29 +1314,10 @@ const AccountDetails = () => {
       />
 
       {/* Confirm access change modal */}
-      {/* <Dialog open={dialogOpen} onOpenChange={handleCancelToggle}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Access Change</DialogTitle>
-            <DialogDescription>
-              {newCanLoginValue
-                ? `Grant portal login access to ${selectedContact?.contact.email}?`
-                : `Remove portal login access from ${selectedContact?.contact.email}?`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={handleCancelToggle}>
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmToggle}>
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
-<Dialog open={dialogOpen} onOpenChange={handleCancelToggle}>
-  <DialogContent
-    className="
+
+      <Dialog open={dialogOpen} onOpenChange={handleCancelToggle}>
+        <DialogContent
+          className="
       sm:max-w-md
       rounded-3xl
       border border-border/50
@@ -1381,107 +1326,103 @@ const AccountDetails = () => {
       shadow-2xl
       p-0 overflow-hidden
     "
-    style={{
-      fontFamily: "var(--font-family)",
-    }}
-  >
-    {/* Header */}
-    <DialogHeader
-      className="
+          style={{
+            fontFamily: "var(--font-family)",
+          }}
+        >
+          {/* Header */}
+          <DialogHeader
+            className="
         px-6 pt-6 pb-4
         border-b border-border/40
         space-y-2
       "
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className="
+          >
+            <div className="flex items-start gap-3">
+              <div
+                className="
             flex h-11 w-11 shrink-0 items-center justify-center
             rounded-2xl
             bg-primary/10
             border border-primary/20
           "
-        >
-          <ShieldCheck className="h-5 w-5 text-primary" />
-        </div>
+              >
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
 
-        <div className="space-y-1">
-          <DialogTitle
-            className="
+              <div className="space-y-1">
+                <DialogTitle
+                  className="
               text-base font-semibold tracking-tight
               text-foreground
             "
-            style={{
-              fontSize:
-                "calc(1rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            Confirm Access Change
-          </DialogTitle>
+                  style={{
+                    fontSize: "calc(1rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Confirm Access Change
+                </DialogTitle>
 
-          <DialogDescription
-            className="
+                <DialogDescription
+                  className="
               text-sm leading-relaxed
               text-muted-foreground
             "
-            style={{
-              fontSize:
-                "calc(0.84rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            {newCanLoginValue
-              ? `Grant portal login access to ${selectedContact?.contact.email}?`
-              : `Remove portal login access from ${selectedContact?.contact.email}?`}
-          </DialogDescription>
-        </div>
-      </div>
-    </DialogHeader>
+                  style={{
+                    fontSize: "calc(0.84rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  {newCanLoginValue
+                    ? `Grant portal login access to ${selectedContact?.contact.email}?`
+                    : `Remove portal login access from ${selectedContact?.contact.email}?`}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
 
-    {/* Body */}
-    <div className="px-6 py-5">
-      <div
-        className="
+          {/* Body */}
+          <div className="px-6 py-5">
+            <div
+              className="
           rounded-2xl
           border border-border/50
           bg-muted/30
           px-4 py-3
         "
-      >
-        <p
-          className="text-xs font-medium text-muted-foreground mb-1"
-          style={{
-            fontSize:
-              "calc(0.72rem * var(--font-scale, 100) / 100)",
-          }}
-        >
-          CONTACT EMAIL
-        </p>
+            >
+              <p
+                className="text-xs font-medium text-muted-foreground mb-1"
+                style={{
+                  fontSize: "calc(0.72rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                CONTACT EMAIL
+              </p>
 
-        <p
-          className="text-sm font-medium text-foreground break-all"
-          style={{
-            fontSize:
-              "calc(0.88rem * var(--font-scale, 100) / 100)",
-          }}
-        >
-          {selectedContact?.contact.email}
-        </p>
-      </div>
-    </div>
+              <p
+                className="text-sm font-medium text-foreground break-all"
+                style={{
+                  fontSize: "calc(0.88rem * var(--font-scale, 100) / 100)",
+                }}
+              >
+                {selectedContact?.contact.email}
+              </p>
+            </div>
+          </div>
 
-    {/* Footer */}
-    <DialogFooter
-      className="
+          {/* Footer */}
+          <DialogFooter
+            className="
         px-6 py-4
         border-t border-border/40
         bg-muted/10
         flex-row justify-end gap-2
       "
-    >
-     <Button
-  variant="outline"
-  onClick={handleCancelToggle}
-  className="
+          >
+            <Button
+              variant="outline"
+              onClick={handleCancelToggle}
+              className="
     rounded-xl
     border-border/60
     bg-background
@@ -1497,107 +1438,38 @@ const AccountDetails = () => {
 
     transition-all duration-200
   "
-  style={{
-    fontSize:
-      "calc(0.84rem * var(--font-scale, 100) / 100)",
-  }}
->
-  Cancel
-</Button>
+              style={{
+                fontSize: "calc(0.84rem * var(--font-scale, 100) / 100)",
+              }}
+            >
+              Cancel
+            </Button>
 
-      <Button
-        onClick={handleConfirmToggle}
-        className="
+            <Button
+              onClick={handleConfirmToggle}
+              className="
           rounded-xl
           shadow-sm
           transition-all duration-200
         "
-        style={{
-          fontSize:
-            "calc(0.84rem * var(--font-scale, 100) / 100)",
-        }}
-      >
-        Confirm
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+              style={{
+                fontSize: "calc(0.84rem * var(--font-scale, 100) / 100)",
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Add Contact drawer */}
-      {/* <Drawer open={addContactDrawerOpen} onOpenChange={setAddContactDrawerOpen} direction="right">
-        <DrawerContent className="w-full sm:max-w-[480px] right-0 top-0 left-auto mt-0 rounded-none">
-          <DrawerHeader className="border-b border-border">
-            <div className="flex items-center justify-between">
-              <DrawerTitle>Add Contacts to Account</DrawerTitle>
-              <DrawerClose asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <X className="h-4 w-4" />
-                </Button>
-              </DrawerClose>
-            </div>
-          </DrawerHeader>
-          <div className="px-5 py-3 border-b border-border">
-            <Input
-              type="text"
-              placeholder="Search by name or email…"
-              value={contactSearch}
-              onChange={(e) => setContactSearch(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <ScrollArea className="flex-1 h-[calc(100vh-180px)]">
-            <div className="divide-y divide-border">
-              {filteredAvailableContacts.map((c) => (
-                <label key={c._id} className="flex items-center gap-3 px-5 py-3 hover:bg-muted/50 cursor-pointer">
-                  <Checkbox
-                    checked={selectedContacts.some(s => s._id === c._id)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedContacts(prev => [...prev, c]);
-                      } else {
-                        setSelectedContacts(prev => prev.filter(s => s._id !== c._id));
-                      }
-                    }}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{c.contactName}</p>
-                    <p className="text-xs text-muted-foreground">{c.email}</p>
-                  </div>
-                </label>
-              ))}
-              {filteredAvailableContacts.length === 0 && (
-                <p className="text-sm text-muted-foreground px-5 py-6 text-center">No contacts found</p>
-              )}
-            </div>
-          </ScrollArea>
-          <DrawerFooter className="border-t border-border">
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setAddContactDrawerOpen(false);
-                  setSelectedContacts([]);
-                  setContactSearch("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleLinkContacts}
-                disabled={selectedContacts.length === 0}
-              >
-                Link {selectedContacts.length > 0 ? `${selectedContacts.length} ` : ""}Contact{selectedContacts.length !== 1 ? "s" : ""}
-              </Button>
-            </div>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer> */}
-<Drawer
-  open={addContactDrawerOpen}
-  onOpenChange={setAddContactDrawerOpen}
-  direction="right"
->
-  <DrawerContent
-    className="
+
+      <Drawer
+        open={addContactDrawerOpen}
+        onOpenChange={setAddContactDrawerOpen}
+        direction="right"
+      >
+        <DrawerContent
+          className="
       w-full sm:max-w-[500px]
       right-0 top-0 left-auto mt-0 rounded-none
       border-l border-border/50
@@ -1605,78 +1477,76 @@ const AccountDetails = () => {
       shadow-2xl
       flex flex-col
     "
-    style={{
-      fontFamily: "var(--font-family)",
-    }}
-  >
-    {/* Header */}
-    <DrawerHeader
-      className="
+          style={{
+            fontFamily: "var(--font-family)",
+          }}
+        >
+          {/* Header */}
+          <DrawerHeader
+            className="
         border-b border-border/50
         px-6 py-5
         bg-background/80
         backdrop-blur-md
       "
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <DrawerTitle
-            className="
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <DrawerTitle
+                  className="
               text-base font-semibold tracking-tight
               text-foreground
             "
-            style={{
-              fontSize:
-                "calc(1rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            Add Contacts to Account
-          </DrawerTitle>
+                  style={{
+                    fontSize: "calc(1rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Add Contacts to Account
+                </DrawerTitle>
 
-          <p
-            className="text-xs text-muted-foreground"
-            style={{
-              fontSize:
-                "calc(0.78rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            Search and link existing contacts to this account.
-          </p>
-        </div>
+                <p
+                  className="text-xs text-muted-foreground"
+                  style={{
+                    fontSize: "calc(0.78rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Search and link existing contacts to this account.
+                </p>
+              </div>
 
-        <DrawerClose asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="
+              <DrawerClose asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="
               h-9 w-9 rounded-xl
               text-muted-foreground
               hover:bg-muted/70
               hover:text-foreground
               transition-all duration-200
             "
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DrawerClose>
-      </div>
-    </DrawerHeader>
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DrawerClose>
+            </div>
+          </DrawerHeader>
 
-    {/* Search */}
-    <div
-      className="
+          {/* Search */}
+          <div
+            className="
         px-6 py-4
         border-b border-border/40
         bg-muted/20
       "
-    >
-      <div className="relative">
-        <Input
-          type="text"
-          placeholder="Search by name or email..."
-          value={contactSearch}
-          onChange={(e) => setContactSearch(e.target.value)}
-          className="
+          >
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search by name or email..."
+                value={contactSearch}
+                onChange={(e) => setContactSearch(e.target.value)}
+                className="
             h-11 rounded-2xl
             border-border/60
             bg-background/80
@@ -1692,27 +1562,26 @@ const AccountDetails = () => {
             dark:bg-background/60
             dark:border-border/50
           "
-          style={{
-            fontFamily: "var(--font-family)",
-            fontSize:
-              "calc(0.92rem * var(--font-scale, 100) / 100)",
-          }}
-        />
-      </div>
-    </div>
+                style={{
+                  fontFamily: "var(--font-family)",
+                  fontSize: "calc(0.92rem * var(--font-scale, 100) / 100)",
+                }}
+              />
+            </div>
+          </div>
 
-    {/* Contact List */}
-    <ScrollArea className="flex-1 h-[calc(100vh-220px)]">
-      <div className="px-3 py-3 space-y-2">
-        {filteredAvailableContacts.map((c) => {
-          const isSelected = selectedContacts.some(
-            (s) => s._id === c._id
-          );
+          {/* Contact List */}
+          <ScrollArea className="flex-1 h-[calc(100vh-220px)]">
+            <div className="px-3 py-3 space-y-2">
+              {filteredAvailableContacts.map((c) => {
+                const isSelected = selectedContacts.some(
+                  (s) => s._id === c._id,
+                );
 
-          return (
-            <label
-              key={c._id}
-              className={`
+                return (
+                  <label
+                    key={c._id}
+                    className={`
                 group flex items-start gap-3
                 rounded-2xl border
                 px-4 py-3
@@ -1725,39 +1594,39 @@ const AccountDetails = () => {
                     : "border-border/50 bg-background/70 hover:bg-muted/40 hover:border-border"
                 }
               `}
-            >
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedContacts((prev) => [...prev, c]);
-                  } else {
-                    setSelectedContacts((prev) =>
-                      prev.filter((s) => s._id !== c._id)
-                    );
-                  }
-                }}
-                className="mt-0.5"
-              />
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedContacts((prev) => [...prev, c]);
+                        } else {
+                          setSelectedContacts((prev) =>
+                            prev.filter((s) => s._id !== c._id),
+                          );
+                        }
+                      }}
+                      className="mt-0.5"
+                    />
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p
-                    className="
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p
+                          className="
                       text-sm font-medium
                       text-foreground truncate
                     "
-                    style={{
-                      fontSize:
-                        "calc(0.9rem * var(--font-scale, 100) / 100)",
-                    }}
-                  >
-                    {c.contactName}
-                  </p>
+                          style={{
+                            fontSize:
+                              "calc(0.9rem * var(--font-scale, 100) / 100)",
+                          }}
+                        >
+                          {c.contactName}
+                        </p>
 
-                  {isSelected && (
-                    <span
-                      className="
+                        {isSelected && (
+                          <span
+                            className="
                         inline-flex items-center
                         rounded-full
                         border border-primary/20
@@ -1766,135 +1635,131 @@ const AccountDetails = () => {
                         text-[10px] font-medium
                         text-primary
                       "
-                    >
-                      Selected
-                    </span>
-                  )}
-                </div>
+                          >
+                            Selected
+                          </span>
+                        )}
+                      </div>
 
-                <p
-                  className="
+                      <p
+                        className="
                     mt-1 text-xs
                     text-muted-foreground truncate
                   "
-                  style={{
-                    fontSize:
-                      "calc(0.75rem * var(--font-scale, 100) / 100)",
-                  }}
-                >
-                  {c.email}
-                </p>
-              </div>
-            </label>
-          );
-        })}
+                        style={{
+                          fontSize:
+                            "calc(0.75rem * var(--font-scale, 100) / 100)",
+                        }}
+                      >
+                        {c.email}
+                      </p>
+                    </div>
+                  </label>
+                );
+              })}
 
-        {filteredAvailableContacts.length === 0 && (
-          <div
-            className="
+              {filteredAvailableContacts.length === 0 && (
+                <div
+                  className="
               flex flex-col items-center justify-center
               py-14 text-center
             "
-          >
-            <div
-              className="
+                >
+                  <div
+                    className="
                 mb-3 flex h-12 w-12 items-center justify-center
                 rounded-full bg-muted
               "
-            >
-              <X className="h-5 w-5 text-muted-foreground" />
+                  >
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </div>
+
+                  <p
+                    className="text-sm font-medium text-foreground"
+                    style={{
+                      fontSize: "calc(0.9rem * var(--font-scale, 100) / 100)",
+                    }}
+                  >
+                    No contacts found
+                  </p>
+
+                  <p
+                    className="mt-1 text-xs text-muted-foreground"
+                    style={{
+                      fontSize: "calc(0.75rem * var(--font-scale, 100) / 100)",
+                    }}
+                  >
+                    Try searching with another name or email.
+                  </p>
+                </div>
+              )}
             </div>
+          </ScrollArea>
 
-            <p
-              className="text-sm font-medium text-foreground"
-              style={{
-                fontSize:
-                  "calc(0.9rem * var(--font-scale, 100) / 100)",
-              }}
-            >
-              No contacts found
-            </p>
-
-            <p
-              className="mt-1 text-xs text-muted-foreground"
-              style={{
-                fontSize:
-                  "calc(0.75rem * var(--font-scale, 100) / 100)",
-              }}
-            >
-              Try searching with another name or email.
-            </p>
-          </div>
-        )}
-      </div>
-    </ScrollArea>
-
-    {/* Footer */}
-    <DrawerFooter
-      className="
+          {/* Footer */}
+          <DrawerFooter
+            className="
         border-t border-border/50
         bg-background/80 backdrop-blur-md
         px-6 py-4
       "
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-xs text-muted-foreground">
-          {selectedContacts.length > 0 ? (
-            <span>
-              {selectedContacts.length} contact
-              {selectedContacts.length !== 1 ? "s" : ""} selected
-            </span>
-          ) : (
-            <span>Select contacts to continue</span>
-          )}
-        </div>
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xs text-muted-foreground">
+                {selectedContacts.length > 0 ? (
+                  <span>
+                    {selectedContacts.length} contact
+                    {selectedContacts.length !== 1 ? "s" : ""} selected
+                  </span>
+                ) : (
+                  <span>Select contacts to continue</span>
+                )}
+              </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setAddContactDrawerOpen(false);
-              setSelectedContacts([]);
-              setContactSearch("");
-            }}
-            className="
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAddContactDrawerOpen(false);
+                    setSelectedContacts([]);
+                    setContactSearch("");
+                  }}
+                  className="
               rounded-xl
               border-border/60
               hover:bg-muted/50
             "
-            style={{
-              fontSize:
-                "calc(0.84rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            Cancel
-          </Button>
+                  style={{
+                    fontSize: "calc(0.84rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Cancel
+                </Button>
 
-          <Button
-            onClick={handleLinkContacts}
-            disabled={selectedContacts.length === 0}
-            className="
+                <Button
+                  onClick={handleLinkContacts}
+                  disabled={selectedContacts.length === 0}
+                  className="
               rounded-xl
               shadow-sm
               transition-all duration-200
             "
-            style={{
-              fontSize:
-                "calc(0.84rem * var(--font-scale, 100) / 100)",
-            }}
-          >
-            Link{" "}
-            {selectedContacts.length > 0
-              ? `${selectedContacts.length} `
-              : ""}
-            Contact
-            {selectedContacts.length !== 1 ? "s" : ""}
-          </Button>
-        </div>
-      </div>
-    </DrawerFooter>
-  </DrawerContent>
-</Drawer>
+                  style={{
+                    fontSize: "calc(0.84rem * var(--font-scale, 100) / 100)",
+                  }}
+                >
+                  Link{" "}
+                  {selectedContacts.length > 0
+                    ? `${selectedContacts.length} `
+                    : ""}
+                  Contact
+                  {selectedContacts.length !== 1 ? "s" : ""}
+                </Button>
+              </div>
+            </div>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
       {/* Contact Edit Drawer */}
       <NewContactDrawer
         open={contactEditDrawerOpen}
