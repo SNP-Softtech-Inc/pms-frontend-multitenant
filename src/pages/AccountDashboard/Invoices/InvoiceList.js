@@ -678,19 +678,42 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
 </html>
 `;
 
-      const printWindow = window.open("", "_blank");
+      // const printWindow = window.open("", "_blank");
 
-      printWindow.document.open();
-      printWindow.document.write(printContent);
-      printWindow.document.close();
+      // printWindow.document.open();
+      // printWindow.document.write(printContent);
+      // printWindow.document.close();
 
-      printWindow.onload = () => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
+      // printWindow.onload = () => {
+      //   printWindow.focus();
+      //   printWindow.print();
+      //   printWindow.close();
+      // };
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(printContent);
+      doc.close();
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+
+        // setTimeout(() => {
+        //   document.body.removeChild(iframe);
+        // }, 1000);
       };
 
       handleMenuClose();
+      // handleMenuClose();
     } catch (error) {
       console.error(error);
 
@@ -701,12 +724,12 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
     }
   };
   const [payDrawerOpen, setPayDrawerOpen] = useState(false);
-const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-const handlePayInvoice = (invoice) => {
-  setSelectedInvoice(invoice);
-  setPayDrawerOpen(true);
-};
+  const handlePayInvoice = (invoice) => {
+    setSelectedInvoice(invoice);
+    setPayDrawerOpen(true);
+  };
   //download
   const handleDownload = async (_id) => {
     try {
@@ -735,9 +758,14 @@ const handlePayInvoice = (invoice) => {
       doc.setFontSize(10);
       doc.setFont(undefined, "normal");
 
-      doc.text("3015 Hopyard Rd, Ste M Pleasanton, CA 94588 ", pageWidth - 15, 22, {
-        align: "right",
-      });
+      doc.text(
+        "3015 Hopyard Rd, Ste M Pleasanton, CA 94588 ",
+        pageWidth - 15,
+        22,
+        {
+          align: "right",
+        },
+      );
 
       doc.text("(925) 800-3561", pageWidth - 15, 27, {
         align: "right",
@@ -967,7 +995,7 @@ const handlePayInvoice = (invoice) => {
     setOpenDrawer(true);
     handleMenuClose();
   };
-  
+
   const invoiceSummary = accountInvoicesData.reduce(
     (acc, invoice) => {
       const total = Number(invoice.summary?.total || 0);
@@ -991,10 +1019,8 @@ const handlePayInvoice = (invoice) => {
   const availableCredit = account?.creaditAval || 0;
   const invoiceAmount = selectedInvoice?.summary?.total || 0;
 
-const amountToPay =
-  availableCredit >= invoiceAmount
-    ? 0
-    : invoiceAmount - availableCredit;
+  const amountToPay =
+    availableCredit >= invoiceAmount ? 0 : invoiceAmount - availableCredit;
 
   return (
     <div className="mt-2 space-y-4">
@@ -1073,7 +1099,6 @@ const amountToPay =
                   <TableRow key={row._id}>
                     <TableCell className="font-medium">
                       {row.invoicenumber}
-                      
                     </TableCell>
 
                     <TableCell>
@@ -1112,23 +1137,29 @@ const amountToPay =
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {/* Show Edit only for Pending invoices */}
-                          
-                          {["Pending", "Overdue"].includes(row.invoiceStatus) && (
-  <DropdownMenuItem onClick={() => handleEdit(row)}>
-    Edit
-  </DropdownMenuItem>
-)}
+
+                          {["Pending", "Overdue"].includes(
+                            row.invoiceStatus,
+                          ) && (
+                            <DropdownMenuItem onClick={() => handleEdit(row)}>
+                              Edit
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => handleDelete(row._id)}
                           >
                             Delete
                           </DropdownMenuItem>
                           {/* {row.invoiceStatus === "Pending" && ( */}
-                           {["Pending", "Overdue"].includes(row.invoiceStatus) && (
-  <DropdownMenuItem onClick={() => handlePayInvoice(row)}>
-    Pay Invoice
-  </DropdownMenuItem>
-)}
+                          {["Pending", "Overdue"].includes(
+                            row.invoiceStatus,
+                          ) && (
+                            <DropdownMenuItem
+                              onClick={() => handlePayInvoice(row)}
+                            >
+                              Pay Invoice
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => handleDuplicate(row._id)}
                           >
@@ -1170,12 +1201,12 @@ const amountToPay =
         editInvoiceId={editInvoiceId}
       />
       <PayInvoice
-  open={payDrawerOpen}
-  setOpen={setPayDrawerOpen}
-  selectedInvoice={selectedInvoice}
-  availableCredit={account?.creaditAval || 0}
-  amountToPay={amountToPay}
-/>
+        open={payDrawerOpen}
+        setOpen={setPayDrawerOpen}
+        selectedInvoice={selectedInvoice}
+        availableCredit={account?.creaditAval || 0}
+        amountToPay={amountToPay}
+      />
     </div>
   );
 };

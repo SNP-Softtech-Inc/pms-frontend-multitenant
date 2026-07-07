@@ -29,7 +29,7 @@ const DeactiveTeammembers = ({ refresh, onEdit }) => {
       setLoading(true);
 
       const res = await authAPI.getInactiveTeamMembers();
-
+console.log("API Response:", res.data);
       const inactiveMembers = res.data.data.map((m) => ({
         id: m._id,
         name: `${m.firstName} ${m.lastName}`,

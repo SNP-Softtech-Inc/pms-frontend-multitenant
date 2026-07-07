@@ -220,6 +220,11 @@ export default function InboxPlus() {
       label: "Approvals",
       keywords: ["approved", "cancelled", "rejected", "approval"],
     },
+     {
+      key: "accounts",
+      label: "Accounts",
+      keywords: ["account", "user", "profile", "settings"],
+    },
   ];
 
   // Update the filteredThreads useMemo to include filters
