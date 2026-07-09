@@ -14,7 +14,7 @@ useEffect(() => {
     try {
       const res = await esignAPI.getSignatureList(accountId);
 
-      console.log("Signature list response:", res.data);
+      console.log("Signature list response:", res);
 
       setSignatureList(res.data || []);
     } catch (error) {

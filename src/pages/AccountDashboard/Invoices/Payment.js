@@ -100,27 +100,25 @@ const Payment = () => {
     enabled: !!accountId,
     refetchOnWindowFocus: true,
   });
-    const invoiceSummary = accountInvoicesData.reduce(
-    (acc, invoice) => {
-      const total = Number(invoice.summary?.total || 0);
-      const paid = Number(invoice.paidAmount || 0);
-      const balance = total - paid;
+const invoiceSummary = accountInvoicesData.reduce(
+  (acc, invoice) => {
+    const paid = Number(invoice.paidAmount || 0);
+    const balance = Number(invoice.balanceDueAmount || 0);
 
-      acc.totalInvoices += 1;
-      acc.totalPaid += paid;
-      acc.totalUnpaid += balance > 0 ? balance : 0;
-      acc.netDue += balance;
+    acc.totalInvoices += 1;
+    acc.totalPaid += paid;
+    acc.totalUnpaid += balance;
+    acc.netDue += balance;
 
-      return acc;
-    },
-    {
-      totalInvoices: 0,
-      totalPaid: 0,
-      totalUnpaid: 0,
-      netDue: 0,
-    },
-  );
-  const availableCredit = account?.creaditAval || 0;
+    return acc;
+  },
+  {
+    totalInvoices: 0,
+    totalPaid: 0,
+    totalUnpaid: 0,
+    netDue: 0,
+  }
+);  const availableCredit = account?.creaditAval || 0;
   const columns = useMemo(
     () => [
       {

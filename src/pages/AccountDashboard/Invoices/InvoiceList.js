@@ -995,27 +995,45 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
     setOpenDrawer(true);
     handleMenuClose();
   };
+const invoiceSummary = accountInvoicesData.reduce(
+  (acc, invoice) => {
+    const paid = Number(invoice.paidAmount || 0);
+    const balance = Number(invoice.balanceDueAmount || 0);
 
-  const invoiceSummary = accountInvoicesData.reduce(
-    (acc, invoice) => {
-      const total = Number(invoice.summary?.total || 0);
-      const paid = Number(invoice.paidAmount || 0);
-      const balance = total - paid;
+    acc.totalInvoices += 1;
+    acc.totalPaid += paid;
+    acc.totalUnpaid += balance;
+    acc.netDue += balance;
 
-      acc.totalInvoices += 1;
-      acc.totalPaid += paid;
-      acc.totalUnpaid += balance > 0 ? balance : 0;
-      acc.netDue += balance;
+    return acc;
+  },
+  {
+    totalInvoices: 0,
+    totalPaid: 0,
+    totalUnpaid: 0,
+    netDue: 0,
+  }
+);
+  // const invoiceSummary = accountInvoicesData.reduce(
+  //   (acc, invoice) => {
+  //     const total = Number(invoice.balanceDueAmount || 0);
+  //     const paid = Number(invoice.paidAmount || 0);
+  //     const balance = total - paid;
 
-      return acc;
-    },
-    {
-      totalInvoices: 0,
-      totalPaid: 0,
-      totalUnpaid: 0,
-      netDue: 0,
-    },
-  );
+  //     acc.totalInvoices += 1;
+  //     acc.totalPaid += paid;
+  //     acc.totalUnpaid += balance > 0 ? balance : 0;
+  //     acc.netDue += balance;
+
+  //     return acc;
+  //   },
+  //   {
+  //     totalInvoices: 0,
+  //     totalPaid: 0,
+  //     totalUnpaid: 0,
+  //     netDue: 0,
+  //   },
+  // );
   const availableCredit = account?.creaditAval || 0;
   const invoiceAmount = selectedInvoice?.summary?.total || 0;
 
@@ -1115,7 +1133,7 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
 
                     <TableCell>${row.paidAmount}</TableCell>
 
-                    <TableCell>${row.summary.total - row.paidAmount}</TableCell>
+                    <TableCell>${row.balanceDueAmount}</TableCell>
 
                     <TableCell className="max-w-[200px] truncate">
                       {row.description}
@@ -1186,11 +1204,6 @@ ${isPaid ? `<div class="paid">PAID</div>` : ""}
         </CardContent>
       </Card>
 
-      {/* <CreateInvoiceDrawer
-        open={openDrawer}
-        onClose={() => setOpenDrawer(false)}
-        fetchInvoices={fetchInvoices}
-      /> */}
       <CreateInvoiceDrawer
         open={openDrawer}
         onClose={() => {
