@@ -1095,6 +1095,12 @@ const invoiceSummary = accountInvoicesData.reduce(
           </CardContent>
         </Card>
       </div>
+
+      {(account?.creaditAval || 0) <= 0 && (
+  <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+    <strong>Note:</strong> You do not have any available credit to pay invoices. Please add credit to your account before attempting to pay an invoice.
+  </div>
+)}
       <Card>
         <CardContent className="p-0">
           <div className="rounded-md border">
@@ -1169,7 +1175,7 @@ const invoiceSummary = accountInvoicesData.reduce(
                             Delete
                           </DropdownMenuItem>
                           {/* {row.invoiceStatus === "Pending" && ( */}
-                          {["Pending", "Overdue"].includes(
+                          {/* {["Pending", "Overdue"].includes(
                             row.invoiceStatus,
                           ) && (
                             <DropdownMenuItem
@@ -1177,7 +1183,13 @@ const invoiceSummary = accountInvoicesData.reduce(
                             >
                               Pay Invoice
                             </DropdownMenuItem>
-                          )}
+                          )} */}
+                          {["Pending", "Overdue"].includes(row.invoiceStatus) &&
+  (account?.creaditAval || 0) > 0 && (
+    <DropdownMenuItem onClick={() => handlePayInvoice(row)}>
+      Pay Invoice
+    </DropdownMenuItem>
+)}
                           <DropdownMenuItem
                             onClick={() => handleDuplicate(row._id)}
                           >
