@@ -620,7 +620,7 @@
 
 // export default AccountDetails;
 
-import { useEffect, useState } from "react";
+import { useEffect, useState,useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   accountsAPI,
@@ -661,8 +661,11 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Loader, X, Users } from "lucide-react";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { ShieldCheck } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 const AccountDetails = () => {
   const { accountId } = useParams();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const confirm = useConfirm();
   const [account, setAccount] = useState(null);
@@ -673,7 +676,7 @@ const AccountDetails = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addContactDrawerOpen, setAddContactDrawerOpen] = useState(false);
 
-  const [availableContacts, setAvailableContacts] = useState([]);
+  // const [availableContacts, setAvailableContacts] = useState([]);
   const [selectedContacts, setSelectedContacts] = useState([]);
   const [contactSearch, setContactSearch] = useState("");
 
@@ -682,7 +685,22 @@ const AccountDetails = () => {
 
   const [contactEditDrawerOpen, setContactEditDrawerOpen] = useState(false);
   const [selectedContactForEdit, setSelectedContactForEdit] = useState(null);
+const { data: allContacts = [], refetch: refetchContacts } = useQuery({
+  queryKey: ["contacts"],
+  queryFn: async () => {
+    const res = await contactsAPI.getContacts();
+    return res.data;
+  },
+  enabled: addContactDrawerOpen,
+});
+const availableContacts = useMemo(() => {
+  const currentContactIds =
+    account?.contacts?.map((c) => c.contact._id) || [];
 
+  return allContacts.filter(
+    (contact) => !currentContactIds.includes(contact._id)
+  );
+}, [allContacts, account]);
   // Filter available contacts for search
   const filteredAvailableContacts = availableContacts.filter(
     (contact) =>
@@ -707,23 +725,23 @@ const AccountDetails = () => {
   }, [accountId]);
 
   // ================= FETCH AVAILABLE CONTACTS =================
-  const fetchAvailableContacts = async () => {
-    try {
-      const res = await contactsAPI.getContacts();
-      const currentContactIds =
-        account?.contacts?.map((c) => c.contact._id) || [];
-      const filteredContacts = res.data.filter(
-        (contact) => !currentContactIds.includes(contact._id),
-      );
-      setAvailableContacts(filteredContacts);
-    } catch (err) {
-      console.error("Error fetching contacts:", err);
-    }
-  };
+  // const fetchAvailableContacts = async () => {
+  //   try {
+  //     const res = await contactsAPI.getContacts();
+  //     const currentContactIds =
+  //       account?.contacts?.map((c) => c.contact._id) || [];
+  //     const filteredContacts = res.data.filter(
+  //       (contact) => !currentContactIds.includes(contact._id),
+  //     );
+  //     setAvailableContacts(filteredContacts);
+  //   } catch (err) {
+  //     console.error("Error fetching contacts:", err);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (addContactDrawerOpen && account) fetchAvailableContacts();
-  }, [addContactDrawerOpen, account]);
+  // useEffect(() => {
+  //   if (addContactDrawerOpen && account) fetchAvailableContacts();
+  // }, [addContactDrawerOpen, account]);
 
   // ================= FETCH TAGS =================
   useEffect(() => {
@@ -914,8 +932,19 @@ const AccountDetails = () => {
   //   fetchAccountDetails(accountId);
   //   setContactEditDrawerOpen(false);
   // };
+  // const handleContactUpdated = async () => {
+  //   await fetchAccountDetails();
+  //   setContactEditDrawerOpen(false);
+  // };
+
+
 const handleContactUpdated = async () => {
   await fetchAccountDetails();
+
+  await queryClient.invalidateQueries({
+    queryKey: ["contacts"],
+  });
+
   setContactEditDrawerOpen(false);
 };
   const toggleCls =
@@ -1463,7 +1492,7 @@ const handleContactUpdated = async () => {
       </Dialog>
       {/* Add Contact drawer */}
 
-      <Drawer
+      {/* <Drawer
         open={addContactDrawerOpen}
         onOpenChange={setAddContactDrawerOpen}
         direction="right"
@@ -1481,7 +1510,7 @@ const handleContactUpdated = async () => {
             fontFamily: "var(--font-family)",
           }}
         >
-          {/* Header */}
+          
           <DrawerHeader
             className="
         border-b border-border/50
@@ -1514,25 +1543,33 @@ const handleContactUpdated = async () => {
                 </p>
               </div>
 
-              <DrawerClose asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="
-              h-9 w-9 rounded-xl
-              text-muted-foreground
-              hover:bg-muted/70
-              hover:text-foreground
-              transition-all duration-200
-            "
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DrawerClose>
+            
+              <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        onClick={() => {
+          setSelectedContactForEdit(null);
+          setMode("create");
+          setContactEditDrawerOpen(true);
+        }}
+      >
+        + Create Contact
+      </Button>
+
+      <DrawerClose asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-xl"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </DrawerClose>
+    </div>
             </div>
           </DrawerHeader>
 
-          {/* Search */}
+         
           <div
             className="
         px-6 py-4
@@ -1570,7 +1607,7 @@ const handleContactUpdated = async () => {
             </div>
           </div>
 
-          {/* Contact List */}
+          
           <ScrollArea className="flex-1 h-[calc(100vh-220px)]">
             <div className="px-3 py-3 space-y-2">
               {filteredAvailableContacts.map((c) => {
@@ -1696,7 +1733,7 @@ const handleContactUpdated = async () => {
             </div>
           </ScrollArea>
 
-          {/* Footer */}
+          
           <DrawerFooter
             className="
         border-t border-border/50
@@ -1759,7 +1796,174 @@ const handleContactUpdated = async () => {
             </div>
           </DrawerFooter>
         </DrawerContent>
-      </Drawer>
+      </Drawer> */}
+{addContactDrawerOpen && (
+  <div className="fixed inset-0 z-50 overflow-hidden">
+    {/* Overlay */}
+    <div
+      className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+      onClick={() => {
+        setAddContactDrawerOpen(false);
+        setSelectedContacts([]);
+        setContactSearch("");
+      }}
+    />
+
+    {/* Drawer */}
+    <div className="absolute right-0 top-0 h-full w-full sm:w-[500px] bg-background text-foreground border-l border-border shadow-2xl flex flex-col">
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 bg-background">
+        <div className="space-y-0.5">
+          <h2 className="text-base font-semibold tracking-tight">
+            Add Contacts to Account
+          </h2>
+
+          <p className="text-xs text-muted-foreground">
+            Search and link existing contacts to this account.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => {
+              setSelectedContactForEdit(null);
+              setMode("create");
+              setContactEditDrawerOpen(true);
+            }}
+          >
+            + Create Contact
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setAddContactDrawerOpen(false);
+              setSelectedContacts([]);
+              setContactSearch("");
+            }}
+            className="h-9 w-9"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="px-5 py-4 border-b border-border shrink-0">
+        <Input
+          placeholder="Search by name or email..."
+          value={contactSearch}
+          onChange={(e) => setContactSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Content */}
+      <ScrollArea className="flex-1">
+        <div className="p-5 space-y-3">
+          {filteredAvailableContacts.map((c) => {
+            const isSelected = selectedContacts.some(
+              (s) => s._id === c._id
+            );
+
+            return (
+              <label
+                key={c._id}
+                className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors
+                  ${
+                    isSelected
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:bg-accent"
+                  }`}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedContacts((prev) => [...prev, c]);
+                    } else {
+                      setSelectedContacts((prev) =>
+                        prev.filter((s) => s._id !== c._id)
+                      );
+                    }
+                  }}
+                />
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium truncate">
+                      {c.contactName}
+                    </p>
+
+                    {isSelected && (
+                      <span className="rounded-full bg-primary/10 text-primary text-[10px] px-2 py-0.5">
+                        Selected
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground truncate mt-1">
+                    {c.email}
+                  </p>
+                </div>
+              </label>
+            );
+          })}
+
+          {filteredAvailableContacts.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16">
+              <X className="h-8 w-8 text-muted-foreground mb-3" />
+
+              <p className="font-medium">
+                No contacts found
+              </p>
+
+              <p className="text-sm text-muted-foreground">
+                Try another search.
+              </p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-5 py-4 border-t border-border shrink-0 bg-background">
+        <span className="text-sm text-muted-foreground">
+          {selectedContacts.length > 0
+            ? `${selectedContacts.length} contact${
+                selectedContacts.length > 1 ? "s" : ""
+              } selected`
+            : "Select contacts to continue"}
+        </span>
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAddContactDrawerOpen(false);
+              setSelectedContacts([]);
+              setContactSearch("");
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            disabled={selectedContacts.length === 0}
+            onClick={handleLinkContacts}
+          >
+            Link
+            {selectedContacts.length > 0 &&
+              ` ${selectedContacts.length}`}
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       {/* Contact Edit Drawer */}
       <NewContactDrawer
         open={contactEditDrawerOpen}

@@ -206,13 +206,34 @@ const handleShowChat = async (chatId) => {
   const isChatPinned = (chatId) => pinnedChats.includes(chatId);
 
   // Sort chats: pinned first, then by updatedAt
+  // const sortedChats = [...filteredChatList].sort((a, b) => {
+  //   const aPinned = isChatPinned(a._id);
+  //   const bPinned = isChatPinned(b._id);
+  //   if (aPinned && !bPinned) return -1;
+  //   if (!aPinned && bPinned) return 1;
+  //   return new Date(b.updatedAt) - new Date(a.updatedAt);
+  // });
+
   const sortedChats = [...filteredChatList].sort((a, b) => {
-    const aPinned = isChatPinned(a._id);
-    const bPinned = isChatPinned(b._id);
-    if (aPinned && !bPinned) return -1;
-    if (!aPinned && bPinned) return 1;
-    return new Date(b.updatedAt) - new Date(a.updatedAt);
-  });
+  const aPinned = isChatPinned(a._id);
+  const bPinned = isChatPinned(b._id);
+
+  if (aPinned && !bPinned) return -1;
+  if (!aPinned && bPinned) return 1;
+
+  const aLastMessage = a.description?.[a.description.length - 1];
+  const bLastMessage = b.description?.[b.description.length - 1];
+
+  const aTime = new Date(
+    aLastMessage?.time || aLastMessage?.createdAt || a.updatedAt
+  ).getTime();
+
+  const bTime = new Date(
+    bLastMessage?.time || bLastMessage?.createdAt || b.updatedAt
+  ).getTime();
+
+  return bTime - aTime;
+});
 return (
   <div className="mt-4 bg-background">
     {/* HEADER */}
@@ -358,12 +379,8 @@ return (
                       />
                     </div>
 
-                    {/* Avatar */}
-                     {/* <Avatar className="h-7 w-7 shrink-0 rounded-lg">
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium rounded-lg">
-                        {getInitials(chat.accountid?.accountName)}
-                      </AvatarFallback>
-                    </Avatar> */}
+                  
+                   
                     {/* Content Container */}
                     <div className="flex-1 min-w-0">
                       {/* Row 1: Name and Time */}
@@ -372,7 +389,10 @@ return (
                           {chat.accountid?.accountName || "Unknown"}
                         </span>
                         <span className="text-[10px] text-muted-foreground shrink-0">
-                          {formatTime(chat.updatedAt)}
+                          {/* {formatTime(chat.updatedAt)} */}
+                          {formatTime(
+  lastMessage?.time || lastMessage?.createdAt || chat.updatedAt
+)}
                         </span>
                       </div>
                       

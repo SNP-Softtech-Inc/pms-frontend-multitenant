@@ -139,6 +139,7 @@ function App() {
             <Route path="payment" element={<Payment />} />
           </Route>
           <Route path="email/:accountId" element={<Email />}>
+            <Route index element={<Inbox />} />
             <Route path="inbox" element={<Inbox />} />
             <Route path="sent" element={<Sent />} />
           </Route>

@@ -1121,10 +1121,18 @@ const invoiceSummary = accountInvoicesData.reduce(
               <TableBody>
                 {accountInvoicesData.map((row) => (
                   <TableRow key={row._id}>
-                    <TableCell className="font-medium">
+                    {/* <TableCell className="font-medium">
                       {row.invoicenumber}
-                    </TableCell>
-
+                    </TableCell> */}
+<TableCell className="font-medium">
+  <button
+    type="button"
+    onClick={() => handleEdit(row)}
+    className="text-blue-600 hover:underline cursor-pointer"
+  >
+    {row.invoicenumber}
+  </button>
+</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(row.invoiceStatus)}>
                         {row.invoiceStatus}
