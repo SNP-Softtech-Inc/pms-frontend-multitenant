@@ -201,17 +201,17 @@
 //     const SIGNATURE_API = process.env.REACT_APP_ESIGNATURE_API;
 
 //     // Fetch account details - Using accountsAPI
-//     const fetchAccountDetails = async () => {
-//       try {
-//         const res = await accountsAPI.getAccountById(accountId);
-//         console.log("accounts details", res.data);
-//         const email = res.data?.contacts?.[0]?.contact?.email;
-//         setClientEmail(email);
-//         console.log("Client Email:", email);
-//       } catch (err) {
-//         console.error("Error fetching account details:", err);
-//       }
-//     };
+    // const fetchAccountDetails = async () => {
+    //   try {
+    //     const res = await accountsAPI.getAccountById(accountId);
+    //     console.log("accounts details", res.data);
+    //     const email = res.data?.contacts?.[0]?.contact?.email;
+    //     setClientEmail(email);
+    //     console.log("Client Email:", email);
+    //   } catch (err) {
+    //     console.error("Error fetching account details:", err);
+    //   }
+    // };
 
 //     // Fetch folder tree - Using accountDocsAPI
 //     const fetchFolderTree = async () => {

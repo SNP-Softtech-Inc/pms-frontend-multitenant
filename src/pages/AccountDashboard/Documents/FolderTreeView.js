@@ -3322,7 +3322,7 @@ const [auditLoading, setAuditLoading] = useState(false);
                           )}
                         </div>
 
-                        <span
+                        {/* <span
                           className="text-xs text-muted-foreground"
                           style={{
                             fontSize:
@@ -3330,7 +3330,7 @@ const [auditLoading, setAuditLoading] = useState(false);
                           }}
                         >
                           {folderCount} folders • {fileCount} files
-                        </span>
+                        </span> */}
                       </div>
                     </div>
                   </>

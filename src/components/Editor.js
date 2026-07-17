@@ -251,74 +251,78 @@
 
 
 
-// // import React, { useEffect, useState, useRef } from 'react';
-// // import ReactQuill from 'react-quill';
-// // import 'react-quill/dist/quill.snow.css'; 
-// // import 'quill-emoji/dist/quill-emoji.css'; 
-// // import Quill from 'quill';
-// // import 'quill-emoji';
+import React, { useEffect, useState, useRef } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; 
+import 'quill-emoji/dist/quill-emoji.css'; 
 
-// // // Register the module safely if not registered already
-// // if (!Quill.imports['modules/emoji']) {
-// //   Quill.register('modules/emoji', require('quill-emoji'));
-// // }
 
-// // export default function Editor({ initialContent, onChange, value }) {
-// //   const [editorContent, setEditorContent] = useState(initialContent || "");
+import Quill from 'quill';
+import 'quill-emoji';
 
-// //   const modules = {
-// //     toolbar: [
-// //       [{ 'font': [] }, { 'size': [] }],
-// //       [{ 'header': '1' }, { 'header': '2' }, { 'align': [] }],
-// //       ['bold', 'italic', 'underline', 'strike'],
-// //       [{ 'script': 'sub' }, { 'script': 'super' }],
-// //       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-// //       [{ 'color': [] }, { 'background': [] }],
-// //       ['blockquote', 'code-block'],
-// //       ['link'],
-// //       [{ 'emoji': true }], // Emoji placement in toolbar
-// //       [{ 'indent': '-1' }, { 'indent': '+1' }],
-// //       ['clean'],
-// //     ],
-// //     'emoji-toolbar': true,
-// //     'emoji-textarea': false,
-// //     'emoji-shortname': true,
-// //     history: {
-// //       delay: 1000,
-// //       maxStack: 50,
-// //       userOnly: true,
-// //     },
-// //   };
+// Register the module safely if not registered already
+if (!Quill.imports['modules/emoji']) {
+  Quill.register('modules/emoji', require('quill-emoji'));
+}
 
-// //   const formats = [
-// //     'header', 'font', 'size',
-// //     'bold', 'italic', 'underline', 'strike',
-// //     'script', 'list', 'bullet', 'indent',
-// //     'color', 'background', 'align',
-// //     'blockquote', 'code-block', 'link', 'image',
-// //     'emoji'
-// //   ];
+export default function Editor({ initialContent, onChange, value }) {
+  const [editorContent, setEditorContent] = useState(initialContent || "");
 
-// //   const handleChange = (content) => {
-// //     setEditorContent(content);
-// //     if (onChange) {
-// //       onChange(content);
-// //     }
-// //   };
+  const modules = {
+    toolbar: [
+      [{ 'font': [] }, { 'size': [] }],
+      [{ 'header': '1' }, { 'header': '2' }, { 'align': [] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['blockquote', 'code-block'],
+      ['link'],
+     
+      [{ 'emoji': true }], // Emoji placement in toolbar
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
+      ['clean'],
+    ],
+   
+    'emoji-toolbar': true,
+    'emoji-textarea': false,
+    'emoji-shortname': true,
+    history: {
+      delay: 1000,
+      maxStack: 50,
+      userOnly: true,
+    },
+  };
 
-// //   return (
-// //     <div className="quill-wrapper-container">
-// //       <ReactQuill
-// //         value={value !== undefined ? value : editorContent}
-// //         onChange={handleChange}
-// //         modules={modules}
-// //         formats={formats}
-// //         theme="snow"
-// //         style={{ height: 'auto',marginBottom:"20px" }}
-// //       />
-// //     </div>
-// //   );
-// // }
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike',
+    'script', 'list', 'bullet', 'indent',
+    'color', 'background', 'align',
+    'blockquote', 'code-block', 'link', 'image',
+    'emoji',
+  ];
+
+  const handleChange = (content) => {
+    setEditorContent(content);
+    if (onChange) {
+      onChange(content);
+    }
+  };
+
+  return (
+    <div className="quill-wrapper-container ">
+      <ReactQuill
+        value={value !== undefined ? value : editorContent}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        theme="snow"
+        style={{ height: 'auto',marginBottom:"20px" }}
+      />
+    </div>
+  );
+}
 
 // import React, { useEffect, useState } from "react";
 // import ReactQuill from "react-quill";
@@ -667,96 +671,96 @@
 //     </div>
 //   );
 // }
-import React, { useEffect, useState } from 'react';
-import { Box } from '@mui/material';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import 'quill-emoji/dist/quill-emoji.css';
-import Quill from 'quill';
-import 'quill-emoji';
+// import React, { useEffect, useState } from 'react';
+// import { Box } from '@mui/material';
+// import ReactQuill from 'react-quill';
+// import 'react-quill/dist/quill.snow.css';
+// import 'quill-emoji/dist/quill-emoji.css';
+// import Quill from 'quill';
+// import 'quill-emoji';
 
-Quill.register('modules/emoji', require('quill-emoji'));
+// Quill.register('modules/emoji', require('quill-emoji'));
 
-export default function Editor({ initialContent, onChange, value }) {
-  const [editorContent, setEditorContent] = useState(initialContent);
+// export default function Editor({ initialContent, onChange, value }) {
+//   const [editorContent, setEditorContent] = useState(initialContent);
 
-  const modules = {
-    toolbar: [
-      [{ font: [] }, { size: [] }],
-      [{ header: '1' }, { header: '2' }, { align: [] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ script: 'sub' }, { script: 'super' }],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ color: [] }, { background: [] }],
-      ['blockquote', 'code-block'],
-       ['link', 'image',],
-      [{ emoji: true }],
-      [{ indent: '-1' }, { indent: '+1' }],
-      ['clean'],
-      ['undo', 'redo'],
-    ],
-    'emoji-toolbar': true,
-    'emoji-textarea': false,
-    'emoji-shortname': true,
-    history: {
-      delay: 1000,
-      maxStack: 50,
-      userOnly: true,
-    },
-  };
+//   const modules = {
+//     toolbar: [
+//       [{ font: [] }, { size: [] }],
+//       [{ header: '1' }, { header: '2' }, { align: [] }],
+//       ['bold', 'italic', 'underline', 'strike'],
+//       [{ script: 'sub' }, { script: 'super' }],
+//       [{ list: 'ordered' }, { list: 'bullet' }],
+//       [{ color: [] }, { background: [] }],
+//       ['blockquote', 'code-block'],
+//        ['link', 'image',],
+//       [{ emoji: true }],
+//       [{ indent: '-1' }, { indent: '+1' }],
+//       ['clean'],
+//       ['undo', 'redo'],
+//     ],
+//     'emoji-toolbar': true,
+//     'emoji-textarea': false,
+//     'emoji-shortname': true,
+//     history: {
+//       delay: 1000,
+//       maxStack: 50,
+//       userOnly: true,
+//     },
+//   };
 
-  const formats = [
-    'header', 'font', 'size',
-    'bold', 'italic', 'underline', 'strike',
-    'script', 'list', 'bullet', 'indent',
-    'color', 'background', 'align',
-    'blockquote', 'code-block', 'link', 'image',
-    'undo', 'redo', 'emoji',
-  ];
+//   const formats = [
+//     'header', 'font', 'size',
+//     'bold', 'italic', 'underline', 'strike',
+//     'script', 'list', 'bullet', 'indent',
+//     'color', 'background', 'align',
+//     'blockquote', 'code-block', 'link', 'image',
+//     'undo', 'redo', 'emoji',
+//   ];
 
-  useEffect(() => {
-    if (initialContent) {
-      setEditorContent(initialContent);
-    }
-  }, [initialContent]);
+//   useEffect(() => {
+//     if (initialContent) {
+//       setEditorContent(initialContent);
+//     }
+//   }, [initialContent]);
 
-  const handleChange = (content) => {
-    setEditorContent(content);
-    onChange(content);
-  };
+//   const handleChange = (content) => {
+//     setEditorContent(content);
+//     onChange(content);
+//   };
 
-  return (
-    <div className="w-full rounded-xl border border-slate-200 bg-white shadow-sm">
-      <ReactQuill
-        value={value}
-        onChange={handleChange}
-        modules={modules}
-        formats={formats}
-        theme="snow"
-       className="
-          [&_.ql-toolbar]:rounded-t-xl
-          [&_.ql-toolbar]:border-0
-          [&_.ql-toolbar]:border-b
-          [&_.ql-toolbar]:border-slate-200
-          [&_.ql-toolbar]:bg-slate-50
+//   return (
+//     <div className="w-full rounded-xl border border-slate-200 bg-white shadow-sm">
+//       <ReactQuill
+//         value={value}
+//         onChange={handleChange}
+//         modules={modules}
+//         formats={formats}
+//         theme="snow"
+//        className="
+//           [&_.ql-toolbar]:rounded-t-xl
+//           [&_.ql-toolbar]:border-0
+//           [&_.ql-toolbar]:border-b
+//           [&_.ql-toolbar]:border-slate-200
+//           [&_.ql-toolbar]:bg-slate-50
 
-          [&_.ql-container]:border-0
-          [&_.ql-container]:w-full
-          [&_.ql-container]:overflow-hidden
+//           [&_.ql-container]:border-0
+//           [&_.ql-container]:w-full
+//           [&_.ql-container]:overflow-hidden
 
-          [&_.ql-editor]:min-h-[150px]
-          [&_.ql-editor]:w-full
-          [&_.ql-editor]:max-w-full
-          [&_.ql-editor]:break-words
-          [&_.ql-editor]:whitespace-pre-wrap
-          [&_.ql-editor]:overflow-wrap-anywhere
-          [&_.ql-editor]:text-sm
-          [&_.ql-editor]:leading-6
+//           [&_.ql-editor]:min-h-[150px]
+//           [&_.ql-editor]:w-full
+//           [&_.ql-editor]:max-w-full
+//           [&_.ql-editor]:break-words
+//           [&_.ql-editor]:whitespace-pre-wrap
+//           [&_.ql-editor]:overflow-wrap-anywhere
+//           [&_.ql-editor]:text-sm
+//           [&_.ql-editor]:leading-6
 
-          [&_.ql-editor.ql-blank::before]:not-italic
-          [&_.ql-editor.ql-blank::before]:text-slate-400
-        "
-      />
-    </div>
-  );
-}
+//           [&_.ql-editor.ql-blank::before]:not-italic
+//           [&_.ql-editor.ql-blank::before]:text-slate-400
+//         "
+//       />
+//     </div>
+//   );
+// }

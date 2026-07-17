@@ -69,7 +69,7 @@
 
 // export default FirmTemplate;
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { LayoutTemplate } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -103,6 +103,7 @@ const FirmTemplate = () => {
           backdrop-blur supports-[backdrop-filter]:bg-background/80
         "
       >
+     
         {/* Top Section */}
         <div
           className="

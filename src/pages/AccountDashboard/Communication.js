@@ -337,12 +337,25 @@ return (
             ) : (
               sortedChats.map((chat) => {
                 const unread = countUnreadAdminMessages(chat);
-                const lastMessage = chat.description?.[chat.description.length - 1];
-                const lastMessageText = lastMessage?.message?.replace(/<[^>]+>/g, "") || "No messages yet";
-                const lastMessageSender = lastMessage?.fromwhome === "Admin" 
-                  ? (lastMessage.senderid || "You")
-                  : (lastMessage.senderid || "Client");
-                
+                // const lastMessage = chat.description?.[chat.description.length - 1];
+                // const lastMessageText = lastMessage?.message?.replace(/<[^>]+>/g, "") || "No messages yet";
+                // const lastMessageSender = lastMessage?.fromwhome === "Admin" 
+                //   ? (lastMessage.senderid || "You")
+                //   : (lastMessage.senderid || "Client");
+                const lastMessage =
+  chat.description && chat.description.length > 0
+    ? chat.description[chat.description.length - 1]
+    : null;
+
+const lastMessageText = lastMessage
+  ? lastMessage.message?.replace(/<[^>]+>/g, "")
+  : "no messages yet";
+
+const lastMessageSender = !lastMessage
+  ? ""
+  : lastMessage.fromwhome === "Admin"
+  ? (lastMessage.senderid || "You")
+  : (lastMessage.senderid || "Client");
                 // Truncate message to 50 characters
                 const truncatedMessage = lastMessageText.length > 50 
                   ? lastMessageText.substring(0, 50) + "..." 
@@ -403,7 +416,7 @@ return (
                       
                       {/* Row 3: Message Preview + Unread Badge */}
                       <div className="flex justify-between items-center gap-2 mt-0.5">
-                        <div className="flex items-center gap-1 min-w-0 flex-1">
+                        {/* <div className="flex items-center gap-1 min-w-0 flex-1">
                           <span className="text-[10px] font-semibold text-muted-foreground shrink-0">
                             {lastMessageSender}:
                           </span>
@@ -418,7 +431,26 @@ return (
                           >
                             {truncatedMessage}
                           </span>
-                        </div>
+                        </div> */}
+                        <div className="flex items-center gap-1 min-w-0 flex-1">
+  {lastMessage && (
+    <span className="text-[10px] font-semibold text-muted-foreground shrink-0">
+      {lastMessageSender}:
+    </span>
+  )}
+
+  <span
+    className="text-[10px] text-muted-foreground truncate"
+    style={{
+      display: "block",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    }}
+  >
+    {truncatedMessage}
+  </span>
+</div>
                         {unread > 0 && (
                           <div className="shrink-0">
                             <Badge className="h-4 min-w-[18px] rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground">
@@ -481,7 +513,12 @@ return (
     />
   </div>
 );
-  // return (
+  
+};
+
+export default Communication;
+
+// return (
   //   <div className="mt-4 bg-background">
   //     {/* HEADER */}
   //     <div
@@ -735,6 +772,3 @@ return (
   //     />
   //   </div>
   // );
-};
-
-export default Communication;
