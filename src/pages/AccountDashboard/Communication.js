@@ -321,10 +321,12 @@ return (
     </div>
 
     {/* MAIN */}
-    <div className="flex h-[85vh] gap-4">
+    {/* <div className="flex h-[85vh] gap-4"> */}
+    <div className="grid h-[85vh] gap-4 grid-cols-[360px_minmax(0,1fr)]">
       {/* CHAT LIST */}
-      <div className="w-[32%] overflow-hidden rounded-2xl border border-border bg-card shadow-sm flex flex-col">
-        <ScrollArea className="flex-1">
+      {/* <div className="w-[32%] overflow-hidden rounded-2xl border border-border bg-card shadow-sm flex flex-col"> */}
+       
+       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm flex flex-col min-w-0"> <ScrollArea className="flex-1">
           <div className="space-y-0.5 p-2">
             {sortedChats.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -472,7 +474,8 @@ const lastMessageSender = !lastMessage
       </div>
 
       {/* CHAT DETAILS */}
-      <div className="w-[68%] overflow-visible rounded-2xl border border-border bg-card shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm min-w-0">
+      {/* <div className="w-[68%] overflow-visible rounded-2xl border border-border bg-card shadow-sm"> */}
         {selectedChat ? (
           <ChatDetails
             chat={selectedChat}

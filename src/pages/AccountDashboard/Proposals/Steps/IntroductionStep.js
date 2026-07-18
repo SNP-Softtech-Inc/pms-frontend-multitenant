@@ -112,7 +112,7 @@
 
 import React, { useState, useEffect } from 'react';
 // import { NavigateBefore, NavigateNext } from 'lucide-react';
-import Editor from '../../../../components/Editor'; // Adjust the import path as needed
+import Editor from '../../../../components/TextEditor'; // Adjust the import path as needed
 import { Input } from '../../../../components/ui/input';
 import { Button } from '../../../../components/ui/button';
 

@@ -111,7 +111,7 @@
 
 
 import React, { useState } from 'react';
-import Editor from '../../../../components/Editor'; // Adjust the import path as needed
+import Editor from '../../../../components/TextEditor'; // Adjust the import path as needed
 import { Input } from '../../../../components/ui/input';
 
 const TermsStep = ({ formData, updateFormData, stepErrors, setStepErrors }) => {

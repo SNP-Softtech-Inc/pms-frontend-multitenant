@@ -422,7 +422,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Separator } from "../../../components/ui/separator";
 import { Plus, X, MoreVertical, Percent, Eye } from "lucide-react";
 
-import Editor from "../../../components/Editor";
+import Editor from "../../../components/TextEditor";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
 import LineItemsAndSummary from "../../../components/LineItemsAndSummary";
 

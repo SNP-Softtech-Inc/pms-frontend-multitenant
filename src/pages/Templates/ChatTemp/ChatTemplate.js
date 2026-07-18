@@ -425,7 +425,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Trash2, Plus, GripVertical, Pencil, Loader2 } from "lucide-react";
 import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
-import Editor from '../../../components/EditorShortcodes'; // Your existing Editor component
+import Editor from '../../../components/TextEditorShortCodes'; // Your existing Editor component
 import { templateAPI, authAPI } from "../../../services/api";
 import ShortcodeTextField from '../../../components/ShortcodeTextField';
 import {useToastContext} from "../../../context/ToastContext";

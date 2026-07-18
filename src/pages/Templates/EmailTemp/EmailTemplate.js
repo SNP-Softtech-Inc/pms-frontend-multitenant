@@ -917,7 +917,8 @@ import { Card, CardContent } from "../../../components/ui/card";
 import { Skeleton } from "../../../components/ui/skeleton";
 import { useToastContext } from "../../../context/ToastContext";
 // Custom Components
-import EditorShortcodes from "../../../components/EditorShortcodes";
+// import EditorShortcodes from "../../../components/EditorShortcodes";
+import TextEditor from "../../../components/TextEditorShortCodes";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
 import { FormPage, FormSection, FormGrid } from "../../../components/ui/form-layout";
 import { DataTable } from "../../../components/data-table/data-table";
@@ -1556,9 +1557,9 @@ const EmailTemp = () => {
                 </FormSection>
 
                 <FormSection title="Email Body">
-                  <EditorShortcodes 
+                  <TextEditor 
                     onChange={setEmailBody} 
-                    initialContent={emailBody}
+                    value={emailBody}
                   />
                 </FormSection>
               </FormGrid.Main>

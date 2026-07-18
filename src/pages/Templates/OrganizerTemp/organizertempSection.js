@@ -37,6 +37,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../../components/ui/tooltip";
+import TextEditor from "../../../components/TextEditor"; // adjust path
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "quill-emoji/dist/quill-emoji.css";
@@ -909,7 +910,7 @@ const Section = ({
             <CardContent className="p-3 h-auto">
               <ElementHeader label="Text Editor" element={element} />
               <div className="flex items-start gap-2 w-full">
-                <div className="flex-1 w-full">
+                {/* <div className="flex-1 w-full">
                   <ReactQuill
                     theme="snow"
                     value={element.text}
@@ -920,7 +921,15 @@ const Section = ({
                     }
                     className="min-h-[200px] [&_.ql-toolbar]:border-border [&_.ql-container]:border-border [&_.ql-editor]:bg-background [&_.ql-editor]:text-foreground"
                   />
-                </div>
+                </div> */}
+                <div className="flex-1 w-full">
+  <TextEditor
+    value={element.text}
+    onChange={(newText) =>
+      handleQuillChange(element.id, newText)
+    }
+  />
+</div>
                 {actionButtons}
               </div>
             </CardContent>

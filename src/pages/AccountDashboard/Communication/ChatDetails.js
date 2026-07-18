@@ -27,6 +27,7 @@ import { Input } from "../../../components/ui/input";
 import Editor from "../../../components/Editor";
 import { useAuth } from "../../../context/AuthContext";
 import { chatAPI } from "../../../services/api";
+import TextEditor from "../../../components/TextEditor";
 import { MoreVertical, Printer, MailOpen, Mail } from "lucide-react";
 const ChatDetails = ({
   chat,
@@ -772,7 +773,8 @@ const handleSaveUserChange = async () => {
             <DialogTitle>Edit Message</DialogTitle>
           </DialogHeader>
           <div className="min-h-[200px]">
-            <Editor onChange={setEditContent} value={editContent} />
+            {/* <Editor onChange={setEditContent} value={editContent} /> */}
+            <TextEditor  value={editContent} onChange={setEditContent} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCancelEdit}>
@@ -974,7 +976,8 @@ const handleSaveUserChange = async () => {
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <Editor onChange={handleEditorChange} value={editorContent} />
+              {/* <Editor onChange={handleEditorChange} value={editorContent} /> */}
+              <TextEditor value={editorContent} onChange={handleEditorChange} />
             </div>
             <Button
               onClick={() => updateChatDescription()}

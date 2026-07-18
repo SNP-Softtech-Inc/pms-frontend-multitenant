@@ -270,7 +270,7 @@ export default function Editor({ initialContent, onChange, value }) {
 
   const modules = {
     toolbar: [
-      [{ 'font': [] }, { 'size': [] }],
+      [{ 'font': [] }],
       [{ 'header': '1' }, { 'header': '2' }, { 'align': [] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'script': 'sub' }, { 'script': 'super' }],

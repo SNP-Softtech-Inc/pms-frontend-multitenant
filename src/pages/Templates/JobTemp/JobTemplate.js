@@ -24,7 +24,7 @@ import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
 import { templateAPI } from "../../../services/api";
 import Priority from "../../../components/Priority";
-import EditorShortcodes from "../../../components/EditorShortcodes";
+import EditorShortcodes from "../../../components/TextEditorShortCodes";
 import MultiSelectDropdown from "../../../components/MultiSelectDropdown";
 
 dayjs.extend(customParseFormat);

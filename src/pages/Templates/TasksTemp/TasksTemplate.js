@@ -39,7 +39,7 @@ import { FormPage, FormSection, FormRow, FormGrid, FormSwitchRow, FormSubtaskIte
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "../../../components/ui/form";
 import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
-
+import TextEditor from "../../../components/TextEditor";
 // Validation Schema
 const taskTemplateSchema = z.object({
   templatename: z.string().min(1, "Template name is required"),
@@ -623,9 +623,16 @@ dueDate: data.enddate
 
                 {/* Description Section */}
                 <FormSection title="Description">
-                  <Editor
+                  {/* <Editor
                     onChange={handleEditorChange}
                     value={form.watch("description")}
+                  /> */}
+                  <TextEditor
+                    value={form.watch("description")}
+                    onChange={(content) => {
+                      form.setValue("description", content);
+                      setDescription(content);
+                    }}
                   />
                 </FormSection>
 
