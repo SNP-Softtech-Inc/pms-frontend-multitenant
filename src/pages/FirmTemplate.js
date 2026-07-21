@@ -180,12 +180,12 @@ const FirmTemplate = () => {
 
       {/* MAIN CONTENT */}
       <main
-        className="
-          p-6
-          bg-background
-        "
+        // className="
+        //   p-6
+        //   bg-background
+        // "
       >
-        <div
+        {/* <div
           className="
             rounded-2xl
             border border-border
@@ -194,9 +194,9 @@ const FirmTemplate = () => {
             shadow-sm
             p-5
           "
-        >
+        > */}
           <Outlet />
-        </div>
+        {/* </div> */}
       </main>
     </div>
   );

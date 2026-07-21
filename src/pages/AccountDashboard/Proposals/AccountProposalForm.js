@@ -1816,6 +1816,7 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
+   
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <Button variant="ghost" size="icon" onClick={handleBackToList} className="shrink-0">
             <ArrowLeft className="h-4 w-4" />

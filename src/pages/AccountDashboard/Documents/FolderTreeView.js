@@ -4468,6 +4468,12 @@ const [auditLoading, setAuditLoading] = useState(false);
                         label: isLocked ? "Unlock" : "Lock",
                         action: () => toggleReadOnly(item),
                       },
+                        {
+    icon: <History className="h-4 w-4" />,
+    label: "Audit Trail",
+    action: () => handleOpenAuditTrail(item),
+  }
+,
                       {
                         icon: <Trash2 className="h-4 w-4" />,
                         label: "Delete",
