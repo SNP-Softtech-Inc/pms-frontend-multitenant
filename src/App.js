@@ -94,8 +94,8 @@ function App() {
         }
       >
         <Route
-          // path="/insights"
-          index
+          path="/insights"
+          // index
           element={
             <ProtectedRoute>
               <Insights />

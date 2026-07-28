@@ -344,25 +344,57 @@ return (
                 // const lastMessageSender = lastMessage?.fromwhome === "Admin" 
                 //   ? (lastMessage.senderid || "You")
                 //   : (lastMessage.senderid || "Client");
-                const lastMessage =
-  chat.description && chat.description.length > 0
+//                 const lastMessage =
+//   chat.description && chat.description.length > 0
+//     ? chat.description[chat.description.length - 1]
+//     : null;
+
+// const lastMessageText = lastMessage
+//   ? lastMessage.message?.replace(/<[^>]+>/g, "")
+//   : "no messages yet";
+
+// const lastMessageSender = !lastMessage
+//   ? ""
+//   : lastMessage.fromwhome === "Admin"
+//   ? (lastMessage.senderid || "You")
+//   : (lastMessage.senderid || "Client");
+//                 // Truncate message to 50 characters
+                // const truncatedMessage = lastMessageText.length > 50 
+                //   ? lastMessageText.substring(0, 50) + "..." 
+                //   : lastMessageText;
+
+
+const lastMessage =
+  chat.description?.length > 0
     ? chat.description[chat.description.length - 1]
     : null;
 
-const lastMessageText = lastMessage
-  ? lastMessage.message?.replace(/<[^>]+>/g, "")
-  : "no messages yet";
+let lastMessageText = "No messages yet";
+let imageSrc = null;
+
+if (lastMessage?.message) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(lastMessage.message, "text/html");
+
+  // Get image
+  const img = doc.querySelector("img");
+  if (img) {
+    imageSrc = img.getAttribute("src");
+  }
+
+  // Get text (if any)
+  lastMessageText = doc.body.textContent.trim();
+}
 
 const lastMessageSender = !lastMessage
   ? ""
   : lastMessage.fromwhome === "Admin"
   ? (lastMessage.senderid || "You")
   : (lastMessage.senderid || "Client");
-                // Truncate message to 50 characters
-                const truncatedMessage = lastMessageText.length > 50 
+
+                  const truncatedMessage = lastMessageText.length > 50 
                   ? lastMessageText.substring(0, 50) + "..." 
                   : lastMessageText;
-
                 return (
                   <div
                     key={chat._id}
@@ -434,7 +466,7 @@ const lastMessageSender = !lastMessage
                             {truncatedMessage}
                           </span>
                         </div> */}
-                        <div className="flex items-center gap-1 min-w-0 flex-1">
+                        {/* <div className="flex items-center gap-1 min-w-0 flex-1">
   {lastMessage && (
     <span className="text-[10px] font-semibold text-muted-foreground shrink-0">
       {lastMessageSender}:
@@ -452,6 +484,38 @@ const lastMessageSender = !lastMessage
   >
     {truncatedMessage}
   </span>
+</div> */}
+<div className="flex items-center gap-1 min-w-0 flex-1">
+  {lastMessage && (
+    <span className="text-[10px] font-semibold text-muted-foreground shrink-0">
+      {lastMessageSender}:
+    </span>
+  )}
+
+  {imageSrc ? (
+    <>
+      <img
+        src={imageSrc}
+        alt="preview"
+        className="w-5 h-5 rounded object-cover shrink-0"
+      />
+
+      <span className="text-[10px] text-muted-foreground truncate">
+        {lastMessageText ? lastMessageText : "Photo"}
+      </span>
+    </>
+  ) : (
+    <span
+      className="text-[10px] text-muted-foreground truncate"
+      style={{
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}
+    >
+      {lastMessageText}
+    </span>
+  )}
 </div>
                         {unread > 0 && (
                           <div className="shrink-0">

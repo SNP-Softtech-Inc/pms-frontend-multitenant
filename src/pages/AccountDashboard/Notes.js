@@ -34,6 +34,8 @@ import {
 import { accountNoteAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../components/ConfirmDialogContext";
+import { X, ChevronDown,  } from "lucide-react";
+import { Label } from "../../components/ui/label";
 
 const NoteApp = () => {
   const { accountId } = useParams();
@@ -110,8 +112,9 @@ const handleAddNote = async () => {
     noteData: newNoteText,
     createdBy: user?.username || user?.firstName || "Unknown",
   };
-
+console.log("note details",payload)
   try {
+    
     await accountNoteAPI.createNote(payload);
 
     showToast({
@@ -251,62 +254,153 @@ return (
         </CardContent>
       </Card>
     )} */}
-<Drawer open={openDrawer} onOpenChange={setOpenDrawer}>
-  <DrawerContent className="max-w-3xl mx-auto">
+{openDrawer && (
+  <div className="fixed inset-0 z-50 overflow-hidden">
+    {/* Overlay */}
+    <div
+      className="absolute inset-0 bg-black/40 backdrop-blur-sm dark:bg-black/60"
+      onClick={() => setOpenDrawer(false)}
+    />
 
-    <DrawerHeader>
-      <DrawerTitle>Create Note</DrawerTitle>
-      <DrawerDescription>
-        Add a title and description for this note.
-      </DrawerDescription>
-    </DrawerHeader>
+    {/* Drawer */}
+    <div
+      className="
+        absolute right-0 top-0
+        flex h-full w-full flex-col
+        bg-background text-foreground
+        border-l border-border
+        shadow-2xl
+        sm:w-[650px]
+      "
+    >
+      {/* Header */}
+      <div
+        className="
+          flex items-center justify-between
+          border-b border-border
+          bg-muted/30 dark:bg-muted/10
+          px-6 py-5 shrink-0
+        "
+      >
+        <div>
+          <h2
+            className="font-semibold text-foreground"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(1.05rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            Create Note
+          </h2>
 
-    <div className="px-6 pb-4 space-y-5">
+          <p
+            className="mt-1 text-muted-foreground"
+            style={{
+              fontFamily: "var(--font-family)",
+              fontSize:
+                "calc(0.78rem * parseFloat(var(--font-scale)) / 100)",
+            }}
+          >
+            Add a title and description for this note.
+          </p>
+        </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          Title
-        </label>
-
-        <Input
-          placeholder="Enter note title..."
-          value={newNoteTitle}
-          onChange={(e) => setNewNoteTitle(e.target.value)}
-        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setOpenDrawer(false)}
+          className="
+            rounded-xl
+            text-muted-foreground
+            hover:bg-muted
+            hover:text-foreground
+          "
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          Description
-        </label>
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="space-y-6">
+          {/* Title */}
+          <div
+            className="
+              rounded-2xl
+              border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-2">
+              <Label>Title</Label>
 
-        <Editor
-          value={newNoteText}
-          onChange={setNewNoteText}
-        />
+              <Input
+                placeholder="Enter note title..."
+                value={newNoteTitle}
+                onChange={(e) => setNewNoteTitle(e.target.value)}
+                className="
+                  h-11 rounded-xl
+                  border-border
+                  bg-background
+                  shadow-sm
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/20
+                "
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div
+            className="
+              rounded-2xl
+              border border-border
+              bg-card dark:bg-card/70
+              p-5 shadow-sm
+            "
+          >
+            <div className="space-y-2">
+              <Label>Description</Label>
+
+              <Editor
+                value={newNoteText}
+                onChange={setNewNoteText}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-    </div>
-
-    <DrawerFooter className="flex-row justify-end gap-2">
-
-      <DrawerClose asChild>
-        <Button variant="outline">
+      {/* Footer */}
+      <div
+        className="
+          flex items-center justify-end gap-3
+          border-t border-border
+          bg-muted/20 dark:bg-muted/10
+          px-6 py-4 shrink-0
+        "
+      >
+        <Button
+          variant="outline"
+          onClick={() => setOpenDrawer(false)}
+          className="rounded-xl"
+        >
           Cancel
         </Button>
-      </DrawerClose>
 
-      <Button
-        onClick={handleAddNote}
-        disabled={!newNoteTitle.trim()}
-      >
-        Save Note
-      </Button>
-
-    </DrawerFooter>
-
-  </DrawerContent>
-</Drawer>
+        <Button
+          onClick={handleAddNote}
+          disabled={!newNoteTitle.trim()}
+          className="rounded-xl"
+        >
+          Save Note
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
     {/* Notes List */}
     <div className="space-y-5">
       {filtered.map((note) => (

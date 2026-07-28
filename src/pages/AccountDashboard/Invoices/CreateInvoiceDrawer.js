@@ -1192,7 +1192,7 @@ const {showToast} = useToastContext();
   const [loadingServices, setLoadingServices] = useState(false);
   const [categoryData, setCategoryData] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
-
+const [invoiceStatus,setInvoiceStatus]= useState("")
   // Drawer states
   const [isNewServiceDrawerOpen, setIsNewServiceDrawerOpen] = useState(false);
   const [isEditItemDrawerOpen, setIsEditItemDrawerOpen] = useState(false);
@@ -1327,10 +1327,11 @@ const {showToast} = useToastContext();
       //     label: invoice.account.accountName,
       //   });
       // }
+      setSelectedAccount(invoice.account)
 
       // Invoice Number
       setinvoicenumber(invoice.invoicenumber || "");
-
+setInvoiceStatus(invoice.invoiceStatus)
       // Date
       setStartDate(dayjs(invoice.invoicedate));
 
@@ -1837,6 +1838,15 @@ const {showToast} = useToastContext();
   };
   const [saving, setSaving] = useState(false);
   const handleSave = async () => {
+    // Check if trying to edit a paid invoice
+  if (isEditMode && invoiceStatus === "Paid") {
+    showToast({
+      title: "Cannot update paid invoices",
+      type: "info",
+    });
+    return;
+  }
+
     if (!selectedAccount) {
       setAccountError("Account is required");
       return;
@@ -2481,8 +2491,10 @@ const {showToast} = useToastContext();
             <Button variant="outline" onClick={handleDrawerClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isEditMode && invoiceStatus === "Paid"}
+>
               {/* {isEditMode ? "Update" : "Save"} */}
+              
               {saving ? (
     <>
   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -2542,6 +2554,7 @@ const {showToast} = useToastContext();
         companyInfo={companyInfo}
         clientInfo={clientInfo}
         currency="$"
+
       />
     </>
   );

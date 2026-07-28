@@ -1041,7 +1041,11 @@ import {
   Alert,
   AlertDescription,
 } from "../../components/ui/alert";
-
+import {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+} from "../../services/tokenService";
 const MyAccount = () => {
   const navigate = useNavigate();
 
@@ -1049,10 +1053,11 @@ const MyAccount = () => {
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
   const USER_URL = process.env.REACT_APP_AUTH_USER;
 
-  const { user, updateUserData, logout } = useAuth();
+  const { user,  logout } = useAuth();
 const { showToast } = useToastContext();
   console.log("users deatils", user);
-
+const expiresAt = user?.expiresAt;
+console.log("shdgjhsdcsd",expiresAt)
   // ================= STATES =================
 
   const [isEditable, setIsEditable] = useState(false);
@@ -1126,48 +1131,37 @@ const { showToast } = useToastContext();
   };
 
   // ================= SESSION TRACKER =================
+useEffect(() => {
+  if (!expiresAt) return;
 
-  useEffect(() => {
-    const updateSignedTime = () => {
-      const expiry = localStorage.getItem("sessionExpiry");
+  const updateSignedTime = () => {
+    const remainingSeconds = Math.max(
+      0,
+      Math.floor((expiresAt - Date.now()) / 1000)
+    );
 
-      if (!expiry) return;
-
-      const remainingMs = Number(expiry) - Date.now();
-
-      if (remainingMs <= 0) {
-        setSignedTime(0);
-      } else {
-        setSignedTime(Math.floor(remainingMs / 1000));
-      }
-    };
-
-    updateSignedTime();
-
-    const interval = setInterval(updateSignedTime, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const formatTimePeriod = (seconds) => {
-    if (!seconds) return "";
-
-    if (seconds < 3600) {
-      const mins = Math.ceil(seconds / 60);
-
-      return `${mins} minute${mins > 1 ? "s" : ""}`;
-    } else {
-      const hours = Math.floor(seconds / 3600);
-
-      const minutes = Math.floor((seconds % 3600) / 60);
-
-      return minutes > 0
-        ? `${hours} hour${hours > 1 ? "s" : ""} ${minutes} minute${
-            minutes > 1 ? "s" : ""
-          }`
-        : `${hours} hour${hours > 1 ? "s" : ""}`;
-    }
+    setSignedTime(remainingSeconds);
   };
+
+  updateSignedTime();
+
+  const interval = setInterval(updateSignedTime, 1000);
+
+  return () => clearInterval(interval);
+}, [expiresAt]);
+
+const formatTimePeriod = (seconds) => {
+  if (seconds <= 0) return "Expired";
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  if (hours > 0) {
+    return `${hours} hr ${minutes} min`;
+  }
+
+  return `${minutes} min`;
+};
 
   // ================= FETCH USER =================
 
@@ -1295,9 +1289,9 @@ const { showToast } = useToastContext();
         type: "success",
       });
 
-      if (res.data?.user) {
-        updateUserData(res.data.user);
-      }
+      // if (res.data?.user) {
+      //   updateUserData(res.data.user);
+      // }
 
       if (res.data?.user?.profilePicture) {
         setCurrentImage(res.data.user.profilePicture);
@@ -1711,8 +1705,8 @@ const { showToast } = useToastContext();
 
   const handleConnectGmail = async () => {
     try {
-      const token = localStorage.getItem("token");
-
+      // const token = localStorage.getItem("token");
+   const token = getAccessToken();
       if (!token) {
         showToast({
           title: "Login token missing",

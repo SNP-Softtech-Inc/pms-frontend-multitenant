@@ -127,8 +127,8 @@ const GeneralStep = ({
   
 // const fetchAccounts = async () => {
 //   try {
-//     const storedUserRole = localStorage.getItem("userRole");
-//     const storedData = JSON.parse(localStorage.getItem("teamMemberData"));
+//     const storedUserRole = sessionStorage.getItem("userRole");
+//     const storedData = JSON.parse(sessionStorage.getItem("teamMemberData"));
 //     const loginuserid = storedData?.teammember?.userid;
 //     const viewAllAccounts = storedData?.teammember?.viewallAccounts;
 
@@ -230,8 +230,8 @@ const fetchAccounts = async () => {
     }
 
     // === 2. Proceed with existing API fetch logic ===
-    const storedUserRole = localStorage.getItem("userRole");
-    const storedData = JSON.parse(localStorage.getItem("teamMemberData"));
+    const storedUserRole = sessionStorage.getItem("userRole");
+    const storedData = JSON.parse(sessionStorage.getItem("teamMemberData"));
     const loginuserid = storedData?.teammember?.userid;
     const viewAllAccounts = storedData?.teammember?.viewallAccounts;
 

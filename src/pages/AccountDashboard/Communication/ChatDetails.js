@@ -327,29 +327,50 @@ const handleSaveUserChange = async () => {
     }
   };
 
-  const updateAdminChatDescription = async (description) => {
-    if (!description.trim()) return;
-    try {
-      await chatAPI.updateChatDescription(chatId, {
-        newDescriptions: [
-          { message: description, fromwhome: "Admin", senderid: senderName },
-        ],
-      });
-      showToast({
-        title: "Chat description updated successfully",
-        type: "success",
-      });
-      getsChatDetails();
-      await updatechatStatus(chatId);
-      accountwiseChatlist(data, isActiveTrue);
-    } catch (error) {
-      showToast({
-        title: "Failed to update chat description",
-        type: "error",
-      });
-    }
-  };
+  // const updateAdminChatDescription = async (description) => {
+  //   if (!description.trim()) return;
+  //   try {
+  //     await chatAPI.updateChatDescription(chatId, {
+  //       newDescriptions: [
+  //         { message: description, fromwhome: "Admin", senderid: senderName },
+  //       ],
+  //     });
+  //     showToast({
+  //       title: "Chat description updated successfully",
+  //       type: "success",
+  //     });
+  //     getsChatDetails();
+  //     await updatechatStatus(chatId);
+  //     accountwiseChatlist(data, isActiveTrue);
+  //   } catch (error) {
+  //     showToast({
+  //       title: "Failed to update chat description",
+  //       type: "error",
+  //     });
+  //   }
+  // };
+const updateAdminChatDescription = async (message) => {
+  if (!message.trim()) return;
 
+  const formData = new FormData();
+
+  formData.append(
+    "newDescriptions",
+    JSON.stringify([
+      {
+        message,
+        fromwhome: "Admin",
+        senderid: senderName,
+      },
+    ])
+  );
+
+  attachments.forEach((file) => {
+    formData.append("attachments", file);
+  });
+
+  await chatAPI.updateChatDescription(chatId, formData);
+};
   const handleDeleteMessage = async (messageToDelete) => {
     try {
       await chatAPI.deleteMessage({ chatId, messageId: messageToDelete._id });

@@ -1,5 +1,9 @@
 import axios from "axios";
-
+import {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+} from "../services/tokenService";
 // ================= BASE URLs =================
 const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
 const SIDEBAR_URL = process.env.REACT_APP_SIDEBAR;
@@ -19,6 +23,8 @@ const SIGNATURE_API = process.env.REACT_APP_ESIGNATURE_API;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -26,6 +32,8 @@ const authUserApi = axios.create({
 
 const sidebarApi = axios.create({
   baseURL: SIDEBAR_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -33,6 +41,8 @@ const sidebarApi = axios.create({
 
 const templateApi = axios.create({
   baseURL: TEMPLATE_URL, // include /temp here
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -40,19 +50,25 @@ const templateApi = axios.create({
 
 const accountcontactApi = axios.create({
   baseURL: ACCOUNT_CONTACT_URL,
+      withCredentials: true,
+
   headers: {
+
     "Content-Type": "application/json",
   },
 });
 
 const proposalApi = axios.create({
   baseURL: PROPOSAL_URL, // e.g. http://localhost:8023/api/proposals
-  headers: {
+     withCredentials: true,
+ headers: {
     "Content-Type": "application/json",
   },
 });
 const organizerApi = axios.create({
   baseURL: ORGANIZER_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -60,18 +76,24 @@ const organizerApi = axios.create({
 
 const folderManagementApi = axios.create({
   baseURL: FOLDER_MANAGEMENT_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
 });
 const chatApi = axios.create({
   baseURL: CHAT_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
 });
 const invoiceApi = axios.create({
   baseURL: INVOICE_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -79,30 +101,40 @@ const invoiceApi = axios.create({
 
 const jobsApi = axios.create({
   baseURL: JOBS_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
 });
 const accountTasksApi = axios.create({
   baseURL: ACCOUNT_TASKS_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
 });
 const internalChatApi = axios.create({
   baseURL: INTERNAL_CHAT_URL,
+      withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
 });
 const emailSyncApi = axios.create({
   baseURL: EMAIL_SYNC,
+      withCredentials: true,
+
   headers:{
     "Content-Type": "application/json",
   }
 });
 const accNoteApi = axios.create({
   baseURL: ACCOUNT_NOTE,
+      withCredentials: true,
+
   headers:{
         "Content-Type": "application/json",
 
@@ -110,84 +142,205 @@ const accNoteApi = axios.create({
 });
 const signatureApi = axios.create({ 
   baseURL: SIGNATURE_API,
+   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 // ================= COMMON INTERCEPTORS =================
-const attachInterceptors = (api) => {
-  // REQUEST INTERCEPTOR (Attach Token)
+// const attachInterceptors = (api) => {
+//   // REQUEST INTERCEPTOR (Attach Token)
+//   api.interceptors.request.use(
+//     (config) => {
+//      const token = getAccessToken();
+
+//       if (token) {
+//         config.headers.Authorization = `Bearer ${token}`;
+//       }
+
+//       return config;
+//     },
+//     (error) => Promise.reject(error),
+//   );
+
+//   // RESPONSE INTERCEPTOR (Handle 401)
+//   api.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//       const originalRequest = error.config;
+
+//       if (error.response?.status === 401 && !originalRequest?._retry) {
+//         originalRequest._retry = true;
+
+//         const message = error.response?.data?.message || "";
+
+//         if (
+//           message.includes("token") ||
+//           message.includes("expired") ||
+//           message.includes("unauthorized")
+//         ) {
+//           // Clear storage
+//           localStorage.removeItem("token");
+//           localStorage.removeItem("usersdatatoken");
+//           localStorage.removeItem("user");
+//           localStorage.removeItem("roleData");
+//           localStorage.removeItem("rememberMe");
+
+//           // Redirect to login
+//           if (!window.location.pathname.includes("/login")) {
+//             window.location.href = "/login";
+//           }
+//         }
+//       }
+
+//       return Promise.reject(error);
+//     },
+//   );
+// };
+const attachInterceptors = (api, authApi) => {
+  // ================= REQUEST =================
   api.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem("token");
-
-      if (token) {
+      const token = getAccessToken();
+console.log("gets assess token from cookies",getAccessToken());
+      if (
+        token &&
+        !config.url?.includes("/api/auth/login") &&
+        !config.url?.includes("/api/auth/refresh") &&
+        !config.url?.includes("/api/auth/get-users")
+      ) {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
       return config;
     },
-    (error) => Promise.reject(error),
+    (error) => Promise.reject(error)
   );
 
-  // RESPONSE INTERCEPTOR (Handle 401)
+  // ================= RESPONSE =================
   api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      const originalRequest = error.config;
+  response => response,
 
-      if (error.response?.status === 401 && !originalRequest?._retry) {
-        originalRequest._retry = true;
+  async (error) => {
 
-        const message = error.response?.data?.message || "";
+    const originalRequest = error.config;
 
-        if (
-          message.includes("token") ||
-          message.includes("expired") ||
-          message.includes("unauthorized")
-        ) {
-          // Clear storage
-          localStorage.removeItem("token");
-          localStorage.removeItem("usersdatatoken");
-          localStorage.removeItem("user");
-          localStorage.removeItem("roleData");
-          localStorage.removeItem("rememberMe");
-
-          // Redirect to login
-          if (!window.location.pathname.includes("/login")) {
-            window.location.href = "/login";
-          }
-        }
-      }
-
+    // Don't retry refresh request
+    if (originalRequest.url?.includes("/api/auth/refresh")) {
       return Promise.reject(error);
-    },
-  );
-};
-// Interceptor to auto attach tenantId or auth token
-templateApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); // JWT stored in localStorage
-  if (token) {
-    config.headers["Authorization"] = `Bearer ${token}`;
-  }
-  return config;
-});
+    }
 
-// Apply interceptors
-attachInterceptors(authUserApi);
-attachInterceptors(sidebarApi);
-attachInterceptors(accountcontactApi);
-attachInterceptors(proposalApi);
-attachInterceptors(organizerApi);
-attachInterceptors(folderManagementApi);
-attachInterceptors(chatApi);
-attachInterceptors(invoiceApi);
-attachInterceptors(jobsApi);
-attachInterceptors(accountTasksApi);
-attachInterceptors(internalChatApi);
-attachInterceptors(emailSyncApi);
-attachInterceptors(accNoteApi);
-attachInterceptors(signatureApi);
+    // Don't retry public APIs
+    const publicRoutes = [
+      "/api/auth/login",
+      "/api/auth/get-users",
+      "/api/auth/send-otp",
+      "/api/auth/verify-otp",
+      "/api/auth/resend-otp",
+      "/api/auth/forgot-password",
+      "/api/auth/register",
+    ];
+
+    if (
+      publicRoutes.some(route => originalRequest.url?.includes(route))
+    ) {
+      return Promise.reject(error);
+    }
+
+    // if (
+    //   error.response?.status === 401 &&
+    //   !originalRequest._retry
+    // ) {
+    //   originalRequest._retry = true;
+
+    //   try {
+    //     const res = await authApi.get("/api/auth/refresh");
+
+    //     setAccessToken(res.data.accessToken);
+
+    //     originalRequest.headers.Authorization =
+    //       `Bearer ${res.data.accessToken}`;
+
+    //     return api(originalRequest);
+
+    //   } catch (err) {
+
+    //     clearAccessToken();
+
+    //     localStorage.removeItem("user");
+    //     localStorage.removeItem("roleData");
+
+    //     // window.location.href = "/login";
+
+    //     return Promise.reject(err);
+    //   }
+    // }
+if (
+    error.response?.status === 401 &&
+    !originalRequest._retry &&
+    !originalRequest.url.includes("/auth/login") &&
+    !originalRequest.url.includes("/auth/refresh")
+) {
+    originalRequest._retry = true;
+
+    try {
+        const refreshResponse = await authAPI.refresh();
+
+        setAccessToken(refreshResponse.data.accessToken);
+
+        originalRequest.headers.Authorization =
+            `Bearer ${refreshResponse.data.accessToken}`;
+
+        return api(originalRequest);
+
+    } catch (refreshError) {
+
+        localStorage.clear();
+
+        window.location.href = "/admin/login";
+
+        return Promise.reject(refreshError);
+    }
+}
+    return Promise.reject(error);
+  }
+);
+};
+
+
+// // Apply interceptors
+// attachInterceptors(authUserApi);
+// attachInterceptors(sidebarApi);
+// attachInterceptors(accountcontactApi);
+// attachInterceptors(proposalApi);
+// attachInterceptors(organizerApi);
+// attachInterceptors(folderManagementApi);
+// attachInterceptors(chatApi);
+// attachInterceptors(invoiceApi);
+// attachInterceptors(jobsApi);
+// attachInterceptors(accountTasksApi);
+// attachInterceptors(internalChatApi);
+// attachInterceptors(emailSyncApi);
+// attachInterceptors(accNoteApi);
+// attachInterceptors(signatureApi);
+// attachInterceptors(templateApi)
+
+attachInterceptors(authUserApi, authUserApi);
+attachInterceptors(sidebarApi, authUserApi);
+attachInterceptors(accountcontactApi, authUserApi);
+attachInterceptors(proposalApi, authUserApi);
+attachInterceptors(organizerApi, authUserApi);
+attachInterceptors(folderManagementApi, authUserApi);
+attachInterceptors(chatApi, authUserApi);
+attachInterceptors(invoiceApi, authUserApi);
+attachInterceptors(jobsApi, authUserApi);
+attachInterceptors(accountTasksApi, authUserApi);
+attachInterceptors(internalChatApi, authUserApi);
+attachInterceptors(emailSyncApi, authUserApi);
+attachInterceptors(accNoteApi, authUserApi);
+attachInterceptors(signatureApi, authUserApi);
+attachInterceptors(templateApi, authUserApi);
+
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -215,6 +368,9 @@ login: ({ email, password, expiryTime, userId }) =>
 
   getUsersByEmail: (email) =>
     authUserApi.post("/api/auth/get-users", { email }),
+
+   // Get Current Logged-in User
+getCurrentUser: () => authUserApi.get("/api/auth/me"),
   // ✅ NEW API
   getAllUsers: (params) => authUserApi.post("/api/auth/users", { params }),
   getSingleUser: (id) => authUserApi.get(`/api/auth/user/${id}`),
@@ -239,7 +395,8 @@ login: ({ email, password, expiryTime, userId }) =>
   logout: () => authUserApi.post("/api/auth/logout"),
 
   forgotPassword: (data) => authUserApi.post("/api/auth/forgot-password", data),
-
+refresh: () =>
+    authUserApi.get("/api/auth/refresh"),
   resetPassword: (id, token, data) =>
     authUserApi.post(`/api/auth/reset-password/${id}/${token}`, data),
 
@@ -387,6 +544,9 @@ getEmailCommunications: () =>
     // Get attachment data by attachment ID
   getAttachmentData: (attachmentId) =>
     authUserApi.get(`/api/emailsync/attachment/${attachmentId}`),
+
+ 
+
 };
 
 // ================= SIDEBAR APIs =================
