@@ -27,7 +27,7 @@ const LogoutButton = () => {
 
   const navigate = useNavigate();
     const { user } = useAuth();
-  console.log("sgsdgsf",user)
+  console.log("logged user in login buuton",user)
   const [logoutDialog, setLogoutDialog] = useState({
     open: false,
     logoutAll: false,
@@ -55,7 +55,7 @@ const LogoutButton = () => {
       try {
         const res = await authAPI.getSingleUser(user.id);
         const { user: userInfo } = res.data;
-console.log("bdfgdf logged uder",res.data)
+console.log("login user",res.data)
         setUserData({
           username: userInfo?.username || "User",
           email: userInfo?.email || "email",

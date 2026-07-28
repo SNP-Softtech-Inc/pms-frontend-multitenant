@@ -1,7 +1,8 @@
 import axios from "axios";
 import {
   getAccessToken,
-  setAccessToken,
+   setAccessToken as saveAccessToken,
+  // getAccessToken,
   clearAccessToken,
 } from "../services/tokenService";
 // ================= BASE URLs =================
@@ -148,67 +149,31 @@ const signatureApi = axios.create({
   },
 });
 // ================= COMMON INTERCEPTORS =================
-// const attachInterceptors = (api) => {
-//   // REQUEST INTERCEPTOR (Attach Token)
-//   api.interceptors.request.use(
-//     (config) => {
-//      const token = getAccessToken();
 
-//       if (token) {
-//         config.headers.Authorization = `Bearer ${token}`;
-//       }
 
-//       return config;
-//     },
-//     (error) => Promise.reject(error),
-//   );
+// =================== REFRESH STATE ===================
 
-//   // RESPONSE INTERCEPTOR (Handle 401)
-//   api.interceptors.response.use(
-//     (response) => response,
-//     (error) => {
-//       const originalRequest = error.config;
+let isRefreshing = false;
+let failedQueue = [];
 
-//       if (error.response?.status === 401 && !originalRequest?._retry) {
-//         originalRequest._retry = true;
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
+  });
 
-//         const message = error.response?.data?.message || "";
+  failedQueue = [];
+};
 
-//         if (
-//           message.includes("token") ||
-//           message.includes("expired") ||
-//           message.includes("unauthorized")
-//         ) {
-//           // Clear storage
-//           localStorage.removeItem("token");
-//           localStorage.removeItem("usersdatatoken");
-//           localStorage.removeItem("user");
-//           localStorage.removeItem("roleData");
-//           localStorage.removeItem("rememberMe");
+// =================== ATTACH INTERCEPTORS ===================
 
-//           // Redirect to login
-//           if (!window.location.pathname.includes("/login")) {
-//             window.location.href = "/login";
-//           }
-//         }
-//       }
-
-//       return Promise.reject(error);
-//     },
-//   );
-// };
-const attachInterceptors = (api, authApi) => {
-  // ================= REQUEST =================
+const attachInterceptors = (api) => {
+  // Request
   api.interceptors.request.use(
     (config) => {
       const token = getAccessToken();
-console.log("gets assess token from cookies",getAccessToken());
-      if (
-        token &&
-        !config.url?.includes("/api/auth/login") &&
-        !config.url?.includes("/api/auth/refresh") &&
-        !config.url?.includes("/api/auth/get-users")
-      ) {
+
+      if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
@@ -217,129 +182,84 @@ console.log("gets assess token from cookies",getAccessToken());
     (error) => Promise.reject(error)
   );
 
-  // ================= RESPONSE =================
+  // Response
   api.interceptors.response.use(
-  response => response,
+    (response) => response,
 
-  async (error) => {
+    async (error) => {
+      const originalRequest = error.config;
 
-    const originalRequest = error.config;
+      if (
+        error.response?.status !== 401 ||
+        originalRequest._retry ||
+        originalRequest.url.includes("/api/auth/login") ||
+        originalRequest.url.includes("/api/auth/refresh-token")
+      ) {
+        return Promise.reject(error);
+      }
 
-    // Don't retry refresh request
-    if (originalRequest.url?.includes("/api/auth/refresh")) {
-      return Promise.reject(error);
-    }
+      originalRequest._retry = true;
 
-    // Don't retry public APIs
-    const publicRoutes = [
-      "/api/auth/login",
-      "/api/auth/get-users",
-      "/api/auth/send-otp",
-      "/api/auth/verify-otp",
-      "/api/auth/resend-otp",
-      "/api/auth/forgot-password",
-      "/api/auth/register",
-    ];
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
 
-    if (
-      publicRoutes.some(route => originalRequest.url?.includes(route))
-    ) {
-      return Promise.reject(error);
-    }
+      isRefreshing = true;
 
-    // if (
-    //   error.response?.status === 401 &&
-    //   !originalRequest._retry
-    // ) {
-    //   originalRequest._retry = true;
+      try {
+        // const { data } = await authAPI.refresh();
+const { data } = await axios.post(
+  `${AUTH_USER_URL}/api/auth/refresh-token`,
+  {},
+  {
+    withCredentials: true,
+  }
+);
+      //  setAccessToken(data.accessToken);
+saveAccessToken(data.accessToken);
+        processQueue(null, data.accessToken);
 
-    //   try {
-    //     const res = await authApi.get("/api/auth/refresh");
-
-    //     setAccessToken(res.data.accessToken);
-
-    //     originalRequest.headers.Authorization =
-    //       `Bearer ${res.data.accessToken}`;
-
-    //     return api(originalRequest);
-
-    //   } catch (err) {
-
-    //     clearAccessToken();
-
-    //     localStorage.removeItem("user");
-    //     localStorage.removeItem("roleData");
-
-    //     // window.location.href = "/login";
-
-    //     return Promise.reject(err);
-    //   }
-    // }
-if (
-    error.response?.status === 401 &&
-    !originalRequest._retry &&
-    !originalRequest.url.includes("/auth/login") &&
-    !originalRequest.url.includes("/auth/refresh")
-) {
-    originalRequest._retry = true;
-
-    try {
-        const refreshResponse = await authAPI.refresh();
-
-        setAccessToken(refreshResponse.data.accessToken);
-
-        originalRequest.headers.Authorization =
-            `Bearer ${refreshResponse.data.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
 
         return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
 
-    } catch (refreshError) {
+        clearAccessToken();
 
-        localStorage.clear();
+        localStorage.removeItem("user");
 
         window.location.href = "/admin/login";
 
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
-}
-    return Promise.reject(error);
-  }
-);
+  );
 };
-
-
 // // Apply interceptors
-// attachInterceptors(authUserApi);
-// attachInterceptors(sidebarApi);
-// attachInterceptors(accountcontactApi);
-// attachInterceptors(proposalApi);
-// attachInterceptors(organizerApi);
-// attachInterceptors(folderManagementApi);
-// attachInterceptors(chatApi);
-// attachInterceptors(invoiceApi);
-// attachInterceptors(jobsApi);
-// attachInterceptors(accountTasksApi);
-// attachInterceptors(internalChatApi);
-// attachInterceptors(emailSyncApi);
-// attachInterceptors(accNoteApi);
-// attachInterceptors(signatureApi);
-// attachInterceptors(templateApi)
+attachInterceptors(authUserApi);
+attachInterceptors(sidebarApi);
+attachInterceptors(accountcontactApi);
+attachInterceptors(proposalApi);
+attachInterceptors(organizerApi);
+attachInterceptors(folderManagementApi);
+attachInterceptors(chatApi);
+attachInterceptors(invoiceApi);
+attachInterceptors(jobsApi);
+attachInterceptors(accountTasksApi);
+attachInterceptors(internalChatApi);
+attachInterceptors(emailSyncApi);
+attachInterceptors(accNoteApi);
+attachInterceptors(signatureApi);
+attachInterceptors(templateApi)
 
-attachInterceptors(authUserApi, authUserApi);
-attachInterceptors(sidebarApi, authUserApi);
-attachInterceptors(accountcontactApi, authUserApi);
-attachInterceptors(proposalApi, authUserApi);
-attachInterceptors(organizerApi, authUserApi);
-attachInterceptors(folderManagementApi, authUserApi);
-attachInterceptors(chatApi, authUserApi);
-attachInterceptors(invoiceApi, authUserApi);
-attachInterceptors(jobsApi, authUserApi);
-attachInterceptors(accountTasksApi, authUserApi);
-attachInterceptors(internalChatApi, authUserApi);
-attachInterceptors(emailSyncApi, authUserApi);
-attachInterceptors(accNoteApi, authUserApi);
-attachInterceptors(signatureApi, authUserApi);
-attachInterceptors(templateApi, authUserApi);
 
 // ================= AUTH + USER APIs =================
 export const authAPI = {
@@ -396,7 +316,7 @@ getCurrentUser: () => authUserApi.get("/api/auth/me"),
 
   forgotPassword: (data) => authUserApi.post("/api/auth/forgot-password", data),
 refresh: () =>
-    authUserApi.get("/api/auth/refresh"),
+    authUserApi.post("/api/auth/refresh-token"),
   resetPassword: (id, token, data) =>
     authUserApi.post(`/api/auth/reset-password/${id}/${token}`, data),
 
