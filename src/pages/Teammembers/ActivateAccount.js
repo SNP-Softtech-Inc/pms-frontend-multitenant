@@ -1,412 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { useParams, useNavigate } from 'react-router-dom';
-// import {
-//   Box,
-//   Paper,
-//   Typography,
-//   TextField,
-//   Button,
-//   Alert,
-//   CircularProgress,
-//   IconButton,
-//   InputAdornment,
-//   Stepper,
-//   Step,
-//   StepLabel,
-//   Card,
-//   CardContent
-// } from '@mui/material';
-// import {
-//   Visibility,
-//   VisibilityOff,
-//   CheckCircle as CheckCircleIcon,
-//   Error as ErrorIcon
-// } from '@mui/icons-material';
-// import { toast } from 'react-toastify';
-// import { authAPI } from '../../services/api';
-
-// const ActivateAccount = () => {
-//   const { id, token } = useParams();
-//   const navigate = useNavigate();
-//   const [loading, setLoading] = useState(false);
-//   const [validating, setValidating] = useState(true);
-//   const [error, setError] = useState('');
-//   const [teamMemberData, setTeamMemberData] = useState(null);
-  
-//   // Password fields
-//   const [password, setPassword] = useState('');
-//   const [confirmPassword, setConfirmPassword] = useState('');
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-//   // Password validation
-//   const [passwordValidation, setPasswordValidation] = useState({
-//     hasMinLength: false,
-//     hasNumber: false,
-//     hasUppercase: false,
-//     hasLowercase: false,
-//     hasSymbol: false
-//   });
-
-//   // Steps
-//   const [activeStep, setActiveStep] = useState(0);
-//   const steps = ['Validate Link', 'Set Password', 'Activation Complete'];
-
-//   // Validate token on load
-//   useEffect(() => {
-//     validateToken();
-//   }, []);
-
-//   // Password validation effect
-//   useEffect(() => {
-//     setPasswordValidation({
-//       hasMinLength: password.length >= 8,
-//       hasNumber: /\d/.test(password),
-//       hasUppercase: /[A-Z]/.test(password),
-//       hasLowercase: /[a-z]/.test(password),
-//       hasSymbol: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-//     });
-//   }, [password]);
-
-//   const validateToken = async () => {
-//     setValidating(true);
-//     setError('');
-    
-//     try {
-//       const response = await authAPI.validateActivationToken(id, token);
-      
-//       if (response.data.success) {
-//         setTeamMemberData(response.data.data);
-//         setActiveStep(1);
-//         toast.success('Link verified successfully! Please set your password.');
-//       }
-//     } catch (error) {
-//       console.error('Validation error:', error);
-//       const errorMessage = error.response?.data?.message || 'Invalid or expired activation link';
-//       setError(errorMessage);
-//       setActiveStep(-1);
-//       toast.error(errorMessage);
-//     } finally {
-//       setValidating(false);
-//     }
-//   };
-
-//   const handleActivate = async (e) => {
-//     e.preventDefault();
-
-//     // Validate password
-//     const isValid = Object.values(passwordValidation).every(v => v === true);
-//     if (!isValid) {
-//       toast.error('Please meet all password requirements');
-//       return;
-//     }
-
-//     if (password !== confirmPassword) {
-//       toast.error('Passwords do not match');
-//       return;
-//     }
-
-//     setLoading(true);
-//     setError('');
-
-//     try {
-//       const response = await authAPI.activateTeamMember(id, token, password, confirmPassword);
-
-//       if (response.data.success) {
-//         setActiveStep(2);
-//         toast.success('Account activated successfully!');
-//           navigate('/login');
-//         // Redirect to login after 3 seconds
-//         // setTimeout(() => {
-//         //   navigate('/login');
-//         // }, 3000);
-//       }
-//     } catch (error) {
-//       console.error('Activation error:', error);
-//       const errorMessage = error.response?.data?.message || 'Activation failed';
-//       setError(errorMessage);
-//       toast.error(errorMessage);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleResendActivation = async () => {
-//     if (!teamMemberData?.teamMemberId) {
-//       toast.error('Team member ID not found');
-//       return;
-//     }
-
-//     setLoading(true);
-//     try {
-//       await authAPI.resendActivation(teamMemberData.teamMemberId);
-//       toast.success('New activation email sent! Please check your inbox.');
-//     } catch (error) {
-//       console.error('Resend error:', error);
-//       toast.error(error.response?.data?.message || 'Failed to resend activation email');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (validating) {
-//     return (
-//       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-//         <CircularProgress />
-//       </Box>
-//     );
-//   }
-
-//   if (activeStep === -1) {
-//     return (
-//       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#f5f5f5', p: 2 }}>
-//         <Paper sx={{ p: 4, maxWidth: 400, textAlign: 'center' }}>
-//           <ErrorIcon sx={{ fontSize: 60, color: 'error.main', mb: 2 }} />
-//           <Typography variant="h5" color="error" gutterBottom>
-//             Invalid Activation Link
-//           </Typography>
-//           <Typography variant="body1" paragraph color="text.secondary">
-//             {error || 'This activation link is invalid or has expired.'}
-//           </Typography>
-//           <Typography variant="body2" paragraph color="text.secondary">
-//             Please contact your administrator to request a new activation link.
-//           </Typography>
-//           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
-//             <Button 
-//               variant="contained" 
-//               onClick={() => navigate('/login')}
-//             >
-//               Go to Login
-//             </Button>
-//             <Button 
-//               variant="outlined" 
-//               onClick={handleResendActivation}
-//               disabled={loading}
-//             >
-//               {loading ? <CircularProgress size={20} /> : 'Resend Email'}
-//             </Button>
-//           </Box>
-//         </Paper>
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box sx={{ 
-//       minHeight: '100vh', 
-//       display: 'flex', 
-//       alignItems: 'center', 
-//       justifyContent: 'center',
-//       bgcolor: '#f5f5f5',
-//       p: 2
-//     }}>
-//       <Card sx={{ maxWidth: 500, width: '100%' }}>
-//         <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
-//           {/* Header */}
-//           <Box sx={{ textAlign: 'center', mb: 4 }}>
-//             <Typography variant="h4" sx={{ color: '#043a77', fontWeight: 700, mb: 1 }}>
-//               PMS Solutions
-//             </Typography>
-//             <Typography variant="h6" color="text.secondary">
-//               Account Activation
-//             </Typography>
-//           </Box>
-
-//           {/* Stepper */}
-//           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-//             {steps.map((label) => (
-//               <Step key={label}>
-//                 <StepLabel>{label}</StepLabel>
-//               </Step>
-//             ))}
-//           </Stepper>
-
-//           {/* Team Member Info */}
-//           {teamMemberData && activeStep >= 1 && (
-//             <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: '#f8f9fa' }}>
-//               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-//                 Account Details
-//               </Typography>
-//               <Typography variant="body2">
-//                 <strong>Name:</strong> {teamMemberData.firstName} {teamMemberData.lastName}
-//               </Typography>
-//               <Typography variant="body2">
-//                 <strong>Email:</strong> {teamMemberData.email}
-//               </Typography>
-//               <Typography variant="body2">
-//                 <strong>Role:</strong> {teamMemberData.role}
-//               </Typography>
-//               <Typography variant="body2">
-//                 <strong>Firm:</strong> {teamMemberData.firmName}
-//               </Typography>
-//             </Paper>
-//           )}
-
-//           {error && (
-//             <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-//               {error}
-//             </Alert>
-//           )}
-
-//           {/* Step 1: Set Password */}
-//           {activeStep === 1 && (
-//             <form onSubmit={handleActivate}>
-//               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-//                 Please set a strong password for your account. You'll use this password to log in.
-//               </Typography>
-
-//               <TextField
-//                 fullWidth
-//                 label="Password"
-//                 type={showPassword ? 'text' : 'password'}
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 sx={{ mb: 2 }}
-//                 disabled={loading}
-//                 InputProps={{
-//                   endAdornment: (
-//                     <InputAdornment position="end">
-//                       <IconButton 
-//                         onClick={() => setShowPassword(!showPassword)} 
-//                         edge="end"
-//                         disabled={loading}
-//                       >
-//                         {showPassword ? <VisibilityOff /> : <Visibility />}
-//                       </IconButton>
-//                     </InputAdornment>
-//                   ),
-//                 }}
-//               />
-
-//               <Box sx={{ mb: 2 }}>
-//                 <Typography variant="caption" display="block" sx={{ 
-//                   color: passwordValidation.hasMinLength ? 'success.main' : 'text.secondary',
-//                   display: 'flex',
-//                   alignItems: 'center',
-//                   gap: 0.5,
-//                   mb: 0.5
-//                 }}>
-//                   <CheckCircleIcon fontSize="inherit" color={passwordValidation.hasMinLength ? 'success' : 'disabled'} />
-//                   At least 8 characters
-//                 </Typography>
-//                 <Typography variant="caption" display="block" sx={{ 
-//                   color: passwordValidation.hasNumber ? 'success.main' : 'text.secondary',
-//                   display: 'flex',
-//                   alignItems: 'center',
-//                   gap: 0.5,
-//                   mb: 0.5
-//                 }}>
-//                   <CheckCircleIcon fontSize="inherit" color={passwordValidation.hasNumber ? 'success' : 'disabled'} />
-//                   Contains at least one number
-//                 </Typography>
-//                 <Typography variant="caption" display="block" sx={{ 
-//                   color: passwordValidation.hasUppercase ? 'success.main' : 'text.secondary',
-//                   display: 'flex',
-//                   alignItems: 'center',
-//                   gap: 0.5,
-//                   mb: 0.5
-//                 }}>
-//                   <CheckCircleIcon fontSize="inherit" color={passwordValidation.hasUppercase ? 'success' : 'disabled'} />
-//                   Contains at least one uppercase letter
-//                 </Typography>
-//                 <Typography variant="caption" display="block" sx={{ 
-//                   color: passwordValidation.hasLowercase ? 'success.main' : 'text.secondary',
-//                   display: 'flex',
-//                   alignItems: 'center',
-//                   gap: 0.5,
-//                   mb: 0.5
-//                 }}>
-//                   <CheckCircleIcon fontSize="inherit" color={passwordValidation.hasLowercase ? 'success' : 'disabled'} />
-//                   Contains at least one lowercase letter
-//                 </Typography>
-//                 <Typography variant="caption" display="block" sx={{ 
-//                   color: passwordValidation.hasSymbol ? 'success.main' : 'text.secondary',
-//                   display: 'flex',
-//                   alignItems: 'center',
-//                   gap: 0.5
-//                 }}>
-//                   <CheckCircleIcon fontSize="inherit" color={passwordValidation.hasSymbol ? 'success' : 'disabled'} />
-//                   Contains at least one special character
-//                 </Typography>
-//               </Box>
-
-//               <TextField
-//                 fullWidth
-//                 label="Confirm Password"
-//                 type={showConfirmPassword ? 'text' : 'password'}
-//                 value={confirmPassword}
-//                 onChange={(e) => setConfirmPassword(e.target.value)}
-//                 sx={{ mb: 3 }}
-//                 error={confirmPassword && password !== confirmPassword}
-//                 helperText={confirmPassword && password !== confirmPassword ? 'Passwords do not match' : ''}
-//                 disabled={loading}
-//                 InputProps={{
-//                   endAdornment: (
-//                     <InputAdornment position="end">
-//                       <IconButton 
-//                         onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
-//                         edge="end"
-//                         disabled={loading}
-//                       >
-//                         {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-//                       </IconButton>
-//                     </InputAdornment>
-//                   ),
-//                 }}
-//               />
-
-//               <Button
-//                 type="submit"
-//                 fullWidth
-//                 variant="contained"
-//                 disabled={loading}
-//                 sx={{ py: 1.5 }}
-//               >
-//                 {loading ? <CircularProgress size={24} /> : 'Activate Account'}
-//               </Button>
-
-//               <Box sx={{ mt: 2, textAlign: 'center' }}>
-//                 <Button
-//                   variant="text"
-//                   onClick={handleResendActivation}
-//                   disabled={loading}
-//                   size="small"
-//                 >
-//                   Resend Activation Email
-//                 </Button>
-//               </Box>
-//             </form>
-//           )}
-
-//           {/* Step 2: Activation Complete */}
-//           {activeStep === 2 && (
-//             <Box sx={{ textAlign: 'center' }}>
-//               <CheckCircleIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
-//               <Typography variant="h5" gutterBottom color="success.main">
-//                 Activation Complete!
-//               </Typography>
-//               <Typography variant="body1" paragraph color="text.secondary">
-//                 Your account has been successfully activated.
-//               </Typography>
-//               <Typography variant="body2" color="text.secondary" paragraph>
-//                 You will be redirected to the login page in a few seconds...
-//               </Typography>
-//               <Button
-//                 variant="contained"
-//                 onClick={() => navigate('/login')}
-//                 sx={{ mt: 2 }}
-//               >
-//                 Go to Login Now
-//               </Button>
-//             </Box>
-//           )}
-//         </CardContent>
-//       </Card>
-//     </Box>
-//   );
-// };
-
-// export default ActivateAccount;
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -419,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useToastContext } from '../../context/ToastContext';
 import { authAPI } from '../../services/api';
-
+import axios from 'axios';
 const ActivateAccount = () => {
   const { id, token } = useParams();
   const navigate = useNavigate();
@@ -428,7 +19,8 @@ const ActivateAccount = () => {
   const [validating, setValidating] = useState(true);
   const [error, setError] = useState('');
   const [teamMemberData, setTeamMemberData] = useState(null);
-  
+  const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
+
   // Password fields
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -469,17 +61,32 @@ const ActivateAccount = () => {
     setError('');
     
     try {
-      const response = await authAPI.validateActivationToken(id, token);
-      
-      if (response.data.success) {
-        setTeamMemberData(response.data.data);
-        setActiveStep(1);
-        showToast({
-          title: "Link Verified",
-          description: "Link verified successfully! Please set your password.",
-          type: "success",
-        });
-      }
+      // const response = await authAPI.validateActivationToken(id, token);
+      const { data } = await axios.get(
+  `${AUTH_USER_URL}/api/teammember/validate-activation/${id}/${token}`,
+  {
+    withCredentials: true,
+  }
+);
+console.log("responce data",data)
+      // if (response.data.success) {
+      //   setTeamMemberData(response.data.data);
+      //   setActiveStep(1);
+      //   showToast({
+      //     title: "Link Verified",
+      //     description: "Link verified successfully! Please set your password.",
+      //     type: "success",
+      //   });
+      // }
+      if (data.success) {
+  setTeamMemberData(data.data);
+setActiveStep(1);
+  showToast({
+    title: "Link Verified",
+    description: "Link verified successfully! Please set your password.",
+    type: "success",
+  });
+}
     } catch (error) {
       console.error('Validation error:', error);
       const errorMessage = error.response?.data?.message || 'Invalid or expired activation link';
@@ -495,41 +102,7 @@ const ActivateAccount = () => {
     }
   };
 
-  // const handleActivate = async (e) => {
-  //   e.preventDefault();
-
-  //   // Validate password
-  //   const isValid = Object.values(passwordValidation).every(v => v === true);
-  //   if (!isValid) {
-  //     showToast.error('Please meet all password requirements');
-  //     return;
-  //   }
-
-  //   if (password !== confirmPassword) {
-  //     toast.error('Passwords do not match');
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   setError('');
-
-  //   try {
-  //     const response = await authAPI.activateTeamMember(id, token, password, confirmPassword);
-
-  //     if (response.data.success) {
-  //       setActiveStep(2);
-  //       toast.success('Account activated successfully!');
-  //       navigate('/login');
-  //     }
-  //   } catch (error) {
-  //     console.error('Activation error:', error);
-  //     const errorMessage = error.response?.data?.message || 'Activation failed';
-  //     setError(errorMessage);
-  //     toast.error(errorMessage);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  
 const handleActivate = async (e) => {
   e.preventDefault();
 
@@ -559,23 +132,31 @@ const handleActivate = async (e) => {
   setError("");
 
   try {
-    const response = await authAPI.activateTeamMember(
-      id,
-      token,
-      password,
-      confirmPassword
-    );
-
-    if (response.data.success) {
-      setActiveStep(2);
-
+    // const response = await authAPI.activateTeamMember(
+    //   id,
+    //   token,
+    //   password,
+    //   confirmPassword
+    // );
+const { data } = await axios.post(
+  `${AUTH_USER_URL}/api/teammember/activate-team-member/${id}/${token}`,
+  {
+    password,
+    confirmPassword,
+  },
+  {
+    withCredentials: true,
+  }
+);
+    if (data.success) {
+setActiveStep(2);
       showToast({
         title: "Account activated successfully!",
         description: "You can now sign in with your account.",
         type: "success",
       });
 
-      navigate("/login");
+     navigate("/login");
     }
   } catch (error) {
     console.error("Activation error:", error);
@@ -717,7 +298,7 @@ const handleActivate = async (e) => {
           </div>
 
           {/* Team Member Info */}
-          {teamMemberData && activeStep >= 1 && (
+{teamMemberData && activeStep >= 1 && (
             <div className="bg-gray-50 rounded-lg border p-4 mb-6">
               <p className="text-sm font-medium text-gray-500 mb-2">
                 Account Details
@@ -854,7 +435,7 @@ const handleActivate = async (e) => {
                 Activate Account
               </button>
 
-              <div className="mt-4 text-center">
+              {/* <div className="mt-4 text-center">
                 <button
                   type="button"
                   onClick={handleResendActivation}
@@ -863,7 +444,7 @@ const handleActivate = async (e) => {
                 >
                   Resend Activation Email
                 </button>
-              </div>
+              </div> */}
             </form>
           )}
 
@@ -895,3 +476,719 @@ const handleActivate = async (e) => {
 };
 
 export default ActivateAccount;
+
+
+// import React, { useState, useEffect } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import {
+//   Eye,
+//   EyeOff,
+//   CheckCircle,
+//   AlertCircle,
+//   Loader2,
+// } from "lucide-react";
+// import axios from "axios";
+// import { useToastContext } from "../../context/ToastContext";
+// import { authAPI } from "../../services/api";
+
+// const ActivateAccount = () => {
+//   const { id, token } = useParams();
+//   const navigate = useNavigate();
+//   const { showToast } = useToastContext();
+
+//   const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
+
+//   const [loading, setLoading] = useState(false);
+//   const [validating, setValidating] = useState(true);
+
+//   const [error, setError] = useState("");
+//   const [teamMemberData, setTeamMemberData] = useState(null);
+
+//   // -1 = invalid link
+//   // 0 = set password
+//   // 1 = activation complete
+//   const [activeStep, setActiveStep] = useState(0);
+
+//   // Password fields
+//   const [password, setPassword] = useState("");
+//   const [confirmPassword, setConfirmPassword] = useState("");
+
+//   const [showPassword, setShowPassword] = useState(false);
+//   const [showConfirmPassword, setShowConfirmPassword] =
+//     useState(false);
+
+//   // Password validation
+//   const [passwordValidation, setPasswordValidation] = useState({
+//     hasMinLength: false,
+//     hasNumber: false,
+//     hasUppercase: false,
+//     hasLowercase: false,
+//     hasSymbol: false,
+//   });
+
+
+//   // Validate activation token when page loads
+//   useEffect(() => {
+//     validateToken();
+//   }, []);
+
+
+//   // Password validation
+//   useEffect(() => {
+//     setPasswordValidation({
+//       hasMinLength: password.length >= 8,
+//       hasNumber: /\d/.test(password),
+//       hasUppercase: /[A-Z]/.test(password),
+//       hasLowercase: /[a-z]/.test(password),
+//       hasSymbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+//     });
+//   }, [password]);
+
+
+
+//   // Validate activation link
+//   const validateToken = async () => {
+//     setValidating(true);
+//     setError("");
+
+//     try {
+//       const { data } = await axios.get(
+//         `${AUTH_USER_URL}/api/teammember/validate-activation/${id}/${token}`,
+//         {
+//           withCredentials: true,
+//         }
+//       );
+
+//       console.log("Activation validation response:", data);
+
+
+//       if (data.success) {
+//         setTeamMemberData(data.data);
+
+//         // Directly open password setup
+//         setActiveStep(0);
+
+//         showToast({
+//           title: "Link Verified",
+//           description:
+//             "Link verified successfully! Please set your password.",
+//           type: "success",
+//         });
+//       }
+
+//     } catch (error) {
+//       console.error("Validation error:", error);
+
+//       const errorMessage =
+//         error.response?.data?.message ||
+//         "Invalid or expired activation link";
+
+//       setError(errorMessage);
+
+//       // Show invalid activation page
+//       setActiveStep(-1);
+
+//       showToast({
+//         title: "Error",
+//         description: errorMessage,
+//         type: "error",
+//       });
+
+//     } finally {
+//       setValidating(false);
+//     }
+//   };
+
+
+
+//   // Activate account
+//   const handleActivate = async (e) => {
+//     e.preventDefault();
+
+
+//     const isValid = Object.values(passwordValidation).every(
+//       (value) => value === true
+//     );
+
+
+//     if (!isValid) {
+//       showToast({
+//         title: "Password requirements not met",
+//         description:
+//           "Please meet all password requirements.",
+//         type: "error",
+//       });
+
+//       return;
+//     }
+
+
+//     if (password !== confirmPassword) {
+//       showToast({
+//         title: "Passwords do not match",
+//         description:
+//           "Please ensure both passwords are identical.",
+//         type: "error",
+//       });
+
+//       return;
+//     }
+
+
+//     setLoading(true);
+//     setError("");
+
+
+//     try {
+
+//       const { data } = await axios.post(
+//         `${AUTH_USER_URL}/api/teammember/activate-team-member/${id}/${token}`,
+//         {
+//           password,
+//           confirmPassword,
+//         },
+//         {
+//           withCredentials: true,
+//         }
+//       );
+
+
+//       console.log("Activation response:", data);
+
+
+//       if (data.success) {
+
+//         setActiveStep(1);
+
+//         showToast({
+//           title: "Account activated successfully!",
+//           description:
+//             "You can now sign in with your account.",
+//           type: "success",
+//         });
+
+//       }
+
+
+//     } catch (error) {
+
+//       console.error("Activation error:", error);
+
+
+//       const errorMessage =
+//         error.response?.data?.message ||
+//         "Activation failed";
+
+
+//       setError(errorMessage);
+
+
+//       showToast({
+//         title: "Activation failed",
+//         description: errorMessage,
+//         type: "error",
+//       });
+
+
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+
+
+//   // Resend activation email
+//   const handleResendActivation = async () => {
+
+//     if (!teamMemberData?.teamMemberId) {
+
+//       showToast({
+//         title: "Team member ID not found",
+//         description:
+//           "Unable to resend activation email.",
+//         type: "error",
+//       });
+
+//       return;
+//     }
+
+
+//     setLoading(true);
+
+
+//     try {
+
+//       await authAPI.resendActivation(
+//         teamMemberData.teamMemberId
+//       );
+
+
+//       showToast({
+//         title: "Email sent!",
+//         description:
+//           "New activation email sent! Please check your inbox.",
+//         type: "success",
+//       });
+
+
+//     } catch (error) {
+
+//       console.error(
+//         "Resend activation error:",
+//         error
+//       );
+
+
+//       showToast({
+//         title: "Failed to resend email",
+//         description:
+//           error.response?.data?.message ||
+//           "Failed to resend activation email",
+//         type: "error",
+//       });
+
+
+//     } finally {
+
+//       setLoading(false);
+
+//     }
+//   };
+
+
+
+//   // Loading screen
+//   if (validating) {
+//     return (
+//       <div className="flex justify-center items-center h-screen">
+//         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+//       </div>
+//     );
+//   }
+
+
+
+//   // Invalid link screen
+//   if (activeStep === -1) {
+//     return (
+//       <div className="flex justify-center items-center min-h-screen bg-gray-50 p-2">
+//         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+
+//           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+
+//           <h2 className="text-2xl font-bold text-red-600 mb-2">
+//             Invalid Activation Link
+//           </h2>
+
+//           <p className="text-gray-600 mb-4">
+//             {error ||
+//               "This activation link is invalid or has expired."}
+//           </p>
+
+//           <p className="text-sm text-gray-500 mb-6">
+//             Please contact your administrator to request a new activation link.
+//           </p>
+
+
+//           <div className="flex gap-3 justify-center">
+
+//             <button
+//               onClick={() => navigate("/login")}
+//               className="h-9 px-4 py-2 rounded-md bg-primary text-white"
+//             >
+//               Go to Login
+//             </button>
+
+
+//             <button
+//               onClick={handleResendActivation}
+//               disabled={loading}
+//               className="h-9 px-4 py-2 rounded-md border disabled:opacity-50"
+//             >
+//               {loading && (
+//                 <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+//               )}
+//               Resend Email
+//             </button>
+
+//           </div>
+
+//         </div>
+//       </div>
+//     );
+//   }
+//     return (
+//     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-2">
+//       <div className="max-w-lg w-full bg-white rounded-lg shadow-lg">
+
+//         <div className="p-6 sm:p-8">
+
+//           {/* Header */}
+//           <div className="text-center mb-8">
+
+//             <h1 className="text-3xl font-bold text-[#043a77] mb-2">
+//               PMS Solutions
+//             </h1>
+
+//             <h2 className="text-lg text-gray-600">
+//               Account Activation
+//             </h2>
+
+//           </div>
+
+
+
+//           {/* Account Details */}
+//           {teamMemberData && activeStep === 0 && (
+//             <div className="bg-gray-50 rounded-lg border p-4 mb-6">
+
+//               <p className="text-sm font-medium text-gray-500 mb-2">
+//                 Account Details
+//               </p>
+
+
+//               <p className="text-sm">
+//                 <strong>Name:</strong>{" "}
+//                 {teamMemberData.firstName}{" "}
+//                 {teamMemberData.lastName}
+//               </p>
+
+
+//               <p className="text-sm">
+//                 <strong>Email:</strong>{" "}
+//                 {teamMemberData.email}
+//               </p>
+
+
+//               <p className="text-sm">
+//                 <strong>Role:</strong>{" "}
+//                 {teamMemberData.role}
+//               </p>
+
+
+//               <p className="text-sm">
+//                 <strong>Firm:</strong>{" "}
+//                 {teamMemberData.firmName}
+//               </p>
+
+//             </div>
+//           )}
+
+
+
+//           {/* Error message */}
+//           {error && (
+//             <div className="mb-6 p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-200 flex items-start gap-2">
+
+//               <AlertCircle className="h-4 w-4 mt-0.5" />
+
+//               <span>
+//                 {error}
+//               </span>
+
+
+//               <button
+//                 onClick={() => setError("")}
+//                 className="ml-auto"
+//               >
+//                 ×
+//               </button>
+
+//             </div>
+//           )}
+
+
+
+
+//           {/* Set Password Step */}
+//           {activeStep === 0 && (
+
+//             <form onSubmit={handleActivate}>
+
+
+//               <p className="text-sm text-gray-600 mb-4">
+//                 Please set a strong password for your account.
+//                 You'll use this password to log in.
+//               </p>
+
+
+
+//               {/* Password */}
+//               <div className="mb-4">
+
+//                 <label className="text-sm font-medium block mb-2">
+//                   Password
+//                 </label>
+
+
+//                 <div className="relative">
+
+//                   <input
+//                     type={
+//                       showPassword
+//                         ? "text"
+//                         : "password"
+//                     }
+//                     value={password}
+//                     onChange={(e) =>
+//                       setPassword(e.target.value)
+//                     }
+//                     disabled={loading}
+//                     placeholder="Enter password"
+//                     className="h-9 w-full rounded-md border px-3 pr-10 text-sm"
+//                   />
+
+
+//                   <button
+//                     type="button"
+//                     onClick={() =>
+//                       setShowPassword(!showPassword)
+//                     }
+//                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+//                   >
+
+//                     {
+//                       showPassword
+//                         ? <EyeOff className="h-4 w-4" />
+//                         : <Eye className="h-4 w-4" />
+//                     }
+
+//                   </button>
+
+//                 </div>
+
+//               </div>
+
+
+
+
+//               {/* Password Rules */}
+//               <div className="mb-4 space-y-1">
+
+
+//                 {[
+//                   [
+//                     passwordValidation.hasMinLength,
+//                     "At least 8 characters"
+//                   ],
+//                   [
+//                     passwordValidation.hasNumber,
+//                     "Contains at least one number"
+//                   ],
+//                   [
+//                     passwordValidation.hasUppercase,
+//                     "Contains at least one uppercase letter"
+//                   ],
+//                   [
+//                     passwordValidation.hasLowercase,
+//                     "Contains at least one lowercase letter"
+//                   ],
+//                   [
+//                     passwordValidation.hasSymbol,
+//                     "Contains at least one special character"
+//                   ]
+
+//                 ].map(([valid, text]) => (
+
+//                   <div
+//                     key={text}
+//                     className="flex items-center gap-1 text-xs"
+//                   >
+
+//                     <CheckCircle
+//                       className={`h-3 w-3 ${
+//                         valid
+//                           ? "text-green-500"
+//                           : "text-gray-400"
+//                       }`}
+//                     />
+
+
+//                     <span
+//                       className={
+//                         valid
+//                           ? "text-green-600"
+//                           : "text-gray-500"
+//                       }
+//                     >
+//                       {text}
+//                     </span>
+
+
+//                   </div>
+
+//                 ))}
+
+
+//               </div>
+
+
+
+
+
+//               {/* Confirm Password */}
+//               <div className="mb-6">
+
+//                 <label className="text-sm font-medium block mb-2">
+//                   Confirm Password
+//                 </label>
+
+
+//                 <div className="relative">
+
+
+//                   <input
+//                     type={
+//                       showConfirmPassword
+//                         ? "text"
+//                         : "password"
+//                     }
+//                     value={confirmPassword}
+//                     onChange={(e) =>
+//                       setConfirmPassword(e.target.value)
+//                     }
+//                     disabled={loading}
+//                     placeholder="Confirm password"
+//                     className={`h-9 w-full rounded-md border px-3 pr-10 text-sm ${
+//                       confirmPassword &&
+//                       password !== confirmPassword
+//                         ? "border-red-500"
+//                         : ""
+//                     }`}
+//                   />
+
+
+//                   <button
+//                     type="button"
+//                     onClick={() =>
+//                       setShowConfirmPassword(
+//                         !showConfirmPassword
+//                       )
+//                     }
+//                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+//                   >
+
+//                     {
+//                       showConfirmPassword
+//                         ? <EyeOff className="h-4 w-4" />
+//                         : <Eye className="h-4 w-4" />
+//                     }
+
+//                   </button>
+
+
+//                 </div>
+
+
+//                 {
+//                   confirmPassword &&
+//                   password !== confirmPassword && (
+
+//                     <p className="text-xs text-red-500 mt-1">
+//                       Passwords do not match
+//                     </p>
+
+//                   )
+//                 }
+
+
+//               </div>
+
+
+
+
+
+//               <button
+//                 type="submit"
+//                 disabled={loading}
+//                 className="w-full h-9 rounded-md bg-primary text-white disabled:opacity-50"
+//               >
+
+//                 {
+//                   loading && (
+//                     <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+//                   )
+//                 }
+
+//                 Activate Account
+
+//               </button>
+
+
+
+
+
+//               <div className="mt-4 text-center">
+
+//                 <button
+//                   type="button"
+//                   onClick={handleResendActivation}
+//                   disabled={loading}
+//                   className="text-sm text-primary underline"
+//                 >
+//                   Resend Activation Email
+//                 </button>
+
+//               </div>
+
+
+
+//             </form>
+
+//           )}
+
+
+
+
+
+
+
+//           {/* Activation Complete */}
+//           {activeStep === 1 && (
+
+//             <div className="text-center">
+
+
+//               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+
+
+//               <h2 className="text-2xl font-bold text-green-600 mb-2">
+//                 Activation Complete!
+//               </h2>
+
+
+//               <p className="text-gray-600 mb-2">
+//                 Your account has been successfully activated.
+//               </p>
+
+
+//               <p className="text-sm text-gray-500 mb-6">
+//                 You can now login with your email and password.
+//               </p>
+
+
+
+//               <button
+//                 onClick={() => navigate("/login")}
+//                 className="h-9 px-4 py-2 rounded-md bg-primary text-white"
+//               >
+//                 Go to Login Now
+//               </button>
+
+
+//             </div>
+
+//           )}
+
+
+
+//         </div>
+
+//       </div>
+
+//     </div>
+//   );
+// };
+
+
+// export default ActivateAccount;

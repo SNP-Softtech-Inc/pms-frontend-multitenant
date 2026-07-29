@@ -1043,7 +1043,8 @@ import {
 } from "../../components/ui/alert";
 import {
   getAccessToken,
-  setAccessToken,
+   setAccessToken as saveAccessToken,
+  // getAccessToken,
   clearAccessToken,
 } from "../../services/tokenService";
 const MyAccount = () => {
@@ -1707,6 +1708,8 @@ const formatTimePeriod = (seconds) => {
     try {
       // const token = localStorage.getItem("token");
    const token = getAccessToken();
+console.log("getasscestoken",token)
+   console.log()
       if (!token) {
         showToast({
           title: "Login token missing",

@@ -189,15 +189,19 @@ const attachInterceptors = (api) => {
     async (error) => {
       const originalRequest = error.config;
 
-      if (
-        error.response?.status !== 401 ||
-        originalRequest._retry ||
-        originalRequest.url.includes("/api/auth/login") ||
-        originalRequest.url.includes("/api/auth/refresh-token")
-      ) {
-        return Promise.reject(error);
-      }
-
+      
+if (
+  error.response?.status !== 401 ||
+  originalRequest._retry ||
+  originalRequest.url.includes("/api/auth/login") ||
+  originalRequest.url.includes("/api/auth/refresh-token") ||
+  originalRequest.url.includes("/api/auth/validate-activation") ||
+  originalRequest.url.includes("/api/auth/activate-team-member") ||
+  originalRequest.url.includes("/api/auth/forgot-password") ||
+  originalRequest.url.includes("/api/auth/reset-password")
+) {
+  return Promise.reject(error);
+}
       originalRequest._retry = true;
 
       if (isRefreshing) {

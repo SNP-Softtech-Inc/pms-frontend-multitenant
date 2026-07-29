@@ -262,12 +262,12 @@ import {
 } from "react";
 import { useRef } from "react";
 import { authAPI} from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import { useToastContext } from "./ToastContext";
-import {
+import { clearAccessToken,
   setAccessToken as saveAccessToken,
 } from "../services/tokenService";
-
+import axios from "axios";
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
@@ -275,6 +275,8 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 const navigate = useNavigate();
+const location = useLocation();
+const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
 const { showToast } = useToastContext();
 const sessionExpiredRef = useRef(false);
   const [roleData, setRoleData] = useState(null);
@@ -290,34 +292,7 @@ const manualLogoutRef = useRef(false);
   // LOGIN
   //------------------------------------------
 
-//   const login = async (email,
-//   password,
-//   expiryTime,
-//   userId,) => {
-//     // const response = await authAPI.post(
-//     //   "/auth/login",
-//     //   loginData
-//     // );
-//     console.log("login details payload",email,
-//   password,
-//   expiryTime,
-//   userId)
-// const response = await authAPI.login({
-//   email,
-//   password,
-//   expiryTime,
-//   userId,
-// });
-//     setAccessToken(response.data.accessToken);
 
-//     setUser(response.data.user);
-
-//     setRoleData(response.data.roleData);
-
-//     setIsAuthenticated(true);
-
-//     return response.data;
-//   };
 const login = async (email, password, expiryTime, userId) => {
   const response = await authAPI.login({
     email,
@@ -327,8 +302,7 @@ const login = async (email, password, expiryTime, userId) => {
   });
 
   const { accessToken, user, roleData } = response.data;
-  // Save access token in memory
-  // setAccessToken(accessToken);
+  
 saveAccessToken(accessToken);
 setAccessToken(accessToken);
   // Save user
@@ -345,43 +319,7 @@ console.log("logged user in context",user)
 
   return response.data;
 };
-  //------------------------------------------
-  // LOGOUT
-  //------------------------------------------
-
-  // const logout = async () => {
-  //   try {
-  //     await authAPI.logout();
-  //   } catch (err) {}
-
-  //   setAccessToken(null);
-
-  //   setUser(null);
-
-  //   setRoleData(null);
-
-  //   setIsAuthenticated(false);
-  // };
-// const logout = async () => {
-//   try {
-//     await authAPI.logout();
-//   } catch (err) {
-//     console.error(err);
-//   }
-
-//   setAccessToken(null);
-//   setUser(null);
-//   setRoleData(null);
-//   setIsAuthenticated(false);
-
-//   showToast({
-//     title: "Logged Out",
-//     description: "You have been logged out successfully.",
-//     type: "success",
-//   });
-
-//   navigate("/login");
-// };
+  
 const RECENT_SEARCHES_KEY = "recent_searches";
 
 const logout = async () => {
@@ -410,67 +348,23 @@ const logout = async () => {
     replace: true,
   });
 };
-// const RECENT_SEARCHES_KEY = "recent_searches";
-
-// const logout = async () => {
-//   manualLogoutRef.current = true;
-
-//   try {
-//     await authAPI.logout();
-//   } catch (err) {
-//     console.error(err);
-//   }
-// localStorage.removeItem(RECENT_SEARCHES_KEY);  setAccessToken(null);
-//   setUser(null);
-//   setRoleData(null);
-//   setIsAuthenticated(false);
-
-//   showToast({
-//     title: "Logged Out",
-//     description: "You have been logged out successfully.",
-//     type: "success",
-//   });
-
-//   navigate("/login", { replace: true });
-// };
-  //------------------------------------------
-  // REFRESH ACCESS TOKEN
-  //------------------------------------------
-
-//   const refreshToken = useCallback(async () => {
-//     try {
-//       // const response = await api.get(
-//       //   "/auth/refresh"
-//       // );
-// const response = await authAPI.refresh();
-//       const token = response.data.accessToken;
-
-//       setAccessToken(token);
-
-//       return token;
-//     } catch (err) {
-//       setAccessToken(null);
-
-//       setUser(null);
-
-//       setRoleData(null);
-
-//       setIsAuthenticated(false);
-
-//       return null;
-//     }
-//   }, []);
 const refreshToken = useCallback(async () => {
   try {
-    const response = await authAPI.refresh();
+    const { data } = await axios.post(
+      `${AUTH_USER_URL}/api/auth/refresh-token`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
 
-    const token = response.data.accessToken;
+    const token = data.accessToken;
 
     if (!token) return null;
 
-    // setAccessToken(token);
-saveAccessToken(token);      // IMPORTANT
-setAccessToken(token);       // React state
+    saveAccessToken(token);
+    setAccessToken(token);
+
     sessionExpiredRef.current = false;
 
     return token;
@@ -480,6 +374,8 @@ setAccessToken(token);       // React state
     if (sessionExpiredRef.current) return null;
 
     sessionExpiredRef.current = true;
+
+    // clearAccessToken();
 
     setAccessToken(null);
     setUser(null);
@@ -492,83 +388,36 @@ setAccessToken(token);       // React state
       type: "warning",
     });
 
-    navigate("/login", {
-      replace: true,
-    });
+    // navigate("/login", {
+    //   replace: true,
+    // });
 
     return null;
+
+     
   }
 }, [navigate, showToast]);
 // const refreshToken = useCallback(async () => {
 //   try {
 //     const response = await authAPI.refresh();
 
-//     setAccessToken(response.data.accessToken);
+//     const token = response.data.accessToken;
 
-//     // Reset after successful refresh
+//     if (!token) return null;
+
+//     // setAccessToken(token);
+// saveAccessToken(token);      // IMPORTANT
+// setAccessToken(token);       // React state
 //     sessionExpiredRef.current = false;
 
-//     return response.data.accessToken;
-//   } 
-//   catch (err) {
-
-//   if (manualLogoutRef.current) {
-//     return null;
-//   }
-
-//   if (sessionExpiredRef.current) {
-//     return null;
-//   }
-
-//   sessionExpiredRef.current = true;
-
-//   setAccessToken(null);
-//   setUser(null);
-//   setRoleData(null);
-//   setIsAuthenticated(false);
-
-//   // showToast({
-//   //   title: "Session Expired",
-//   //   description: "Your session has expired. Please login again.",
-//   //   type: "warning",
-//   // });
-
-//   // navigate("/login", { replace: true });
-
-//   return null;
-// }
-//   // catch (err) {
-//   //   // Already handled once
-//   //   if (sessionExpiredRef.current) {
-//   //     return null;
-//   //   }
-
-//   //   sessionExpiredRef.current = true;
-
-//   //   setAccessToken(null);
-//   //   setUser(null);
-//   //   setRoleData(null);
-//   //   setIsAuthenticated(false);
-
-//   //   showToast({
-//   //     title: "Session Expired",
-//   //     description: "Your session has expired. Please login again.",
-//   //     type: "warning",
-//   //   });
-
-//   //   navigate("/login", { replace: true });
-
-//   //   return null;
-//   // }
-// }, [navigate, showToast]);
-// const refreshToken = useCallback(async () => {
-//   try {
-//     const response = await authAPI.refresh();
-
-//     setAccessToken(response.data.accessToken);
-
-//     return response.data.accessToken;
+//     return token;
 //   } catch (err) {
+//     if (manualLogoutRef.current) return null;
+
+//     if (sessionExpiredRef.current) return null;
+
+//     sessionExpiredRef.current = true;
+
 //     setAccessToken(null);
 //     setUser(null);
 //     setRoleData(null);
@@ -576,59 +425,18 @@ setAccessToken(token);       // React state
 
 //     showToast({
 //       title: "Session Expired",
-//       description: "Your session has expired. Please login again.",
+//       description: "Please login again.",
 //       type: "warning",
 //     });
 
-//     navigate("/login");
+//     navigate("/login", {
+//       replace: true,
+//     });
 
 //     return null;
 //   }
 // }, [navigate, showToast]);
-  //------------------------------------------
-  // LOAD USER
-  //------------------------------------------
 
-//   const loadUser = useCallback(async () => {
-//     try {
-//       let token = accessToken;
-
-//       // if (!token) {
-//       //   token = await refreshToken();
-//       // }
-//       if (!accessToken && !isAuthenticated) {
-//   token = await refreshToken();
-// }
-
-//       if (!token) {
-//         setLoading(false);
-
-//         return;
-//       }
-
-//       // const response = await api.get("/auth/me", {
-//       //   headers: {
-//       //     Authorization: `Bearer ${token}`,
-//       //   },
-//       // });
-//       const response = await authAPI.getCurrentUser()
-
-//       setUser(response.data.user);
-//       console.log("loggeduser details in context",response.data)
-
-//       setIsAuthenticated(true);
-//     } catch (err) {
-//       setUser(null);
-
-//       setRoleData(null);
-
-//       setAccessToken(null);
-
-//       setIsAuthenticated(false);
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, [accessToken, refreshToken]);
 const loadUser = useCallback(async () => {
   try {
     let token = accessToken;
@@ -677,33 +485,33 @@ useEffect(() => {
   // APP START
   //------------------------------------------
 
-  useEffect(() => {
-    loadUser();
-  }, [loadUser]);
+useEffect(() => {
 
-  //------------------------------------------
-  // CONTEXT VALUE
-  //------------------------------------------
+ const publicRoutes = [
+  "/login",
+  "/signup",
+  "/unauthorized",
+  "/forgot-password",
+  "/reset-password",
+  "/activate-team-member",
+];
 
-  // const value = {
-  //   user,
 
-  //   roleData,
+  const isPublicRoute = publicRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
 
-  //   accessToken,
 
-  //   loading,
+  if (isPublicRoute) {
+    setLoading(false);
+    return;
+  }
 
-  //   isAuthenticated,
 
-  //   login,
+  loadUser();
 
-  //   logout,
-
-  //   refreshToken,
-
-  //   setAccessToken,
-  // };
+}, [location.pathname, loadUser]);
+  
 const value = {
   user,
   roleData,
