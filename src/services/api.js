@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
   getAccessToken,
-   setAccessToken as saveAccessToken,
+  setAccessToken as saveAccessToken,
   // getAccessToken,
   clearAccessToken,
 } from "../services/tokenService";
@@ -24,7 +24,7 @@ const SIGNATURE_API = process.env.REACT_APP_ESIGNATURE_API;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -33,7 +33,7 @@ const authUserApi = axios.create({
 
 const sidebarApi = axios.create({
   baseURL: SIDEBAR_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -42,7 +42,7 @@ const sidebarApi = axios.create({
 
 const templateApi = axios.create({
   baseURL: TEMPLATE_URL, // include /temp here
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -51,24 +51,23 @@ const templateApi = axios.create({
 
 const accountcontactApi = axios.create({
   baseURL: ACCOUNT_CONTACT_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
-
     "Content-Type": "application/json",
   },
 });
 
 const proposalApi = axios.create({
   baseURL: PROPOSAL_URL, // e.g. http://localhost:8023/api/proposals
-     withCredentials: true,
- headers: {
+  withCredentials: true,
+  headers: {
     "Content-Type": "application/json",
   },
 });
 const organizerApi = axios.create({
   baseURL: ORGANIZER_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -77,7 +76,7 @@ const organizerApi = axios.create({
 
 const folderManagementApi = axios.create({
   baseURL: FOLDER_MANAGEMENT_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -85,7 +84,7 @@ const folderManagementApi = axios.create({
 });
 const chatApi = axios.create({
   baseURL: CHAT_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -93,7 +92,7 @@ const chatApi = axios.create({
 });
 const invoiceApi = axios.create({
   baseURL: INVOICE_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -102,7 +101,7 @@ const invoiceApi = axios.create({
 
 const jobsApi = axios.create({
   baseURL: JOBS_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -110,7 +109,7 @@ const jobsApi = axios.create({
 });
 const accountTasksApi = axios.create({
   baseURL: ACCOUNT_TASKS_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -118,7 +117,7 @@ const accountTasksApi = axios.create({
 });
 const internalChatApi = axios.create({
   baseURL: INTERNAL_CHAT_URL,
-      withCredentials: true,
+  withCredentials: true,
 
   headers: {
     "Content-Type": "application/json",
@@ -126,30 +125,28 @@ const internalChatApi = axios.create({
 });
 const emailSyncApi = axios.create({
   baseURL: EMAIL_SYNC,
-      withCredentials: true,
+  withCredentials: true,
 
-  headers:{
+  headers: {
     "Content-Type": "application/json",
-  }
+  },
 });
 const accNoteApi = axios.create({
   baseURL: ACCOUNT_NOTE,
-      withCredentials: true,
+  withCredentials: true,
 
-  headers:{
-        "Content-Type": "application/json",
-
-  }
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
-const signatureApi = axios.create({ 
+const signatureApi = axios.create({
   baseURL: SIGNATURE_API,
-   withCredentials: true,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 // ================= COMMON INTERCEPTORS =================
-
 
 // =================== REFRESH STATE ===================
 
@@ -179,7 +176,7 @@ const attachInterceptors = (api) => {
 
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   // Response
@@ -189,19 +186,18 @@ const attachInterceptors = (api) => {
     async (error) => {
       const originalRequest = error.config;
 
-      
-if (
-  error.response?.status !== 401 ||
-  originalRequest._retry ||
-  originalRequest.url.includes("/api/auth/login") ||
-  originalRequest.url.includes("/api/auth/refresh-token") ||
-  originalRequest.url.includes("/api/auth/validate-activation") ||
-  originalRequest.url.includes("/api/auth/activate-team-member") ||
-  originalRequest.url.includes("/api/auth/forgot-password") ||
-  originalRequest.url.includes("/api/auth/reset-password")
-) {
-  return Promise.reject(error);
-}
+      if (
+        error.response?.status !== 401 ||
+        originalRequest._retry ||
+        originalRequest.url.includes("/api/auth/login") ||
+        originalRequest.url.includes("/api/auth/refresh-token") ||
+        originalRequest.url.includes("/api/auth/validate-activation") ||
+        originalRequest.url.includes("/api/auth/activate-team-member") ||
+        originalRequest.url.includes("/api/auth/forgot-password") ||
+        originalRequest.url.includes("/api/auth/reset-password")
+      ) {
+        return Promise.reject(error);
+      }
       originalRequest._retry = true;
 
       if (isRefreshing) {
@@ -217,15 +213,15 @@ if (
 
       try {
         // const { data } = await authAPI.refresh();
-const { data } = await axios.post(
-  `${AUTH_USER_URL}/api/auth/refresh-token`,
-  {},
-  {
-    withCredentials: true,
-  }
-);
-      //  setAccessToken(data.accessToken);
-saveAccessToken(data.accessToken);
+        const { data } = await axios.post(
+          `${AUTH_USER_URL}/api/auth/refresh-token`,
+          {},
+          {
+            withCredentials: true,
+          },
+        );
+        //  setAccessToken(data.accessToken);
+        saveAccessToken(data.accessToken);
         processQueue(null, data.accessToken);
 
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
@@ -244,7 +240,7 @@ saveAccessToken(data.accessToken);
       } finally {
         isRefreshing = false;
       }
-    }
+    },
   );
 };
 // // Apply interceptors
@@ -262,8 +258,7 @@ attachInterceptors(internalChatApi);
 attachInterceptors(emailSyncApi);
 attachInterceptors(accNoteApi);
 attachInterceptors(signatureApi);
-attachInterceptors(templateApi)
-
+attachInterceptors(templateApi);
 
 // ================= AUTH + USER APIs =================
 export const authAPI = {
@@ -282,19 +277,19 @@ export const authAPI = {
   // login: (email, password, expiryTime) =>
   //   authUserApi.post("/api/auth/login", { email, password, expiryTime }),
   // Login
-login: ({ email, password, expiryTime, userId }) =>
-  authUserApi.post("/api/auth/login", {
-    email,
-    password,
-    expiryTime,
-    userId,
-  }),
+  login: ({ email, password, expiryTime, userId }) =>
+    authUserApi.post("/api/auth/login", {
+      email,
+      password,
+      expiryTime,
+      userId,
+    }),
 
   getUsersByEmail: (email) =>
     authUserApi.post("/api/auth/get-users", { email }),
 
-   // Get Current Logged-in User
-getCurrentUser: () => authUserApi.get("/api/auth/me"),
+  // Get Current Logged-in User
+  getCurrentUser: () => authUserApi.get("/api/auth/me"),
   // ✅ NEW API
   getAllUsers: (params) => authUserApi.post("/api/auth/users", { params }),
   getSingleUser: (id) => authUserApi.get(`/api/auth/user/${id}`),
@@ -319,18 +314,17 @@ getCurrentUser: () => authUserApi.get("/api/auth/me"),
   logout: () => authUserApi.post("/api/auth/logout"),
 
   forgotPassword: (data) => authUserApi.post("/api/auth/forgot-password", data),
-refresh: () =>
-    authUserApi.post("/api/auth/refresh-token"),
+  refresh: () => authUserApi.post("/api/auth/refresh-token"),
   resetPassword: (id, token, data) =>
     authUserApi.post(`/api/auth/reset-password/${id}/${token}`, data),
 
   verifyPassword: (data) => authUserApi.post("/api/auth/verify-password", data),
-changePassword: (data) => authUserApi.post("/api/auth/change-password", data),
-updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data),
+  changePassword: (data) => authUserApi.post("/api/auth/change-password", data),
+  updateLoginDetails: (data) =>
+    authUserApi.patch("/api/auth/login-details", data),
   // ======================= GROUPED USERS APIs ===============================
 
-  getGroupedUsers: () =>
-    authUserApi.get("/api/auth/grouped-users"),
+  getGroupedUsers: () => authUserApi.get("/api/auth/grouped-users"),
 
   // ======================= TEAMMEMBERS APIs ===============================
 
@@ -350,18 +344,14 @@ updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data)
   // Get all team members
   getTeamMembers: () => authUserApi.get("/api/teammember/"),
 
-    // Get active team members
-  getActiveTeamMembers: () =>
-    authUserApi.get("/api/teammember/active"),
+  // Get active team members
+  getActiveTeamMembers: () => authUserApi.get("/api/teammember/active"),
 
   // Get inactive team members
-  getInactiveTeamMembers: () =>
-    authUserApi.get("/api/teammember/inactive"),
-
+  getInactiveTeamMembers: () => authUserApi.get("/api/teammember/inactive"),
 
   deactivateTeamMember: (id) =>
-  authUserApi.patch(`/api/teammember/${id}/deactivate`),
-
+    authUserApi.patch(`/api/teammember/${id}/deactivate`),
 
   // Get single team member
   getTeamMemberById: (id) => authUserApi.get(`/api/teammember/${id}`),
@@ -427,50 +417,34 @@ updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data)
     authUserApi.put(`/api/groups/${groupId}`, data),
   deleteGroup: (groupId) => authUserApi.delete(`/api/groups/groups/${groupId}`),
 
-
   // ======================= EMAIL SYNC APIs ===============================
 
-// Get notification emails
-// getEmailNotifications: () =>
-//   authUserApi.get("/api/emailsync/notifications"),
-// In your authAPI or API service file
-getEmailNotifications: (archived = false) => {
-  // Pass archived as query parameter
-  return authUserApi.get(`/api/emailsync/notifications?archived=${archived}`);
-},
-// Get communication emails
-getEmailCommunications: () =>
-  authUserApi.get("/api/emailsync/communications"),
+  // Get notification emails
+  // getEmailNotifications: () =>
+  //   authUserApi.get("/api/emailsync/notifications"),
+  // In your authAPI or API service file
+  getEmailNotifications: (archived = false) => {
+    // Pass archived as query parameter
+    return authUserApi.get(`/api/emailsync/notifications?archived=${archived}`);
+  },
+  // Get communication emails
+  getEmailCommunications: () =>
+    authUserApi.get("/api/emailsync/communications"),
 
   // Mark thread as read
-  markThreadAsRead: (
-    threadId
-  ) =>
-    emailSyncApi.put(
-      `/api/emailsync/mark-read/${threadId}`
-    ),
+  markThreadAsRead: (threadId) =>
+    emailSyncApi.put(`/api/emailsync/mark-read/${threadId}`),
 
   // Archive thread
-  archiveThread: (
-    threadId
-  ) =>
-    emailSyncApi.put(
-      `/api/emailsync/archive/${threadId}`
-    ),
+  archiveThread: (threadId) =>
+    emailSyncApi.put(`/api/emailsync/archive/${threadId}`),
 
   // Unarchive thread
-  unarchiveThread: (
-    threadId
-  ) =>
-    emailSyncApi.put(
-      `/api/emailsync/unarchive/${threadId}`
-    ),
-    // Get attachment data by attachment ID
+  unarchiveThread: (threadId) =>
+    emailSyncApi.put(`/api/emailsync/unarchive/${threadId}`),
+  // Get attachment data by attachment ID
   getAttachmentData: (attachmentId) =>
     authUserApi.get(`/api/emailsync/attachment/${attachmentId}`),
-
- 
-
 };
 
 // ================= SIDEBAR APIs =================
@@ -767,8 +741,8 @@ export const accountsAPI = {
   getMultipleAccountsByIds: (data) =>
     accountcontactApi.post("/api/clientaccounts/multiple", data),
 
-getAccountsByTeamMember: (active) =>
-  accountcontactApi.get(`/api/clientaccounts/byTeam?active=${active}`),
+  getAccountsByTeamMember: (active) =>
+    accountcontactApi.get(`/api/clientaccounts/byTeam?active=${active}`),
 
   getAccountNames: () =>
     accountcontactApi.get("/api/clientaccounts/accountlist/names"),
@@ -780,16 +754,16 @@ getAccountsByTeamMember: (active) =>
   //     `/api/clientaccounts/accountlist/names-by-status?active=${active}`,
   //   ),
   getAccountNamesByStatus: (params) =>
-  accountcontactApi.get(
-    `/api/clientaccounts/accountlist/names-by-status`,
-    { params } // ✅ THIS is the correct way
-  ),
-  
-  getAccountsByTeamMemberName : (params) =>
-  accountcontactApi.get(
-    `/api/clientaccounts/accountlist/teams-by-status`,
-    { params } // ✅ THIS is the correct way
-  ),
+    accountcontactApi.get(
+      `/api/clientaccounts/accountlist/names-by-status`,
+      { params }, // ✅ THIS is the correct way
+    ),
+
+  getAccountsByTeamMemberName: (params) =>
+    accountcontactApi.get(
+      `/api/clientaccounts/accountlist/teams-by-status`,
+      { params }, // ✅ THIS is the correct way
+    ),
   getAccountNamesWithEmails: () =>
     accountcontactApi.get("/api/clientaccounts/accounts-by-status-with-emails"),
 
@@ -891,9 +865,9 @@ export const contactsAPI = {
 
   // getContactNames: () => accountcontactApi.get("/api/contacts/contact-names"),
   getContactNames: (params) =>
-  accountcontactApi.get("/api/contacts/contact-names", { params }),
+    accountcontactApi.get("/api/contacts/contact-names", { params }),
 
-   // ✅ NEW: Get contacts by email
+  // ✅ NEW: Get contacts by email
   getContactsByEmail: (email) =>
     accountcontactApi.get(`/api/contacts/by-email`, {
       params: { email },
@@ -917,10 +891,10 @@ export const contactsAPI = {
   // resendActivationEmail: (contactId) =>
   //   accountcontactApi.post(`/api/contacts/${contactId}/resend-activation`),
   resendActivationEmail: (contactId, data) =>
-  accountcontactApi.post(
-    `/api/contacts/${contactId}/resend-activation`,
-    data
-  ),
+    accountcontactApi.post(
+      `/api/contacts/${contactId}/resend-activation`,
+      data,
+    ),
 };
 
 // ================= PROPOSALS APIs =================
@@ -1121,7 +1095,6 @@ export const folderManagementAPI = {
     folderManagementApi.delete(`/tempfolder/foldertemp/delete/${id}`),
 };
 
-
 // ================= ESIGN APIs =================
 
 export const esignAPI = {
@@ -1144,16 +1117,13 @@ export const esignAPI = {
     }),
 
   // Get DocuSeal submissions
-  getSubmissions: () =>
-    signatureApi.get("/api/submissions"),
+  getSubmissions: () => signatureApi.get("/api/submissions"),
 
   // Notify admin
-  notifyAdmin: (data) =>
-    signatureApi.post("/notify-admin", data),
+  notifyAdmin: (data) => signatureApi.post("/notify-admin", data),
 
   // Get signature by ID
-  getSignatureById: (id) =>
-    signatureApi.get(`/signature/byid/${id}`),
+  getSignatureById: (id) => signatureApi.get(`/signature/byid/${id}`),
 
   // Cancel signature request
   cancelSignature: (id, data) =>
@@ -1171,23 +1141,15 @@ export const esignAPI = {
 
   // Check completion status
   checkCompletion: (externalId) =>
-    signatureApi.get(
-      `/signautrelist/check-completion/${externalId}`
-    ),
+    signatureApi.get(`/signautrelist/check-completion/${externalId}`),
 
   // Update signature status
   updateSignature: (externalId, data) =>
-    signatureApi.patch(
-      `/signautrelist/update/${externalId}`,
-      data
-    ),
+    signatureApi.patch(`/signautrelist/update/${externalId}`, data),
 
   // Update submitter status
   updateSubmitterStatus: (externalId, data) =>
-    signatureApi.patch(
-      `/signautrelist/update-submitter/${externalId}`,
-      data
-    ),
+    signatureApi.patch(`/signautrelist/update-submitter/${externalId}`, data),
 };
 // ================= DOC MANAGEMENT APIs =================
 export const docAPI = {
@@ -1322,9 +1284,8 @@ export const accountDocsAPI = {
         headers: { "Content-Type": "multipart/form-data" },
       },
     ),
-// View document (creates VIEW audit trail)
-viewDocument: (data) =>
-  folderManagementApi.post("/accounts/docs/view", data),
+  // View document (creates VIEW audit trail)
+  viewDocument: (data) => folderManagementApi.post("/accounts/docs/view", data),
   // Lock / Unlock file
   setFileReadOnly: (data) =>
     folderManagementApi.post("/accounts/docs/file/readonly", data),
@@ -1399,20 +1360,17 @@ viewDocument: (data) =>
   // Trashed items
   // listTrashedItems: () =>
   //   folderManagementApi.get("/accounts/docs/list-trashed"),
- listTrashedItems: (folderPath) =>
-  folderManagementApi.get(
-    `/accounts/docs/list-trashed?folderPath=${encodeURIComponent(folderPath)}`
-  ),
+  listTrashedItems: (folderPath) =>
+    folderManagementApi.get(
+      `/accounts/docs/list-trashed?folderPath=${encodeURIComponent(folderPath)}`,
+    ),
   // ================= DOCUMENT STATES =================
 
   // New tagged docs
   // getNewTaggedDocs: () =>
   //   folderManagementApi.get("/accounts/docs/documents/new-tagged"),
   getNewTaggedDocs: (config) =>
-  folderManagementApi.get(
-    "/accounts/docs/documents/new-tagged",
-    config
-  ),
+    folderManagementApi.get("/accounts/docs/documents/new-tagged", config),
 
   // Pending approvals
   getPendingApprovals: () =>
@@ -1471,12 +1429,10 @@ viewDocument: (data) =>
   // ================= DOCUMENT AUDIT TRAIL =================
 
   // Create audit log
-  createAudit: (data) =>
-    folderManagementApi.post("/audittrail", data),
+  createAudit: (data) => folderManagementApi.post("/audittrail", data),
 
   // Get all audit logs
-  getAllAudits: () =>
-    folderManagementApi.get("/audittrail"),
+  getAllAudits: () => folderManagementApi.get("/audittrail"),
 
   // Get audit history of a document
   getDocumentAudit: (documentId) =>
@@ -1487,8 +1443,7 @@ viewDocument: (data) =>
     folderManagementApi.get(`/audittrail/account/${accountId}`),
 
   // Delete audit log
-  deleteAudit: (id) =>
-    folderManagementApi.delete(`/audittrail/${id}`),
+  deleteAudit: (id) => folderManagementApi.delete(`/audittrail/${id}`),
 };
 
 export const chatAPI = {
@@ -1501,7 +1456,7 @@ export const chatAPI = {
   getChatsByAccount: (accountId) =>
     chatApi.get(`/chats/chatsaccountwise/chatlistbyaccount/${accountId}`),
 
-  getChatsByAccountAndStatus: (accountId, isactive,role) =>
+  getChatsByAccountAndStatus: (accountId, isactive, role) =>
     chatApi.get(
       `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}?role=${role}`,
     ),
@@ -1515,8 +1470,7 @@ export const chatAPI = {
   updateChat: (id, data) =>
     chatApi.patch(`/chats/chatsaccountwise/${id}`, data),
   // ✅ NEW
-  deleteChatForAdmin: (id) =>
-    chatApi.put(`/chats/delete-chat-for-admin/${id}`),
+  deleteChatForAdmin: (id) => chatApi.put(`/chats/delete-chat-for-admin/${id}`),
   // ================= MESSAGES =================
 
   updateMessage: (data) =>
@@ -1560,13 +1514,11 @@ export const chatAPI = {
     chatApi.patch(
       `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`,
     ),
-// ================= THREAD READ/UNREAD =================
+  // ================= THREAD READ/UNREAD =================
 
-markThreadAsRead: (chatId) =>
-  chatApi.put(`/chats/${chatId}/mark-read`),
+  markThreadAsRead: (chatId) => chatApi.put(`/chats/${chatId}/mark-read`),
 
-markThreadAsUnread: (chatId) =>
-  chatApi.put(`/chats/${chatId}/mark-unread`),
+  markThreadAsUnread: (chatId) => chatApi.put(`/chats/${chatId}/mark-unread`),
   // ================= STATUS =================
 
   updateChatStatus: (id, data) =>
@@ -1578,9 +1530,6 @@ markThreadAsUnread: (chatId) =>
   // For chat message send
   sendSecureMessage: (data) =>
     chatApi.post("/chatsend/securemessagechatsend", data),
-
-
-
 };
 
 // ================= INVOICE APIs =================
@@ -1588,17 +1537,11 @@ export const invoiceAPI = {
   // ================= CREATE =================
   createInvoice: (data) =>
     invoiceApi.post("/account/invoicelist/invoice", data),
- // ================= OFFLINE PAYMENT =================
+  // ================= OFFLINE PAYMENT =================
   offlinePayment: (data) =>
-    invoiceApi.post(
-      "/account/invoicelist/offline-payment",
-      data
-    ),
+    invoiceApi.post("/account/invoicelist/offline-payment", data),
   payAdminInvoice: (data) =>
-    invoiceApi.post(
-      "/account/invoicelist/pay-admin-invoice",
-      data
-    ),
+    invoiceApi.post("/account/invoicelist/pay-admin-invoice", data),
 
   // ================= GET =================
   getInvoices: () => invoiceApi.get("/account/invoicelist/invoice"),
@@ -1654,32 +1597,30 @@ export const invoiceAPI = {
   deleteInvoicesByAccountId: (id) =>
     invoiceApi.delete(`/account/invoicelist/invoices/by-account/${id}`),
 
+  // ================= OFFLINE PAYMENT APIs =================
 
-// ================= OFFLINE PAYMENT APIs =================
+  // Create Offline Payment
+  createOfflinePayment: (data) =>
+    invoiceApi.post("/account/offline-payments", data),
 
-// Create Offline Payment
-createOfflinePayment: (data) =>
-  invoiceApi.post("/account/offline-payments", data),
+  // Get All Offline Payments
+  getOfflinePayments: () => invoiceApi.get("/account/offline-payments"),
 
-// Get All Offline Payments
-getOfflinePayments: () =>
-  invoiceApi.get("/account/offline-payments"),
+  // Get Offline Payment By ID
+  getOfflinePaymentById: (id) =>
+    invoiceApi.get(`/account/offline-payments/${id}`),
 
-// Get Offline Payment By ID
-getOfflinePaymentById: (id) =>
-  invoiceApi.get(`/account/offline-payments/${id}`),
+  // Get Offline Payments By Account ID
+  getOfflinePaymentsByAccountId: (accountId) =>
+    invoiceApi.get(`/account/offline-payments/account/${accountId}`),
 
-// Get Offline Payments By Account ID
-getOfflinePaymentsByAccountId: (accountId) =>
-  invoiceApi.get(`/account/offline-payments/account/${accountId}`),
+  // Update Offline Payment
+  updateOfflinePayment: (id, data) =>
+    invoiceApi.put(`/account/offline-payments/${id}`, data),
 
-// Update Offline Payment
-updateOfflinePayment: (id, data) =>
-  invoiceApi.put(`/account/offline-payments/${id}`, data),
-
-// Delete Offline Payment
-deleteOfflinePayment: (id) =>
-  invoiceApi.delete(`/account/offline-payments/${id}`),
+  // Delete Offline Payment
+  deleteOfflinePayment: (id) =>
+    invoiceApi.delete(`/account/offline-payments/${id}`),
 };
 
 // ================= JOB APIs =================
@@ -1919,24 +1860,19 @@ export const emailSyncAPI = {
 // ================= ACCOUNT NOTE APIs =================
 export const accountNoteAPI = {
   // Create Note
-  createNote: (data) =>
-    accNoteApi.post("/account/notes/", data),
+  createNote: (data) => accNoteApi.post("/account/notes/", data),
 
   // Get All Notes
-  getAllNotes: () =>
-    accNoteApi.get("/account/notes/"),
+  getAllNotes: () => accNoteApi.get("/account/notes/"),
 
   // Get Single Note
-  getNoteById: (id) =>
-    accNoteApi.get(`/account/notes/${id}`),
+  getNoteById: (id) => accNoteApi.get(`/account/notes/${id}`),
 
   // Update Note
-  updateNote: (id, data) =>
-    accNoteApi.patch(`/account/notes/${id}`, data),
+  updateNote: (id, data) => accNoteApi.patch(`/account/notes/${id}`, data),
 
   // Delete Note
-  deleteNote: (id) =>
-    accNoteApi.delete(`/account/notes/${id}`),
+  deleteNote: (id) => accNoteApi.delete(`/account/notes/${id}`),
 
   // Get Notes By Account Id
   getNotesByAccountId: (accountId) =>

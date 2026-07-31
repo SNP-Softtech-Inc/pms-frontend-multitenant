@@ -18,7 +18,7 @@ import {
 import { useToastContext } from "../../context/ToastContext";
 import Cookies from "js-cookie";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import AuthLink from "../../components/AuthLink";
 import { useAuth } from "../../context/AuthContext";
 import { accountsAPI, authAPI } from "../../services/api";
 
@@ -162,7 +162,7 @@ const AccountTable = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   // const [permissions, setPermissions] = useState({});
-const [permissions, setPermissions] = useState(null);
+  const [permissions, setPermissions] = useState(null);
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [bulkDrawerType, setBulkDrawerType] = useState(null);
@@ -191,7 +191,10 @@ const [permissions, setPermissions] = useState(null);
         if (user?.role === "team_member") {
           const res = await authAPI.getSingleUser(user.id);
           setPermissions(res.data.user.permissions);
-          console.log("gets permissions by the user logged",res.data.user.permissions)
+          console.log(
+            "gets permissions by the user logged",
+            res.data.user.permissions,
+          );
         } else {
           setPermissions({
             manageAccounts: true,
@@ -224,36 +227,31 @@ const [permissions, setPermissions] = useState(null);
   //   },
   //   enabled: !!user,
   // });
-// Fetch accounts using React Query
-const { data: accountList = [], isLoading: loading } = useQuery({
-  queryKey: [
-    "accounts",
-    filterStatus,
-    user?.role,
-    permissions?.viewallAccounts,
-  ],
-  queryFn: async () => {
-    const isActive = filterStatus === "active";
-    let res;
+  // Fetch accounts using React Query
+  const { data: accountList = [], isLoading: loading } = useQuery({
+    queryKey: [
+      "accounts",
+      filterStatus,
+      user?.role,
+      permissions?.viewallAccounts,
+    ],
+    queryFn: async () => {
+      const isActive = filterStatus === "active";
+      let res;
 
-    console.log("Role:", user?.role);
-    console.log("Permission:", permissions?.viewallAccounts);
+      console.log("Role:", user?.role);
+      console.log("Permission:", permissions?.viewallAccounts);
 
-    if (
-      user?.role === "team_member" &&
-      !permissions?.viewallAccounts
-    ) {
-      res = await accountsAPI.getAccountsByTeamMember(isActive);
-    } else {
-      res = await accountsAPI.getAccountsList(isActive);
-    }
+      if (user?.role === "team_member" && !permissions?.viewallAccounts) {
+        res = await accountsAPI.getAccountsByTeamMember(isActive);
+      } else {
+        res = await accountsAPI.getAccountsList(isActive);
+      }
 
-    return res.data.accountlist || [];
-  },
-  enabled:
-    !!user &&
-    (user.role !== "team_member" || permissions !== null),
-});  // Extract unique tags from accounts
+      return res.data.accountlist || [];
+    },
+    enabled: !!user && (user.role !== "team_member" || permissions !== null),
+  }); // Extract unique tags from accounts
   useEffect(() => {
     const tags = [
       ...new Map(
@@ -513,12 +511,12 @@ const { data: accountList = [], isLoading: loading } = useQuery({
         header: "Account Name",
         size: 220,
         cell: ({ row, getValue }) => (
-          <Link
+          <AuthLink
             to={`/clients/accounts/accountsdash/overview/${row.original._id}`}
-            className="text-sm font-medium text-primary hover:text-primary/80 no-underline transition-colors truncate block max-w-[200px]"
+            className="cursor-pointer text-sm font-medium text-primary hover:text-primary/80 no-underline transition-colors truncate block max-w-[200px]"
           >
             {getValue() || "—"}
-          </Link>
+          </AuthLink>
         ),
       },
       {
@@ -969,7 +967,7 @@ const { data: accountList = [], isLoading: loading } = useQuery({
           <div className="relative bg-background rounded-xl shadow-lg w-full max-w-sm mx-4 p-6 space-y-4">
             <h3 className="text-base font-semibold text-foreground">Delete Accounts?</h3>
             <p className="text-sm text-muted-foreground">
-              This will permanently delete <strong>{selectedIds.length}</strong> account{selectedIds.length > 1 ? "s" : ""}. 
+              This will permanently delete <strong>{selectedIds.length}</strong> account{selectedIds.length > 1 ? "s" : ""}.
               Type <strong>DELETE</strong> to confirm.
             </p>
             <input
@@ -979,15 +977,15 @@ const { data: accountList = [], isLoading: loading } = useQuery({
               className="w-full h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => { setIsDeleteDialogOpen(false); setConfirmText(""); }} 
+              <button
+                onClick={() => { setIsDeleteDialogOpen(false); setConfirmText(""); }}
                 className="h-9 px-4 text-sm font-medium border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleDelete} 
-                disabled={confirmText !== "DELETE"} 
+              <button
+                onClick={handleDelete}
+                disabled={confirmText !== "DELETE"}
                 className="h-9 px-4 text-sm font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Delete

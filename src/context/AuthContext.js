@@ -79,7 +79,7 @@
 
 // //   initializeAuth();
 // // }, [clearAuthData]);
-  
+
 // // useEffect(() => {
 // //   try {
 // //     const storedUser = localStorage.getItem("user");
@@ -101,8 +101,6 @@
 // //   }
 // // }, [clearAuthData]);
 
-
-  
 //   // ================= LOGIN =================
 //   // const login = async (email, password, expiryTime) => {
 //    const login = async (
@@ -252,7 +250,6 @@
 
 // export default AuthContext;
 
-
 import {
   createContext,
   useContext,
@@ -261,272 +258,340 @@ import {
   useCallback,
 } from "react";
 import { useRef } from "react";
-import { authAPI} from "../services/api";
-import { useNavigate,useLocation } from "react-router-dom";
+import { authAPI } from "../services/api";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToastContext } from "./ToastContext";
-import { clearAccessToken,
+import {
   setAccessToken as saveAccessToken,
+  getAccessToken,
+  clearAccessToken,
 } from "../services/tokenService";
-import axios from "axios";
+import {
+  EXPIRES_KEY,
+  parseExpiryToMs,
+  getHandoffIdFromUrl,
+  stripHandoffParam,
+  requestHandoffToken,
+  startHandoffResponder,
+  broadcastLogout,
+} from "../utils/authHandoff";
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-const navigate = useNavigate();
-const location = useLocation();
-const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
-const { showToast } = useToastContext();
-const sessionExpiredRef = useRef(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { showToast } = useToastContext();
+  const sessionExpiredRef = useRef(false);
   const [roleData, setRoleData] = useState(null);
 
   const [accessToken, setAccessToken] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
-  const [isAuthenticated, setIsAuthenticated] =
-    useState(false);
-const manualLogoutRef = useRef(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const manualLogoutRef = useRef(false);
+  const logoutTimerRef = useRef(null);
+
   //------------------------------------------
-  // LOGIN
+  // SESSION HELPERS (auto-logout / cleanup)
   //------------------------------------------
 
+  const clearLogoutTimer = () => {
+    if (logoutTimerRef.current) {
+      clearTimeout(logoutTimerRef.current);
+      logoutTimerRef.current = null;
+    }
+  };
 
-const login = async (email, password, expiryTime, userId) => {
-  const response = await authAPI.login({
-    email,
-    password,
-    expiryTime,
-    userId,
-  });
-
-  const { accessToken, user, roleData } = response.data;
-  
-saveAccessToken(accessToken);
-setAccessToken(accessToken);
-  // Save user
-  setUser(user);
-console.log("logged user in context",user)
-
-
-  setRoleData(roleData || null);
-
-  setIsAuthenticated(true);
-
-  sessionExpiredRef.current = false;
-  manualLogoutRef.current = false;
-
-  return response.data;
-};
-  
-const RECENT_SEARCHES_KEY = "recent_searches";
-
-const logout = async () => {
-  manualLogoutRef.current = true;
-
-  try {
-    await authAPI.logout();
-  } catch (err) {
-    console.error(err);
-  }
-
-  setAccessToken(null);
-  setUser(null);
-  setRoleData(null);
-  setIsAuthenticated(false);
-
-  localStorage.removeItem(RECENT_SEARCHES_KEY);
-
-  showToast({
-    title: "Logged Out",
-    description: "You have been logged out successfully.",
-    type: "success",
-  });
-
-  navigate("/login", {
-    replace: true,
-  });
-};
-const refreshToken = useCallback(async () => {
-  try {
-    const { data } = await axios.post(
-      `${AUTH_USER_URL}/api/auth/refresh-token`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
-
-    const token = data.accessToken;
-
-    if (!token) return null;
-
-    saveAccessToken(token);
-    setAccessToken(token);
-
-    sessionExpiredRef.current = false;
-
-    return token;
-  } catch (err) {
-    if (manualLogoutRef.current) return null;
-
-    if (sessionExpiredRef.current) return null;
-
-    sessionExpiredRef.current = true;
-
-    // clearAccessToken();
-
+  // Clear all auth state (sessionStorage + React state). Does not navigate.
+  const clearSession = useCallback(() => {
+    clearLogoutTimer();
+    clearAccessToken();
     setAccessToken(null);
     setUser(null);
     setRoleData(null);
     setIsAuthenticated(false);
+  }, []);
 
+  // Absolute session timeout fired (or session already found expired on load).
+  const handleSessionExpired = useCallback(() => {
+    manualLogoutRef.current = true;
+    clearSession();
     showToast({
       title: "Session Expired",
       description: "Please login again.",
       type: "warning",
     });
+    navigate("/login", { replace: true });
+  }, [clearSession, navigate, showToast]);
 
-    // navigate("/login", {
-    //   replace: true,
-    // });
+  // (Re)arm the auto-logout timer for the given absolute expiry (epoch ms).
+  const armLogoutTimer = useCallback(
+    (expiresAt) => {
+      clearLogoutTimer();
+      if (!expiresAt) return;
+      const remaining = expiresAt - Date.now();
+      if (remaining <= 0) {
+        handleSessionExpired();
+        return;
+      }
+      logoutTimerRef.current = setTimeout(handleSessionExpired, remaining);
+    },
+    [handleSessionExpired],
+  );
 
-    return null;
+  //------------------------------------------
+  // LOGIN
+  //------------------------------------------
 
-     
-  }
-}, [navigate, showToast]);
-// const refreshToken = useCallback(async () => {
-//   try {
-//     const response = await authAPI.refresh();
+  const login = async (email, password, expiryTime, userId) => {
+    const response = await authAPI.login({
+      email,
+      password,
+      expiryTime,
+      userId,
+    });
 
-//     const token = response.data.accessToken;
+    const { accessToken, user, roleData } = response.data;
 
-//     if (!token) return null;
+    if (accessToken) {
+      const expiresAt = Date.now() + parseExpiryToMs(expiryTime);
 
-//     // setAccessToken(token);
-// saveAccessToken(token);      // IMPORTANT
-// setAccessToken(token);       // React state
-//     sessionExpiredRef.current = false;
+      // Persist to sessionStorage (per-tab; survives reload, cleared on close).
+      saveAccessToken(accessToken);
+      sessionStorage.setItem(EXPIRES_KEY, String(expiresAt));
 
-//     return token;
-//   } catch (err) {
-//     if (manualLogoutRef.current) return null;
+      setAccessToken(accessToken);
+      setUser(user);
+      setRoleData(roleData || null);
+      setIsAuthenticated(true);
 
-//     if (sessionExpiredRef.current) return null;
-
-//     sessionExpiredRef.current = true;
-
-//     setAccessToken(null);
-//     setUser(null);
-//     setRoleData(null);
-//     setIsAuthenticated(false);
-
-//     showToast({
-//       title: "Session Expired",
-//       description: "Please login again.",
-//       type: "warning",
-//     });
-
-//     navigate("/login", {
-//       replace: true,
-//     });
-
-//     return null;
-//   }
-// }, [navigate, showToast]);
-
-const loadUser = useCallback(async () => {
-  try {
-    let token = accessToken;
-console.log("access token",token)
-    // First page load
-    if (!token) {
-      token = await refreshToken();
+      armLogoutTimer(expiresAt);
     }
 
-    if (!token) {
+    sessionExpiredRef.current = false;
+    manualLogoutRef.current = false;
+
+    return response.data;
+  };
+
+  const logout = async () => {
+    manualLogoutRef.current = true;
+
+    try {
+      await authAPI.logout();
+    } catch (err) {
+      console.error(err);
+    }
+
+    clearSession();
+
+    localStorage.removeItem("recent_searches");
+
+    // Sign out sibling tabs too.
+    broadcastLogout();
+
+    showToast({
+      title: "Logged Out",
+      description: "You have been logged out successfully.",
+      type: "success",
+    });
+
+    navigate("/login", {
+      replace: true,
+    });
+  };
+
+  const refreshToken = useCallback(async () => {
+    try {
+      const { data } = await authAPI.refresh();
+      const token = data.accessToken;
+
+      if (!token) return null;
+
+      setAccessToken(token);
+
+      sessionExpiredRef.current = false;
+
+      return token;
+    } catch (err) {
+      if (manualLogoutRef.current) return null;
+
+      if (sessionExpiredRef.current) return null;
+
+      sessionExpiredRef.current = true;
+
+      // clearAccessToken();
+
+      setAccessToken(null);
+      setUser(null);
+      setRoleData(null);
+      setIsAuthenticated(false);
+
+      showToast({
+        title: "Session Expired",
+        description: "Please login again.",
+        type: "warning",
+      });
+
+      // navigate("/login", {
+      //   replace: true,
+      // });
+
+      return null;
+    }
+  }, [showToast]);
+  // const refreshToken = useCallback(async () => {
+  //   try {
+  //     const response = await authAPI.refresh();
+
+  //     const token = response.data.accessToken;
+
+  //     if (!token) return null;
+
+  //     // setAccessToken(token);
+  // saveAccessToken(token);      // IMPORTANT
+  // setAccessToken(token);       // React state
+  //     sessionExpiredRef.current = false;
+
+  //     return token;
+  //   } catch (err) {
+  //     if (manualLogoutRef.current) return null;
+
+  //     if (sessionExpiredRef.current) return null;
+
+  //     sessionExpiredRef.current = true;
+
+  //     setAccessToken(null);
+  //     setUser(null);
+  //     setRoleData(null);
+  //     setIsAuthenticated(false);
+
+  //     showToast({
+  //       title: "Session Expired",
+  //       description: "Please login again.",
+  //       type: "warning",
+  //     });
+
+  //     navigate("/login", {
+  //       replace: true,
+  //     });
+
+  //     return null;
+  //   }
+  // }, [navigate, showToast]);
+
+  const loadUser = useCallback(async () => {
+    try {
+      let token = getAccessToken();
+      let expiresAt = Number(sessionStorage.getItem(EXPIRES_KEY)) || null;
+
+      // No token in this tab: this may be a tab opened from within the app
+      // (right-click / new tab). Adopt a token from an already-open tab.
+      if (!token) {
+        const handoffId = getHandoffIdFromUrl();
+        if (handoffId) {
+          const result = await requestHandoffToken(handoffId);
+          if (result && result.token) {
+            token = result.token;
+            expiresAt = result.expiresAt || null;
+            saveAccessToken(token);
+            if (expiresAt) {
+              sessionStorage.setItem(EXPIRES_KEY, String(expiresAt));
+            }
+          }
+        }
+      }
+
+      // Clean the handoff marker out of the address bar.
+      if (getHandoffIdFromUrl()) stripHandoffParam();
+
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Session already past its absolute expiry.
+      if (expiresAt && expiresAt <= Date.now()) {
+        clearSession();
+        setLoading(false);
+        return;
+      }
+
+      const response = await authAPI.getCurrentUser();
+
+      setUser(response.data.user);
+      setAccessToken(token);
+      setIsAuthenticated(true);
+
+      armLogoutTimer(expiresAt);
+    } catch (err) {
+      clearSession();
+    } finally {
       setLoading(false);
-      return;
     }
+  }, [armLogoutTimer, clearSession]);
 
-    const response = await authAPI.getCurrentUser();
+  //------------------------------------------
+  // HANDOFF RESPONDER (serve token to new tabs / react to sibling logout)
+  //------------------------------------------
 
-    setUser(response.data.user);
+  useEffect(() => {
+    const cleanup = startHandoffResponder(
+      () => ({
+        token: getAccessToken(),
+        expiresAt: Number(sessionStorage.getItem(EXPIRES_KEY)) || null,
+      }),
+      () => {
+        // A sibling tab logged out.
+        manualLogoutRef.current = true;
+        clearSession();
+        navigate("/login", { replace: true });
+      },
+    );
+    return cleanup;
+  }, [clearSession, navigate]);
 
-    // setRoleData(response.data.user.roleData || null);
-
-    setIsAuthenticated(true);
-  } catch (err) {
-    setUser(null);
-    setRoleData(null);
-    setAccessToken(null);
-    setIsAuthenticated(false);
-  } finally {
-    setLoading(false);
-  }
-}, [accessToken, refreshToken]);
-useEffect(() => {
-  if (!isAuthenticated) return;
-
-  const interval = setInterval(async () => {
-    const token = await refreshToken();
-
-    // refreshToken() already handles logout/navigation on failure
-    if (!token) {
-      clearInterval(interval);
-    }
-  }, 60 * 1000); // check every minute
-
-  return () => clearInterval(interval);
-}, [isAuthenticated, refreshToken]);
   //------------------------------------------
   // APP START
   //------------------------------------------
 
-useEffect(() => {
+  useEffect(() => {
+    const publicRoutes = [
+      "/login",
+      "/signup",
+      "/unauthorized",
+      "/forgot-password",
+      "/reset-password",
+      "/activate-team-member",
+    ];
 
- const publicRoutes = [
-  "/login",
-  "/signup",
-  "/unauthorized",
-  "/forgot-password",
-  "/reset-password",
-  "/activate-team-member",
-];
+    const isPublicRoute = publicRoutes.some((route) =>
+      location.pathname.startsWith(route),
+    );
 
+    if (isPublicRoute) {
+      setLoading(false);
+      return;
+    }
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    location.pathname.startsWith(route)
-  );
+    loadUser();
+  }, [location.pathname, loadUser]);
 
-
-  if (isPublicRoute) {
-    setLoading(false);
-    return;
-  }
-
-
-  loadUser();
-
-}, [location.pathname, loadUser]);
-  
-const value = {
-  user,
-  roleData,
-  accessToken,
-  loading,
-  isAuthenticated,
-  login,
-  logout,
-  refreshToken,
-  loadUser,
-  setAccessToken,
-};
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    roleData,
+    accessToken,
+    loading,
+    isAuthenticated,
+    login,
+    logout,
+    refreshToken,
+    loadUser,
+    setAccessToken,
+  };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

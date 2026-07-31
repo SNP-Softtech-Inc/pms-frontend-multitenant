@@ -29,6 +29,7 @@ import {
 } from "../components/ui/sheet";
 
 import { authAPI } from "../services/api";
+import { HANDOFF_PARAM } from "../utils/authHandoff";
 
 const extractMongoId = (subject = "") => {
   const match = subject.match(/#([a-f0-9]{24})\b/i);
@@ -39,7 +40,9 @@ const cleanSubjectText = (subject = "") =>
 
 const getPreview = (html = "") => html.replace(/<[^>]*>?/gm, "");
 const buildAccountLink = (mongoId) => {
-  return `/admin/clients/accounts/accountsdash/overview/${mongoId}`;
+  // Carry a handoff marker so the record opens already-authenticated in a new tab.
+  const handoffId = crypto.randomUUID();
+  return `/admin/clients/accounts/accountsdash/overview/${mongoId}?${HANDOFF_PARAM}=${handoffId}`;
 };
 
 // const renderLinkedSubject = (subject) => {
