@@ -22,7 +22,7 @@ const AccountDetails = () => {
   const { id } = useParams();
   const [account, setAccount] = useState(null);
   const [tagList, setTagList] = useState([]);
-const [teamMemberList, setTeamMemberList] = useState([]);
+  const [teamMemberList, setTeamMemberList] = useState([]);
   const LOGIN_API = process.env.REACT_APP_USER_LOGIN;
   const TAGS_API = process.env.REACT_APP_TAGS_TEMP_URL;
   // Dialog state
@@ -30,25 +30,25 @@ const [teamMemberList, setTeamMemberList] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [newCanLoginValue, setNewCanLoginValue] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-useEffect(() => {
-  const fetchTags = async () => {
-    try {
-      const res = await fetch(`${TAGS_API}/tags/`);
-      const data = await res.json();
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await fetch(`${TAGS_API}/tags/`);
+        const data = await res.json();
 
-      setTagList(data.tags); // store all tags
-    } catch (err) {
-      console.error("Error fetching tags:", err);
-    }
-  };
+        setTagList(data.tags); // store all tags
+      } catch (err) {
+        console.error("Error fetching tags:", err);
+      }
+    };
 
-  fetchTags();
-}, []);
+    fetchTags();
+  }, []);
 
   const fetchAccountDetails = async () => {
     try {
       const res = await axios.get(
-        `https://www.snptaxes.com/api/accounts/${id}`
+        `https://www.snptaxes.com/api/accounts/${id}`,
       );
       setAccount(res.data);
       console.log("result", res.data);
@@ -56,7 +56,7 @@ useEffect(() => {
       console.error("Error fetching account details:", error);
     }
   };
-console.log("selected contact list",selectedContact)
+  console.log("selected contact list", selectedContact);
   useEffect(() => {
     fetchAccountDetails();
   }, [id]);
@@ -71,7 +71,7 @@ console.log("selected contact list",selectedContact)
     try {
       await axios.patch(
         `https://www.snptaxes.com/api/accounts/${account._id}/contact/${contact.contact._id}`,
-        { canNotify: !contact.canNotify }
+        { canNotify: !contact.canNotify },
       );
 
       // update UI
@@ -80,7 +80,7 @@ console.log("selected contact list",selectedContact)
         contacts: prev.contacts.map((c) =>
           c.contact._id === contact.contact._id
             ? { ...c, canNotify: !c.canNotify }
-            : c
+            : c,
         ),
       }));
     } catch (error) {
@@ -92,7 +92,7 @@ console.log("selected contact list",selectedContact)
     try {
       await axios.patch(
         `https://www.snptaxes.com/api/accounts/${account._id}/contact/${contact.contact._id}`,
-        { canEmailSync: !contact.canEmailSync }
+        { canEmailSync: !contact.canEmailSync },
       );
 
       setAccount((prev) => ({
@@ -100,7 +100,7 @@ console.log("selected contact list",selectedContact)
         contacts: prev.contacts.map((c) =>
           c.contact._id === contact.contact._id
             ? { ...c, canEmailSync: !c.canEmailSync }
-            : c
+            : c,
         ),
       }));
     } catch (error) {
@@ -115,7 +115,7 @@ console.log("selected contact list",selectedContact)
     try {
       await axios.patch(
         `https://www.snptaxes.com/api/accounts/${account._id}/contact/${selectedContact.contact._id}`,
-        { canLogin: newCanLoginValue }
+        { canLogin: newCanLoginValue },
       );
 
       // Update local state
@@ -124,7 +124,7 @@ console.log("selected contact list",selectedContact)
         contacts: prev.contacts.map((c) =>
           c.contact._id === selectedContact.contact._id
             ? { ...c, canLogin: newCanLoginValue }
-            : c
+            : c,
         ),
       }));
     } catch (error) {
@@ -140,12 +140,10 @@ console.log("selected contact list",selectedContact)
     setDialogOpen(false);
     setSelectedContact(null);
   };
-const accountTags = tagList.filter(tag =>
-  account.tags.includes(tag._id)
-);
-const assignedMembers = teamMemberList.filter(user =>
-  account.teamMember.includes(user._id)
-);
+  const accountTags = tagList.filter((tag) => account.tags.includes(tag._id));
+  const assignedMembers = teamMemberList.filter((user) =>
+    account.teamMember.includes(user._id),
+  );
 
   if (!account) return <Typography>Loading...</Typography>;
 
@@ -175,37 +173,41 @@ const assignedMembers = teamMemberList.filter(user =>
         <Typography variant="body1">
           <b>Company Name:</b> {account.companyName || "—"}
         </Typography>
-<Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-<Typography variant="body1" sx={{ mt: 2 }}><b>Tags:</b></Typography>
-<Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-  {accountTags.length > 0 ? (
-    accountTags.map(tag => (
-      <Chip 
-        key={tag._id} 
-        label={tag.tagName} 
-        sx={{ background: tag.tagColour, color: "#fff" }}
-      />
-    ))
-  ) : (
-    <Typography>—</Typography>
-  )}
-</Box>
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          <b>Tags:</b>
+        </Typography>
+        <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {accountTags.length > 0 ? (
+            accountTags.map((tag) => (
+              <Chip
+                key={tag._id}
+                label={tag.tagName}
+                sx={{ background: tag.tagColour, color: "#fff" }}
+              />
+            ))
+          ) : (
+            <Typography>—</Typography>
+          )}
+        </Box>
 
-<Typography variant="body1" sx={{ mt: 2 }}><b>Team Members:</b></Typography>
-<Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-  {assignedMembers.length > 0 ? (
-    assignedMembers.map(member => (
-      <Chip 
-        key={member._id} 
-        label={member.username} 
-        variant="outlined"
-      />
-    ))
-  ) : (
-    <Typography>—</Typography>
-  )}
-</Box>
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          <b>Team Members:</b>
+        </Typography>
+        <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {assignedMembers.length > 0 ? (
+            assignedMembers.map((member) => (
+              <Chip
+                key={member._id}
+                label={member.username}
+                variant="outlined"
+              />
+            ))
+          ) : (
+            <Typography>—</Typography>
+          )}
+        </Box>
 
         <Typography variant="h6" sx={{ mt: 3 }}>
           Contacts
@@ -228,7 +230,6 @@ const assignedMembers = teamMemberList.filter(user =>
                       checked={c.canLogin}
                       onClick={() => handleSwitchClick(c)}
                       color="primary"
-                   
                     />
                   }
                   label="Login"
@@ -239,7 +240,6 @@ const assignedMembers = teamMemberList.filter(user =>
                       checked={c.canNotify}
                       onClick={() => handleNotifyToggle(c)} // ✅ no dialog
                       color="primary"
-                     
                     />
                   }
                   label="Notify"
@@ -251,7 +251,6 @@ const assignedMembers = teamMemberList.filter(user =>
                       checked={c.canEmailSync}
                       onClick={() => handleEmailSyncToggle(c)} // ✅ no dialog
                       color="primary"
-                      
                     />
                   }
                   label="EmailSync"
