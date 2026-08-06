@@ -40,6 +40,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import TextEditor from "../../../components/TextEditor";
+
+// import TextEditor from "../../../components/textEditor/TextEditior";
+
 // Validation Schema
 const taskTemplateSchema = z.object({
   templatename: z.string().min(1, "Template name is required"),
@@ -627,6 +630,9 @@ dueDate: data.enddate
                     onChange={handleEditorChange}
                     value={form.watch("description")}
                   /> */}
+
+
+                   <div style={{ maxWidth: 600, }}>
                   <TextEditor
                     value={form.watch("description")}
                     onChange={(content) => {
@@ -634,6 +640,7 @@ dueDate: data.enddate
                       setDescription(content);
                     }}
                   />
+                  </div>
                 </FormSection>
 
                 {/* Tags Section */}

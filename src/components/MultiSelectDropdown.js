@@ -443,24 +443,7 @@ const MultiSelectDropdown = ({
 
   return (
    
-//     <Select
-//   isMulti
-//   options={options}
-//   value={value}
-//   onChange={(selected) => onChange?.(selected || [])}
-//   placeholder={placeholder}
-//   closeMenuOnSelect={false}
-//   hideSelectedOptions={true} // Selected users won't appear in the dropdown
-//   isClearable
-//   getOptionLabel={(option) => option.label}
-//   getOptionValue={(option) => option.value}
-//   formatOptionLabel={(option) => (
-//     <div className="flex flex-col">
-//       <span className="font-medium">{option.label}</span>
-//       {/* <span className="text-xs text-gray-500">{option.email}</span> */}
-//     </div>
-//   )}
-// />
+
 <Select
   isMulti
   options={options}
@@ -474,9 +457,7 @@ const MultiSelectDropdown = ({
   formatOptionLabel={(option) => (
     <div className="flex flex-col">
       <span className="font-medium">{option.label}</span>
-      {/* <span className="text-xs text-muted-foreground">
-        {option.email}
-      </span> */}
+    
     </div>
   )}
   styles={{

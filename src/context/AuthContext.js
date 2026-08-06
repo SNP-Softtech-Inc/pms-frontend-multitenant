@@ -382,11 +382,11 @@ const refreshToken = useCallback(async () => {
     setRoleData(null);
     setIsAuthenticated(false);
 
-    showToast({
-      title: "Session Expired",
-      description: "Please login again.",
-      type: "warning",
-    });
+    // showToast({
+    //   title: "Session Expired",
+    //   description: "Please login again.",
+    //   type: "warning",
+    // });
 
     // navigate("/login", {
     //   replace: true,
@@ -477,10 +477,20 @@ useEffect(() => {
     if (!token) {
       clearInterval(interval);
     }
-  }, 60 * 1000); // check every minute
+  }, 5 * 60 * 1000); // check every minute
 
   return () => clearInterval(interval);
 }, [isAuthenticated, refreshToken]);
+
+// useEffect(() => {
+//   if (!isAuthenticated) return;
+
+//   const interval = setInterval(async () => {
+//     await refreshToken();
+//   }, 14 * 60 * 1000); // Refresh every 14 minutes
+
+//   return () => clearInterval(interval);
+// }, [isAuthenticated]);
   //------------------------------------------
   // APP START
   //------------------------------------------

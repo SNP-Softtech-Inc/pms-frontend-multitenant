@@ -236,4 +236,29 @@ code {
 .app-container {
   isolation: isolate;
 }
+.ck-content,
+.ck-editor__editable {
+    color: #000 !important;
+}
 
+.ck-content p,
+.ck-editor__editable p {
+    color: #000 !important;
+}
+.ck-content ol {
+    list-style: decimal !important;
+    list-style-position: outside !important;
+    margin-left: 1.5rem !important;
+    padding-left: 1rem !important;
+}
+
+.ck-content ul {
+    list-style: disc !important;
+    list-style-position: outside !important;
+    margin-left: 1.5rem !important;
+    padding-left: 1rem !important;
+}
+
+.ck-content li {
+    display: list-item !important;
+}

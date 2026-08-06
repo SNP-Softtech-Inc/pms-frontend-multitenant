@@ -7,7 +7,7 @@ import { templateAPI, chatAPI ,authAPI} from "../../../services/api";
 import AccountMultiSelectDropdown from "../../../components/AccountMultiSelectDropdown";
 import EditorShortcodes from "../../../components/TextEditorShortCodes";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
-
+// import TextEditor from "../../../components/textEditor/TextEditior";
 // Shadcn UI components (using correct paths)
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -243,6 +243,8 @@ const [attachments, setAttachments] = useState([]);
     setNoOfReminder(1);
     setSelectedaccount([]);
   };
+    const handleEditorChange = (content) => setDescription(content);
+
 
   // ================= UI =================
   if (!open) return null;
@@ -493,7 +495,7 @@ const [attachments, setAttachments] = useState([]);
                 >
                   Description
                 </Label>
-
+ {/* <TextEditor value={description} onChange={handleEditorChange}     /> */}
                 <EditorShortcodes
                   value={description}
                   onChange={setDescription}

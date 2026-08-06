@@ -416,9 +416,17 @@ const TagsMultiSelectDropDown = ({
   options: propOptions,
   placeholder = "Select tags",
 }) => {
-  const [internalOptions, setInternalOptions] = useState([]);
-
+   const [internalOptions, setInternalOptions] = useState([]);
   const options = propOptions || internalOptions;
+  console.log("value", value);
+console.log("options", options);
+console.log(
+  "Invalid selected",
+  value.filter(v => !v?.value || !v?.label)
+);
+ 
+
+
 
   useEffect(() => {
     if (!propOptions) {

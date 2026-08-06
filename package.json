@@ -4,7 +4,9 @@
   "homepage": "/admin",
   "private": true,
   "dependencies": {
+    "@ckbox/core": "^2.8.2",
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^11.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -45,7 +47,10 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+    "@tiptap/extension-image": "^3.29.2",
     "axios": "^1.13.6",
+    "ckbox": "^2.13.0",
+    "ckeditor5": "^48.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -98,8 +103,8 @@
     "zod": "^4.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "cross-env DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
+    "start": "cross-env NODE_OPTIONS=--max-old-space-size=8192 react-scripts start",
+    "build": "cross-env DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS=--max-old-space-size=8192 react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

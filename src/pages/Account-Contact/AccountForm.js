@@ -27,7 +27,7 @@ export default function AccountForm({ onContinue, isEditing = false }) {
   const [tags, setTags] = useState([]);
   const [folderTemp, setFolderTemp] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
-  console.log("accountdata", accountData);
+  console.log("accountdata for editing", accountData);
 
   const handleChange = (e) => {
     dispatch(setAccountData({ [e.target.name]: e.target.value }));
@@ -166,7 +166,6 @@ export default function AccountForm({ onContinue, isEditing = false }) {
 
   fetchTeamMembers();
 }, [isEditing, accountData.teamMember, user]);
-
   const handleAutocompleteChange = (field, newValue) => {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -180,228 +179,7 @@ export default function AccountForm({ onContinue, isEditing = false }) {
 
 
   return (
-  // <div className="flex flex-col h-full">
-  //   {/* Scrollable content */}
-  //   <div className="flex-1 overflow-y-auto space-y-6 pb-2 px-4">
-
-  //     {/* Client Type */}
-  //     <div className="space-y-3">
-  //       <SheetHeader className="px-0 py-0 space-y-0.5">
-  //         <SheetTitle className="text-sm font-semibold">Client Type</SheetTitle>
-  //         <SheetDescription className="text-xs">
-  //           Select whether this is an individual or company account.
-  //         </SheetDescription>
-  //       </SheetHeader>
-
-  //       <div className="flex items-center gap-6">
-  //         {["Individual", "Company"].map((type) => (
-  //           <label key={type} className="flex items-center gap-2 cursor-pointer">
-  //             <input
-  //               type="radio"
-  //               name="clientType"
-  //               value={type}
-  //               checked={(accountData.clientType || "") === type}
-  //               onChange={handleChange}
-  //               className="h-4 w-4 accent-primary"
-  //             />
-  //             <span className="text-sm text-foreground">{type}</span>
-  //           </label>
-  //         ))}
-  //       </div>
-  //     </div>
-
-  //     {/* Account Info */}
-  //     <div className="space-y-3">
-  //       <SheetHeader className="px-0 py-0 space-y-0.5">
-  //         <SheetTitle className="text-sm font-semibold">Account Info</SheetTitle>
-  //         <SheetDescription className="text-xs">
-  //           Enter the primary account details.
-  //         </SheetDescription>
-  //       </SheetHeader>
-
-  //       <div className="space-y-3">
-  //         <div className="space-y-1.5">
-  //           <Label>
-  //             Account Name <span className="text-destructive">*</span>
-  //           </Label>
-  //           <Input
-  //             name="accountName"
-  //             value={accountData.accountName || ""}
-  //             placeholder="Account Name"
-  //             className={errors.accountName ? "border-destructive" : ""}
-  //             onChange={handleChange}
-  //           />
-  //           {errors.accountName && (
-  //             <p className="text-xs text-destructive">{errors.accountName}</p>
-  //           )}
-  //         </div>
-
-  //         {accountData.clientType === "Company" && (
-  //           <div className="space-y-1.5">
-  //             <Label>
-  //               Company Name <span className="text-destructive">*</span>
-  //             </Label>
-  //             <Input
-  //               name="companyName"
-  //               value={accountData.companyName || ""}
-  //               placeholder="Company Name"
-  //               className={errors.companyName ? "border-destructive" : ""}
-  //               onChange={handleChange}
-  //             />
-  //             {errors.companyName && (
-  //               <p className="text-xs text-destructive">
-  //                 {errors.companyName}
-  //               </p>
-  //             )}
-  //           </div>
-  //         )}
-  //       </div>
-  //     </div>
-
-  //     {/* Assignment */}
-  //     <div className="space-y-3">
-  //       <SheetHeader className="px-0 py-0 space-y-0.5">
-  //         <SheetTitle className="text-sm font-semibold">Assignment</SheetTitle>
-  //         <SheetDescription className="text-xs">
-  //           Assign team members, tags and a folder template.
-  //         </SheetDescription>
-  //       </SheetHeader>
-
-  //       <div className="space-y-3">
-  //         <MultiSelectDropdown
-  //           value={accountData.teamMembers || []}
-  //           onChange={(newValue) =>
-  //             dispatch(setAccountData({ teamMembers: newValue }))
-  //           }
-  //           options={teamMembers}
-  //           placeholder="Select Team Members"
-  //           width="100%"
-  //         />
-
-  //         <TagsMultiSelectDropDown
-  //           value={accountData.tags || []}
-  //           onChange={(newValue) =>
-  //             dispatch(setAccountData({ tags: newValue }))
-  //           }
-  //           options={tags}
-  //           placeholder="Select tags"
-  //         />
-
-  //         <div className="space-y-1.5">
-  //           <Label>
-  //             Folder Template <span className="text-destructive">*</span>
-  //           </Label>
-  //           <select
-  //             value={accountData.folderTemp?.value || ""}
-  //             onChange={(e) => {
-  //               const opt =
-  //                 folderTemp.find((f) => f.value === e.target.value) || null;
-  //               handleAutocompleteChange("folderTemp", opt);
-  //             }}
-  //             className={selectCls}
-  //           >
-  //             <option value="">Select Folder Template</option>
-  //             {folderTemp.map((f) => (
-  //               <option key={f.value} value={f.value}>
-  //                 {f.label}
-  //               </option>
-  //             ))}
-  //           </select>
-  //         </div>
-  //       </div>
-  //     </div>
-
-  //     {/* Address */}
-  //     {accountData.clientType === "Company" && (
-  //       <div className="space-y-3">
-  //         <SheetHeader className="px-0 py-0 space-y-0.5">
-  //           <SheetTitle className="text-sm font-semibold">Address</SheetTitle>
-  //           <SheetDescription className="text-xs">
-  //             Company billing or mailing address.
-  //           </SheetDescription>
-  //         </SheetHeader>
-
-  //         <div className="space-y-3">
-  //           <div className="space-y-1.5">
-  //             <Label>Country</Label>
-  //             <select
-  //               value={
-  //                 options.find(
-  //                   (o) => o.label === accountData?.country?.label
-  //                 )?.value || ""
-  //               }
-  //               onChange={(e) => {
-  //                 const found =
-  //                   options.find((o) => o.value === e.target.value) || null;
-  //                 dispatch(setAccountData({ country: found }));
-  //               }}
-  //               className={selectCls}
-  //             >
-  //               <option value="">Select Country</option>
-  //               {options.map((o) => (
-  //                 <option key={o.value} value={o.value}>
-  //                   {o.label}
-  //                 </option>
-  //               ))}
-  //             </select>
-  //           </div>
-
-  //           <div className="space-y-1.5">
-  //             <Label>Street Address</Label>
-  //             <Input
-  //               name="streetAddress"
-  //               value={accountData.streetAddress || ""}
-  //               placeholder="Street address"
-  //               onChange={handleChange}
-  //             />
-  //           </div>
-
-  //           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-  //             <div className="space-y-1.5">
-  //               <Label>City</Label>
-  //               <Input
-  //                 name="city"
-  //                 value={accountData.city || ""}
-  //                 placeholder="City"
-  //                 onChange={handleChange}
-  //               />
-  //             </div>
-
-  //             <div className="space-y-1.5">
-  //               <Label>State</Label>
-  //               <Input
-  //                 name="state"
-  //                 value={accountData.state || ""}
-  //                 placeholder="State"
-  //                 onChange={handleChange}
-  //               />
-  //             </div>
-
-  //             <div className="space-y-1.5">
-  //               <Label>ZIP Code</Label>
-  //               <Input
-  //                 name="postalCode"
-  //                 value={accountData.postalCode || ""}
-  //                 placeholder="ZIP Code"
-  //                 onChange={handleChange}
-  //               />
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     )}
-  //   </div>
-
-  //   {/* Footer */}
-  //   <SheetFooter className="border-t border-border/40 pt-3 pb-1">
-  //     <div className="flex justify-end w-full">
-  //       <Button size="sm" onClick={onContinue} className="gap-1.5">
-  //         Continue
-  //       </Button>
-  //     </div>
-  //   </SheetFooter>
-  // </div>
-
+  
   <div
   className="
     flex flex-col h-full
@@ -626,7 +404,7 @@ export default function AccountForm({ onContinue, isEditing = false }) {
       </div>
 
       <div className="space-y-4">
-        <MultiSelectDropdown
+   <MultiSelectDropdown
           value={accountData.teamMembers || []}
           onChange={(newValue) =>
             dispatch(

@@ -1,38 +1,4 @@
 
-// import Grid from '@mui/material/Grid';
-// import Paper from '@mui/material/Paper';
-// import Box from '@mui/material/Box';
-
-
-// export default function RowAndColumnSpacing() {
-//   return (
-//     <Box sx={{ width: '100%' }}>
-//       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-//         <Grid size={{ xs: 12, md: 6 }}>
-//           <Box>
-//             <Paper> 1</Paper>
-           
-//           </Box>
-//         </Grid>
-//         <Grid size={{ xs: 12, md: 6 }}>
-//          <Box>
-//           <Paper> 2</Paper>
-//           </Box>
-//         </Grid>
-//         <Grid size={{ xs: 12, md: 6 }}>
-//          <Box>
-// <Paper> 3</Paper>
-//           </Box>
-//         </Grid>
-//         <Grid size={{ xs: 12, md: 6 }}>
-//           <Box>
-//          <Paper> 4</Paper>
-//           </Box>
-//         </Grid>
-//       </Grid>
-//     </Box>
-//   );
-// }
 
 
 import React from "react";
@@ -214,3 +180,86 @@ const Insights = () => {
 };
 
 export default Insights;
+
+// import TextEditor from '../TextEditor/TextEditor'
+
+// import React, { useState } from 'react';
+// const insights = () => {
+//   const accountId = "6a6959acd9631c6907a9b7f9"; // Replace with actual account ID
+//   const [uploadedFiles, setUploadedFiles] = useState([]);
+// console.log("uploaded files",uploadedFiles)
+//   const handleFilesSelected = (files) => {
+//     console.log('Files uploaded:', files);
+    
+//     // Separate images and documents
+//     const images = files.filter(f => {
+//       const ext = f.name.split('.').pop().toLowerCase();
+//       return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+//     });
+    
+//     const documents = files.filter(f => {
+//       const ext = f.name.split('.').pop().toLowerCase();
+//       return !['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+//     });
+    
+//     console.log('Images:', images);
+//     console.log('Documents:', documents);
+
+    
+//     setUploadedFiles(prev => [...prev, ...files]);
+//   };
+//   return (
+//     <div><TextEditor accountId={accountId}    onFilesSelected={handleFilesSelected} />
+//     {/* Display uploaded files */}
+//       <div style={{ marginTop: 20, padding: 16, border: '1px solid #ddd' }}>
+//         <h3>Uploaded Files ({uploadedFiles.length})</h3>
+        
+//         {/* Images section */}
+//         {uploadedFiles.filter(f => {
+//           const ext = f.name.split('.').pop().toLowerCase();
+//           return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+//         }).length > 0 && (
+//           <div>
+//             <h4>Images</h4>
+//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+//               {uploadedFiles.filter(f => {
+//                 const ext = f.name.split('.').pop().toLowerCase();
+//                 return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+//               }).map((file, index) => (
+//                 <div key={index} style={{ border: '1px solid #ddd', padding: 8 }}>
+//                   <img src={file.url} alt={file.name} style={{ width: '100%', height: 'auto' }} />
+//                   <div>{file.name}</div>
+//                   <a href={file.url} target="_blank" rel="noopener noreferrer">View Image</a>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+        
+//         {/* Documents section */}
+//         {uploadedFiles.filter(f => {
+//           const ext = f.name.split('.').pop().toLowerCase();
+//           return !['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+//         }).length > 0 && (
+//           <div>
+//             <h4>Documents</h4>
+//             <ul>
+//               {uploadedFiles.filter(f => {
+//                 const ext = f.name.split('.').pop().toLowerCase();
+//                 return !['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+//               }).map((file, index) => (
+//                 <li key={index}>
+//                   <a href={file.url} target="_blank" rel="noopener noreferrer">
+//                     {file.name}
+//                   </a>
+//                   <span> ({Math.round(file.size / 1024)} KB)</span>
+//                 </li>
+//               ))}
+//             </ul>
+//           </div>
+//         )}
+//       </div></div>
+//   )
+// }
+
+// export default insights

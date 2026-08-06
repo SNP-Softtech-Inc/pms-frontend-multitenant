@@ -2,7 +2,7 @@
 
 
 import React, { useEffect, useState } from "react";
-import Editor from "../../components/TextEditor";
+// import Editor from "../../components/TextEditor";
 import { useParams } from "react-router-dom";
 import {useToastContext} from "../../context/ToastContext"
 
@@ -36,7 +36,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { X, ChevronDown,  } from "lucide-react";
 import { Label } from "../../components/ui/label";
-
+import TextEditor from "../../components/textEditor/TextEditior";
 const NoteApp = () => {
   const { accountId } = useParams();
   const { user } = useAuth();
@@ -364,10 +364,11 @@ return (
             <div className="space-y-2">
               <Label>Description</Label>
 
-              <Editor
+              {/* <Editor
                 value={newNoteText}
                 onChange={setNewNoteText}
-              />
+              /> */}
+                <TextEditor  value={newNoteText} onChange={setNewNoteText} />
             </div>
           </div>
         </div>
@@ -430,7 +431,7 @@ return (
                   Editing note...
                 </div>
 
-                <Editor
+                <TextEditor
                   value={editingNoteText}
                   onChange={setEditingNoteText}
                 />

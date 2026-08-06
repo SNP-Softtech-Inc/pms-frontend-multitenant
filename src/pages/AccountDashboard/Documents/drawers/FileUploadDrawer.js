@@ -20,7 +20,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { accountsAPI } from "../../../../services/api";
+import { accountsAPI, } from "../../../../services/api";
 
 // ================= SETTINGS DRAWER =================
 const SettingsDrawer = ({
@@ -121,24 +121,7 @@ const SettingsDrawer = ({
     }
   };
 
-  // Modified upload handler with approval
-  // const handleUploadWithApproval = async () => {
-  //   if (requestApproval && files.length > 0) {
-  //     // Upload files first, then send approval
-  //     const uploadSuccess = await onUpload();
-      
-  //     if (uploadSuccess) {
-  //       // Send approval for each uploaded file
-  //       for (const file of files) {
-  //         const filePath = `${selectedFolder}/${file.name}`;
-  //         await handleRequestApproval(filePath, file.name);
-  //       }
-  //     }
-  //   } else {
-  //     // Regular upload without approval
-  //     await onUpload();
-  //   }
-  // };
+ 
 const handleUploadWithApproval = async () => {
   const uploadSettings = {
     notifyClient,
@@ -496,18 +479,50 @@ const InvoicePanelDrawer = ({
 const FileUploadDrawer = ({
   isOpen,
   onClose,
-  folderTree,
-  fetchFolderTree,
+  // folderTree,
+  // fetchFolderTree,
   selectedFolderForMenu,
-  accountId,
+  accountId,onFilesSelected
 }) => {
   const { user } = useAuth();
+  console.log("hvdhgs accointid",accountId)
   const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
   const { showToast } = useToastContext();
+   const [folderTree, setFolderTree] = useState([]);
+
+    // Fetch folder tree - Using accountDocsAPI
+   // Fetch folder tree - Using accountDocsAPI
+const fetchFolderTree = async () => {
+  console.log("fetchFolderTree called with accountId:", accountId);
   
+  if (!accountId) {
+    console.warn("Account ID is missing, cannot fetch folder tree");
+    setError("Account ID is required");
+    return;
+  }
+
+  try {
+    const res = await accountDocsAPI.listFoldersAndFiles(accountId);
+    console.log("Folder tree response:", res);
+    console.log("Folder tree data:", res?.data?.contents);
+    setFolderTree(res?.data?.contents || []);
+  } catch (err) {
+    console.error("Error fetching folder tree:", err);
+    console.log("Error details:", err.response?.data || err.message);
+    setError("Error fetching folder tree");
+  }
+};
+
+// Call fetchFolderTree when component mounts or accountId changes
+useEffect(() => {
+  console.log("AccountId changed or component mounted:", accountId);
+  if (accountId) {
+    fetchFolderTree();
+  }
+}, [accountId]);
   // Drawer visibility states
   const [showSettings, setShowSettings] = useState(false);
   const [showInvoicePanel, setShowInvoicePanel] = useState(false);
@@ -614,8 +629,34 @@ const handleUpload = async (settings = {}) => {
     formData.append("notifyClient", settings.notifyClient || false);
     formData.append("clientEmail", settings.clientEmail || "");
 
-    await accountDocsAPI.uploadFile(formData, selectedFolder);
+    // await accountDocsAPI.uploadFile(formData, selectedFolder);
+const result = await accountDocsAPI.uploadFile(formData, selectedFolder);
 
+    // Pass uploaded files back with details
+    // if (onFilesSelected && result.data?.files) {
+    //   // If API returns file details
+    //   const uploadedFiles = result.data.files.map(file => ({
+    //     ...file,
+    //     name: file.name || file.filename,
+    //     url: file.url || file.fileUrl || `/uploads/accounts/${selectedFolder}/${file.name}`,
+    //     size: file.size,
+    //     path: `${selectedFolder}/${file.name}`,
+    //     uploadDate: new Date().toISOString(),
+    //   }));
+      
+    //   onFilesSelected(uploadedFiles);
+    // } else {
+    //   // Fallback: pass the original files with path info
+    //   const uploadedFiles = files.map(file => ({
+    //     name: file.name,
+    //     size: file.size,
+    //     path: `${selectedFolder}/${file.name}`,
+    //     url: `/uploads/accounts/${selectedFolder}/${file.name}`,
+    //     uploadDate: new Date().toISOString(),
+    //   }));
+      
+    //   onFilesSelected(uploadedFiles);
+    // }
     showToast({
       title: "Files uploaded successfully",
       type: "success",
@@ -640,42 +681,7 @@ const handleUpload = async (settings = {}) => {
     setUploading(false);
   }
 };
-//   const handleUpload = async () => {
-//     try {
-//       setUploading(true);
 
-//       const formData = new FormData();
-//       files.forEach((file) => formData.append("files", file));
-      
-//       formData.append("invoices", JSON.stringify(selectedInvoices));
-//       formData.append("adminUserName", user?.username || "Unknown");
-//       formData.append("invoiceDescription", invoiceDescription);
-//      formData.append("notifyClient", notifyClient);
-// formData.append("clientEmail", clientEmail);
-
-//       await accountDocsAPI.uploadFile(formData, selectedFolder);
-
-//       showToast({
-//         title: "Files uploaded successfully",
-//         type: "success",
-//       });
-
-//       setSelectedInvoices([]);
-//       setInvoiceDescription("");
-//       onClose();
-//       fetchFolderTree();
-//       return true;
-//     } catch (err) {
-//       console.error(err);
-//       showToast({
-//         title: "Upload failed",
-//         type: "error",
-//       });
-//       return false;
-//     } finally {
-//       setUploading(false);
-//     }
-//   };
 
   // Open invoice panel from settings
   const handleOpenInvoicePanel = () => {

@@ -528,7 +528,7 @@ setInpval({
 setSelectedUser(null);
 setAgreeToTerms(false);
 
-navigate("/");
+navigate("/insights");
       // if (result.success) {
       //   showToast({
       //     title: "Login successful",
@@ -556,12 +556,20 @@ navigate("/");
       //   });
       // }
     } catch (error) {
-      showToast({
-        title: "Login failed",
-        description: "An error occurred while logging in.",
-        type: "error",
-      });
-    }
+      console.log("mnabshjcs falied error",error)
+      // showToast({
+      //   title: "Login failed",
+      //   description: "An error occurred while logging in.",
+      //   type: "error",
+      // });
+   showToast({
+    title: "Login failed",
+    description:
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      "Invalid email or password.",
+    type: "error",
+  }); }
   };
 
   return (
