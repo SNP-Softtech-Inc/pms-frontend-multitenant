@@ -94,8 +94,8 @@ function App() {
         }
       >
         <Route
-          // path="/insights"
-          index
+          path="/insights"
+          // index
           element={
             <ProtectedRoute>
               <Insights />
@@ -319,7 +319,7 @@ function App() {
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* <Route path="*" element={<Navigate to="/login" replace />} /> */}
     </Routes>
   );
 }

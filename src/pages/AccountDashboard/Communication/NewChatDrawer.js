@@ -5,9 +5,9 @@ import { useAuth } from "../../../context/AuthContext";
 import { templateAPI, chatAPI ,authAPI} from "../../../services/api";
 
 import AccountMultiSelectDropdown from "../../../components/AccountMultiSelectDropdown";
-import EditorShortcodes from "../../../components/EditorShortcodes";
+import EditorShortcodes from "../../../components/TextEditorShortCodes";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
-
+// import TextEditor from "../../../components/textEditor/TextEditior";
 // Shadcn UI components (using correct paths)
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -169,7 +169,7 @@ const fetchGroupedUsers = async () => {
     { title: "Next quarter", isBold: false, value: "NEXT_QUARTER" },
     { title: "Next year", isBold: false, value: "NEXT_YEAR" },
   ];
-
+const [attachments, setAttachments] = useState([]);
   // ================= SAVE =================
   // ================= SAVE =================
   const saveChat = async () => {
@@ -243,6 +243,8 @@ const fetchGroupedUsers = async () => {
     setNoOfReminder(1);
     setSelectedaccount([]);
   };
+    const handleEditorChange = (content) => setDescription(content);
+
 
   // ================= UI =================
   if (!open) return null;
@@ -493,9 +495,9 @@ const fetchGroupedUsers = async () => {
                 >
                   Description
                 </Label>
-
+ {/* <TextEditor value={description} onChange={handleEditorChange}     /> */}
                 <EditorShortcodes
-                  initialContent={description}
+                  value={description}
                   onChange={setDescription}
                 />
               </div>

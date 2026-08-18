@@ -27,7 +27,9 @@ import { Input } from "../../../components/ui/input";
 import Editor from "../../../components/Editor";
 import { useAuth } from "../../../context/AuthContext";
 import { chatAPI } from "../../../services/api";
-import TextEditor from "../../../components/TextEditor";
+// import TextEditor from "../../../components/TextEditor";
+import TextEditor from "../../../TextEditor/TextEditor";
+
 import { MoreVertical, Printer, MailOpen, Mail } from "lucide-react";
 const ChatDetails = ({
   chat,
@@ -59,6 +61,15 @@ const ChatDetails = ({
 
   const [senderEmail, setSenderEmail] = useState("");
   const [senderName, setSenderName] = useState("");
+const [attachmentsDrawer, setAttachmentsDrawer] = useState(false);
+const [selectedFiles, setSelectedFiles] = useState([]);
+
+// const handleFilesSelected = (files) => {
+//       console.log('Files selected in editor:', files);
+
+//   setUploadedFiles(files);
+
+// };
 
   useEffect(() => {
     if (user?.id) {
@@ -155,7 +166,30 @@ const handleSaveUserChange = async () => {
 
   const handleEditorChange = (content) => setEditorContent(content);
   const toggleTasks = () => setShowTasks(!showTasks);
-
+  const [uploadedFiles, setUploadedFiles] = useState([]); 
+// Handle file upload completion
+  const handleFileUploadComplete = (files) => {
+    setUploadedFiles(files);
+    
+    // Auto-send the message with files
+    if (files && files.length > 0) {
+      const fileMessage = files.map((file, index) => {
+        const fileName = file.name || file.filename || 'Document';
+        return `${index + 1}. ${fileName}`;
+      }).join('\n');
+      
+      const message = `📎 Shared Documents:\n${fileMessage}`;
+      
+      // Update editor content
+      setEditorContent(prev => prev + '\n\n' + message);
+      
+      // Auto-send after a short delay
+      setTimeout(() => {
+        updateChatDescription(message);
+      }, 100);
+    }
+  };
+  
   const canEditMessage = (messageTime) => {
     if (!messageTime) return false;
     const messageTimestamp = new Date(messageTime).getTime();
@@ -163,41 +197,253 @@ const handleSaveUserChange = async () => {
     const tenMinutes = 10 * 60 * 1000;
     return currentTime - messageTimestamp <= tenMinutes;
   };
+const updateChatDescription = async (message = "", isHTML = false) => {
+  const contentToSend = message.trim() || editorContent.trim();
+  console.log("editor content", contentToSend);
+  
+  // Check if we have files
+  const hasFiles = uploadedFiles && uploadedFiles.length > 0;
+  console.log("has files data", uploadedFiles);
+  
+  // If no content and no files, don't send
+  if (!contentToSend && !hasFiles) {
+    showToast({
+      title: "Please enter a message or attach a file",
+      type: "warning",
+    });
+    return;
+  }
 
-  const updateChatDescription = async (message = "") => {
-    const contentToSend = message.trim() || editorContent.trim();
-    if (!contentToSend) return;
+  try {
+    if (hasFiles) {
+      // We have files - use FormData
+      const formData = new FormData();
+      
+      // Create the description object
+      const newDescription = {
+        fromwhome: "Admin",
+        senderid: senderName,
+      };
 
-    const newDescription = {
-      message: contentToSend,
-      fromwhome: "Admin",
-      senderid: senderName,
-    };
+      // Only add message if there's content
+      if (contentToSend) {
+        newDescription.message = isHTML ? contentToSend : contentToSend;
+        newDescription.isHTML = isHTML; // Flag to indicate HTML content
+      }
 
-    if (replyTo) newDescription.replyTo = replyTo._id;
+      if (replyTo) newDescription.replyTo = replyTo._id;
 
-    try {
+      // Append description as JSON string
+      formData.append("newDescriptions", JSON.stringify([newDescription]));
+
+      // Append files
+      uploadedFiles.forEach((file) => {
+        let fileToAppend = null;
+        let fileName = file.name || 'file';
+        
+        if (file instanceof File) {
+          fileToAppend = file;
+          fileName = file.name;
+        } else if (file.file) {
+          fileToAppend = file.file;
+          fileName = file.file.name || file.name || 'file';
+        } else if (file.fileData) {
+          if (file.fileData instanceof Blob || file.fileData instanceof File) {
+            fileToAppend = file.fileData;
+            fileName = file.name || 'file';
+          } else {
+            const blob = new Blob([file.fileData]);
+            fileToAppend = blob;
+            fileName = file.name || 'file';
+          }
+        } else if (file.blob) {
+          fileToAppend = file.blob;
+          fileName = file.name || 'file';
+        } else if (file instanceof Blob) {
+          fileToAppend = file;
+          fileName = file.name || 'file';
+        } else if (file.data) {
+          const blob = new Blob([file.data]);
+          fileToAppend = blob;
+          fileName = file.name || 'file';
+        }
+
+        if (fileToAppend) {
+          formData.append("attachments", fileToAppend, fileName);
+        }
+      });
+
+      // Send with FormData
+      await chatAPI.updateChatDescription(chatId, formData);
+      
+      // Clear uploaded files after successful send
+      setUploadedFiles([]);
+      
+      showToast({
+        title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`,
+        type: "success",
+      });
+      
+    } else {
+      // No files, just text message
+      const newDescription = {
+        message: contentToSend,
+        fromwhome: "Admin",
+        senderid: senderName,
+        isHTML: isHTML || false,
+      };
+
+      if (replyTo) newDescription.replyTo = replyTo._id;
+
       await chatAPI.updateChatDescription(chatId, {
         newDescriptions: [newDescription],
       });
-      setEditorContent("");
-      setReplyTo(null);
+      
       showToast({
         title: "Message sent",
         type: "success",
       });
-      await securemessagechatsend(chatId);
-      await updatechatStatus(chatId);
-      accountwiseChatlist(data, isActiveTrue);
-      getsChatDetails();
-    } catch (error) {
-      showToast({
-        title: "Send failed",
-        type: "error",
-      });
     }
-  };
 
+    // Common success actions
+    setEditorContent("");
+    setReplyTo(null);
+    
+    await securemessagechatsend(chatId);
+    await updatechatStatus(chatId);
+    accountwiseChatlist(data, isActiveTrue);
+    getsChatDetails();
+    
+  } catch (error) {
+    console.error("Send failed:", error);
+    showToast({
+      title: error.response?.data?.message || "Send failed",
+      type: "error",
+    });
+  }
+};
+ 
+// const updateChatDescription = async (message = "") => {
+//   const contentToSend = message.trim() || editorContent.trim();
+//   console.log("editor contect",contentToSend)
+//   // Check if we have files
+//   const hasFiles = uploadedFiles && uploadedFiles.length > 0;
+//   console.log("has filesa data",uploadedFiles)
+//   // If no content and no files, don't send
+//   if (!contentToSend && !hasFiles) {
+//     showToast({
+//       title: "Please enter a message or attach a file",
+//       type: "warning",
+//     });
+//     return;
+//   }
+
+//   try {
+//     if (hasFiles) {
+//       // We have files - use FormData
+//       const formData = new FormData();
+      
+//       // Create the description object
+//       const newDescription = {
+//         fromwhome: "Admin",
+//         senderid: senderName,
+//       };
+
+//       // Only add message if there's content
+//       if (contentToSend) {
+//         newDescription.message = contentToSend;
+//       }
+
+//       if (replyTo) newDescription.replyTo = replyTo._id;
+
+//       // Append description as JSON string
+//       formData.append("newDescriptions", JSON.stringify([newDescription]));
+
+//       // Append files
+//       uploadedFiles.forEach((file) => {
+//         let fileToAppend = null;
+//         let fileName = file.name || 'file';
+        
+//         if (file instanceof File) {
+//           fileToAppend = file;
+//           fileName = file.name;
+//         } else if (file.file) {
+//           fileToAppend = file.file;
+//           fileName = file.file.name || file.name || 'file';
+//         } else if (file.fileData) {
+//           if (file.fileData instanceof Blob || file.fileData instanceof File) {
+//             fileToAppend = file.fileData;
+//             fileName = file.name || 'file';
+//           } else {
+//             const blob = new Blob([file.fileData]);
+//             fileToAppend = blob;
+//             fileName = file.name || 'file';
+//           }
+//         } else if (file.blob) {
+//           fileToAppend = file.blob;
+//           fileName = file.name || 'file';
+//         } else if (file instanceof Blob) {
+//           fileToAppend = file;
+//           fileName = file.name || 'file';
+//         } else if (file.data) {
+//           const blob = new Blob([file.data]);
+//           fileToAppend = blob;
+//           fileName = file.name || 'file';
+//         }
+
+//         if (fileToAppend) {
+//           formData.append("attachments", fileToAppend, fileName);
+//         }
+//       });
+
+//       // Send with FormData
+//       await chatAPI.updateChatDescription(chatId, formData);
+      
+//       // Clear uploaded files after successful send
+//       setUploadedFiles([]);
+      
+//       showToast({
+//         title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`,
+//         type: "success",
+//       });
+      
+//     } else {
+//       // No files, just text message
+//       const newDescription = {
+//         message: contentToSend,
+//         fromwhome: "Admin",
+//         senderid: senderName,
+//       };
+
+//       if (replyTo) newDescription.replyTo = replyTo._id;
+
+//       await chatAPI.updateChatDescription(chatId, {
+//         newDescriptions: [newDescription],
+//       });
+      
+//       showToast({
+//         title: "Message sent",
+//         type: "success",
+//       });
+//     }
+
+//     // Common success actions
+//     setEditorContent("");
+//     setReplyTo(null);
+    
+//     await securemessagechatsend(chatId);
+//     await updatechatStatus(chatId);
+//     accountwiseChatlist(data, isActiveTrue);
+//     getsChatDetails();
+    
+//   } catch (error) {
+//     console.error("Send failed:", error);
+//     showToast({
+//       title: error.response?.data?.message || "Send failed",
+//       type: "error",
+//     });
+//   }
+// };
   const handleEditMessage = (message) => {
     if (!canEditMessage(message.time)) {
       showToast({
@@ -313,42 +559,69 @@ const handleSaveUserChange = async () => {
       tasks.map((task) => (task.id === id ? { ...task, text: newText } : task)),
     );
   };
-
+const [isResending, setIsResending] = useState(false);
   const resendClientTask = async () => {
+      if (isResending) return;
+
+  setIsResending(true);
     try {
       await chatAPI.addClientTask({ chatId, newTask: tasks });
       const taskMessages = tasks
         .filter((task) => !task.checked)
         .map((task) => `• ${task.text}`)
         .join("\n");
+        console.log("Resending task messages:", taskMessages);
       await updateAdminChatDescription(taskMessages);
+
+      showToast({
+      title: "Task sent successfully",
+      type: "success",
+    });
+    getsChatDetails();
     } catch (error) {
       console.error(error);
+       showToast({
+      title: "Failed to send task",
+      type: "error",
+    });
     }
+    finally {
+    setIsResending(false);
+  }
   };
 
-  const updateAdminChatDescription = async (description) => {
-    if (!description.trim()) return;
-    try {
-      await chatAPI.updateChatDescription(chatId, {
-        newDescriptions: [
-          { message: description, fromwhome: "Admin", senderid: senderName },
-        ],
-      });
-      showToast({
-        title: "Chat description updated successfully",
-        type: "success",
-      });
-      getsChatDetails();
-      await updatechatStatus(chatId);
-      accountwiseChatlist(data, isActiveTrue);
-    } catch (error) {
-      showToast({
-        title: "Failed to update chat description",
-        type: "error",
-      });
-    }
+  
+const updateAdminChatDescription = async (
+  message,
+  attachments = []
+) => {
+  if (!message.trim()) return;
+
+  const newDescription = {
+    message,
+    fromwhome: "Admin",
+    senderid: senderName,
   };
+
+  if (attachments.length > 0) {
+    const formData = new FormData();
+
+    formData.append(
+      "newDescriptions",
+      JSON.stringify([newDescription])
+    );
+
+    attachments.forEach((file) => {
+      formData.append("attachments", file);
+    });
+
+    await chatAPI.updateChatDescription(chatId, formData);
+  } else {
+    await chatAPI.updateChatDescription(chatId, {
+      newDescriptions: [newDescription],
+    });
+  }
+};
 
   const handleDeleteMessage = async (messageToDelete) => {
     try {
@@ -401,35 +674,7 @@ const handleSaveUserChange = async () => {
       console.error(error);
     }
   };
-  //   const handleMarkAsRead = async (chatId) => {
-  //   try {
-  //     await chatAPI.markThreadAsRead(chatId);
 
-  //     showToast({
-  //       title: "Success",
-  //       type: "success",
-  //     });
-
-  // getsChatDetails()
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
-  // const handleMarkAsUnread = async (chatId) => {
-  //   try {
-  //     await chatAPI.markThreadAsUnread(chatId);
-
-  //     toast({
-  //       title: "Success",
-  //       description: "Thread marked as unread",
-  //     });
-
-  //  getsChatDetails()
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
   const handlePrintChat = () => {
     const iframe = document.createElement("iframe");
 
@@ -762,8 +1007,16 @@ const handleSaveUserChange = async () => {
   if (!chat) return null;
 
   return (
-    <div className="flex h-full w-full bg-background rounded-lg overflow-hidden shadow-sm">
-      {/* Edit Dialog */}
+    // <div className="flex h-full w-full bg-background rounded-lg overflow-hidden shadow-sm">
+      <div
+  className={`grid h-full w-full bg-background rounded-lg overflow-hidden shadow-sm
+    ${
+      showTasks
+        ? "grid-cols-1 lg:grid-cols-[1fr_320px]"
+        : "grid-cols-1"
+    }`}
+>
+  {/* Edit Dialog */}
       <Dialog
         open={editDialogOpen}
         onOpenChange={(open) => !open && handleCancelEdit()}
@@ -772,7 +1025,8 @@ const handleSaveUserChange = async () => {
           <DialogHeader>
             <DialogTitle>Edit Message</DialogTitle>
           </DialogHeader>
-          <div className="min-h-[200px]">
+          {/* <div className="min-h-[200px]"> */}
+           <div style={{ maxWidth: 600, }}>
             {/* <Editor onChange={setEditContent} value={editContent} /> */}
             <TextEditor  value={editContent} onChange={setEditContent} />
           </div>
@@ -824,9 +1078,10 @@ const handleSaveUserChange = async () => {
 </Dialog>
 
       {/* Main Chat Area */}
-      <div
+      {/* <div
         className={`flex-1 flex flex-col min-w-0 ${showTasks ? "mr-0" : ""}`}
-      >
+      > */}
+      <div className="flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-card/50">
           <div className="min-w-0 flex-1">
@@ -899,22 +1154,7 @@ const handleSaveUserChange = async () => {
         {/* Messages Area */}
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="space-y-3">
-            {/* {Array.isArray(chat.description) &&
-              chat.description.map((desc, index) => (
-                <MessageItem
-                  key={desc._id || index}
-                  desc={desc}
-                  chat={chat}
-                  messageRefs={messageRefs}
-                  highlightedId={highlightedId}
-                  setHighlightedId={setHighlightedId}
-                  setReplyTo={setReplyTo}
-                  formatDate={formatDate}
-                  handleDeleteMessage={handleDeleteMessage}
-                  handleEditMessage={handleEditMessage}
-                  canEditMessage={canEditMessage}
-                />
-              ))} */}
+           
             {groupedMessages.map((item, index) => {
               if (item.type === "date") {
                 return (
@@ -975,10 +1215,60 @@ const handleSaveUserChange = async () => {
           )}
 
           <div className="flex gap-3">
-            <div className="flex-1">
-              {/* <Editor onChange={handleEditorChange} value={editorContent} /> */}
-              <TextEditor value={editorContent} onChange={handleEditorChange} />
-            </div>
+            {/* <div className="flex-1"> */}
+           {/* <div className="flex-1 min-w-0">
+              <TextEditor value={editorContent} onChange={handleEditorChange} accountId={data}   />
+             
+             
+            </div> */}
+            <div className="flex-1 min-w-0">
+  {/* <TextEditor 
+    value={editorContent} 
+    onChange={handleEditorChange} 
+    accountId={data}
+    onFileUploadComplete={(files, message) => {
+      // Auto-send the file message
+      console.log("Files uploaded:", files);
+      console.log("Message:", message);
+      
+      // Update editor content with the file message
+      setEditorContent(prev => prev + '\n\n' + message);
+      
+      // Auto-send after a short delay
+      setTimeout(() => {
+        updateChatDescription(message);
+      }, 100);
+    }}
+  /> */}
+  <TextEditor 
+  value={editorContent} 
+  onChange={handleEditorChange} 
+  accountId={data}
+  onFileUploadComplete={(files, message, isHTML = false) => {
+    console.log("Files uploaded:", files);
+    console.log("Message:", message);
+    
+    if (isHTML) {
+      // If message contains HTML, insert it directly
+      setEditorContent(prev => prev + message);
+      
+      // Auto-send after a short delay
+      setTimeout(() => {
+        updateChatDescription(message, true); // Pass isHTML flag
+      }, 100);
+    } else {
+      // Plain text fallback
+      const fileNames = files.map(f => f.name || f).join('\n');
+      const plainMessage = `📎 ${fileNames}`;
+      setEditorContent(prev => prev + '\n\n' + plainMessage);
+      
+      setTimeout(() => {
+        updateChatDescription(plainMessage);
+      }, 100);
+    }
+  }}
+/>
+</div>
             <Button
               onClick={() => updateChatDescription()}
               className="h-10 px-5"
@@ -991,8 +1281,9 @@ const handleSaveUserChange = async () => {
 
       {/* Tasks Sidebar */}
       {showTasks && (
-        <div className="w-80 flex flex-col border-l bg-card/50">
-          <div className="flex items-center justify-between px-4 py-3 border-b">
+        // <div className="w-80 flex flex-col border-l bg-card/50">
+        <div className="flex flex-col border-l bg-card/50 min-w-0">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
             <h3 className="text-sm font-medium">Client Tasks</h3>
             <div className="flex gap-1">
               <Button
@@ -1050,8 +1341,9 @@ const handleSaveUserChange = async () => {
           </ScrollArea>
 
           <div className="p-3 border-t">
-            <Button onClick={resendClientTask} className="w-full text-sm h-9">
-              Resend Tasks
+            <Button  disabled={isResending} onClick={resendClientTask} className="w-full text-sm h-9">
+              {/* Resend Tasks */}
+               {isResending ? "Sending..." : "Resend Tasks"}
             </Button>
           </div>
         </div>

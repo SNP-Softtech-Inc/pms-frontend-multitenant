@@ -715,6 +715,7 @@ const availableContacts = useMemo(() => {
     try {
       const res = await accountsAPI.getAccountById(accountId);
       setAccount(res.data);
+      console.log("Fetched account details:", res.data);
     } catch (err) {
       console.error("Error fetching account details:", err);
     }

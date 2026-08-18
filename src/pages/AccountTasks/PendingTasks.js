@@ -315,18 +315,7 @@ const [drawerMode, setDrawerMode] = useState("create");
 
       await accountTasksAPI.updateTask(selectedTask._id, payload);
 
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === selectedTask._id
-            ? {
-                ...task,
-                Priority: selectedPriority,
-                Status: selectedStatus,
-                Subtasks: payload.subtasks,
-              }
-            : task,
-        ),
-      );
+      queryClient.invalidateQueries({ queryKey: ["pendingTasks"] });
 
       showToast({
         title: "Task updated successfully",
@@ -334,7 +323,7 @@ const [drawerMode, setDrawerMode] = useState("create");
       });
 
       setEditOpen(false);
-      fetchPendingTasks();
+
     } catch (err) {
       console.error(err);
       showToast({
@@ -354,7 +343,7 @@ const [drawerMode, setDrawerMode] = useState("create");
         try {
           await accountTasksAPI.deleteTask(taskId);
 
-          setTasks((prev) => prev.filter((task) => task.id !== taskId));
+          queryClient.invalidateQueries({ queryKey: ["pendingTasks"] });
 
           showToast({
             title: "Task deleted successfully",

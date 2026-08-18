@@ -172,7 +172,7 @@ const STORAGE_KEY = "app-theme";
 
 export function useTheme() {
   const [themeKey, setThemeKey] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) || "default";
+    return sessionStorage.getItem(STORAGE_KEY) || "default";
   });
 
   // Apply theme on mount and whenever it changes

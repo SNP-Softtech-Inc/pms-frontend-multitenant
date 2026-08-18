@@ -185,7 +185,7 @@ import React, { useState, useEffect } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { toast } from "react-toastify";
 
-import Editor from "../../components/Editor";
+import Editor from "../../components/TextEditor";
 
 // ✅ AUTH & API
 import { useAuth } from "../../context/AuthContext";

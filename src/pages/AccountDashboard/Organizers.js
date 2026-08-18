@@ -885,7 +885,90 @@ const handleBulkDelete = () => {
           <span className="text-muted-foreground text-xs">—</span>
         ),
     },
+{
+  id: "sectionProgress",
+  header: () => (
+    <span className="font-semibold text-muted-foreground">
+      Section Progress
+    </span>
+  ),
+  cell: ({ row }) => {
+    const sections = row.original.sections || [];
 
+    const answeredSections = sections.filter((section) =>
+      section.formElements?.some((question) => {
+        switch (question.type) {
+          case "Checkboxes":
+            return question.options?.some((opt) => opt.selected);
+
+          case "File Upload":
+            return question.fileMetadata?.length > 0;
+
+          default:
+            return (
+              question.textvalue &&
+              String(question.textvalue).trim() !== ""
+            );
+        }
+      })
+    ).length;
+
+    return (
+      <Badge
+        variant="outline"
+        className="rounded-full px-3 py-1"
+      >
+        {answeredSections} / {sections.length}
+      </Badge>
+    );
+  },
+},
+{
+  accessorKey: "createdAt",
+  header: () => (
+    <span className="font-semibold text-muted-foreground">
+      Created Date
+    </span>
+  ),
+  cell: ({ row }) => {
+    const createdAt = row.original.createdAt;
+
+    return (
+      <span className="text-sm text-muted-foreground">
+        {createdAt
+          ? new Date(createdAt).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "—"}
+      </span>
+    );
+  },
+},
+{
+  accessorKey: "createdAt",
+  header: () => (
+    <span className="font-semibold text-muted-foreground">
+      Updated Date
+    </span>
+  ),
+  cell: ({ row }) => {
+    const updatedAt = row.original.updatedAt;
+
+    return (
+      <span className="text-sm text-muted-foreground">
+        {updatedAt
+          ? new Date(updatedAt).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "—"}
+      </span>
+    );
+  },
+},
     {
       id: "actions",
       header: () => (

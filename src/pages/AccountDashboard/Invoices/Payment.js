@@ -8,7 +8,9 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { invoiceAPI } from "../../../services/api";
 import { CardContent } from "../../../components/ui/card";
-
+import { Trash2 } from "lucide-react";
+import { useConfirm } from "../../../components/ConfirmDialogContext";
+import { useToastContext } from "../../../context/ToastContext";
 import {
   Table,
   TableBody,
@@ -18,13 +20,15 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { useParams } from "react-router-dom";
-
+import Cookies from 'js-cookie';
 import { Badge } from "../../../components/ui/badge";
 import { Card } from "../../../components/ui/card";
 
 const Payment = () => {
     const { accountId } = useParams();
-
+const confirm = useConfirm();
+const accountName = Cookies.get("accountName");
+const { showToast } = useToastContext();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -201,6 +205,18 @@ const invoiceSummary = accountInvoicesData.reduce(
         cell: ({ row }) =>
           row.original.paymentProvider || "Offline",
       },
+      {
+  id: "actions",
+  header: "Actions",
+  cell: ({ row }) => (
+    <button
+      onClick={() => handleDeletePayment(row.original)}
+      className="text-red-500 hover:text-red-700"
+    >
+      <Trash2 className="h-4 w-4" />
+    </button>
+  ),
+}
     ],
     []
   );
@@ -210,6 +226,80 @@ const invoiceSummary = accountInvoicesData.reduce(
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+//   const handleDeletePayment = async (payment) => {
+//   confirm({
+//     title: `Delete payment #${payment.paymentNumber}?`,
+//     description: `This payment was made by ${
+//       accountName
+//     } on ${dayjs(payment.paymentDate).format(
+//       "MMM D"
+//     )} and amounts to $${Number(payment.amount).toFixed(
+//       2
+//     )}. If you delete it, all associated information will be permanently lost.`,
+
+//     confirmText: "Delete",
+//     cancelText: "Cancel",
+
+//     onConfirm: async () => {
+//       try {
+//         await invoiceAPI.deleteOfflinePayment(payment._id);
+// showToast({
+//             title: "Payment deleted successfully.",
+//             type: "success",
+//           });
+//         // success("Payment deleted successfully.");
+
+//         fetchPayments();
+//         refetchInvoices();
+//         refetchAccount();
+//       } catch (err) {
+//         showToast({
+//         title: (err.response?.data?.message || "Unable to delete payment."),
+//         type: "error",
+//       });
+//        // error(err.response?.data?.message || "Unable to delete payment.");
+//       }
+//     },
+//   });
+// };
+
+const handleDeletePayment = async (payment) => {
+  confirm({
+    title: `Delete payment #${payment.paymentNumber}?`,
+    description: `This payment was made by ${
+      accountName
+    } on ${dayjs(payment.paymentDate).format(
+      "MMM D"
+    )} and amounts to $${Number(payment.amount).toFixed(
+      2
+    )}. If you delete it, all associated information will be permanently lost.`,
+
+    confirmText: "Delete",
+    cancelText: "Cancel",
+
+    onConfirm: async () => {
+      try {
+        await invoiceAPI.deleteOfflinePayment(payment._id);
+
+        showToast({
+          title: "Payment deleted successfully.",
+          type: "success",
+        });
+
+        fetchPayments();
+        refetchInvoices();
+        refetchAccount();
+      } catch (err) {
+        showToast({
+          title:
+            err.response?.data?.message || "Unable to delete payment.",
+          type: "error",
+        });
+      }
+    },
+  });
+};
 
   if (loading) {
     return (

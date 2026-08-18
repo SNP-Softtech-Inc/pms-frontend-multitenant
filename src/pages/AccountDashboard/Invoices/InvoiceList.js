@@ -1096,11 +1096,11 @@ const invoiceSummary = accountInvoicesData.reduce(
         </Card>
       </div>
 
-      {(account?.creaditAval || 0) <= 0 && (
+      {/* {(account?.creaditAval || 0) <= 0 && (
   <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
     <strong>Note:</strong> You do not have any available credit to pay invoices. Please add credit to your account before attempting to pay an invoice.
   </div>
-)}
+)} */}
       <Card>
         <CardContent className="p-0">
           <div className="rounded-md border">

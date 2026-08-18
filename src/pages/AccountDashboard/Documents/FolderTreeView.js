@@ -2175,7 +2175,7 @@ import {
   Monitor,
   Globe,
 } from "lucide-react";
-
+import DocumentViewer from "./DocumentViewer";
 // import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 // import { Badge } from "../../../components/ui/badge";
 export const FolderTreeView = ({ accountId }) => {
@@ -2667,72 +2667,117 @@ const [submitters, setSubmitters] = useState([]);
   };
 
   // Handle file click - Using accountDocsAPI to remove new tag
+  // const handleFileClick = async (fullPath, fileName, meta = {}) => {
+  //   try {
+  //     // if (meta.readOnly) {
+  //     //   alert("This file is locked and cannot be opened.");
+  //     //   return;
+  //     // }
+  // // Create VIEW audit
+  //   await accountDocsAPI.viewDocument({
+  //     filePath: fullPath,
+  //   });
+  //     if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
+  //       await accountDocsAPI.removeNewTag({ filePath: fullPath });
+  //       await fetchFolderTree();
+  //     }
+
+  //     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
+  //     const extension = fileName.split(".").pop().toLowerCase();
+
+  //     if (extension === "xls" || extension === "xlsx") {
+  //       setSelectedFileUrl(fileUrl);
+  //       setSelectedFileName(fileName);
+  //       setOpenExcelDialog(true);
+  //       return;
+  //     }
+
+  //     if (extension === "doc" || extension === "docx") {
+  //       setSelectedFileUrl(fileUrl);
+  //       setSelectedFileName(fileName);
+  //       setOpenWordDialog(true);
+  //       return;
+  //     }
+
+  //     if (extension === "txt") {
+  //       const res = await fetch(fileUrl);
+  //       const text = await res.text();
+  //       setTextContent(text);
+  //       setSelectedFileName(fileName);
+  //       setOpenTextDialog(true);
+  //       return;
+  //     }
+
+  //     setSelectedFileUrl(fileUrl);
+  //     setSelectedFileName(fileName);
+  //     setOpenFileViewer(true);
+  //   } catch (error) {
+  //     console.error("Error opening/downloading file:", error);
+  //   }
+  // };
   const handleFileClick = async (fullPath, fileName, meta = {}) => {
-    try {
-      // if (meta.readOnly) {
-      //   alert("This file is locked and cannot be opened.");
-      //   return;
-      // }
-  // Create VIEW audit
+  try {
+    // Create VIEW audit
     await accountDocsAPI.viewDocument({
       filePath: fullPath,
     });
-      if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
-        await accountDocsAPI.removeNewTag({ filePath: fullPath });
-        await fetchFolderTree();
-      }
 
-      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
-      const extension = fileName.split(".").pop().toLowerCase();
+    // Remove "New" tag if present
+    if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
+      await accountDocsAPI.removeNewTag({ filePath: fullPath });
+      await fetchFolderTree();
+    }
 
-      if (extension === "xls" || extension === "xlsx") {
-        setSelectedFileUrl(fileUrl);
-        setSelectedFileName(fileName);
-        setOpenExcelDialog(true);
-        return;
-      }
+    const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
+    const extension = fileName.split(".").pop().toLowerCase();
 
-      if (extension === "doc" || extension === "docx") {
-        setSelectedFileUrl(fileUrl);
-        setSelectedFileName(fileName);
-        setOpenWordDialog(true);
-        return;
-      }
+    // Keep your existing handlers for specific file types
+    if (extension === "xls" || extension === "xlsx") {
+      setSelectedFileUrl(fileUrl);
+      setSelectedFileName(fileName);
+      setOpenExcelDialog(true);
+      return;
+    }
 
-      if (extension === "txt") {
-        const res = await fetch(fileUrl);
-        const text = await res.text();
-        setTextContent(text);
-        setSelectedFileName(fileName);
-        setOpenTextDialog(true);
-        return;
-      }
+    if (extension === "doc" || extension === "docx") {
+      setSelectedFileUrl(fileUrl);
+      setSelectedFileName(fileName);
+      setOpenWordDialog(true);
+      return;
+    }
 
+    if (extension === "txt") {
+      const res = await fetch(fileUrl);
+      const text = await res.text();
+      setTextContent(text);
+      setSelectedFileName(fileName);
+      setOpenTextDialog(true);
+      return;
+    }
+
+    // For all other file types, use the unified viewer with navigation
+    const allFiles = getAllFiles(folderTree);
+    const fileIndex = allFiles.findIndex(f => f.path === fullPath);
+    
+    if (fileIndex !== -1) {
+      setViewerFiles(allFiles);
+      setCurrentFileIndex(fileIndex);
+      setViewerOpen(true);
+    } else {
+      // Fallback for files not in tree
       setSelectedFileUrl(fileUrl);
       setSelectedFileName(fileName);
       setOpenFileViewer(true);
-    } catch (error) {
-      console.error("Error opening/downloading file:", error);
     }
-  };
+    
+  } catch (error) {
+    console.error("Error opening/downloading file:", error);
+    // toast.error("Failed to open file. Please try again.");
+  }
+};
 
   // Toggle sign status
-  // const toggleSignStatus = async (item) => {
-  //   try {
-  //     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
-  //     const fileName = item.name;
-  //     const res = await fetch(
-  //       `${SIGNATURE_API}/api/generate-token?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}&accountId=${accountId}`,
-  //     );
-  //     const data = await res.json();
-  //     console.log("token data", data);
-  //     setToken(data.token);
-  //     setShowBuilderFor(item);
-  //     setOpenDialog(true);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
+  
   const toggleSignStatus = async (item) => {
   try {
     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
@@ -3139,7 +3184,148 @@ const [auditLoading, setAuditLoading] = useState(false);
     }
     return null;
   };
+// Add to your component state
+const [viewerOpen, setViewerOpen] = useState(false);
+const [viewerFiles, setViewerFiles] = useState([]);
+const [currentFileIndex, setCurrentFileIndex] = useState(0);
 
+ // Handle download from viewer
+  const handleDownloadFile = async (file) => {
+    try {
+      const url = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${file.path}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000);
+      // toast.success('File downloaded successfully');
+       showToast({
+        title: "File downloaded successfully",
+        type: "success",
+      });
+    } catch (error) {
+      console.error('Download failed:', error);
+      // toast.error('Failed to download file');
+      showToast({
+        title: "Failed to download file",
+        type: "error",
+      });
+    }
+  };
+
+  // Handle print from viewer
+  const handlePrintFile = async (file) => {
+    try {
+      const url = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${file.path}`;
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      const extension = file.name.toLowerCase().split('.').pop();
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension);
+      const isPdf = extension === 'pdf';
+      
+      if (isImage || isPdf) {
+        const fileUrl = URL.createObjectURL(blob);
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        if (!printWindow) {
+          // toast.error('Please allow pop-ups for printing');
+         showToast({
+        title: "Please allow pop-ups for printing",
+        type: "error",
+      });
+          return;
+        }
+        
+        if (isPdf) {
+          printWindow.location.href = fileUrl;
+        } else {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            printWindow.document.write(`
+              <html>
+                <head>
+                  <title>Print ${file.name}</title>
+                  <style>
+                    body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: white; }
+                    img { max-width: 100%; max-height: 100%; object-fit: contain; }
+                    @media print { body { height: 100%; } }
+                  </style>
+                </head>
+                <body><img src="${e.target.result}" /></body>
+              </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+          };
+          reader.readAsDataURL(blob);
+        }
+        return;
+      }
+        showToast({
+        title: "Print preview is only available for images and PDFs. Please download the file to print.",
+        type: "info",
+      });
+      // For other file types
+      // showToast.info('Print preview is only available for images and PDFs. Please download the file to print.');
+    } catch (error) {
+      console.error('Print failed:', error);
+      // toast.error('Failed to print file');
+      showToast({
+        title: "Failed to print file",
+        type: "error",
+      });
+    }
+  };
+// Function to collect all files from the tree
+// const getAllFiles = (items) => {
+//   let files = [];
+//   const traverse = (node) => {
+//     if (node.type === 'file') {
+//       files.push(node);
+//     } else if (node.type === 'folder' && node.children) {
+//       node.children.forEach(child => traverse(child));
+//     }
+//   };
+//   items.forEach(item => traverse(item));
+//   return files;
+// };
+const getAllFiles = (items) => {
+  console.log('getAllFiles called with:', items);
+  console.log('Is array?', Array.isArray(items));
+  
+  if (!items || !Array.isArray(items)) {
+    console.warn('getAllFiles: items is not an array', items);
+    return [];
+  }
+  
+  let files = [];
+  const traverse = (node) => {
+    if (!node) return;
+    console.log('Traversing node:', node.type, node.name);
+    
+    if (node.type === 'file') {
+      files.push(node);
+    } else if (node.type === 'folder' && node.children && Array.isArray(node.children)) {
+      node.children.forEach(child => traverse(child));
+    }
+  };
+  
+  items.forEach(item => traverse(item));
+  console.log('Found files:', files.length);
+  return files;
+};
   const renderTableRows = (items, level = 0, parentPath = "") => {
     const sortedItems = [...items].sort((a, b) => {
       if (a.type === "folder" && b.type !== "folder") return -1;
@@ -4468,6 +4654,12 @@ const [auditLoading, setAuditLoading] = useState(false);
                         label: isLocked ? "Unlock" : "Lock",
                         action: () => toggleReadOnly(item),
                       },
+                        {
+    icon: <History className="h-4 w-4" />,
+    label: "Audit Trail",
+    action: () => handleOpenAuditTrail(item),
+  }
+,
                       {
                         icon: <Trash2 className="h-4 w-4" />,
                         label: "Delete",
@@ -4693,6 +4885,15 @@ const [auditLoading, setAuditLoading] = useState(false);
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+    <DocumentViewer
+      isOpen={viewerOpen}
+      onClose={() => setViewerOpen(false)}
+      files={viewerFiles}
+      currentIndex={currentFileIndex}
+      onNavigate={setCurrentFileIndex}
+      onDownload={handleDownloadFile}
+      onPrint={handlePrintFile}
+    />
 
         {/* FILE VIEWER DIALOG */}
         <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>

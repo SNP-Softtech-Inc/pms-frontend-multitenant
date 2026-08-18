@@ -783,9 +783,9 @@ const Dashboard = () => {
 
           {/* ── Page Content ───────────────────────── */}
           <main className="flex-1 overflow-y-auto scrollbar-hide p-4">
-            <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm">
+            {/* <div className="bg-background border rounded-xl p-4 min-h-full shadow-sm"> */}
               <Outlet />
-            </div>
+            {/* </div> */}
           </main>
         </div>
 

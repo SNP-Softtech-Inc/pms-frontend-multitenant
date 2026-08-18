@@ -433,6 +433,13 @@ const {showToast}= useToastContext()
 
       onSuccess(); // 🔥 refresh parent
       onClose();
+     setFormData({
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  email: "",
+  role: "",
+});
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {

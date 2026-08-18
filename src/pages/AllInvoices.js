@@ -146,7 +146,16 @@ const filteredInvoices = useMemo(() => {
   const handleAccountDash = (invoiceId, accountId) => {
     navigate(`/clients/accounts/accountsdash/overview/${accountId}`);
   };
-
+  
+    const [editInvoiceId, setEditInvoiceId] = useState(null);
+const handleEdit = (invoice) => {
+  console.log("nhfhgf edited invoice all list",invoice)
+    setEditInvoiceId(invoice?.original._id);
+    setOpenDrawer(true);
+    // handleMenuClose();
+  };
+   // Menu handlers
+  
   // ================= COLUMNS =================
   const columns = [
    
@@ -170,6 +179,14 @@ const filteredInvoices = useMemo(() => {
     {
       accessorKey: "invoicenumber",
       header: "Invoice #",
+      cell:({row})=>(
+      <span
+          className="text-blue-600 cursor-pointer"
+          onClick={() => handleEdit(row)}
+        >
+          {row.original.invoicenumber || "—"}
+        </span>
+      )
     },
     {
       accessorKey: "invoiceStatus",
@@ -320,6 +337,8 @@ const filteredInvoices = useMemo(() => {
         fetchInvoices={() =>
           queryClient.invalidateQueries(["invoices", filterStatus])
         }
+        //  fetchInvoices={refetchInvoices}
+        editInvoiceId={editInvoiceId}
       />
     </div>
   );

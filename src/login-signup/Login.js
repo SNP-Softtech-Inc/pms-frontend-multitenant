@@ -363,7 +363,7 @@ const {showToast} = useToastContext()
   // ================= REDIRECT =================
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      navigate("/insights");
     }
   }, [isAuthenticated, navigate]);
 
@@ -397,7 +397,7 @@ console.log("entred emawil",cleanEmail)
  if (!cleanEmail || !cleanEmail.includes("@")) return;
     try {
       const response = await authAPI.getUsersByEmail(cleanEmail);
-
+console.log("responce of users",response)
       const users = response.data.users || [];
 
       if (users.length > 1) {
@@ -411,12 +411,16 @@ console.log("entred emawil",cleanEmail)
         setUserList([]);
         setSelectedUser(null);
       }
-    } catch (error) {
-     showToast({
-  title: error.response?.data?.message || "Error fetching users",
-  type: "error",
-});
-    }
+    }  catch (error) {
+  console.log("Get Users Error:", error);
+  console.log("Status:", error.response?.status);
+  console.log("Data:", error.response?.data);
+
+  showToast({
+    title: error.response?.data?.message || "Error fetching users",
+    type: "error",
+  });
+}
   };
 
   // ================= EMAIL BLUR =================
@@ -509,40 +513,63 @@ console.log("entred emawil",cleanEmail)
 
         return;
       }
+showToast({
+  title: "Login successful",
+  description: "You have been logged in successfully.",
+  type: "success",
+});
 
-      if (result.success) {
-        showToast({
-          title: "Login successful",
-          description: "You have been logged in successfully.",
-          type: "success",
-        });
+setInpval({
+  email: "",
+  password: "",
+  expiryTime: "",
+});
 
-        setInpval({
-          email: "",
-          password: "",
-          expiryTime: "",
-        });
+setSelectedUser(null);
+setAgreeToTerms(false);
 
-        setSelectedUser(null);
-        setAgreeToTerms(false);
+navigate("/insights");
+      // if (result.success) {
+      //   showToast({
+      //     title: "Login successful",
+      //     description: "You have been logged in successfully.",
+      //     type: "success",
+      //   });
 
-        navigate("/");
-      } else {
-        setApiError(result.error);
+      //   setInpval({
+      //     email: "",
+      //     password: "",
+      //     expiryTime: "",
+      //   });
 
-        showToast({
-          title: "Login failed",
-          description: result.error,
-          type: "error",
-        });
-      }
+      //   setSelectedUser(null);
+      //   setAgreeToTerms(false);
+
+      //   navigate("/");
+      // } else {
+      //   setApiError(result.error);
+
+      //   showToast({
+      //     title: "Login failed",
+      //     description: result.error,
+      //     type: "error",
+      //   });
+      // }
     } catch (error) {
-      showToast({
-        title: "Login failed",
-        description: "An error occurred while logging in.",
-        type: "error",
-      });
-    }
+      console.log("mnabshjcs falied error",error)
+      // showToast({
+      //   title: "Login failed",
+      //   description: "An error occurred while logging in.",
+      //   type: "error",
+      // });
+   showToast({
+    title: "Login failed",
+    description:
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      "Invalid email or password.",
+    type: "error",
+  }); }
   };
 
   return (
@@ -772,7 +799,7 @@ console.log("entred emawil",cleanEmail)
             {/* LOGIN BUTTON */}
             <Button
               onClick={loginuser}
-              disabled={loading}
+              // disabled={loading}
               className="
                 w-full
                 bg-primary

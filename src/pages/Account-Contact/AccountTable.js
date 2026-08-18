@@ -161,8 +161,8 @@ const AccountTable = () => {
   const [filterStatus, setFilterStatus] = useState("active");
   const [openDrawer, setOpenDrawer] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [permissions, setPermissions] = useState({});
-
+  // const [permissions, setPermissions] = useState({});
+const [permissions, setPermissions] = useState(null);
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [bulkDrawerType, setBulkDrawerType] = useState(null);
@@ -191,6 +191,7 @@ const AccountTable = () => {
         if (user?.role === "team_member") {
           const res = await authAPI.getSingleUser(user.id);
           setPermissions(res.data.user.permissions);
+          console.log("gets permissions by the user logged",res.data.user.permissions)
         } else {
           setPermissions({
             manageAccounts: true,
@@ -208,23 +209,51 @@ const AccountTable = () => {
   }, [user]);
 
   // Fetch accounts using React Query
-  const { data: accountList = [], isLoading: loading } = useQuery({
-    queryKey: ["accounts", filterStatus, user?.role],
-    queryFn: async () => {
-      const isActive = filterStatus === "active";
-      let res;
-      if (user?.role === "team_member") {
-        res = await accountsAPI.getAccountsByTeamMember(isActive);
-      } else {
-        res = await accountsAPI.getAccountsList(isActive);
-        console.log("Fetched accounts:", res.data.accountlist);
-      }
-      return res.data.accountlist || [];
-    },
-    enabled: !!user,
-  });
+  // const { data: accountList = [], isLoading: loading } = useQuery({
+  //   queryKey: ["accounts", filterStatus, user?.role],
+  //   queryFn: async () => {
+  //     const isActive = filterStatus === "active";
+  //     let res;
+  //     if (user?.role === "team_member") {
+  //       res = await accountsAPI.getAccountsByTeamMember(isActive);
+  //     } else {
+  //       res = await accountsAPI.getAccountsList(isActive);
+  //       console.log("Fetched accounts:", res.data.accountlist);
+  //     }
+  //     return res.data.accountlist || [];
+  //   },
+  //   enabled: !!user,
+  // });
+// Fetch accounts using React Query
+const { data: accountList = [], isLoading: loading } = useQuery({
+  queryKey: [
+    "accounts",
+    filterStatus,
+    user?.role,
+    permissions?.viewallAccounts,
+  ],
+  queryFn: async () => {
+    const isActive = filterStatus === "active";
+    let res;
 
-  // Extract unique tags from accounts
+    console.log("Role:", user?.role);
+    console.log("Permission:", permissions?.viewallAccounts);
+
+    if (
+      user?.role === "team_member" &&
+      !permissions?.viewallAccounts
+    ) {
+      res = await accountsAPI.getAccountsByTeamMember(isActive);
+    } else {
+      res = await accountsAPI.getAccountsList(isActive);
+    }
+
+    return res.data.accountlist || [];
+  },
+  enabled:
+    !!user &&
+    (user.role !== "team_member" || permissions !== null),
+});  // Extract unique tags from accounts
   useEffect(() => {
     const tags = [
       ...new Map(

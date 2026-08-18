@@ -128,3 +128,13 @@ width: 8px;
   background-color: white; /* Ensure background is white */
   z-index: 1; /* Keeps the fixed column on top */
 }
+
+ol,
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  display: block;
+}
