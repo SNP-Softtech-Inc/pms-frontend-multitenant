@@ -45,4 +45,4 @@ jobs:
           rsync -az --delete \
             -e "ssh -i ~/.ssh/id_deploy -o BatchMode=yes" \
             ./$BUILD_DIR/ \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$DEPLOY_PATH/
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$DEPLOY_PATH/build/
