@@ -969,6 +969,9 @@ export const proposalAPI = {
   getAccountProposalsByAccountIds: (accountIds) =>
     proposalApi.get(`/account/proposals/byaccount/${accountIds.join(",")}`),
 
+  getPendingAccountProposalsByAccountId: (accountId) =>
+  proposalApi.get(`/account/proposals/byaccount/${accountId}/status/pending`),
+
   // ===== BULK =====
 
   // DELETE MULTIPLE

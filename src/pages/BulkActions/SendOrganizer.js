@@ -571,6 +571,7 @@ const { showToast } = useToastContext();
         <AccountMultiSelectDropdown
           value={selectedaccount}
           onChange={setSelectedaccount}
+          selectedIds={selectedAccounts}
         />
       </div>
     </div>

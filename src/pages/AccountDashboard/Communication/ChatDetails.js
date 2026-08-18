@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import {useToastContext} from "../../../context/ToastContext"
+import { useToastContext } from "../../../context/ToastContext";
 import { X, Plus, Trash2, CornerUpLeft } from "lucide-react";
 import { Check, CheckCheck } from "lucide-react";
 
@@ -29,8 +29,9 @@ import { useAuth } from "../../../context/AuthContext";
 import { chatAPI } from "../../../services/api";
 // import TextEditor from "../../../components/TextEditor";
 import TextEditor from "../../../TextEditor/TextEditor";
-
+import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { MoreVertical, Printer, MailOpen, Mail } from "lucide-react";
+import { is } from "date-fns/locale";
 const ChatDetails = ({
   chat,
   getsChatDetails,
@@ -40,6 +41,7 @@ const ChatDetails = ({
   isActiveTrue,
   accountName,
 }) => {
+  const confirm = useConfirm();
   const [showTasks, setShowTasks] = useState(false);
   const { showToast } = useToastContext();
   console.log("ChatDetails render with chat:", chat);
@@ -61,15 +63,15 @@ const ChatDetails = ({
 
   const [senderEmail, setSenderEmail] = useState("");
   const [senderName, setSenderName] = useState("");
-const [attachmentsDrawer, setAttachmentsDrawer] = useState(false);
-const [selectedFiles, setSelectedFiles] = useState([]);
+  const [attachmentsDrawer, setAttachmentsDrawer] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
-// const handleFilesSelected = (files) => {
-//       console.log('Files selected in editor:', files);
+  // const handleFilesSelected = (files) => {
+  //       console.log('Files selected in editor:', files);
 
-//   setUploadedFiles(files);
+  //   setUploadedFiles(files);
 
-// };
+  // };
 
   useEffect(() => {
     if (user?.id) {
@@ -83,67 +85,67 @@ const [selectedFiles, setSelectedFiles] = useState([]);
   }, [user, chat.clienttasks]);
 
   const getUserOptions = () => {
-  const options = [];
+    const options = [];
 
-  // Group Name
-  if (user?.group?.name) {
-    options.push({
-      label: user.group.name,
-      value: user.group.name,
-    });
-  }
-
-  // Logged-in User
-  options.push({
-    label: user.username,
-    value: user.username,
-  });
-
-  // Other Group Members
-  user?.group?.members?.forEach((member) => {
-    if (member._id !== user.id) {
+    // Group Name
+    if (user?.group?.name) {
       options.push({
-        label: member.username,
-        value: member.username,
+        label: user.group.name,
+        value: user.group.name,
       });
     }
-  });
 
-  return options;
-};
-const [changeUserOpen, setChangeUserOpen] = useState(false);
-const [selectedMessage, setSelectedMessage] = useState(null);
-const [selectedSender, setSelectedSender] = useState("");
-const handleChangeUser = (message) => {
-  setSelectedMessage(message);
-  setSelectedSender(message.senderid || "");
-  setChangeUserOpen(true);
-};
-const handleSaveUserChange = async () => {
-  try {
-    await chatAPI.updateMessage({
-      chatId: chatId,
-      messageId: selectedMessage._id,
-      senderid: selectedSender,
+    // Logged-in User
+    options.push({
+      label: user.username,
+      value: user.username,
     });
 
-    showToast({
-      title: "User updated successfully",
-      type: "success",
+    // Other Group Members
+    user?.group?.members?.forEach((member) => {
+      if (member._id !== user.id) {
+        options.push({
+          label: member.username,
+          value: member.username,
+        });
+      }
     });
 
-    setChangeUserOpen(false);
-    setSelectedMessage(null);
+    return options;
+  };
+  const [changeUserOpen, setChangeUserOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [selectedSender, setSelectedSender] = useState("");
+  const handleChangeUser = (message) => {
+    setSelectedMessage(message);
+    setSelectedSender(message.senderid || "");
+    setChangeUserOpen(true);
+  };
+  const handleSaveUserChange = async () => {
+    try {
+      await chatAPI.updateMessage({
+        chatId: chatId,
+        messageId: selectedMessage._id,
+        senderid: selectedSender,
+      });
 
-    getsChatDetails();
-    accountwiseChatlist(data, isActiveTrue);
-  } catch (error) {
-    showToast({
-      title: "Failed to update user",
-      type: "error",
-    });
-  }
-};
+      showToast({
+        title: "User updated successfully",
+        type: "success",
+      });
+
+      setChangeUserOpen(false);
+      setSelectedMessage(null);
+
+      getsChatDetails();
+      accountwiseChatlist(data, isActiveTrue);
+    } catch (error) {
+      showToast({
+        title: "Failed to update user",
+        type: "error",
+      });
+    }
+  };
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
     const day = date.getDate();
@@ -166,30 +168,32 @@ const handleSaveUserChange = async () => {
 
   const handleEditorChange = (content) => setEditorContent(content);
   const toggleTasks = () => setShowTasks(!showTasks);
-  const [uploadedFiles, setUploadedFiles] = useState([]); 
-// Handle file upload completion
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  // Handle file upload completion
   const handleFileUploadComplete = (files) => {
     setUploadedFiles(files);
-    
+
     // Auto-send the message with files
     if (files && files.length > 0) {
-      const fileMessage = files.map((file, index) => {
-        const fileName = file.name || file.filename || 'Document';
-        return `${index + 1}. ${fileName}`;
-      }).join('\n');
-      
+      const fileMessage = files
+        .map((file, index) => {
+          const fileName = file.name || file.filename || "Document";
+          return `${index + 1}. ${fileName}`;
+        })
+        .join("\n");
+
       const message = `📎 Shared Documents:\n${fileMessage}`;
-      
+
       // Update editor content
-      setEditorContent(prev => prev + '\n\n' + message);
-      
+      setEditorContent((prev) => prev + "\n\n" + message);
+
       // Auto-send after a short delay
       setTimeout(() => {
         updateChatDescription(message);
       }, 100);
     }
   };
-  
+
   const canEditMessage = (messageTime) => {
     if (!messageTime) return false;
     const messageTimestamp = new Date(messageTime).getTime();
@@ -197,254 +201,257 @@ const handleSaveUserChange = async () => {
     const tenMinutes = 10 * 60 * 1000;
     return currentTime - messageTimestamp <= tenMinutes;
   };
-const updateChatDescription = async (message = "", isHTML = false) => {
-  const contentToSend = message.trim() || editorContent.trim();
-  console.log("editor content", contentToSend);
-  
-  // Check if we have files
-  const hasFiles = uploadedFiles && uploadedFiles.length > 0;
-  console.log("has files data", uploadedFiles);
-  
-  // If no content and no files, don't send
-  if (!contentToSend && !hasFiles) {
-    showToast({
-      title: "Please enter a message or attach a file",
-      type: "warning",
-    });
-    return;
-  }
+  const updateChatDescription = async (message = "", isHTML = false) => {
+    const contentToSend = message.trim() || editorContent.trim();
+    console.log("editor content", contentToSend);
 
-  try {
-    if (hasFiles) {
-      // We have files - use FormData
-      const formData = new FormData();
-      
-      // Create the description object
-      const newDescription = {
-        fromwhome: "Admin",
-        senderid: senderName,
-      };
+    // Check if we have files
+    const hasFiles = uploadedFiles && uploadedFiles.length > 0;
+    console.log("has files data", uploadedFiles);
 
-      // Only add message if there's content
-      if (contentToSend) {
-        newDescription.message = isHTML ? contentToSend : contentToSend;
-        newDescription.isHTML = isHTML; // Flag to indicate HTML content
-      }
-
-      if (replyTo) newDescription.replyTo = replyTo._id;
-
-      // Append description as JSON string
-      formData.append("newDescriptions", JSON.stringify([newDescription]));
-
-      // Append files
-      uploadedFiles.forEach((file) => {
-        let fileToAppend = null;
-        let fileName = file.name || 'file';
-        
-        if (file instanceof File) {
-          fileToAppend = file;
-          fileName = file.name;
-        } else if (file.file) {
-          fileToAppend = file.file;
-          fileName = file.file.name || file.name || 'file';
-        } else if (file.fileData) {
-          if (file.fileData instanceof Blob || file.fileData instanceof File) {
-            fileToAppend = file.fileData;
-            fileName = file.name || 'file';
-          } else {
-            const blob = new Blob([file.fileData]);
-            fileToAppend = blob;
-            fileName = file.name || 'file';
-          }
-        } else if (file.blob) {
-          fileToAppend = file.blob;
-          fileName = file.name || 'file';
-        } else if (file instanceof Blob) {
-          fileToAppend = file;
-          fileName = file.name || 'file';
-        } else if (file.data) {
-          const blob = new Blob([file.data]);
-          fileToAppend = blob;
-          fileName = file.name || 'file';
-        }
-
-        if (fileToAppend) {
-          formData.append("attachments", fileToAppend, fileName);
-        }
-      });
-
-      // Send with FormData
-      await chatAPI.updateChatDescription(chatId, formData);
-      
-      // Clear uploaded files after successful send
-      setUploadedFiles([]);
-      
+    // If no content and no files, don't send
+    if (!contentToSend && !hasFiles) {
       showToast({
-        title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`,
-        type: "success",
+        title: "Please enter a message or attach a file",
+        type: "warning",
       });
-      
-    } else {
-      // No files, just text message
-      const newDescription = {
-        message: contentToSend,
-        fromwhome: "Admin",
-        senderid: senderName,
-        isHTML: isHTML || false,
-      };
-
-      if (replyTo) newDescription.replyTo = replyTo._id;
-
-      await chatAPI.updateChatDescription(chatId, {
-        newDescriptions: [newDescription],
-      });
-      
-      showToast({
-        title: "Message sent",
-        type: "success",
-      });
+      return;
     }
 
-    // Common success actions
-    setEditorContent("");
-    setReplyTo(null);
-    
-    await securemessagechatsend(chatId);
-    await updatechatStatus(chatId);
-    accountwiseChatlist(data, isActiveTrue);
-    getsChatDetails();
-    
-  } catch (error) {
-    console.error("Send failed:", error);
-    showToast({
-      title: error.response?.data?.message || "Send failed",
-      type: "error",
-    });
-  }
-};
- 
-// const updateChatDescription = async (message = "") => {
-//   const contentToSend = message.trim() || editorContent.trim();
-//   console.log("editor contect",contentToSend)
-//   // Check if we have files
-//   const hasFiles = uploadedFiles && uploadedFiles.length > 0;
-//   console.log("has filesa data",uploadedFiles)
-//   // If no content and no files, don't send
-//   if (!contentToSend && !hasFiles) {
-//     showToast({
-//       title: "Please enter a message or attach a file",
-//       type: "warning",
-//     });
-//     return;
-//   }
+    try {
+      if (hasFiles) {
+        // We have files - use FormData
+        const formData = new FormData();
 
-//   try {
-//     if (hasFiles) {
-//       // We have files - use FormData
-//       const formData = new FormData();
-      
-//       // Create the description object
-//       const newDescription = {
-//         fromwhome: "Admin",
-//         senderid: senderName,
-//       };
+        // Create the description object
+        const newDescription = {
+          fromwhome: "Admin",
+          senderid: senderName,
+        };
 
-//       // Only add message if there's content
-//       if (contentToSend) {
-//         newDescription.message = contentToSend;
-//       }
+        // Only add message if there's content
+        if (contentToSend) {
+          newDescription.message = isHTML ? contentToSend : contentToSend;
+          newDescription.isHTML = isHTML; // Flag to indicate HTML content
+        }
 
-//       if (replyTo) newDescription.replyTo = replyTo._id;
+        if (replyTo) newDescription.replyTo = replyTo._id;
 
-//       // Append description as JSON string
-//       formData.append("newDescriptions", JSON.stringify([newDescription]));
+        // Append description as JSON string
+        formData.append("newDescriptions", JSON.stringify([newDescription]));
 
-//       // Append files
-//       uploadedFiles.forEach((file) => {
-//         let fileToAppend = null;
-//         let fileName = file.name || 'file';
-        
-//         if (file instanceof File) {
-//           fileToAppend = file;
-//           fileName = file.name;
-//         } else if (file.file) {
-//           fileToAppend = file.file;
-//           fileName = file.file.name || file.name || 'file';
-//         } else if (file.fileData) {
-//           if (file.fileData instanceof Blob || file.fileData instanceof File) {
-//             fileToAppend = file.fileData;
-//             fileName = file.name || 'file';
-//           } else {
-//             const blob = new Blob([file.fileData]);
-//             fileToAppend = blob;
-//             fileName = file.name || 'file';
-//           }
-//         } else if (file.blob) {
-//           fileToAppend = file.blob;
-//           fileName = file.name || 'file';
-//         } else if (file instanceof Blob) {
-//           fileToAppend = file;
-//           fileName = file.name || 'file';
-//         } else if (file.data) {
-//           const blob = new Blob([file.data]);
-//           fileToAppend = blob;
-//           fileName = file.name || 'file';
-//         }
+        // Append files
+        uploadedFiles.forEach((file) => {
+          let fileToAppend = null;
+          let fileName = file.name || "file";
 
-//         if (fileToAppend) {
-//           formData.append("attachments", fileToAppend, fileName);
-//         }
-//       });
+          if (file instanceof File) {
+            fileToAppend = file;
+            fileName = file.name;
+          } else if (file.file) {
+            fileToAppend = file.file;
+            fileName = file.file.name || file.name || "file";
+          } else if (file.fileData) {
+            if (
+              file.fileData instanceof Blob ||
+              file.fileData instanceof File
+            ) {
+              fileToAppend = file.fileData;
+              fileName = file.name || "file";
+            } else {
+              const blob = new Blob([file.fileData]);
+              fileToAppend = blob;
+              fileName = file.name || "file";
+            }
+          } else if (file.blob) {
+            fileToAppend = file.blob;
+            fileName = file.name || "file";
+          } else if (file instanceof Blob) {
+            fileToAppend = file;
+            fileName = file.name || "file";
+          } else if (file.data) {
+            const blob = new Blob([file.data]);
+            fileToAppend = blob;
+            fileName = file.name || "file";
+          }
 
-//       // Send with FormData
-//       await chatAPI.updateChatDescription(chatId, formData);
-      
-//       // Clear uploaded files after successful send
-//       setUploadedFiles([]);
-      
-//       showToast({
-//         title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`,
-//         type: "success",
-//       });
-      
-//     } else {
-//       // No files, just text message
-//       const newDescription = {
-//         message: contentToSend,
-//         fromwhome: "Admin",
-//         senderid: senderName,
-//       };
+          if (fileToAppend) {
+            formData.append("attachments", fileToAppend, fileName);
+          }
+        });
 
-//       if (replyTo) newDescription.replyTo = replyTo._id;
+        // Send with FormData
+        await chatAPI.updateChatDescription(chatId, formData);
 
-//       await chatAPI.updateChatDescription(chatId, {
-//         newDescriptions: [newDescription],
-//       });
-      
-//       showToast({
-//         title: "Message sent",
-//         type: "success",
-//       });
-//     }
+        // Clear uploaded files after successful send
+        setUploadedFiles([]);
 
-//     // Common success actions
-//     setEditorContent("");
-//     setReplyTo(null);
-    
-//     await securemessagechatsend(chatId);
-//     await updatechatStatus(chatId);
-//     accountwiseChatlist(data, isActiveTrue);
-//     getsChatDetails();
-    
-//   } catch (error) {
-//     console.error("Send failed:", error);
-//     showToast({
-//       title: error.response?.data?.message || "Send failed",
-//       type: "error",
-//     });
-//   }
-// };
+        showToast({
+          title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? "s" : ""}`,
+          type: "success",
+        });
+      } else {
+        // No files, just text message
+        const newDescription = {
+          message: contentToSend,
+          fromwhome: "Admin",
+          senderid: senderName,
+          isHTML: isHTML || false,
+          isEdited: false, // Mark as not edited when sending a new message
+        };
+
+        if (replyTo) newDescription.replyTo = replyTo._id;
+
+        await chatAPI.updateChatDescription(chatId, {
+          newDescriptions: [newDescription],
+        });
+
+        showToast({
+          title: "Message sent",
+          type: "success",
+        });
+      }
+
+      // Common success actions
+      setEditorContent("");
+      setReplyTo(null);
+
+      await securemessagechatsend(chatId);
+      await updatechatStatus(chatId);
+      accountwiseChatlist(data, isActiveTrue);
+      getsChatDetails();
+    } catch (error) {
+      console.error("Send failed:", error);
+      showToast({
+        title: error.response?.data?.message || "Send failed",
+        type: "error",
+      });
+    }
+  };
+
+  // const updateChatDescription = async (message = "") => {
+  //   const contentToSend = message.trim() || editorContent.trim();
+  //   console.log("editor contect",contentToSend)
+  //   // Check if we have files
+  //   const hasFiles = uploadedFiles && uploadedFiles.length > 0;
+  //   console.log("has filesa data",uploadedFiles)
+  //   // If no content and no files, don't send
+  //   if (!contentToSend && !hasFiles) {
+  //     showToast({
+  //       title: "Please enter a message or attach a file",
+  //       type: "warning",
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     if (hasFiles) {
+  //       // We have files - use FormData
+  //       const formData = new FormData();
+
+  //       // Create the description object
+  //       const newDescription = {
+  //         fromwhome: "Admin",
+  //         senderid: senderName,
+  //       };
+
+  //       // Only add message if there's content
+  //       if (contentToSend) {
+  //         newDescription.message = contentToSend;
+  //       }
+
+  //       if (replyTo) newDescription.replyTo = replyTo._id;
+
+  //       // Append description as JSON string
+  //       formData.append("newDescriptions", JSON.stringify([newDescription]));
+
+  //       // Append files
+  //       uploadedFiles.forEach((file) => {
+  //         let fileToAppend = null;
+  //         let fileName = file.name || 'file';
+
+  //         if (file instanceof File) {
+  //           fileToAppend = file;
+  //           fileName = file.name;
+  //         } else if (file.file) {
+  //           fileToAppend = file.file;
+  //           fileName = file.file.name || file.name || 'file';
+  //         } else if (file.fileData) {
+  //           if (file.fileData instanceof Blob || file.fileData instanceof File) {
+  //             fileToAppend = file.fileData;
+  //             fileName = file.name || 'file';
+  //           } else {
+  //             const blob = new Blob([file.fileData]);
+  //             fileToAppend = blob;
+  //             fileName = file.name || 'file';
+  //           }
+  //         } else if (file.blob) {
+  //           fileToAppend = file.blob;
+  //           fileName = file.name || 'file';
+  //         } else if (file instanceof Blob) {
+  //           fileToAppend = file;
+  //           fileName = file.name || 'file';
+  //         } else if (file.data) {
+  //           const blob = new Blob([file.data]);
+  //           fileToAppend = blob;
+  //           fileName = file.name || 'file';
+  //         }
+
+  //         if (fileToAppend) {
+  //           formData.append("attachments", fileToAppend, fileName);
+  //         }
+  //       });
+
+  //       // Send with FormData
+  //       await chatAPI.updateChatDescription(chatId, formData);
+
+  //       // Clear uploaded files after successful send
+  //       setUploadedFiles([]);
+
+  //       showToast({
+  //         title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`,
+  //         type: "success",
+  //       });
+
+  //     } else {
+  //       // No files, just text message
+  //       const newDescription = {
+  //         message: contentToSend,
+  //         fromwhome: "Admin",
+  //         senderid: senderName,
+  //       };
+
+  //       if (replyTo) newDescription.replyTo = replyTo._id;
+
+  //       await chatAPI.updateChatDescription(chatId, {
+  //         newDescriptions: [newDescription],
+  //       });
+
+  //       showToast({
+  //         title: "Message sent",
+  //         type: "success",
+  //       });
+  //     }
+
+  //     // Common success actions
+  //     setEditorContent("");
+  //     setReplyTo(null);
+
+  //     await securemessagechatsend(chatId);
+  //     await updatechatStatus(chatId);
+  //     accountwiseChatlist(data, isActiveTrue);
+  //     getsChatDetails();
+
+  //   } catch (error) {
+  //     console.error("Send failed:", error);
+  //     showToast({
+  //       title: error.response?.data?.message || "Send failed",
+  //       type: "error",
+  //     });
+  //   }
+  // };
   const handleEditMessage = (message) => {
+    console.log("Attempting to edit message:", message);
     if (!canEditMessage(message.time)) {
       showToast({
         title: "Cannot edit message after 10 minutes",
@@ -559,86 +566,107 @@ const updateChatDescription = async (message = "", isHTML = false) => {
       tasks.map((task) => (task.id === id ? { ...task, text: newText } : task)),
     );
   };
-const [isResending, setIsResending] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const resendClientTask = async () => {
-      if (isResending) return;
+    if (isResending) return;
 
-  setIsResending(true);
+    setIsResending(true);
     try {
       await chatAPI.addClientTask({ chatId, newTask: tasks });
       const taskMessages = tasks
         .filter((task) => !task.checked)
         .map((task) => `• ${task.text}`)
         .join("\n");
-        console.log("Resending task messages:", taskMessages);
+      console.log("Resending task messages:", taskMessages);
       await updateAdminChatDescription(taskMessages);
 
       showToast({
-      title: "Task sent successfully",
-      type: "success",
-    });
-    getsChatDetails();
-    } catch (error) {
-      console.error(error);
-       showToast({
-      title: "Failed to send task",
-      type: "error",
-    });
-    }
-    finally {
-    setIsResending(false);
-  }
-  };
-
-  
-const updateAdminChatDescription = async (
-  message,
-  attachments = []
-) => {
-  if (!message.trim()) return;
-
-  const newDescription = {
-    message,
-    fromwhome: "Admin",
-    senderid: senderName,
-  };
-
-  if (attachments.length > 0) {
-    const formData = new FormData();
-
-    formData.append(
-      "newDescriptions",
-      JSON.stringify([newDescription])
-    );
-
-    attachments.forEach((file) => {
-      formData.append("attachments", file);
-    });
-
-    await chatAPI.updateChatDescription(chatId, formData);
-  } else {
-    await chatAPI.updateChatDescription(chatId, {
-      newDescriptions: [newDescription],
-    });
-  }
-};
-
-  const handleDeleteMessage = async (messageToDelete) => {
-    try {
-      await chatAPI.deleteMessage({ chatId, messageId: messageToDelete._id });
-      showToast({
-        title: "Message deleted successfully",
+        title: "Task sent successfully",
         type: "success",
       });
       getsChatDetails();
-      accountwiseChatlist(data, isActiveTrue);
     } catch (error) {
+      console.error(error);
       showToast({
-        title: "Failed to delete message",
+        title: "Failed to send task",
         type: "error",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const updateAdminChatDescription = async (message, attachments = []) => {
+    if (!message.trim()) return;
+
+    const newDescription = {
+      message,
+      fromwhome: "Admin",
+      senderid: senderName,
+    };
+
+    if (attachments.length > 0) {
+      const formData = new FormData();
+
+      formData.append("newDescriptions", JSON.stringify([newDescription]));
+
+      attachments.forEach((file) => {
+        formData.append("attachments", file);
+      });
+
+      await chatAPI.updateChatDescription(chatId, formData);
+    } else {
+      await chatAPI.updateChatDescription(chatId, {
+        newDescriptions: [newDescription],
       });
     }
   };
+
+  const handleDeleteMessage = (messageToDelete) => {
+    confirm({
+      title: "Delete Message",
+      description:
+        "Are you sure you want to delete this message? This action cannot be undone.",
+      onConfirm: async () => {
+        try {
+          await chatAPI.deleteMessage({
+            chatId,
+            messageId: messageToDelete._id,
+          });
+
+          showToast({
+            title: "Message deleted successfully",
+            type: "success",
+          });
+
+          getsChatDetails();
+          accountwiseChatlist(data, isActiveTrue);
+        } catch (error) {
+          showToast({
+            title: "Failed to delete message",
+            type: "error",
+          });
+        }
+      },
+    });
+  };
+
+  // const handleDeleteMessage = async (messageToDelete) => {
+  //   try {
+  //     await chatAPI.deleteMessage({ chatId, messageId: messageToDelete._id });
+  //     showToast({
+  //       title: "Message deleted successfully",
+  //       type: "success",
+  //     });
+  //     getsChatDetails();
+  //     accountwiseChatlist(data, isActiveTrue);
+  //   } catch (error) {
+  //     showToast({
+  //       title: "Failed to delete message",
+  //       type: "error",
+  //     });
+  //   }
+  // };
   const handleMarkAsRead = async (chatId) => {
     try {
       await chatAPI.markThreadAsRead(chatId);
@@ -932,23 +960,39 @@ const updateAdminChatDescription = async (
     }
   };
 
-  const handleDeleteThread = async () => {
-    try {
-      await chatAPI.deleteChat(chatId);
-      onChatAction();
-      showToast({
-        title: "Thread deleted successfully",
-        type: "success",
-      });
-      accountwiseChatlist(data, isActiveTrue);
-    } catch (error) {
-      showToast({
-        title: "Failed to delete thread",
-        type: "error",
-      });
-    }
+  // const handleDeleteThread = async () => {
+  //   try {
+  //     await chatAPI.deleteChat(chatId);
+  //     onChatAction();
+  //     showToast({
+  //       title: "Thread deleted successfully",
+  //       type: "success",
+  //     });
+  //     accountwiseChatlist(data, isActiveTrue);
+  //   } catch (error) {
+  //     showToast({
+  //       title: "Failed to delete thread",
+  //       type: "error",
+  //     });
+  //   }
+  // };
+  const handleDeleteThread = () => {
+    confirm({
+      title: "Delete Thread",
+      description: "Are you sure you want to delete this thread?",
+      onConfirm: async () => {
+        try {
+          await chatAPI.deleteChatForAdmin(chatId);
+          onChatAction();
+          showToast({ title: "Thread deleted successfully", type: "success" });
+          accountwiseChatlist(data, isActiveTrue);
+        } catch (error) {
+          console.error("Failed to delete thread:", error);
+          showToast({ title: "Failed to delete thread", type: "error" });
+        }
+      },
+    });
   };
-
   const getDateLabel = (date) => {
     const msgDate = new Date(date);
 
@@ -1008,15 +1052,11 @@ const updateAdminChatDescription = async (
 
   return (
     // <div className="flex h-full w-full bg-background rounded-lg overflow-hidden shadow-sm">
-      <div
-  className={`grid h-full w-full bg-background rounded-lg overflow-hidden shadow-sm
-    ${
-      showTasks
-        ? "grid-cols-1 lg:grid-cols-[1fr_320px]"
-        : "grid-cols-1"
-    }`}
->
-  {/* Edit Dialog */}
+    <div
+      className={`grid h-full w-full bg-background rounded-lg overflow-hidden shadow-sm
+    ${showTasks ? "grid-cols-1 lg:grid-cols-[1fr_320px]" : "grid-cols-1"}`}
+    >
+      {/* Edit Dialog */}
       <Dialog
         open={editDialogOpen}
         onOpenChange={(open) => !open && handleCancelEdit()}
@@ -1026,9 +1066,9 @@ const updateAdminChatDescription = async (
             <DialogTitle>Edit Message</DialogTitle>
           </DialogHeader>
           {/* <div className="min-h-[200px]"> */}
-           <div style={{ maxWidth: 600, }}>
+          <div style={{ maxWidth: 600 }}>
             {/* <Editor onChange={setEditContent} value={editContent} /> */}
-            <TextEditor  value={editContent} onChange={setEditContent} />
+            <TextEditor value={editContent} onChange={setEditContent} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCancelEdit}>
@@ -1043,39 +1083,34 @@ const updateAdminChatDescription = async (
       {/* chnage user dialog box */}
 
       <Dialog open={changeUserOpen} onOpenChange={setChangeUserOpen}>
-  <DialogContent className="sm:max-w-md">
-    <DialogHeader>
-      <DialogTitle>Change User</DialogTitle>
-    </DialogHeader>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change User</DialogTitle>
+          </DialogHeader>
 
- <select
-  className="w-full border rounded-md p-2"
-  value={selectedSender}
-  onChange={(e) => setSelectedSender(e.target.value)}
->
-  <option value="">Select User</option>
+          <select
+            className="w-full border rounded-md p-2"
+            value={selectedSender}
+            onChange={(e) => setSelectedSender(e.target.value)}
+          >
+            <option value="">Select User</option>
 
-  {getUserOptions().map((option) => (
-    <option key={option.value} value={option.value}>
-      {option.label}
-    </option>
-  ))}
-</select>
+            {getUserOptions().map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
 
-    <DialogFooter>
-      <Button
-        variant="outline"
-        onClick={() => setChangeUserOpen(false)}
-      >
-        Cancel
-      </Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChangeUserOpen(false)}>
+              Cancel
+            </Button>
 
-      <Button onClick={handleSaveUserChange}>
-        Save
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+            <Button onClick={handleSaveUserChange}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Chat Area */}
       {/* <div
@@ -1154,7 +1189,6 @@ const updateAdminChatDescription = async (
         {/* Messages Area */}
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="space-y-3">
-           
             {groupedMessages.map((item, index) => {
               if (item.type === "date") {
                 return (
@@ -1182,8 +1216,8 @@ const updateAdminChatDescription = async (
                   handleDeleteMessage={handleDeleteMessage}
                   handleEditMessage={handleEditMessage}
                   canEditMessage={canEditMessage}
-                   user={user}
-  handleChangeUser={handleChangeUser}
+                  user={user}
+                  handleChangeUser={handleChangeUser}
                 />
               );
             })}
@@ -1216,13 +1250,13 @@ const updateAdminChatDescription = async (
 
           <div className="flex gap-3">
             {/* <div className="flex-1"> */}
-           {/* <div className="flex-1 min-w-0">
+            {/* <div className="flex-1 min-w-0">
               <TextEditor value={editorContent} onChange={handleEditorChange} accountId={data}   />
              
              
             </div> */}
             <div className="flex-1 min-w-0">
-  {/* <TextEditor 
+              {/* <TextEditor 
     value={editorContent} 
     onChange={handleEditorChange} 
     accountId={data}
@@ -1240,35 +1274,35 @@ const updateAdminChatDescription = async (
       }, 100);
     }}
   /> */}
-  <TextEditor 
-  value={editorContent} 
-  onChange={handleEditorChange} 
-  accountId={data}
-  onFileUploadComplete={(files, message, isHTML = false) => {
-    console.log("Files uploaded:", files);
-    console.log("Message:", message);
-    
-    if (isHTML) {
-      // If message contains HTML, insert it directly
-      setEditorContent(prev => prev + message);
-      
-      // Auto-send after a short delay
-      setTimeout(() => {
-        updateChatDescription(message, true); // Pass isHTML flag
-      }, 100);
-    } else {
-      // Plain text fallback
-      const fileNames = files.map(f => f.name || f).join('\n');
-      const plainMessage = `📎 ${fileNames}`;
-      setEditorContent(prev => prev + '\n\n' + plainMessage);
-      
-      setTimeout(() => {
-        updateChatDescription(plainMessage);
-      }, 100);
-    }
-  }}
-/>
-</div>
+              <TextEditor
+                value={editorContent}
+                onChange={handleEditorChange}
+                accountId={data}
+                onFileUploadComplete={(files, message, isHTML = false) => {
+                  console.log("Files uploaded:", files);
+                  console.log("Message:", message);
+
+                  if (isHTML) {
+                    // If message contains HTML, insert it directly
+                    setEditorContent((prev) => prev + message);
+
+                    // Auto-send after a short delay
+                    setTimeout(() => {
+                      updateChatDescription(message, true); // Pass isHTML flag
+                    }, 100);
+                  } else {
+                    // Plain text fallback
+                    const fileNames = files.map((f) => f.name || f).join("\n");
+                    const plainMessage = `📎 ${fileNames}`;
+                    setEditorContent((prev) => prev + plainMessage);
+
+                    setTimeout(() => {
+                      updateChatDescription(plainMessage);
+                    }, 100);
+                  }
+                }}
+              />
+            </div>
             <Button
               onClick={() => updateChatDescription()}
               className="h-10 px-5"
@@ -1283,7 +1317,7 @@ const updateAdminChatDescription = async (
       {showTasks && (
         // <div className="w-80 flex flex-col border-l bg-card/50">
         <div className="flex flex-col border-l bg-card/50 min-w-0">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
+          <div className="flex items-center justify-between px-4 py-3 border-b">
             <h3 className="text-sm font-medium">Client Tasks</h3>
             <div className="flex gap-1">
               <Button
@@ -1341,9 +1375,13 @@ const updateAdminChatDescription = async (
           </ScrollArea>
 
           <div className="p-3 border-t">
-            <Button  disabled={isResending} onClick={resendClientTask} className="w-full text-sm h-9">
+            <Button
+              disabled={isResending}
+              onClick={resendClientTask}
+              className="w-full text-sm h-9"
+            >
               {/* Resend Tasks */}
-               {isResending ? "Sending..." : "Resend Tasks"}
+              {isResending ? "Sending..." : "Resend Tasks"}
             </Button>
           </div>
         </div>
@@ -1369,7 +1407,9 @@ const MessageItem = ({
   formatDate,
   handleDeleteMessage,
   handleEditMessage,
-  canEditMessage,user,handleChangeUser,
+  canEditMessage,
+  user,
+  handleChangeUser,
 }) => {
   const isClient = desc.fromwhome?.toLowerCase() === "client";
   const isAdmin = desc.fromwhome === "Admin";
@@ -1421,11 +1461,11 @@ const MessageItem = ({
                       Edit
                     </DropdownMenuItem>
                   )}
-                      {user?.role === "team_member" && (
-      <DropdownMenuItem onClick={() => handleChangeUser(desc)}>
-        Change User
-      </DropdownMenuItem>
-    )}
+                  {user?.role === "team_member" && (
+                    <DropdownMenuItem onClick={() => handleChangeUser(desc)}>
+                      Change User
+                    </DropdownMenuItem>
+                  )}
 
                   <DropdownMenuItem
                     onClick={() => handleDeleteMessage(desc)}
@@ -1457,6 +1497,9 @@ const MessageItem = ({
 
           {isAdmin && <MessageStatus isRead={desc.isRead} />}
         </div>
+        {desc.isEdited === true && (
+          <span className="text-xs text-muted-foreground ml-2">(edited)</span>
+        )}
       </div>
     </div>
   );

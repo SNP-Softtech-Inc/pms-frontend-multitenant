@@ -3,29 +3,12 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
-import { Check, ChevronsUpDown, X, Loader2 } from "lucide-react";
-import { cn } from "../lib/utils"; // Standard Shadcn utility
+
 
 import { accountsAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
-// Shadcn Components
-import { Button } from "../components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../components/ui/popover";
-import { Badge } from "../components/ui/badge";
-import { Checkbox } from "../components/ui/checkbox";
+
 import Select from "react-select";
 const MultiSelectDropdown = ({
   value = [],
@@ -33,7 +16,10 @@ const MultiSelectDropdown = ({
   options: propOptions,
   placeholder = "Select from list",
   width = "100%",
+    selectedIds = [],
+
 }) => {
+  console.log("MultiSelectDropdown value:", value);
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [internalOptions, setInternalOptions] = useState([]);
@@ -64,17 +50,38 @@ const MultiSelectDropdown = ({
 
           setInternalOptions(formatted);
 
-          if (value.length === 0) {
-            const accountIdFromCookie = Cookies.get("accountId");
-            if (accountIdFromCookie) {
-              const matched = formatted.find(
-                (acc) => acc.value === accountIdFromCookie
-              );
-              if (matched && onChange) {
-                onChange([matched]);
-              }
-            }
-          }
+          // if (value.length === 0) {
+          //   const accountIdFromCookie = Cookies.get("accountId");
+          //   if (accountIdFromCookie) {
+          //     const matched = formatted.find(
+          //       (acc) => acc.value === accountIdFromCookie
+          //     );
+          //     if (matched && onChange) {
+          //       onChange([matched]);
+          //     }
+          //   }
+          // }
+          if (selectedIds.length > 0) {
+  const matchedAccounts = formatted.filter((account) =>
+    selectedIds.includes(account.value)
+  );
+
+  if (matchedAccounts.length > 0) {
+    onChange?.(matchedAccounts);
+  }
+} else if (value.length === 0) {
+  const accountIdFromCookie = Cookies.get("accountId");
+
+  if (accountIdFromCookie) {
+    const matched = formatted.find(
+      (acc) => acc.value === accountIdFromCookie
+    );
+
+    if (matched) {
+      onChange?.([matched]);
+    }
+  }
+}
           setInitialized(true);
         } catch (error) {
           console.error("Error fetching accounts:", error);
@@ -84,7 +91,7 @@ const MultiSelectDropdown = ({
       };
       fetchAccounts();
     }
-  }, [propOptions, initialized, onChange, value, user]);
+  }, [propOptions, initialized, onChange, value, user,selectedIds]);
 
   // ================= HANDLERS (UNCHANGED) =================
   const handleSelect = (selectedValue) => {
@@ -105,182 +112,7 @@ const filteredOptions = options.filter(
   (option) => !value.some((v) => v.value === option.value)
 );
   const clearSelection = () => onChange?.([]);
-// return (
-//   <div style={{ width }} className="mt-2">
-//     <Popover open={open} onOpenChange={setOpen}>
-//       <PopoverTrigger asChild>
-//         <div
-//           className="
-//             flex min-h-10 w-full cursor-pointer items-center justify-between
-//             rounded-xl border border-border bg-background
-//             px-3 py-2
-//             transition-all duration-200
-//             hover:border-primary/40
-//             hover:bg-accent/40
-//             focus-within:ring-2 focus-within:ring-ring
-//           "
-//         >
-//           {/* Selected Values */}
-//           <div className="flex flex-wrap gap-1.5">
-//             {value.length > 0 ? (
-//               value.map((item) => (
-//                 <Badge
-//                   key={item.value}
-//                   className="
-//                     flex items-center gap-1
-//                     rounded-md
-//                     bg-primary/10
-//                     text-primary
-//                     border border-primary/20
-//                     hover:bg-primary/20
-//                     transition-colors
-//                     text-xs font-medium
-//                   "
-//                 >
-//                   {item.label}
 
-//                   <X
-//                     className="
-//                       h-3 w-3 cursor-pointer
-//                       opacity-70 hover:opacity-100
-//                     "
-//                     onClick={(e) =>
-//                       handleUnselect(e, item.value)
-//                     }
-//                   />
-//                 </Badge>
-//               ))
-//             ) : (
-//               <span className="text-sm text-muted-foreground">
-//                 {placeholder}
-//               </span>
-//             )}
-//           </div>
-
-//           {/* Right Icon */}
-//           <div className="flex items-center gap-2 text-muted-foreground">
-//             <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-70" />
-//           </div>
-//         </div>
-//       </PopoverTrigger>
-
-//       <PopoverContent
-//         align="start"
-//         className="
-//           p-3
-//           border border-border
-//           bg-popover
-//           text-popover-foreground
-//           shadow-xl
-//           rounded-xl
-//         "
-//         style={{
-//           width:
-//             "var(--radix-popover-trigger-width)",
-//         }}
-//       >
-//         <Command className="bg-transparent">
-//           {/* Search */}
-//           <CommandInput
-//             placeholder="Search..."
-//             className="
-//               mb-3
-//               border border-border
-//               bg-background
-//               text-foreground
-//               placeholder:text-muted-foreground
-//               focus-visible:ring-ring
-//             "
-//           />
-
-//           {/* Options */}
-//           <CommandList className="max-h-[300px] overflow-y-auto pr-1">
-//             {loading ? (
-//               <div className="flex items-center justify-center p-5">
-//                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
-//               </div>
-//             ) : (
-//               <>
-//                 <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-//                   No results found.
-//                 </CommandEmpty>
-
-//                 <CommandGroup className="space-y-1">
-//                   {options.map((option) => {
-//                     const isSelected =
-//                       value.some(
-//                         (v) =>
-//                           v.value === option.value
-//                       );
-
-//                     return (
-//                       <CommandItem
-//                         key={option.value}
-//                         onSelect={() =>
-//                           handleSelect(
-//                             option.value
-//                           )
-//                         }
-//                         className={`
-//                           flex cursor-pointer items-center gap-3
-//                           rounded-lg px-3 py-2
-//                           transition-all duration-150
-//                           ${
-//                             isSelected
-//                               ? "bg-primary/10 border border-primary/20"
-//                               : "hover:bg-accent"
-//                           }
-//                         `}
-//                       >
-//                         <Checkbox
-//                           checked={isSelected}
-//                           className="
-//                             border-border
-//                             data-[state=checked]:bg-primary
-//                             data-[state=checked]:border-primary
-//                           "
-//                         />
-
-//                         <span className="text-sm font-medium text-foreground">
-//                           {option.label}
-//                         </span>
-//                       </CommandItem>
-//                     );
-//                   })}
-//                 </CommandGroup>
-//               </>
-//             )}
-
-//             {/* Clear Selection */}
-//             {value.length > 0 && (
-//               <>
-//                 <div className="h-px bg-border my-2" />
-
-//                 <CommandItem
-//                   onSelect={clearSelection}
-//                   className="
-//                     justify-center
-//                     rounded-lg
-//                     py-2
-//                     text-sm
-//                     font-medium
-//                     text-destructive
-//                     cursor-pointer
-//                     transition-colors
-//                     hover:bg-destructive/10
-//                     focus:bg-destructive/10
-//                   "
-//                 >
-//                   Clear selection
-//                 </CommandItem>
-//               </>
-//             )}
-//           </CommandList>
-//         </Command>
-//       </PopoverContent>
-//     </Popover>
-//   </div>
-// );
 return (
   <div style={{ width }} className="mt-2">
     <Select

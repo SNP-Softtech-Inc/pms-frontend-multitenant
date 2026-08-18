@@ -518,6 +518,11 @@ export default function InboxPlus() {
   };
 
   const openAttachment = async (attachment) => {
+     console.log("=== OPEN ATTACHMENT ===");
+    console.log("Full attachment object:", attachment);
+    console.log("Attachment ID being sent:", attachment?.attachmentId);
+    console.log("Filename:", attachment?.filename);
+
     try {
       if (!attachment) {
         showToast({

@@ -43,6 +43,10 @@ const PendingProposals = ({
         proposalList.length
       );
     } catch (error) {
+      console.log(
+        "Error fetching proposals:",
+        error
+      );
       console.error(
         "Error fetching proposals:",
         error

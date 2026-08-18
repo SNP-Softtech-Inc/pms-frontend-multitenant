@@ -1128,7 +1128,7 @@ import Editor from "../../components/Editor";
 import ShortcodeTextField from "../../components/ShortcodeTextField";
 import AutomationDrawer from "./AutomationDrawer";
 
-const JobDrawer = ({ open, onClose, fetchJobData, selectedPipeline }) => {
+const JobDrawer = ({ open, onClose, fetchJobData, selectedPipeline, selectedIds = [], }) => {
   console.log("selectedPipeline in JobDrawer:", selectedPipeline);
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
@@ -1651,6 +1651,8 @@ console.log("stages for the job drawer",stages)
             <AccountMultiSelectDropdown
               value={selectedaccount}
               onChange={setSelectedaccount}
+                      selectedIds={selectedIds}
+
             />
           </div>
 

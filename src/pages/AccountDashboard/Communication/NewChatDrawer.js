@@ -5,9 +5,9 @@ import { useAuth } from "../../../context/AuthContext";
 import { templateAPI, chatAPI ,authAPI} from "../../../services/api";
 
 import AccountMultiSelectDropdown from "../../../components/AccountMultiSelectDropdown";
-import EditorShortcodes from "../../../components/TextEditorShortCodes";
+// import EditorShortcodes from "../../../components/TextEditorShortCodes";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
-// import TextEditor from "../../../components/textEditor/TextEditior";
+import TextEditor from "../../../TextEditor/TextEditor";
 // Shadcn UI components (using correct paths)
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -201,6 +201,7 @@ const [attachments, setAttachments] = useState([]);
             fromwhome: "Admin",
             senderid: username,
             isRead: false,
+            isEdited:false, // Mark as not edited when creating a new chat
           },
         ],
         sendreminderstoclient: absoluteDate,
@@ -495,11 +496,11 @@ const [attachments, setAttachments] = useState([]);
                 >
                   Description
                 </Label>
- {/* <TextEditor value={description} onChange={handleEditorChange}     /> */}
-                <EditorShortcodes
+ <TextEditor value={description} onChange={handleEditorChange}     />
+                {/* <EditorShortcodes
                   value={description}
                   onChange={setDescription}
-                />
+                /> */}
               </div>
             </div>
 

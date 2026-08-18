@@ -32,17 +32,35 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 // Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+// pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+//   'pdfjs-dist/build/pdf.worker.min.mjs',
+//   import.meta.url
+// ).toString();
 
+// Set up PDF.js worker with fallback
+const setupPdfWorker = () => {
+    try {
+        // Try local worker first
+        const workerSrc = new URL(
+            'pdfjs-dist/build/pdf.worker.min.mjs',
+            import.meta.url
+        ).toString();
+        pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+    } catch (error) {
+        // Fallback to CDN
+        console.warn('Using CDN PDF worker fallback');
+        pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+    }
+};
+
+// Initialize worker
+setupPdfWorker();
 // Component to render text files
 const TextViewer = ({ fileUrl, fileName, scale, rotation }) => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+console.log("TextViewer fileUrl:", fileUrl);
   useEffect(() => {
     fetch(fileUrl)
       .then(response => {
@@ -151,6 +169,7 @@ const DocumentViewer = ({
   onDownload,
   onPrint,
 }) => {
+  const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT || '';
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
@@ -249,7 +268,7 @@ const DocumentViewer = ({
   // Update file URL when current file changes
   useEffect(() => {
     if (currentFile) {
-      const url = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${currentFile.path}`;
+      const url = `${FILE_MANAGER_BASE_URL}/uploads/accounts/${currentFile.path}`;
       setFileUrl(url);
       setPageNumber(1);
       setLoading(true);
@@ -505,6 +524,17 @@ const DocumentViewer = ({
         style={{ width: '95vw', height: '95vh' }}
         ref={containerRef}
       >
+                {/* Fix: Add DialogTitle for accessibility (visually hidden) */}
+        <DialogTitle className="sr-only">
+          Document Viewer - {currentFile?.name || 'Document'}
+        </DialogTitle>
+        
+        {/* Description for screen readers */}
+        <p id="dialog-description" className="sr-only">
+          Viewing document {currentIndex + 1} of {totalFiles}: {currentFile?.name || 'Document'}
+        </p>
+
+
         {/* Header - Like your reference image */}
         <DialogHeader className="p-4 border-b border-border bg-background">
           <div className="flex items-center justify-between">

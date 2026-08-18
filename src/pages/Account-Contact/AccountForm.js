@@ -83,37 +83,63 @@ export default function AccountForm({ onContinue, isEditing = false }) {
   }, [isEditing, dispatch]);
 
   // Fetch Tags
-  useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        const res = await templateAPI.getAllTags();
-        const tagsData = res?.data?.tags || [];
-        console.log("Fetched tags bbb:", tagsData);
-        const tagsOptions = tagsData.map((tag) => ({
-          value: tag._id,
+  // useEffect(() => {
+  //   const fetchTags = async () => {
+  //     try {
+  //       const res = await templateAPI.getAllTags();
+  //       const tagsData = res?.data?.tags || [];
+  //       console.log("Fetched tags bbb:", tagsData);
+  //       const tagsOptions = tagsData.map((tag) => ({
+  //         value: tag._id,
+  //         label: tag.tagName,
+  //         colour: tag.tagColour,
+  //       }));
+  //       setTags(tagsOptions);
+  //       console.log("tagsOptions:", tagsOptions);
+
+  //       // If editing and we have tag IDs, map them to the correct format
+  //       if (
+  //         accountData.tags &&
+  //         accountData.tags.length > 0 &&
+  //         typeof accountData.tags[0] === "string"
+  //       ) {
+  //         const selectedTags = tagsOptions.filter((tag) =>
+  //           accountData.tags.includes(tag.value),
+  //         );
+  //         dispatch(setAccountData({ tags: selectedTags }));
+  //         console.log("Mapped selected tags for editing:", selectedTags);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching tags:", err);
+  //     }
+  //   };
+  //   fetchTags();
+  // }, [accountData.tags]);
+useEffect(() => {
+  const fetchTags = async () => {
+    try {
+      const res = await templateAPI.getAllTags();
+
+      const tagsData = res?.data?.tags || [];
+
+      const tagsOptions = tagsData
+        .filter((tag) => tag?._id && tag?.tagName)
+        .map((tag) => ({
+          value: String(tag._id),
           label: tag.tagName,
-          colour: tag.tagColour,
+          colour: tag.tagColour || "#64748b",
         }));
-        setTags(tagsOptions);
 
-        // If editing and we have tag IDs, map them to the correct format
-        if (
-          accountData.tags &&
-          accountData.tags.length > 0 &&
-          typeof accountData.tags[0] === "string"
-        ) {
-          const selectedTags = tagsOptions.filter((tag) =>
-            accountData.tags.includes(tag.value),
-          );
-          dispatch(setAccountData({ tags: selectedTags }));
-        }
-      } catch (err) {
-        console.error("Error fetching tags:", err);
-      }
-    };
-    fetchTags();
-  }, [accountData.tags]);
+      setTags(tagsOptions);
 
+      console.log("tagsOptions:", tagsOptions);
+    } catch (err) {
+      console.error("Error fetching tags:", err);
+    }
+  };
+
+  fetchTags();
+}, []);
  useEffect(() => {
   const fetchTeamMembers = async () => {
     try {
