@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI } from "../services/api";
-import {useToastContext} from "./ToastContext"
+import { useToastContext } from "./ToastContext";
 import Cookies from "js-cookie";
 
 // ================= CREATE CONTEXT =================
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const navigationRef = useRef(navigate);
   const logoutTimerRef = useRef(null);
-const {showToast}= useToastContext()
+  const { showToast } = useToastContext();
   useEffect(() => {
     navigationRef.current = navigate;
   }, [navigate]);
@@ -47,17 +47,14 @@ const {showToast}= useToastContext()
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-        const storedTenantId = localStorage.getItem("tenantId");
-        const storedRoleData = localStorage.getItem("roleData");
-        const storedExpiry = localStorage.getItem("sessionExpiry");
+        const storedToken = sessionStorage.getItem("token");
+        const storedUser = sessionStorage.getItem("user");
+        const storedTenantId = sessionStorage.getItem("tenantId");
+        const storedRoleData = sessionStorage.getItem("roleData");
+        const storedExpiry = sessionStorage.getItem("sessionExpiry");
 
         if (storedToken && storedUser) {
-          if (
-            storedExpiry &&
-            new Date().getTime() > parseInt(storedExpiry)
-          ) {
+          if (storedExpiry && new Date().getTime() > parseInt(storedExpiry)) {
             clearAuthData();
             showToast({
               title: "Session expired. Please login again.",
@@ -67,12 +64,8 @@ const {showToast}= useToastContext()
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
             setTenantId(storedTenantId);
-            setRoleData(
-              storedRoleData ? JSON.parse(storedRoleData) : null
-            );
-            setSessionExpiry(
-              storedExpiry ? parseInt(storedExpiry) : null
-            );
+            setRoleData(storedRoleData ? JSON.parse(storedRoleData) : null);
+            setSessionExpiry(storedExpiry ? parseInt(storedExpiry) : null);
 
             // restart auto logout timer
             if (storedExpiry) {
@@ -93,11 +86,13 @@ const {showToast}= useToastContext()
 
   // ================= CLEAR AUTH =================
   const clearAuthData = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("tenantId");
-    localStorage.removeItem("roleData");
-    localStorage.removeItem("sessionExpiry");
+
+    console.trace("clearAuthData called")
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("tenantId");
+    sessionStorage.removeItem("roleData");
+    sessionStorage.removeItem("sessionExpiry");
 
     Cookies.remove("userToken");
 
@@ -111,7 +106,6 @@ const {showToast}= useToastContext()
       clearTimeout(logoutTimerRef.current);
     }
   }, []);
-
 
   // ================= EXPIRY =================
   const calculateExpiry = useCallback((expiryTime) => {
@@ -149,67 +143,73 @@ const {showToast}= useToastContext()
   //   },
   //   [] // don't depend on logout to avoid re-creating
   // );
-// ================= AUTO LOGOUT =================
-const setupAutoLogout = useCallback(
-  (expiryTimestamp) => {
-    if (logoutTimerRef.current) {
-      clearTimeout(logoutTimerRef.current);
-    }
+  // ================= AUTO LOGOUT =================
+  const setupAutoLogout = useCallback(
+    (expiryTimestamp) => {
+      if (logoutTimerRef.current) {
+        clearTimeout(logoutTimerRef.current);
+      }
 
-    const timeLeft = expiryTimestamp - new Date().getTime();
+      const timeLeft = expiryTimestamp - new Date().getTime();
+      console.log({
+        expiryTimestamp,
+        now: Date.now(),
+        timeLeft,
+      });
 
-    if (timeLeft > 0) {
-      logoutTimerRef.current = setTimeout(async () => {
-        try {
-          showToast({
-            title: "Session expired. Please login again.",
-            type: "warning",
-          });
+      if (timeLeft > 0) {
+        logoutTimerRef.current = setTimeout(async () => {
+          try {
+            showToast({
+              title: "Session expired. Please login again.",
+              type: "warning",
+            });
 
-          // clear all auth data
-          clearAuthData();
+            // clear all auth data
+            clearAuthData();
 
-          // redirect properly
-          navigationRef.current("/admin/login", {
-            replace: true,
-          });
-        } catch (error) {
-          console.error("Auto logout error:", error);
-        }
-      }, timeLeft);
-    }
-  },
-  [clearAuthData]
-);
+            // redirect properly
+            navigationRef.current("/admin/login", {
+              replace: true,
+            });
+          } catch (error) {
+            console.error("Auto logout error:", error);
+          }
+        }, timeLeft);
+      }
+    },
+    [clearAuthData],
+  );
   // ================= LOGIN =================
   // const login = async (email, password, expiryTime) => {
-   const login = async (
-  email,
-  password,
-  expiryTime,
-  userId = null
-) => {
+  const login = async (email, password, expiryTime, userId = null) => {
     setLoading(true);
     try {
       // const response = await authAPI.login(email, password, expiryTime);
-const response = await authAPI.login({
-  email,
-  password,
-  expiryTime,
-  userId,
-});
+      const response = await authAPI.login({
+        email,
+        password,
+        expiryTime,
+        userId,
+      });
       const { token, user, roleData } = response.data;
 
       const expiryTimestamp = calculateExpiry(expiryTime);
+      console.log({
+        selected: expiryTime,
+        now: new Date().toLocaleTimeString(),
+        expires: new Date(expiryTimestamp).toLocaleTimeString(),
+        milliseconds: expiryTimestamp - Date.now(),
+      });
 
       // Store
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("tenantId", user.tenantId);
-      localStorage.setItem("sessionExpiry", expiryTimestamp.toString());
+      sessionStorage.setItem("token", token);
+      sessionStorage.setItem("user", JSON.stringify(user));
+      sessionStorage.setItem("tenantId", user.tenantId);
+      sessionStorage.setItem("sessionExpiry", expiryTimestamp.toString());
 
       if (roleData) {
-        localStorage.setItem("roleData", JSON.stringify(roleData));
+        sessionStorage.setItem("roleData", JSON.stringify(roleData));
       }
 
       Cookies.set("userToken", token, { expires: 7 });
@@ -226,18 +226,17 @@ const response = await authAPI.login({
       return { success: true, user };
     } catch (error) {
       if (error.response?.data?.multipleAccounts) {
-  return {
-    success: false,
-    multipleAccounts: true,
-    users: error.response.data.users,
-  };
-}
+        return {
+          success: false,
+          multipleAccounts: true,
+          users: error.response.data.users,
+        };
+      }
       console.error("Login error:", error);
 
       return {
         success: false,
-        error:
-          error.response?.data?.message || "Login failed",
+        error: error.response?.data?.message || "Login failed",
       };
     } finally {
       setLoading(false);
@@ -245,43 +244,46 @@ const response = await authAPI.login({
   };
 
   // ================= LOGOUT =================
-  const logout = useCallback(async (logoutAll = false) => {
-    setLoading(true);
+  const logout = useCallback(
+    async (logoutAll = false) => {
+      setLoading(true);
 
-    try {
-      const token = localStorage.getItem("token");
+      try {
+        const token = sessionStorage.getItem("token");
 
-      if (token) {
-        try {
-          if (logoutAll && authAPI.logoutAllDevices) {
-            await authAPI.logoutAllDevices();
-          } else {
-            await authAPI.logout();
+        if (token) {
+          try {
+            if (logoutAll && authAPI.logoutAllDevices) {
+              await authAPI.logoutAllDevices();
+            } else {
+              await authAPI.logout();
+            }
+            showToast({
+              title: "Logged out successfully",
+              type: "success",
+            });
+          } catch (err) {
+            console.warn("Logout API failed:", err);
+            showToast({
+              title: "Session cleared locally",
+              type: "info",
+            });
           }
-          showToast({
-            title: "Logged out successfully",
-            type: "success",
-          });
-        } catch (err) {
-          console.warn("Logout API failed:", err);
-          showToast({
-            title: "Session cleared locally",
-            type: "info",
-          });
         }
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      clearAuthData();
-      setLoading(false);
+      } catch (error) {
+        console.error("Logout error:", error);
+      } finally {
+        clearAuthData();
+        setLoading(false);
 
-      //  setTimeout(() => {
-    navigate("/admin/login", { replace: true });
-    
-  // }, 100);
-    }
-  }, [clearAuthData]);
+        //  setTimeout(() => {
+        navigate("/admin/login", { replace: true });
+
+        // }, 100);
+      }
+    },
+    [clearAuthData],
+  );
 
   // ================= ROLE HELPERS =================
   const hasRole = useCallback(
@@ -291,14 +293,11 @@ const response = await authAPI.login({
         ? roles.includes(user.role)
         : user.role === roles;
     },
-    [user]
+    [user],
   );
 
   const isAdmin = useCallback(() => user?.role === "admin", [user]);
-  const isTeamMember = useCallback(
-    () => user?.role === "team_member",
-    [user]
-  );
+  const isTeamMember = useCallback(() => user?.role === "team_member", [user]);
 
   const getPermissions = useCallback(() => {
     return roleData?.permissions || {};
@@ -308,10 +307,10 @@ const response = await authAPI.login({
   const updateUserData = useCallback(
     (updatedData) => {
       const updatedUser = { ...user, ...updatedData };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
     },
-    [user]
+    [user],
   );
 
   // ================= CONTEXT VALUE =================
@@ -331,11 +330,7 @@ const response = await authAPI.login({
     updateUserData,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;
