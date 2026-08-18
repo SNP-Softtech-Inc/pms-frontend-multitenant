@@ -290,7 +290,7 @@ const [loading, setLoading] = useState(false);
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
       //  onContactUpdated();
       onClose();
-    
+    resetForm();
     } catch (error) {
       showToast({
         title: "Something went wrong",

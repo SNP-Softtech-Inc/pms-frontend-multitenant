@@ -2628,95 +2628,229 @@ const [submitters, setSubmitters] = useState([]);
   };
 
   // Bulk download - Using accountDocsAPI
-  const handleBulkDownload = async () => {
-    if (selectedItems.size === 0) {
-      showToast({
-        title: "Please select items to download",
-        type: "warning",
-      });
-      return;
-    }
+  // const handleBulkDownload = async () => {
+  //   if (selectedItems.size === 0) {
+  //     showToast({
+  //       title: "Please select items to download",
+  //       type: "warning",
+  //     });
+  //     return;
+  //   }
 
-    setBulkOperationLoading(true);
-    try {
-      const paths = Array.from(selectedItems);
-      const response = await accountDocsAPI.downloadItems({ paths });
-
-      const blob = response.data;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `selected_items_${new Date().getTime()}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      showToast({
-        title: "Download started",
-        type: "success",
-      });
-    } catch (err) {
-      console.error("Bulk download error:", err);
-      showToast({
-        title: "Failed to download items",
-        type: "error",
-      });
-    } finally {
-      setBulkOperationLoading(false);
-    }
-  };
-
-  // Handle file click - Using accountDocsAPI to remove new tag
-  // const handleFileClick = async (fullPath, fileName, meta = {}) => {
+  //   setBulkOperationLoading(true);
   //   try {
-  //     // if (meta.readOnly) {
-  //     //   alert("This file is locked and cannot be opened.");
-  //     //   return;
-  //     // }
-  // // Create VIEW audit
-  //   await accountDocsAPI.viewDocument({
-  //     filePath: fullPath,
-  //   });
-  //     if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
-  //       await accountDocsAPI.removeNewTag({ filePath: fullPath });
-  //       await fetchFolderTree();
-  //     }
+  //     const paths = Array.from(selectedItems);
+  //     console.log("Downloading items:", paths);
+  //     const response = await accountDocsAPI.downloadItems({ paths },{responseType: 'blob'});
 
-  //     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
-  //     const extension = fileName.split(".").pop().toLowerCase();
-
-  //     if (extension === "xls" || extension === "xlsx") {
-  //       setSelectedFileUrl(fileUrl);
-  //       setSelectedFileName(fileName);
-  //       setOpenExcelDialog(true);
-  //       return;
-  //     }
-
-  //     if (extension === "doc" || extension === "docx") {
-  //       setSelectedFileUrl(fileUrl);
-  //       setSelectedFileName(fileName);
-  //       setOpenWordDialog(true);
-  //       return;
-  //     }
-
-  //     if (extension === "txt") {
-  //       const res = await fetch(fileUrl);
-  //       const text = await res.text();
-  //       setTextContent(text);
-  //       setSelectedFileName(fileName);
-  //       setOpenTextDialog(true);
-  //       return;
-  //     }
-
-  //     setSelectedFileUrl(fileUrl);
-  //     setSelectedFileName(fileName);
-  //     setOpenFileViewer(true);
-  //   } catch (error) {
-  //     console.error("Error opening/downloading file:", error);
+  //     const blob = response.data;
+  //     const url = window.URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = `selected_items_${new Date().getTime()}.zip`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     a.remove();
+  //     window.URL.revokeObjectURL(url);
+  //     showToast({
+  //       title: "Download started",
+  //       type: "success",
+  //     });
+  //   } catch (err) {
+  //     console.error("Bulk download error:", err);
+  //     showToast({
+  //       title: "Failed to download items",
+  //       type: "error",
+  //     });
+  //   } finally {
+  //     setBulkOperationLoading(false);
   //   }
   // };
-  const handleFileClick = async (fullPath, fileName, meta = {}) => {
+const handleBulkDownload = async () => {
+  if (selectedItems.size === 0) {
+    showToast({
+      title: "Please select items to download",
+      type: "warning",
+    });
+    return;
+  }
+
+  setBulkOperationLoading(true);
+
   try {
+    const paths = Array.from(selectedItems);
+
+    console.log("Downloading items:", paths);
+
+    // -----------------------------------
+    // SINGLE ITEM
+    // -----------------------------------
+    if (paths.length === 1) {
+      const selectedPath = paths[0];
+
+      // Find selected item from folder tree
+      const findItemByPath = (items) => {
+        for (const item of items) {
+          if (item.path === selectedPath) {
+            return item;
+          }
+
+          if (item.children?.length) {
+            const found = findItemByPath(item.children);
+            if (found) return found;
+          }
+        }
+
+        return null;
+      };
+
+      const selectedItem = findItemByPath(folderTree);
+
+      // If it's a single FILE
+      if (selectedItem?.type !== "folder") {
+        const response = await accountDocsAPI.downloadItems(
+          {
+            paths: [selectedPath],
+       //     accountId,
+         //   accountName,
+          },
+          {
+            responseType: "blob",
+          }
+        );
+
+        const blob = response.data;
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = selectedItem?.name || selectedPath.split("/").pop();
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        window.URL.revokeObjectURL(url);
+
+        showToast({
+          title: "Download started",
+          type: "success",
+        });
+
+        return;
+      }
+    }
+
+    // -----------------------------------
+    // MULTIPLE ITEMS / FOLDER
+    // -----------------------------------
+    const response = await accountDocsAPI.downloadItems(
+      {
+        paths,
+       //     accountId,
+         //   accountName,
+      },
+      {
+        responseType: "blob",
+      }
+    );
+
+    const blob = response.data;
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `selected_items_${Date.now()}.zip`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+
+    showToast({
+      title: "Download started",
+      type: "success",
+    });
+  } catch (err) {
+    console.error("Bulk download error:", err);
+
+    showToast({
+      title: "Failed to download items",
+      type: "error",
+    });
+  } finally {
+    setBulkOperationLoading(false);
+  }
+};
+  // Handle file click - Using accountDocsAPI to remove new tag
+
+//   const handleFileClick = async (fullPath, fileName, meta = {}) => {
+//   try {
+//     console.log("File clicked:", fullPath, fileName, meta);
+//     // Create VIEW audit
+//     await accountDocsAPI.viewDocument({
+//       filePath: fullPath,
+//     });
+
+//     // Remove "New" tag if present
+//     if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
+//       await accountDocsAPI.removeNewTag({ filePath: fullPath });
+//       await fetchFolderTree();
+//     }
+//  const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT || '';
+//     const fileUrl = `${FILE_MANAGER_BASE_URL}/uploads/accounts/${fullPath}`;
+//     const extension = fileName.split(".").pop().toLowerCase();
+
+//     // Keep your existing handlers for specific file types
+//     if (extension === "xls" || extension === "xlsx") {
+//       setSelectedFileUrl(fileUrl);
+//       setSelectedFileName(fileName);
+//       setOpenExcelDialog(true);
+//       return;
+//     }
+
+//     if (extension === "doc" || extension === "docx") {
+//       setSelectedFileUrl(fileUrl);
+//       setSelectedFileName(fileName);
+//       setOpenWordDialog(true);
+//       return;
+//     }
+
+//     if (extension === "txt") {
+//       const res = await fetch(fileUrl);
+//       const text = await res.text();
+//       setTextContent(text);
+//       setSelectedFileName(fileName);
+//       setOpenTextDialog(true);
+//       return;
+//     }
+
+//     // For all other file types, use the unified viewer with navigation
+//     const allFiles = getAllFiles(folderTree);
+//     const fileIndex = allFiles.findIndex(f => f.path === fullPath);
+    
+//     if (fileIndex !== -1) {
+//       setViewerFiles(allFiles);
+//       setCurrentFileIndex(fileIndex);
+//       setViewerOpen(true);
+//     } else {
+//       // Fallback for files not in tree
+//       setSelectedFileUrl(fileUrl);
+//       setSelectedFileName(fileName);
+//       setOpenFileViewer(true);
+//     }
+    
+//   } catch (error) {
+//     console.error("Error opening/downloading file:", error);
+//     // toast.error("Failed to open file. Please try again.");
+//   }
+// };
+const handleFileClick = async (fullPath, fileName, meta = {}) => {
+  try {
+    console.log("File clicked:", fullPath, fileName, meta);
     // Create VIEW audit
     await accountDocsAPI.viewDocument({
       filePath: fullPath,
@@ -2727,8 +2861,9 @@ const [submitters, setSubmitters] = useState([]);
       await accountDocsAPI.removeNewTag({ filePath: fullPath });
       await fetchFolderTree();
     }
-
-    const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
+    
+    const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT || '';
+    const fileUrl = `${FILE_MANAGER_BASE_URL}/uploads/accounts/${fullPath}`;
     const extension = fileName.split(".").pop().toLowerCase();
 
     // Keep your existing handlers for specific file types
@@ -2755,12 +2890,15 @@ const [submitters, setSubmitters] = useState([]);
       return;
     }
 
-    // For all other file types, use the unified viewer with navigation
-    const allFiles = getAllFiles(folderTree);
-    const fileIndex = allFiles.findIndex(f => f.path === fullPath);
+    // Get the current folder path from the fullPath (remove the file name)
+    const currentFolderPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+    
+    // Get only files from the current folder
+    const currentFolderFiles = getFilesFromCurrentFolder(folderTree, currentFolderPath);
+    const fileIndex = currentFolderFiles.findIndex(f => f.path === fullPath);
     
     if (fileIndex !== -1) {
-      setViewerFiles(allFiles);
+      setViewerFiles(currentFolderFiles);
       setCurrentFileIndex(fileIndex);
       setViewerOpen(true);
     } else {
@@ -2775,7 +2913,6 @@ const [submitters, setSubmitters] = useState([]);
     // toast.error("Failed to open file. Please try again.");
   }
 };
-
   // Toggle sign status
   
   const toggleSignStatus = async (item) => {
@@ -3289,18 +3426,7 @@ const [currentFileIndex, setCurrentFileIndex] = useState(0);
     }
   };
 // Function to collect all files from the tree
-// const getAllFiles = (items) => {
-//   let files = [];
-//   const traverse = (node) => {
-//     if (node.type === 'file') {
-//       files.push(node);
-//     } else if (node.type === 'folder' && node.children) {
-//       node.children.forEach(child => traverse(child));
-//     }
-//   };
-//   items.forEach(item => traverse(item));
-//   return files;
-// };
+
 const getAllFiles = (items) => {
   console.log('getAllFiles called with:', items);
   console.log('Is array?', Array.isArray(items));
@@ -3324,6 +3450,49 @@ const getAllFiles = (items) => {
   
   items.forEach(item => traverse(item));
   console.log('Found files:', files.length);
+  return files;
+};
+// Replace the existing getAllFiles function with this version
+const getFilesFromCurrentFolder = (items, currentFolderPath) => {
+  console.log('getFilesFromCurrentFolder called with:', currentFolderPath);
+  
+  if (!items || !Array.isArray(items)) {
+    console.warn('getFilesFromCurrentFolder: items is not an array', items);
+    return [];
+  }
+  
+  // Find the folder with the matching path
+  const findFolderByPath = (nodes, targetPath) => {
+    for (const node of nodes) {
+      if (node.path === targetPath) {
+        return node;
+      }
+      if (node.type === 'folder' && node.children && Array.isArray(node.children)) {
+        const found = findFolderByPath(node.children, targetPath);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  
+  const currentFolder = findFolderByPath(items, currentFolderPath);
+  
+  if (!currentFolder || currentFolder.type !== 'folder') {
+    console.warn('Folder not found:', currentFolderPath);
+    return [];
+  }
+  
+  // Get only files directly in this folder (not subfolders)
+  const files = [];
+  if (currentFolder.children && Array.isArray(currentFolder.children)) {
+    currentFolder.children.forEach(child => {
+      if (child.type === 'file') {
+        files.push(child);
+      }
+    });
+  }
+  
+  console.log('Found files in current folder:', files.length);
   return files;
 };
   const renderTableRows = (items, level = 0, parentPath = "") => {
@@ -3540,24 +3709,7 @@ const getAllFiles = (items) => {
 
                     <div className="flex flex-col">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {/* <button
-                    type="button"
-                    className={`
-                      text-left
-                      text-sm
-                      font-medium
-                      transition-colors
-
-                      
-                    `}
-                    style={{
-                      fontSize:
-                        "calc(0.875rem * var(--font-scale, 100) / 100)",
-                    }}
-                    onClick={handleSafeFileClick}
-                  >
-                    {item.name}
-                  </button> */}
+                        
                         <a
                           href={fileUrl}
                           className="
@@ -3750,329 +3902,7 @@ const getAllFiles = (items) => {
             renderTableRows(item.children, level + 1, fullPath)}
         </React.Fragment>
       );
-      // return (
-      //   <React.Fragment key={fullPath}>
-      //     <TableRow
-      //       className={`
-      //       group
-      //       border-b
-      //       border-slate-200/70
-      //       transition-all
-      //       duration-200
-      //       hover:bg-slate-50/80
-
-      //       ${
-      //         isSelected
-      //           ? "bg-blue-50/70"
-      //           : level % 2 === 0
-      //             ? "bg-white"
-      //             : "bg-slate-50/40"
-      //       }
-      //     `}
-      //     >
-      //       {/* Checkbox */}
-      //       <TableCell className="w-[52px] px-4 py-3 align-middle">
-      //         <div className="flex items-center justify-center">
-      //           {isFolder ? (
-      //             <Checkbox
-      //               checked={isSelected}
-      //               data-indeterminate={isPartiallySelected}
-      //               onCheckedChange={() => handleFolderSelect(item)}
-      //               className="border-slate-300"
-      //             />
-      //           ) : (
-      //             <Checkbox
-      //               checked={isSelected}
-      //               onCheckedChange={() => handleSelectItem(fullPath)}
-      //               className="border-slate-300"
-      //             />
-      //           )}
-      //         </div>
-      //       </TableCell>
-
-      //       {/* Name */}
-      //       <TableCell
-      //         className="py-3 pr-3 align-middle"
-      //         style={{ paddingLeft: `${level * 20 + 12}px` }}
-      //       >
-      //         <div className="flex items-center">
-      //           {isFolder ? (
-      //             <>
-      //               <Button
-      //                 type="button"
-      //                 variant="ghost"
-      //                 size="icon"
-      //                 className="
-      //                 mr-2
-      //                 h-7
-      //                 w-7
-      //                 rounded-lg
-      //                 text-slate-500
-      //                 hover:bg-slate-200/70
-      //                 hover:text-slate-800
-      //               "
-      //                 onClick={() => toggleFolder(fullPath, meta.readOnly)}
-      //                 disabled={meta.readOnly}
-      //               >
-      //                 {expandedFolders[fullPath] ? (
-      //                   <ChevronDown className="h-4 w-4 text-blue-600" />
-      //                 ) : (
-      //                   <ChevronRight className="h-4 w-4" />
-      //                 )}
-      //               </Button>
-
-      //               <div
-      //                 className="
-      //                 flex
-      //                 cursor-pointer
-      //                 items-center
-      //                 gap-2
-      //               "
-      //                 onClick={() => toggleFolder(fullPath, meta.readOnly)}
-      //               >
-      //                 <div
-      //                   className="
-      //                   flex
-      //                   h-9
-      //                   w-9
-      //                   items-center
-      //                   justify-center
-      //                   rounded-xl
-      //                   bg-blue-100
-      //                   text-blue-600
-      //                   shadow-sm
-      //                 "
-      //                 >
-      //                   <FolderIcon className="h-4 w-4" />
-      //                 </div>
-
-      //                 <div className="flex flex-col">
-      //                   <div className="flex flex-wrap items-center gap-1.5">
-      //                     <span
-      //                       className={`
-      //                       text-sm
-      //                       font-semibold
-      //                       transition-colors
-
-      //                       ${
-      //                         meta.readOnly
-      //                           ? "text-slate-400"
-      //                           : "text-slate-800 group-hover:text-blue-600"
-      //                       }
-      //                     `}
-      //                     >
-      //                       {item.name}
-      //                     </span>
-
-      //                     {meta.readOnly && (
-      //                       <Badge
-      //                         variant="destructive"
-      //                         className="rounded-md text-[10px]"
-      //                       >
-      //                         Locked
-      //                       </Badge>
-      //                     )}
-
-      //                     {inheritedNewTag && (
-      //                       <Badge
-      //                         className="
-      //                         h-5
-      //                         rounded-md
-      //                         px-1.5
-      //                         text-[10px]
-      //                         font-semibold
-      //                         text-white
-      //                       "
-      //                         style={{
-      //                           backgroundColor: inheritedNewTag.tagColour,
-      //                         }}
-      //                       >
-      //                         {inheritedNewTag.tagName}
-      //                       </Badge>
-      //                     )}
-      //                   </div>
-
-      //                   <span className="text-xs text-slate-500">
-      //                     {folderCount} folders • {fileCount} files
-      //                   </span>
-      //                 </div>
-      //               </div>
-      //             </>
-      //           ) : (
-      //             <div className="flex items-center gap-3">
-      //               <div
-      //                 className="
-      //                 flex
-      //                 h-9
-      //                 w-9
-      //                 items-center
-      //                 justify-center
-      //                 rounded-xl
-      //                 bg-slate-100
-      //                 shadow-sm
-      //               "
-      //               >
-      //                 {getFileIcon(item.name)}
-      //               </div>
-
-      //               <div className="flex flex-col">
-      //                 <div className="flex flex-wrap items-center gap-1.5">
-      //                   <button
-      //                     type="button"
-      //                     className={`
-      //                     text-left
-      //                     text-sm
-      //                     font-medium
-      //                     transition-colors
-
-      //                     ${
-      //                       meta.readOnly
-      //                         ? "cursor-not-allowed text-slate-400"
-      //                         : "text-blue-600 hover:text-blue-700 hover:underline"
-      //                     }
-      //                   `}
-      //                     onClick={handleSafeFileClick}
-      //                   >
-      //                     {item.name}
-      //                   </button>
-
-      //                   {meta.readOnly && (
-      //                     <Badge
-      //                       variant="destructive"
-      //                       className="rounded-md text-[10px]"
-      //                     >
-      //                       Locked
-      //                     </Badge>
-      //                   )}
-
-      //                   {meta.tags?.map((tag, index) => (
-      //                     <Badge
-      //                       key={index}
-      //                       className="
-      //                       h-5
-      //                       rounded-md
-      //                       px-1.5
-      //                       text-[10px]
-      //                       font-semibold
-      //                       text-white
-      //                     "
-      //                       style={{
-      //                         backgroundColor: tag.tagColour || "#64748b",
-      //                       }}
-      //                     >
-      //                       {tag.tagName}
-      //                     </Badge>
-      //                   ))}
-      //                 </div>
-
-      //                 <span className="text-xs text-slate-500">
-      //                   File document
-      //                 </span>
-      //               </div>
-      //             </div>
-      //           )}
-      //         </div>
-      //       </TableCell>
-
-      //       {/* Content */}
-      //       <TableCell className="px-3 py-3 align-middle">
-      //         <div
-      //           className="
-      //           inline-flex
-      //           items-center
-      //           rounded-full
-      //           border
-      //           border-slate-200
-      //           bg-slate-100
-      //           px-3
-      //           py-1
-      //           text-xs
-      //           font-medium
-      //           text-slate-700
-      //         "
-      //         >
-      //           {folderCount} folders • {fileCount} files
-      //         </div>
-      //       </TableCell>
-
-      //       {/* Status */}
-      //       <TableCell className="px-3 py-3 align-middle">
-      //         <div className="flex items-center">
-      //           {getStatusChip(meta, isFolder)}
-      //         </div>
-      //       </TableCell>
-
-      //       {/* Uploaded */}
-      //       <TableCell className="px-3 py-3 align-middle">
-      //         <div className="flex flex-col">
-      //           <span className="text-sm font-medium text-slate-700">
-      //             {formatUploadedAt(meta.uploadedAt)}
-      //           </span>
-
-      //           {/* <span className="text-xs text-slate-500">
-      //           Uploaded date
-      //         </span> */}
-      //         </div>
-      //       </TableCell>
-
-      //       {/* User */}
-      //       <TableCell className="px-3 py-3 align-middle">
-      //         <div className="flex items-center gap-2">
-      //           <Avatar className="h-8 w-8 border border-slate-200">
-      //             <AvatarFallback className="bg-slate-100 text-xs font-semibold text-slate-700">
-      //               {meta.uploadedBy
-      //                 ?.split(" ")
-      //                 ?.map((n) => n[0])
-      //                 ?.join("")
-      //                 ?.slice(0, 2)
-      //                 ?.toUpperCase() || "S"}
-      //             </AvatarFallback>
-      //           </Avatar>
-
-      //           <div className="flex flex-col">
-      //             <span className="text-sm font-medium text-slate-700">
-      //               {meta.uploadedBy || "system"}
-      //             </span>
-
-      //             {/* <span className="text-xs text-slate-500">
-      //             Uploaded by
-      //           </span> */}
-      //           </div>
-      //         </div>
-      //       </TableCell>
-
-      //       {/* Actions */}
-      //       <TableCell className="px-3 py-3 text-right align-middle">
-      //         <DropdownMenu>
-      //           <DropdownMenuTrigger asChild>
-      //             <Button
-      //               variant="ghost"
-      //               size="icon"
-      //               className="
-      //               h-9
-      //               w-9
-      //               rounded-xl
-      //               text-slate-500
-      //               transition-all
-      //               hover:bg-slate-200/70
-      //               hover:text-slate-800
-      //             "
-      //               onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
-      //             >
-      //               <MoreVertical className="h-4 w-4" />
-      //             </Button>
-      //           </DropdownMenuTrigger>
-      //         </DropdownMenu>
-      //       </TableCell>
-      //     </TableRow>
-
-      //     {isFolder &&
-      //       expandedFolders[fullPath] &&
-      //       item.children &&
-      //       item.children.length > 0 &&
-      //       renderTableRows(item.children, level + 1, fullPath)}
-      //   </React.Fragment>
-      // );
+      
     });
   };
   return (
@@ -5534,1177 +5364,5 @@ const getAllFiles = (items) => {
       </div>
     </div>
   );
-  // return (
-  //   <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-  //     <div className="mx-auto w-full max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
-  //       {/* TOP ACTION BAR */}
-  //       <div className="mx-auto mb-6 max-w-[1200px]">
-  //         <div
-  //           className="
-  //           rounded-2xl
-  //           border
-  //           border-gray-200
-  //           bg-white
-  //           p-4
-  //           shadow-sm
-  //         "
-  //         >
-  //           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-[700px]">
-  //             <Button
-  //               variant="default"
-  //               className="
-  //               h-11
-  //               rounded-xl
-  //               bg-slate-900
-  //               text-white
-  //               shadow-sm
-  //               transition-all
-  //               hover:bg-slate-800
-  //               hover:shadow-md
-  //             "
-  //               onClick={() => {
-  //                 setNewFolderDrawerOpen(true);
-  //                 handleMenuClose();
-  //               }}
-  //             >
-  //               <FolderIcon className="mr-2 h-4 w-4" />
-  //               Create Folder
-  //             </Button>
-
-  //             <Button
-  //               variant="default"
-  //               className="
-  //               h-11
-  //               rounded-xl
-  //               bg-blue-600
-  //               text-white
-  //               shadow-sm
-  //               transition-all
-  //               hover:bg-blue-700
-  //               hover:shadow-md
-  //             "
-  //               onClick={() => setFileUploadDrawerOpen(true)}
-  //             >
-  //               <Upload className="mr-2 h-4 w-4" />
-  //               Upload File
-  //             </Button>
-
-  //             <Button
-  //               variant="default"
-  //               className="
-  //               h-11
-  //               rounded-xl
-  //               bg-emerald-600
-  //               text-white
-  //               shadow-sm
-  //               transition-all
-  //               hover:bg-emerald-700
-  //               hover:shadow-md
-  //             "
-  //               onClick={() => setFolderUploaDrawerOpen(true)}
-  //             >
-  //               <FolderUp className="mr-2 h-4 w-4" />
-  //               Upload Folder
-  //             </Button>
-  //           </div>
-  //         </div>
-
-  //         {/* BULK TOOLBAR */}
-  //         {selectedItems.size > 0 && (
-  //           <div
-  //             className="
-  //             mt-5
-  //             rounded-2xl
-  //             border
-  //             border-blue-200
-  //             bg-blue-50/70
-  //             p-4
-  //             shadow-sm
-  //             backdrop-blur
-  //           "
-  //           >
-  //             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-  //               <div className="flex items-center gap-2">
-  //                 <div
-  //                   className="
-  //                   flex
-  //                   h-9
-  //                   w-9
-  //                   items-center
-  //                   justify-center
-  //                   rounded-full
-  //                   bg-blue-600
-  //                   text-white
-  //                   text-sm
-  //                   font-semibold
-  //                 "
-  //                 >
-  //                   {selectedItems.size}
-  //                 </div>
-
-  //                 <span className="text-sm font-semibold text-slate-700">
-  //                   item(s) selected
-  //                 </span>
-  //               </div>
-
-  //               <div className="flex flex-wrap gap-2">
-  //                 <Button
-  //                   variant="outline"
-  //                   size="sm"
-  //                   onClick={() => setBulkMoveDrawerOpen(true)}
-  //                   disabled={bulkOperationLoading}
-  //                   className="
-  //                   rounded-xl
-  //                   border-gray-300
-  //                   bg-white
-  //                   hover:bg-gray-100
-  //                 "
-  //                 >
-  //                   <Move className="mr-1 h-4 w-4" />
-  //                   Move
-  //                 </Button>
-
-  //                 <Button
-  //                   variant="outline"
-  //                   size="sm"
-  //                   onClick={() => setBulkLockDialogOpen(true)}
-  //                   disabled={bulkOperationLoading}
-  //                   className="
-  //                   rounded-xl
-  //                   border-gray-300
-  //                   bg-white
-  //                   hover:bg-gray-100
-  //                 "
-  //                 >
-  //                   <Lock className="mr-1 h-4 w-4" />
-  //                   Lock/Unlock
-  //                 </Button>
-
-  //                 <Button
-  //                   variant="destructive"
-  //                   size="sm"
-  //                   onClick={handleBulkTrash}
-  //                   disabled={bulkOperationLoading}
-  //                   className="rounded-xl"
-  //                 >
-  //                   <Trash2 className="mr-1 h-4 w-4" />
-  //                   Delete
-  //                 </Button>
-
-  //                 <Button
-  //                   variant="default"
-  //                   size="sm"
-  //                   onClick={handleBulkDownload}
-  //                   disabled={bulkOperationLoading}
-  //                   className="
-  //                   rounded-xl
-  //                   bg-slate-900
-  //                   hover:bg-slate-800
-  //                 "
-  //                 >
-  //                   <Download className="mr-1 h-4 w-4" />
-  //                   Download
-  //                 </Button>
-
-  //                 <Button
-  //                   variant="ghost"
-  //                   size="sm"
-  //                   onClick={() => setSelectedItems(new Set())}
-  //                   disabled={bulkOperationLoading}
-  //                   className="rounded-xl hover:bg-white"
-  //                 >
-  //                   Clear Selection
-  //                 </Button>
-  //               </div>
-  //             </div>
-  //           </div>
-  //         )}
-
-  //         {/* DRAWERS */}
-  //         <FileUploadDrawer
-  //           isOpen={fileUploadDrawerOpen}
-  //           onClose={() => setFileUploadDrawerOpen(false)}
-  //           folderTree={folderTree}
-  //           fetchFolderTree={() => fetchFolderTree(accountId)}
-  //           accountId={accountId}
-  //           selectedFolderForMenu={selectedFolderForMenu}
-  //         />
-
-  //         <CreateFolderDrawer
-  //           isOpen={newFolderDrawerOpen}
-  //           onClose={() => {
-  //             setNewFolderDrawerOpen(false);
-  //           }}
-  //           folderTree={folderTree}
-  //           fetchFolderTree={() => fetchFolderTree(accountId)}
-  //           accountId={accountId}
-  //           selectedFolderForMenu={selectedFolderForMenu}
-  //         />
-
-  //         <FolderUploadDrawer
-  //           isOpen={folderUploaDrawerOpen}
-  //           onClose={() => setFolderUploaDrawerOpen(false)}
-  //           folderTree={folderTree}
-  //           fetchFolderTree={() => fetchFolderTree(accountId)}
-  //           selectedFolderForMenu={selectedFolderForMenu}
-  //         />
-
-  //         <MoveDrawer
-  //           isOpen={moveDrawerOpen}
-  //           onClose={() => {
-  //             setMoveDrawerOpen(false);
-  //           }}
-  //           folderTree={folderTree}
-  //           fetchFolderTree={() => fetchFolderTree(accountId)}
-  //           selectedFolderForMenu={selectedFolderForMenu}
-  //         />
-
-  //         <RenameDrawer
-  //           isOpen={renameDrawer}
-  //           onClose={() => {
-  //             SetRenameDrawer(false);
-  //           }}
-  //           folderTree={folderTree}
-  //           fetchFolderTree={() => fetchFolderTree(accountId)}
-  //           selectedFolderForMenu={selectedFolderForMenu}
-  //         />
-
-  //         <MoveDrawer
-  //           isOpen={bulkMoveDrawerOpen}
-  //           onClose={() => setBulkMoveDrawerOpen(false)}
-  //           folderTree={folderTree}
-  //           fetchFolderTree={fetchFolderTree}
-  //           isBulkOperation={true}
-  //           selectedPaths={Array.from(selectedItems)}
-  //           onMoveComplete={(targetPath) => {
-  //             console.log("Bulk move completed to:", targetPath);
-  //             setSelectedItems(new Set());
-  //           }}
-  //         />
-  //       </div>
-
-  //       {/* DOCUMENT EXPLORER */}
-  //       <div
-  //         className="
-  //         overflow-hidden
-  //         rounded-3xl
-  //         border
-  //         border-gray-200
-  //         bg-white
-  //         shadow-xl
-  //         shadow-gray-100
-  //       "
-  //       >
-  //         {/* HEADER */}
-  //         <div
-  //           className="
-  //           flex
-  //           items-center
-  //           justify-between
-  //           border-b
-  //           border-gray-200
-  //           bg-gradient-to-r
-  //           from-slate-50
-  //           to-gray-100
-  //           px-6
-  //           py-5
-  //         "
-  //         >
-  //           <div className="flex items-center gap-3">
-  //             <div
-  //               className="
-  //               flex
-  //               h-11
-  //               w-11
-  //               items-center
-  //               justify-center
-  //               rounded-2xl
-  //               bg-blue-600
-  //               text-white
-  //               shadow-md
-  //             "
-  //             >
-  //               <FolderIcon className="h-5 w-5" />
-  //             </div>
-
-  //             <div>
-  //               <h2 className="text-lg font-bold text-slate-800">
-  //                 Document Explorer
-  //               </h2>
-
-  //               <p className="text-sm text-slate-500">
-  //                 Manage folders, files, approvals and signatures
-  //               </p>
-  //             </div>
-  //           </div>
-  //         </div>
-
-  //         {/* TABLE */}
-  //         <div className="overflow-auto">
-  //           {folderTree && folderTree.length > 0 ? (
-  //             <table className="w-full border-collapse">
-  //               <thead
-  //                 className="
-  //                 sticky
-  //                 top-0
-  //                 z-20
-  //                 border-b
-  //                 border-gray-200
-  //                 bg-gray-50
-  //               "
-  //               >
-  //                 <tr>
-  //                   <th className="w-[50px] px-4 py-4 text-left">
-  //                     <Checkbox
-  //                       checked={selectAll}
-  //                       data-indeterminate={
-  //                         selectedItems.size > 0 && !selectAll
-  //                       }
-  //                       onCheckedChange={handleSelectAll}
-  //                     />
-  //                   </th>
-
-  //                   <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-  //                     Name
-  //                   </th>
-
-  //                   <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-  //                     Content
-  //                   </th>
-
-  //                   <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-  //                     Status
-  //                   </th>
-
-  //                   <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-  //                     Uploaded
-  //                   </th>
-
-  //                   <th className="px-4 py-4 text-left text-sm font-semibold text-slate-700">
-  //                     User
-  //                   </th>
-
-  //                   <th className="px-4 py-4 text-right text-sm font-semibold text-slate-700">
-  //                     Actions
-  //                   </th>
-  //                 </tr>
-  //               </thead>
-
-  //               <tbody>{renderTableRows(folderTree)}</tbody>
-  //             </table>
-  //           ) : (
-  //             <div className="flex flex-col items-center justify-center py-24">
-  //               <div
-  //                 className="
-  //                 mb-4
-  //                 flex
-  //                 h-20
-  //                 w-20
-  //                 items-center
-  //                 justify-center
-  //                 rounded-full
-  //                 bg-gray-100
-  //               "
-  //               >
-  //                 <FolderIcon className="h-10 w-10 text-gray-400" />
-  //               </div>
-
-  //               <h3 className="text-lg font-semibold text-slate-700">
-  //                 No folders or files found
-  //               </h3>
-
-  //               <p className="mt-1 text-sm text-slate-500">
-  //                 Upload files or create folders to get started
-  //               </p>
-  //             </div>
-  //           )}
-  //         </div>
-  //       </div>
-
-  //       {/* ==================== CONTEXT MENU ==================== */}
-  //       {selectedFolderForMenu && (
-  //         <DropdownMenu
-  //           open={!!menuAnchorEl}
-  //           onOpenChange={(open) => {
-  //             if (!open) handleMenuClose();
-  //           }}
-  //         >
-  //           <DropdownMenuTrigger asChild>
-  //             <div
-  //               style={{
-  //                 position: "fixed",
-  //                 top: menuAnchorEl
-  //                   ? menuAnchorEl.getBoundingClientRect().bottom +
-  //                     window.scrollY +
-  //                     8
-  //                   : 0,
-  //                 left: menuAnchorEl
-  //                   ? menuAnchorEl.getBoundingClientRect().left +
-  //                     window.scrollX -
-  //                     230
-  //                   : 0,
-  //                 width: 1,
-  //                 height: 1,
-  //               }}
-  //             />
-  //           </DropdownMenuTrigger>
-
-  //           <DropdownMenuContent
-  //             align="start"
-  //             sideOffset={4}
-  //             className="
-  //       z-[10000]
-  //       w-[240px]
-  //       rounded-2xl
-  //       border
-  //       border-gray-200
-  //       bg-white/95
-  //       p-2
-  //       shadow-[0_20px_70px_rgba(0,0,0,0.18)]
-  //       backdrop-blur-xl
-  //     "
-  //           >
-  //             {(() => {
-  //               const item = selectedFolderForMenu;
-  //               const isFolder = item.type === "folder";
-  //               const isLocked = item?.meta?.readOnly === true;
-
-  //               const path = item.path.toLowerCase();
-
-  //               let docType = "client";
-
-  //               if (path.includes("firm")) docType = "firm";
-  //               if (path.includes("private")) docType = "private";
-
-  //               const PROTECTED_FOLDERS = [
-  //                 "Client Uploaded Documents",
-  //                 "Firm Documents Shared with Client",
-  //                 "Private",
-  //               ];
-
-  //               const isProtectedFolder =
-  //                 isFolder && PROTECTED_FOLDERS.includes(item.name);
-
-  //               const menuItems = [];
-
-  //               /* ====================== FOLDERS ====================== */
-  //               if (isFolder) {
-  //                 /* CLIENT FOLDER */
-  //                 if (docType === "client") {
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <FolderIcon className="h-4 w-4" />,
-  //                       label: "New Folder",
-  //                       action: () => setNewFolderDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Pencil className="h-4 w-4" />,
-  //                       label: "Edit",
-  //                       action: () => SetRenameDrawer(true),
-  //                     },
-  //                     {
-  //                       icon: <Move className="h-4 w-4" />,
-  //                       label: "Move",
-  //                       action: () => setMoveDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Trash2 className="h-4 w-4" />,
-  //                       label: "Delete",
-  //                       action: () => trashItem(item),
-  //                       disabled: isProtectedFolder,
-  //                       danger: true,
-  //                     },
-  //                     {
-  //                       icon: <Download className="h-4 w-4" />,
-  //                       label: "Download",
-  //                       action: () => handleDownload(item),
-  //                     },
-  //                     {
-  //                       icon: <Upload className="h-4 w-4" />,
-  //                       label: "New File",
-  //                       action: () => setFileUploadDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <FolderUp className="h-4 w-4" />,
-  //                       label: "Upload Folder",
-  //                       action: () => setFolderUploaDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: isLocked ? (
-  //                         <Unlock className="h-4 w-4" />
-  //                       ) : (
-  //                         <Lock className="h-4 w-4" />
-  //                       ),
-  //                       label: isLocked ? "Unlock" : "Lock",
-  //                       action: () => toggleReadOnly(item),
-  //                     },
-  //                   );
-  //                 } else if (docType === "firm") {
-  //                   /* FIRM FOLDER */
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <FolderIcon className="h-4 w-4" />,
-  //                       label: "New Folder",
-  //                       action: () => setNewFolderDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Pencil className="h-4 w-4" />,
-  //                       label: "Edit",
-  //                       action: () => SetRenameDrawer(true),
-  //                     },
-  //                     {
-  //                       icon: <Move className="h-4 w-4" />,
-  //                       label: "Move",
-  //                       action: () => setMoveDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Upload className="h-4 w-4" />,
-  //                       label: "New File",
-  //                       action: () => setFileUploadDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Download className="h-4 w-4" />,
-  //                       label: "Download",
-  //                       action: () => handleDownload(item),
-  //                     },
-  //                     {
-  //                       icon: <FolderUp className="h-4 w-4" />,
-  //                       label: "Upload Folder",
-  //                       action: () => setFolderUploaDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Trash2 className="h-4 w-4" />,
-  //                       label: "Delete",
-  //                       action: () => trashItem(item),
-  //                       disabled: isProtectedFolder,
-  //                       danger: true,
-  //                     },
-  //                   );
-  //                 } else if (docType === "private") {
-  //                   /* PRIVATE FOLDER */
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <FolderIcon className="h-4 w-4" />,
-  //                       label: "New Folder",
-  //                       action: () => setNewFolderDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Upload className="h-4 w-4" />,
-  //                       label: "New File",
-  //                       action: () => setFileUploadDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Move className="h-4 w-4" />,
-  //                       label: "Move",
-  //                       action: () => setMoveDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: <Pencil className="h-4 w-4" />,
-  //                       label: "Edit",
-  //                       action: () => SetRenameDrawer(true),
-  //                     },
-  //                     {
-  //                       icon: <Trash2 className="h-4 w-4" />,
-  //                       label: "Delete",
-  //                       action: () => trashItem(item),
-  //                       disabled: isProtectedFolder,
-  //                       danger: true,
-  //                     },
-  //                     {
-  //                       icon: <Download className="h-4 w-4" />,
-  //                       label: "Download",
-  //                       action: () => handleDownload(item),
-  //                     },
-  //                   );
-  //                 }
-  //               } else {
-  //                 /* ====================== FILES ====================== */
-  //                 if (docType === "client") {
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <Pencil className="h-4 w-4" />,
-  //                       label: "Edit",
-  //                       action: () => SetRenameDrawer(true),
-  //                     },
-  //                     {
-  //                       icon: <Move className="h-4 w-4" />,
-  //                       label: "Move",
-  //                       action: () => setMoveDrawerOpen(true),
-  //                     },
-  //                     {
-  //                       icon: isLocked ? (
-  //                         <Unlock className="h-4 w-4" />
-  //                       ) : (
-  //                         <Lock className="h-4 w-4" />
-  //                       ),
-  //                       label: isLocked ? "Unlock" : "Lock",
-  //                       action: () => toggleReadOnly(item),
-  //                     },
-  //                     {
-  //                       icon: <Trash2 className="h-4 w-4" />,
-  //                       label: "Delete",
-  //                       action: () => trashItem(item),
-  //                       danger: true,
-  //                     },
-  //                     {
-  //                       icon: <Download className="h-4 w-4" />,
-  //                       label: "Download",
-  //                       action: () => handleDownload(item),
-  //                     },
-  //                   );
-  //                 } else if (docType === "firm") {
-  //                   const currentStatus =
-  //                     item.meta?.signStatus || "sendForSignature";
-
-  //                   const approvalStatus =
-  //                     item.meta?.authStatus || "sendForApproval";
-
-  //                   const invoiceStatus = item.meta?.lockInvoiceStatus;
-
-  //                   const isSignatureDisabled =
-  //                     currentStatus === "pendingSignature" ||
-  //                     currentStatus === "signatureCompleted";
-
-  //                   const isApprovalCompleted =
-  //                     approvalStatus === "approvalCompleted";
-
-  //                   const isApprovalCanceled =
-  //                     approvalStatus === "canceledApproval";
-
-  //                   let invoiceLabel = "Lock Invoice";
-
-  //                   if (invoiceStatus === "pendingpayment") {
-  //                     invoiceLabel = "Unlock Invoice";
-  //                   }
-
-  //                   if (
-  //                     invoiceStatus === "paymentcompleted" ||
-  //                     !invoiceStatus
-  //                   ) {
-  //                     invoiceLabel = "Lock Invoice";
-  //                   }
-
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <Pencil className="h-4 w-4" />,
-  //                       label: "Edit",
-  //                       action: () => SetRenameDrawer(true),
-  //                     },
-  //                     {
-  //                       icon: <Move className="h-4 w-4" />,
-  //                       label: "Move",
-  //                       action: () => setMoveDrawerOpen(true),
-  //                     },
-  //                   );
-
-  //                   if (currentStatus === "pendingSignature") {
-  //                     menuItems.push({
-  //                       icon: <XCircle className="h-4 w-4" />,
-  //                       label: "Cancel Signature Request",
-  //                       action: () => cancelSignature(item),
-  //                     });
-  //                   } else {
-  //                     menuItems.push({
-  //                       icon: <PenTool className="h-4 w-4" />,
-  //                       label: statusTextMap[currentStatus],
-  //                       action: () => toggleSignStatus(item),
-  //                       disabled: isSignatureDisabled,
-  //                     });
-  //                   }
-
-  //                   if (approvalStatus === "sendForApproval") {
-  //                     menuItems.push({
-  //                       icon: <Stamp className="h-4 w-4" />,
-  //                       label: "Send For Approval",
-  //                       action: () => toggleApprovalStatus(item),
-  //                     });
-  //                   }
-
-  //                   if (approvalStatus === "pendingApproval") {
-  //                     menuItems.push({
-  //                       icon: <XCircle className="h-4 w-4" />,
-  //                       label: "Cancel Approval Request",
-  //                       action: () => handleCancelApproval(item),
-  //                     });
-  //                   }
-
-  //                   if (isApprovalCompleted) {
-  //                     menuItems.push({
-  //                       icon: <Stamp className="h-4 w-4" />,
-  //                       label: "Approved",
-  //                       disabled: true,
-  //                     });
-  //                   }
-
-  //                   if (isApprovalCanceled) {
-  //                     menuItems.push({
-  //                       icon: <Stamp className="h-4 w-4" />,
-  //                       label: "Approval Canceled",
-  //                       disabled: true,
-  //                     });
-  //                   }
-
-  //                   menuItems.push({
-  //                     icon:
-  //                       invoiceStatus === "pendingpayment" ? (
-  //                         <Unlock className="h-4 w-4" />
-  //                       ) : (
-  //                         <Lock className="h-4 w-4" />
-  //                       ),
-  //                     label: invoiceLabel,
-  //                     action: () => toggleInvoiceLock(item),
-  //                   });
-
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <Trash2 className="h-4 w-4" />,
-  //                       label: "Delete",
-  //                       action: () => trashItem(item),
-  //                       danger: true,
-  //                     },
-  //                     {
-  //                       icon: <Download className="h-4 w-4" />,
-  //                       label: "Download",
-  //                       action: () => handleDownload(item),
-  //                     },
-  //                   );
-  //                 } else if (docType === "private") {
-  //                   menuItems.push(
-  //                     {
-  //                       icon: <Pencil className="h-4 w-4" />,
-  //                       label: "Edit",
-  //                       action: () => SetRenameDrawer(true),
-  //                     },
-  //                     {
-  //                       icon: <Trash2 className="h-4 w-4" />,
-  //                       label: "Delete",
-  //                       action: () => trashItem(item),
-  //                       danger: true,
-  //                     },
-  //                     {
-  //                       icon: <Download className="h-4 w-4" />,
-  //                       label: "Download",
-  //                       action: () => handleDownload(item),
-  //                     },
-  //                     {
-  //                       icon: <Move className="h-4 w-4" />,
-  //                       label: "Move",
-  //                       action: () => setMoveDrawerOpen(true),
-  //                     },
-  //                   );
-  //                 }
-  //               }
-
-  //               return menuItems.map(
-  //                 ({ icon, label, action, disabled, danger }) => (
-  //                   <DropdownMenuItem
-  //                     key={label}
-  //                     disabled={disabled}
-  //                     onClick={() => {
-  //                       action?.();
-  //                       handleMenuClose();
-  //                     }}
-  //                     className={`
-  //               group
-  //               flex
-  //               cursor-pointer
-  //               items-center
-  //               gap-3
-  //               rounded-xl
-  //               px-3
-  //               py-2.5
-  //               text-sm
-  //               font-medium
-  //               outline-none
-  //               transition-all
-
-  //               ${
-  //                 danger
-  //                   ? `
-  //                     text-red-600
-  //                     focus:bg-red-50
-  //                     data-[highlighted]:bg-red-50
-  //                   `
-  //                   : `
-  //                     text-slate-700
-  //                     focus:bg-gray-100
-  //                     data-[highlighted]:bg-gray-100
-  //                   `
-  //               }
-  //             `}
-  //                   >
-  //                     <div
-  //                       className={`
-  //                 flex
-  //                 h-8
-  //                 w-8
-  //                 items-center
-  //                 justify-center
-  //                 rounded-lg
-
-  //                 ${
-  //                   danger
-  //                     ? "bg-red-100 text-red-600"
-  //                     : "bg-gray-100 text-slate-600"
-  //                 }
-  //               `}
-  //                     >
-  //                       {icon}
-  //                     </div>
-
-  //                     <span className="flex-1">{label}</span>
-  //                   </DropdownMenuItem>
-  //                 ),
-  //               );
-  //             })()}
-  //           </DropdownMenuContent>
-  //         </DropdownMenu>
-  //       )}
-  //       {/* FILE VIEWER DIALOG */}
-  //       <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
-  //         <DialogContent
-  //           className="
-  //           w-[96vw]
-  //           max-w-[1800px]
-  //           h-[94vh]
-  //           overflow-hidden
-  //           rounded-3xl
-  //           border
-  //           border-gray-200
-  //           bg-white
-  //           p-0
-  //           shadow-2xl
-  //           flex
-  //           flex-col
-  //         "
-  //         >
-  //           <DialogHeader
-  //             className="
-  //             flex
-  //             flex-row
-  //             items-center
-  //             justify-between
-  //             border-b
-  //             border-gray-200
-  //             bg-gray-50
-  //             px-6
-  //             py-5
-  //           "
-  //           >
-  //             <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-  //               {selectedFileName}
-  //             </DialogTitle>
-  //           </DialogHeader>
-
-  //           <div className="flex-1 overflow-hidden bg-gray-100">
-  //             <iframe
-  //               src={selectedFileUrl}
-  //               title="File Preview"
-  //               className="h-full w-full border-0"
-  //             />
-  //           </div>
-  //         </DialogContent>
-  //       </Dialog>
-
-  //       {/* WORD VIEWER */}
-  //       <Dialog open={openWordDialog} onOpenChange={setOpenWordDialog}>
-  //         <DialogContent
-  //           className="
-  //           w-[96vw]
-  //           max-w-[1800px]
-  //           h-[94vh]
-  //           overflow-hidden
-  //           rounded-3xl
-  //           border
-  //           border-gray-200
-  //           bg-white
-  //           p-0
-  //           shadow-2xl
-  //           flex
-  //           flex-col
-  //         "
-  //         >
-  //           <DialogHeader className="border-b border-gray-200 bg-gray-50 px-6 py-5">
-  //             <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-  //               {selectedFileName}
-  //             </DialogTitle>
-  //           </DialogHeader>
-
-  //           <div className="flex-1 overflow-hidden bg-gray-100">
-  //             <iframe
-  //               src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-  //                 selectedFileUrl,
-  //               )}`}
-  //               className="h-full w-full border-0"
-  //               title="Word Viewer"
-  //             />
-  //           </div>
-  //         </DialogContent>
-  //       </Dialog>
-
-  //       {/* TEXT VIEWER */}
-  //       <Dialog open={openTextDialog} onOpenChange={setOpenTextDialog}>
-  //         <DialogContent
-  //           className="
-  //           w-[92vw]
-  //           max-w-6xl
-  //           h-[88vh]
-  //           rounded-3xl
-  //           border
-  //           border-gray-200
-  //           bg-white
-  //           shadow-2xl
-  //           flex
-  //           flex-col
-  //         "
-  //         >
-  //           <DialogHeader className="border-b border-gray-200 pb-4">
-  //             <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-  //               {selectedFileName}
-  //             </DialogTitle>
-  //           </DialogHeader>
-
-  //           <ScrollArea
-  //             className="
-  //             mt-4
-  //             flex-1
-  //             rounded-2xl
-  //             border
-  //             border-gray-200
-  //             bg-gray-50
-  //             p-5
-  //           "
-  //           >
-  //             <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700">
-  //               {textContent}
-  //             </pre>
-  //           </ScrollArea>
-  //         </DialogContent>
-  //       </Dialog>
-
-  //       {/* EXCEL VIEWER */}
-  //       <Dialog open={openExcelDialog} onOpenChange={setOpenExcelDialog}>
-  //         <DialogContent
-  //           className="
-  //           w-[96vw]
-  //           max-w-[1800px]
-  //           h-[94vh]
-  //           overflow-hidden
-  //           rounded-3xl
-  //           border
-  //           border-gray-200
-  //           bg-white
-  //           p-0
-  //           shadow-2xl
-  //           flex
-  //           flex-col
-  //         "
-  //         >
-  //           <DialogHeader className="border-b border-gray-200 bg-gray-50 px-6 py-5">
-  //             <DialogTitle className="truncate text-lg font-semibold text-slate-800">
-  //               {selectedFileName}
-  //             </DialogTitle>
-  //           </DialogHeader>
-
-  //           <div className="flex-1 overflow-hidden bg-gray-100">
-  //             <iframe
-  //               src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-  //                 selectedFileUrl,
-  //               )}`}
-  //               className="h-full w-full border-0"
-  //               title="Excel Viewer"
-  //             />
-  //           </div>
-  //         </DialogContent>
-  //       </Dialog>
-
-  //       {/* LOCK/UNLOCK */}
-  //       <Dialog open={bulkLockDialogOpen} onOpenChange={setBulkLockDialogOpen}>
-  //         <DialogContent className="sm:max-w-md">
-  //           <DialogHeader>
-  //             <DialogTitle className="text-xl">
-  //               Lock/Unlock Selected Items
-  //             </DialogTitle>
-  //             <DialogDescription className="text-base mt-2">
-  //               Do you want to lock or unlock the {selectedItems.size} selected
-  //               item(s)?
-  //             </DialogDescription>
-  //           </DialogHeader>
-  //           <div className="flex justify-end gap-3 mt-6">
-  //             <Button
-  //               variant="outline"
-  //               onClick={() => setBulkLockDialogOpen(false)}
-  //             >
-  //               Cancel
-  //             </Button>
-  //             <Button
-  //               variant="outline"
-  //               onClick={() => handleBulkLock("unlock")}
-  //               disabled={bulkOperationLoading}
-  //             >
-  //               Unlock
-  //             </Button>
-  //             <Button
-  //               onClick={() => handleBulkLock("lock")}
-  //               variant="default"
-  //               disabled={bulkOperationLoading}
-  //             >
-  //               Lock
-  //             </Button>
-  //           </div>
-  //         </DialogContent>
-  //       </Dialog>
-  //       {/* APPROVAL */}
-  //       <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
-  //         <DialogContent className="sm:max-w-lg">
-  //           <DialogHeader>
-  //             <DialogTitle className="text-xl">Request Approval</DialogTitle>
-  //             <DialogDescription>
-  //               Send an approval request for this document
-  //             </DialogDescription>
-  //           </DialogHeader>
-  //           <div className="py-4">
-  //             <Label
-  //               htmlFor="description"
-  //               className="text-sm font-medium mb-2 block"
-  //             >
-  //               Description
-  //             </Label>
-  //             <Textarea
-  //               id="description"
-  //               value={description}
-  //               onChange={(e) => setDescription(e.target.value)}
-  //               placeholder="Type a short description or note..."
-  //               rows={4}
-  //               className="resize-none"
-  //             />
-  //           </div>
-  //           <DialogFooter className="gap-2">
-  //             <Button variant="outline" onClick={handleCloseDialog}>
-  //               Cancel
-  //             </Button>
-  //             <Button
-  //               onClick={handleRequestApproval}
-  //               disabled={!description.trim() || sending}
-  //             >
-  //               {sending ? "Sending..." : "Send"}
-  //             </Button>
-  //           </DialogFooter>
-  //         </DialogContent>
-  //       </Dialog>
-  //       {/* SIGNATURE */}
-  //       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-  //         <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col">
-  //           <DialogHeader className="p-6 pb-0">
-  //             <DialogTitle className="text-xl">
-  //               {selectedFolderForMenu?.name || "Document"}
-  //             </DialogTitle>
-  //           </DialogHeader>
-
-  //           <div className="flex-1 overflow-auto p-6 pt-2">
-  //             {token && showBuilderFor && (
-  //               <DocusealBuilder
-  //                 token={token}
-  //                 customCss={customCss}
-  //                 onComplete={() => {
-  //                   console.log("DocuSeal finished sending document");
-  //                   setShowBuilderFor(null);
-  //                   setOpenDialog(false);
-  //                 }}
-  //               />
-  //             )}
-  //           </div>
-  //         </DialogContent>
-  //       </Dialog>
-  //       {/* INVOICE LOCK */}
-  //       <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-  //         <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
-  //           <DialogHeader>
-  //             <DialogTitle className="text-xl">
-  //               Select Invoices To Lock
-  //             </DialogTitle>
-  //             <DialogDescription>
-  //               Choose invoices to associate with this document
-  //             </DialogDescription>
-  //           </DialogHeader>
-  //           <div className="overflow-auto flex-1">
-  //             {invoiceList.length === 0 && (
-  //               <div className="text-center text-muted-foreground p-8">
-  //                 No invoices found
-  //               </div>
-  //             )}
-  //             <div className="overflow-x-auto mt-1">
-  //               <Table>
-  //                 <TableHeader className="sticky top-0 bg-background">
-  //                   <TableRow>
-  //                     <TableHead className="w-[60px]">Select</TableHead>
-  //                     <TableHead>Invoice #</TableHead>
-  //                     <TableHead>Description</TableHead>
-  //                     <TableHead>Created At</TableHead>
-  //                     <TableHead className="text-right">Amount</TableHead>
-  //                   </TableRow>
-  //                 </TableHeader>
-  //                 <TableBody>
-  //                   {invoiceList.length === 0 ? (
-  //                     <TableRow>
-  //                       <TableCell colSpan={5} className="text-center">
-  //                         No invoices found.
-  //                       </TableCell>
-  //                     </TableRow>
-  //                   ) : (
-  //                     invoiceList.map((inv) => {
-  //                       const id = inv._id;
-  //                       const checked = selectedInvoices.includes(id);
-
-  //                       return (
-  //                         <TableRow
-  //                           key={id}
-  //                           className={`cursor-pointer hover:bg-muted/50 transition-colors ${
-  //                             checked ? "bg-primary/5" : ""
-  //                           }`}
-  //                           onClick={() => {
-  //                             setSelectedInvoices((prev) => {
-  //                               const updated = prev.includes(id)
-  //                                 ? prev.filter((x) => x !== id)
-  //                                 : [...prev, id];
-  //                               console.log("Selected invoices:", updated);
-  //                               return updated;
-  //                             });
-  //                           }}
-  //                         >
-  //                           <TableCell>
-  //                             <Checkbox checked={checked} />
-  //                           </TableCell>
-  //                           <TableCell className="font-medium">
-  //                             {inv.invoicenumber}
-  //                           </TableCell>
-  //                           <TableCell>{inv.description || "—"}</TableCell>
-  //                           <TableCell>
-  //                             {new Date(inv.createdAt).toLocaleDateString()}
-  //                           </TableCell>
-  //                           <TableCell className="text-right font-semibold">
-  //                             ₹{inv.summary?.total?.toLocaleString()}
-  //                           </TableCell>
-  //                         </TableRow>
-  //                       );
-  //                     })
-  //                   )}
-  //                 </TableBody>
-  //               </Table>
-  //             </div>
-  //           </div>
-  //           <DialogFooter className="mt-4 pt-4 border-t">
-  //             <Button
-  //               variant="outline"
-  //               onClick={() => setInvoiceDialogOpen(false)}
-  //             >
-  //               Cancel
-  //             </Button>
-  //             <Button onClick={handleSubmit}>Lock Invoice</Button>
-  //           </DialogFooter>
-  //         </DialogContent>
-  //       </Dialog>
-  //     </div>
-  //   </div>
-  // );
+ 
 };

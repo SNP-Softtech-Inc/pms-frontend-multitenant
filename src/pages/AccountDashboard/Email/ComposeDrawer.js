@@ -19,13 +19,13 @@ import {
 } from "../../../components/ui/command";
 import { Check, ChevronDown, Send, X } from "lucide-react";
 import { cn } from "../../../lib/utils";
-
+import { useToastContext } from "../../../context/ToastContext";
 // ✅ IMPORT APIs
 import { accountsAPI, templateAPI } from "../../../services/api"; // adjust path
 
 const ComposeEmailDrawer = ({ open, onClose }) => {
   const { accountId } = useParams();
-
+  const { showToast } = useToastContext();
   const [contacts, setContacts] = useState([]);
   const [emailTemplates, setEmailTemplates] = useState([]);
   const [sending, setSending] = useState(false);
@@ -155,12 +155,15 @@ console.log("ndsbfbchj email",res)
         emailsubject: subject,
         emailbody: body,
       });
-
+showToast({ title: "Email Sent", 
+      type: "success", });
       reset();
       onClose();
       
     } catch (err) {
       console.error("Send failed", err);
+      console.log("Error response:", err.response);
+      showToast({ title: "Error", type:"error" });
     } finally {
       setSending(false);
     }

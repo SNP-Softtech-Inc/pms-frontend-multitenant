@@ -5,8 +5,8 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useQuery } from "@tanstack/react-query";
-import { invoiceAPI } from "../../../services/api";
+import { useQuery,useQueryClient } from "@tanstack/react-query";
+import { accountsAPI, invoiceAPI } from "../../../services/api";
 import { CardContent } from "../../../components/ui/card";
 import { Trash2 } from "lucide-react";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
@@ -25,34 +25,54 @@ import { Badge } from "../../../components/ui/badge";
 import { Card } from "../../../components/ui/card";
 
 const Payment = () => {
+  const queryClient = useQueryClient();
     const { accountId } = useParams();
 const confirm = useConfirm();
 const accountName = Cookies.get("accountName");
 const { showToast } = useToastContext();
-  const [payments, setPayments] = useState([]);
+  // const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchPayments = async () => {
-    if (!accountId) return;
+  // const fetchPayments = async () => {
+  //   if (!accountId) return;
 
-    try {
-      setLoading(true);
+  //   try {
+  //     setLoading(true);
 
+  //     const res =
+  //       await invoiceAPI.getOfflinePaymentsByAccountId(accountId);
+
+  //     setPayments(res.data.payments || []);
+  //   } catch (err) {
+  //     console.log(err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchPayments();
+  // }, [accountId]);
+// =========================
+  // Payments Query
+  // =========================
+  const {
+    data: payments = [],
+    isLoading: paymentLoading,
+    refetch: refetchPayments,
+  } = useQuery({
+    queryKey: ["account-payments", accountId],
+
+    queryFn: async () => {
       const res =
         await invoiceAPI.getOfflinePaymentsByAccountId(accountId);
 
-      setPayments(res.data.payments || []);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data?.payments || [];
+    },
 
-  useEffect(() => {
-    fetchPayments();
-  }, [accountId]);
-
+    enabled: !!accountId,
+    refetchOnWindowFocus: true,
+  });
     const {
     data: accountInvoicesData = [],
     isLoading: invoiceLoading,
@@ -227,42 +247,6 @@ const invoiceSummary = accountInvoicesData.reduce(
     getCoreRowModel: getCoreRowModel(),
   });
 
-//   const handleDeletePayment = async (payment) => {
-//   confirm({
-//     title: `Delete payment #${payment.paymentNumber}?`,
-//     description: `This payment was made by ${
-//       accountName
-//     } on ${dayjs(payment.paymentDate).format(
-//       "MMM D"
-//     )} and amounts to $${Number(payment.amount).toFixed(
-//       2
-//     )}. If you delete it, all associated information will be permanently lost.`,
-
-//     confirmText: "Delete",
-//     cancelText: "Cancel",
-
-//     onConfirm: async () => {
-//       try {
-//         await invoiceAPI.deleteOfflinePayment(payment._id);
-// showToast({
-//             title: "Payment deleted successfully.",
-//             type: "success",
-//           });
-//         // success("Payment deleted successfully.");
-
-//         fetchPayments();
-//         refetchInvoices();
-//         refetchAccount();
-//       } catch (err) {
-//         showToast({
-//         title: (err.response?.data?.message || "Unable to delete payment."),
-//         type: "error",
-//       });
-//        // error(err.response?.data?.message || "Unable to delete payment.");
-//       }
-//     },
-//   });
-// };
 
 const handleDeletePayment = async (payment) => {
   confirm({
@@ -287,9 +271,15 @@ const handleDeletePayment = async (payment) => {
           type: "success",
         });
 
-        fetchPayments();
-        refetchInvoices();
-        refetchAccount();
+        queryClient.invalidateQueries({
+          queryKey: ["account-payments", accountId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["account-invoices", accountId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["account-details", accountId],
+        });
       } catch (err) {
         showToast({
           title:

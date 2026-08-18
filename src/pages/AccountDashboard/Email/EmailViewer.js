@@ -2088,90 +2088,84 @@ const EmailViewer = ({ type }) => {
         emailsRes?.data?.data ||
         [];
 
-      // const filteredThreads = allThreads.filter(
-      //   (thread) =>
-      //     thread.messages.some((msg) => {
-      //       const from =
-      //         msg.from?.toLowerCase() || "";
+      
+//       const filteredThreads = allThreads.filter((thread) =>
+//   thread.messages.some((msg) => {
+//     const from = msg.from?.toLowerCase() || "";
+//     const toList = Array.isArray(msg.to)
+//       ? msg.to.map((t) => t.toLowerCase())
+//       : [(msg.to || "").toLowerCase()];
 
-      //       const toList = Array.isArray(msg.to)
-      //         ? msg.to.map((t) =>
-      //             t.toLowerCase()
-      //           )
-      //         : [(msg.to || "").toLowerCase()];
+//     // Check if this message involves any synced contact
+//     const involvesContact = syncedEmails.some((email) => {
+//       const emailLower = email.toLowerCase();
+//       return from.includes(emailLower) || toList.some(t => t.includes(emailLower));
+//     });
 
-      //       const isFromContact =
-      //         syncedEmails.some((e) =>
-      //           from.includes(e)
-      //         );
+//     // Check if this message involves support email
+//     const involvesSupport = from.includes(supportEmail.toLowerCase()) || 
+//                            toList.some(t => t.includes(supportEmail.toLowerCase()));
 
-      //       const isToContact = toList.some((t) =>
-      //         syncedEmails.includes(t)
-      //       );
+//     // For both inbox and sent, we need messages that involve BOTH contact AND support
+//     if (!involvesContact || !involvesSupport) return false;
 
-      //       const isFromSupport =
-      //         from.includes(
-      //           supportEmail.toLowerCase()
-      //         );
+//     if (type === "inbox") {
+//       // In inbox: Contact sent TO support
+//       return syncedEmails.some(email => 
+//         from.includes(email.toLowerCase())
+//       );
+//     }
 
-      //       const isToSupport = toList.some((t) =>
-      //         t.includes(
-      //           supportEmail.toLowerCase()
-      //         )
-      //       );
+//     if (type === "sent") {
+//       // In sent: Support sent TO contact
+//       return from.includes(supportEmail.toLowerCase());
+//     }
 
-      //       if (type === "inbox") {
-      //         return (
-      //           isFromContact && isToSupport
-      //         );
-      //       }
+//     return false;
+//   })
+// );
+   
 
-      //       if (type === "sent") {
-      //         return (
-      //           isFromSupport && isToContact
-      //         );
-      //       }
 
-      //       return false;
-      //     })
-      // );
+const filteredThreads = allThreads
+  .map((thread) => {
+    // Only keep messages that match the direction for this tab
+    const matchingMessages = thread.messages.filter((msg) => {
+      const from = msg.from?.toLowerCase() || "";
+      const toList = Array.isArray(msg.to)
+        ? msg.to.map((t) => t.toLowerCase())
+        : [(msg.to || "").toLowerCase()];
 
-      const filteredThreads = allThreads.filter((thread) =>
-  thread.messages.some((msg) => {
-    const from = msg.from?.toLowerCase() || "";
-    const toList = Array.isArray(msg.to)
-      ? msg.to.map((t) => t.toLowerCase())
-      : [(msg.to || "").toLowerCase()];
+      const involvesContact = syncedEmails.some((email) => {
+        const emailLower = email.toLowerCase();
+        return from.includes(emailLower) || toList.some((t) => t.includes(emailLower));
+      });
 
-    // Check if this message involves any synced contact
-    const involvesContact = syncedEmails.some((email) => {
-      const emailLower = email.toLowerCase();
-      return from.includes(emailLower) || toList.some(t => t.includes(emailLower));
+      const involvesSupport =
+        from.includes(supportEmail.toLowerCase()) ||
+        toList.some((t) => t.includes(supportEmail.toLowerCase()));
+
+      if (!involvesContact || !involvesSupport) return false;
+
+      if (type === "inbox") {
+        // contact -> support (from is a contact email)
+        return syncedEmails.some((email) => from.includes(email.toLowerCase()));
+      }
+
+      if (type === "sent") {
+        // support -> contact (from is support)
+        return from.includes(supportEmail.toLowerCase());
+      }
+
+      return false;
     });
 
-    // Check if this message involves support email
-    const involvesSupport = from.includes(supportEmail.toLowerCase()) || 
-                           toList.some(t => t.includes(supportEmail.toLowerCase()));
-
-    // For both inbox and sent, we need messages that involve BOTH contact AND support
-    if (!involvesContact || !involvesSupport) return false;
-
-    if (type === "inbox") {
-      // In inbox: Contact sent TO support
-      return syncedEmails.some(email => 
-        from.includes(email.toLowerCase())
-      );
-    }
-
-    if (type === "sent") {
-      // In sent: Support sent TO contact
-      return from.includes(supportEmail.toLowerCase());
-    }
-
-    return false;
+    return { ...thread, messages: matchingMessages };
   })
-);
-      setThreads(filteredThreads);
+  .filter((thread) => thread.messages.length > 0);
+
+// setThreads(filteredThreads);
+setThreads(filteredThreads);
 
       console.log(
         "Filtered threads:",

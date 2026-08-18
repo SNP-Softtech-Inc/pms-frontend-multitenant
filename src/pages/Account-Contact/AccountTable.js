@@ -960,7 +960,8 @@ const { data: accountList = [], isLoading: loading } = useQuery({
       )}
 
       {/* Job Drawer */}
-      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)} />
+      <JobDrawer open={jobDrawerOpen} onClose={() => setJobDrawerOpen(false)}    selectedIds={selectedIds}
+/>
 
       {/* Delete confirmation dialog */}
       {/* {isDeleteDialogOpen && (

@@ -31,7 +31,8 @@ export default function AccountContactForm({
     (state) => state.accountContact,
   );
 const { user } = useAuth();
-console.log("selected exsy=ting contact",selectedContacts)
+console.log("userData for account",user)
+console.log("selected existing contact",selectedContacts)
   const [isSubmitting, setIsSubmitting] = useState(false);
 const assignfoldertemp = async (accountId, foldertempId) => {
   try {

@@ -134,6 +134,11 @@ const totalSelected = selectedInvoices.reduce(
     queryClient.invalidateQueries({
       queryKey: ["account-invoices", selectedAccount.value],
     });
+        queryClient.invalidateQueries({
+      queryKey: ["account-payments", selectedAccount.value],
+    });
+    // refetchInvoices();
+    // refetchPayments();
 
     showToast({
       title: "Offline payment added successfully",

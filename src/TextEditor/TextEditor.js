@@ -1,695 +1,4 @@
 
-// import { useEffect, useRef, useState } from "react";
-// import EmojiPicker from "emoji-picker-react";
-// import { CKEditor } from "@ckeditor/ckeditor5-react";
-// import {
-//   ClassicEditor,
-//   Essentials,
-//   Paragraph,
-//   Heading,
-//   Bold,
-//   Italic,
-//   Underline,
-//   Strikethrough,
-//   Font,
-//   FontColor,
-//   FontBackgroundColor,
-//   Alignment,
-//   List,
-//   Link,
-//   LinkImage,
-//   Table,
-//   TableToolbar,
-//   TableProperties,
-//   TableCellProperties,
-//   Image,
-//   ImageToolbar,
-//   ImageCaption,
-//   ImageStyle,
-//   ImageResize,
-//   ImageInsert,
-//   BlockQuote,
-//   Code,
-//   CodeBlock,
-//   Autoformat,
-//   PasteFromOffice,
-//   Undo,
-//   Base64UploadAdapter
-// } from "ckeditor5";
-
-// import EmojiPlugin from "./EmojiPlugin";
-// import ShortcodePlugin from "./ShortcodePlugin";
-// import FileUploadPlugin from "./FileUploadPlugin";
-// import FileUploadDrawer from "../pages/AccountDashboard/Documents/drawers/FileUploadDrawer";
-// import "ckeditor5/ckeditor5.css";
-
-// export default function TextEditor({ value = "", onChange,accountId, onFilesSelected ,onFileUploadComplete}) {
-//   const editorRef = useRef(null);
-//   const [uploading, setUploading] = useState(false);
-//   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-//   const [selectedFolderForMenu, setSelectedFolderForMenu] = useState(null);
-//   const [uploadedFiles, setUploadedFiles] = useState([]);
-  
-//   const accountShortcuts = [
-//     { title: "Account Shortcodes", isBold: true },
-//     { title: "Account Name", isBold: false, value: "ACCOUNT_NAME" },
-//     { title: "Date Shortcodes", isBold: true },
-//     { title: "Current day full date", isBold: false, value: "CURRENT_DAY_FULL_DATE" },
-//     { title: "Current day number", isBold: false, value: "CURRENT_DAY_NUMBER" },
-//     { title: "Current day name", isBold: false, value: "CURRENT_DAY_NAME" },
-//     { title: "Current week", isBold: false, value: "CURRENT_WEEK" },
-//     { title: "Current month number", isBold: false, value: "CURRENT_MONTH_NUMBER" },
-//     { title: "Current month name", isBold: false, value: "CURRENT_MONTH_NAME" },
-//     { title: "Current quarter", isBold: false, value: "CURRENT_QUARTER" },
-//     { title: "Current year", isBold: false, value: "CURRENT_YEAR" },
-//     { title: "Last day full date", isBold: false, value: "LAST_DAY_FULL_DATE" },
-//     { title: "Last day number", isBold: false, value: "LAST_DAY_NUMBER" },
-//     { title: "Last day name", isBold: false, value: "LAST_DAY_NAME" },
-//     { title: "Last week", isBold: false, value: "LAST_WEEK" },
-//     { title: "Last month number", isBold: false, value: "LAST_MONTH_NUMBER" },
-//     { title: "Last month name", isBold: false, value: "LAST_MONTH_NAME" },
-//     { title: "Last quarter", isBold: false, value: "LAST_QUARTER" },
-//     { title: "Last year", isBold: false, value: "LAST_YEAR" },
-//     { title: "Next day full date", isBold: false, value: "NEXT_DAY_FULL_DATE" },
-//     { title: "Next day number", isBold: false, value: "NEXT_DAY_NUMBER" },
-//     { title: "Next day name", isBold: false, value: "NEXT_DAY_NAME" },
-//     { title: "Next week", isBold: false, value: "NEXT_WEEK" },
-//     { title: "Next month number", isBold: false, value: "NEXT_MONTH_NUMBER" },
-//     { title: "Next month name", isBold: false, value: "NEXT_MONTH_NAME" },
-//     { title: "Next quarter", isBold: false, value: "NEXT_QUARTER" },
-//     { title: "Next year", isBold: false, value: "NEXT_YEAR" },
-//   ];
-
-//   // Check if file is an image
-//   const isImageFile = (fileName) => {
-//     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'];
-//     const extension = fileName.split('.').pop().toLowerCase();
-//     return imageExtensions.includes(extension);
-//   };
-
-//   // Get file icon based on file type
-//   const getFileIcon = (fileName) => {
-//     const extension = fileName.split('.').pop().toLowerCase();
-//     const icons = {
-//       'pdf': '📄',
-//       'doc': '📝',
-//       'docx': '📝',
-//       'xls': '📊',
-//       'xlsx': '📊',
-//       'ppt': '📽️',
-//       'pptx': '📽️',
-//       'txt': '📃',
-//       'zip': '📦',
-//       'rar': '📦',
-//       'exe': '⚙️',
-//       'mp3': '🎵',
-//       'mp4': '🎬',
-//       'avi': '🎬',
-//       'mov': '🎬',
-//       'wmv': '🎬'
-//     };
-//     return icons[extension] || '📎';
-//   };
-
-//  // Get the full URL for a file - ENCODE URL TO HANDLE SPACES
-//   const getFileUrl = (file) => {
-//     let fileUrl = '';
-    
-//     if (file.url) {
-//       fileUrl = file.url;
-//     } else if (file.path) {
-//       fileUrl = file.path.startsWith('/') ? file.path : `/uploads/accounts/${file.path}`;
-//     } else if (file.filePath) {
-//       fileUrl = `/uploads/accounts/${file.filePath}`;
-//     } else {
-//       fileUrl = `/uploads/accounts/${accountId}/${file.name}`;
-//     }
-    
-//     // Encode the URL to handle spaces and special characters
-//     // But keep the /uploads/accounts/ prefix unencoded
-//     const parts = fileUrl.split('/');
-//     const encodedParts = parts.map((part, index) => {
-//       // Don't encode the protocol or domain parts
-//       if (index === 0 && part.includes(':')) return part;
-//       // Encode each path segment
-//       return encodeURIComponent(part);
-//     });
-    
-//     // Rejoin the URL with proper slashes
-//     const encodedUrl = encodedParts.join('/');
-    
-//     // Fix double encoding issues
-//     return encodedUrl.replace(/%2F/g, '/');
-//   };
-
-
-//   // Insert file/image into the editor at cursor position
-//   // const insertFileIntoEditor = (file) => {
-//   //   const editor = editorRef.current;
-//   //   if (!editor) return;
-
-//   //   const isImage = isImageFile(file.name);
-//   //   const fileUrl = getFileUrl(file);
-
-//   //   console.log('Inserting file with URL:', fileUrl); // Debug log
-
-//   //   editor.model.change((writer) => {
-//   //     // Get the current selection position
-//   //     const insertPosition = editor.model.document.selection.getFirstPosition();
-
-//   //     if (isImage) {
-//   //       // Insert image with proper styling
-//   //       const imageElement = writer.createElement('imageBlock', {
-//   //         src: fileUrl,
-//   //         alt: file.name || 'Uploaded image',
-//   //         'data-file-name': file.name,
-//   //         'data-file-size': file.size,
-//   //         'data-file-path': file.path
-//   //       });
-
-//   //       // Insert the image
-//   //       editor.model.insertContent(imageElement, insertPosition);
-
-//   //       // Move cursor after the image
-//   //       const afterImage = writer.createPositionAfter(imageElement);
-//   //       writer.setSelection(afterImage);
-//   //       writer.insertText('\n', afterImage);
-
-//   //     } else {
-//   //       // Create a paragraph for the file link
-//   //       const paragraph = writer.createElement('paragraph');
-        
-//   //       // Create the file icon text
-//   //       const icon = getFileIcon(file.name);
-        
-//   //       // Create the link element with proper href
-//   //       const linkElement = writer.createElement('link', {
-//   //         href: fileUrl,
-//   //         target: '_blank',
-//   //         rel: 'noopener noreferrer',
-//   //         'data-file-name': file.name,
-//   //         'data-file-size': file.size,
-//   //         'data-file-path': file.path,
-//   //         'data-file-type': 'document'
-//   //       });
-        
-//   //       const linkText = writer.createText(`${icon} ${file.name}`);
-//   //       writer.append(linkText, linkElement);
-        
-//   //       // Add link to paragraph
-//   //       writer.append(linkElement, paragraph);
-        
-//   //       // Insert the paragraph
-//   //       editor.model.insertContent(paragraph, insertPosition);
-        
-//   //       // Move cursor after the link
-//   //       const afterParagraph = writer.createPositionAfter(paragraph);
-//   //       writer.setSelection(afterParagraph);
-//   //       writer.insertText('\n', afterParagraph);
-//   //     }
-//   //   });
-//   // };
-// // Insert file/image into the editor at cursor position - FIXED
-// const insertFileIntoEditor = (file) => {
-//   const editor = editorRef.current;
-//   if (!editor) {
-//     console.error('Editor not initialized');
-//     return;
-//   }
-
-//   const isImage = isImageFile(file.name);
-//   const fileUrl = getFileUrl(file);
-
-//   console.log('Inserting file:', {
-//     name: file.name,
-//     url: fileUrl,
-//     fullFile: file
-//   });
-
-//   editor.model.change((writer) => {
-//     // Get the current selection position
-//     const insertPosition = editor.model.document.selection.getFirstPosition();
-
-//     if (isImage) {
-//       // Insert image with proper styling
-//       const imageElement = writer.createElement('imageBlock', {
-//         src: fileUrl,
-//         alt: file.name || 'Uploaded image',
-//         'data-file-name': file.name,
-//         'data-file-size': file.size || 0,
-//         'data-file-path': file.path || file.filePath || file.name
-//       });
-
-//       // Insert the image
-//       editor.model.insertContent(imageElement, insertPosition);
-
-//       // Move cursor after the image
-//       const afterImage = writer.createPositionAfter(imageElement);
-//       writer.setSelection(afterImage);
-//       writer.insertText(' ', afterImage);
-
-//     } else {
-//       // Create a paragraph for the file link
-//       const paragraph = writer.createElement('paragraph');
-      
-//       // Create the file icon text
-//       const icon = getFileIcon(file.name);
-      
-//       // Create the link element with proper href
-//       const linkElement = writer.createElement('link', {
-//         href: fileUrl,
-//         target: '_blank',
-//         rel: 'noopener noreferrer'
-//       });
-      
-//       // Create the text with icon and filename
-//       const linkText = writer.createText(`${icon} ${file.name}`);
-      
-//       // Append the text to the link element
-//       writer.append(linkText, linkElement);
-      
-//       // Add link to paragraph
-//       writer.append(linkElement, paragraph);
-      
-//       // Insert the paragraph at cursor position
-//       editor.model.insertContent(paragraph, insertPosition);
-      
-//       // Move cursor after the paragraph
-//       const afterParagraph = writer.createPositionAfter(paragraph);
-//       writer.setSelection(afterParagraph);
-//       writer.insertText(' ', afterParagraph);
-//     }
-//   });
-// };
-//   // Handle file upload via drawer
-//   const handleFilesSelected = (files) => {
-//     const editor = editorRef.current;
-//     if (!editor) return;
-
-//     console.log('Files received from drawer:', files); // Debug log
-
-//     // Store uploaded files for later access
-//     setUploadedFiles(prevFiles => [...prevFiles, ...files]);
-
-//     // Insert each uploaded file into the editor at cursor position
-//     files.forEach((file) => {
-//       insertFileIntoEditor(file);
-//     });
-
-//     // Call parent callback if provided
-//     if (onFilesSelected) {
-//       onFilesSelected(files);
-//     }
-
-//     // Close the drawer
-//     setIsDrawerOpen(false);
-//   };
-
-//   // Handle the custom event from FileUploadPlugin
-//   useEffect(() => {
-//     const handler = (e) => {
-//       editorRef.current = e.detail.editor;
-      
-//       // Set default folder path based on account or context
-//       if (accountId) {
-//         setSelectedFolderForMenu({
-//           path: accountId,
-//           name: "Documents"
-//         });
-//       } else {
-//         setSelectedFolderForMenu({
-//           path: "default",
-//           name: "Default"
-//         });
-//       }
-      
-//       // Open the drawer
-//       setIsDrawerOpen(true);
-//     };
-
-//     window.addEventListener("ckeditor-upload-file", handler);
-
-//     return () =>
-//       window.removeEventListener("ckeditor-upload-file", handler);
-//   }, [accountId]);
-
-//   const [search, setSearch] = useState("");
-//   const [showPicker, setShowPicker] = useState(false);
-//   const [showShortcodes, setShowShortcodes] = useState(false);
-//   const [currentEditor, setCurrentEditor] = useState(null);
-
-//   // Handle emoji
-//   useEffect(() => {
-//     const handler = (e) => {
-//       editorRef.current = e.detail.editor;
-//       setShowPicker(true);
-//     };
-
-//     window.addEventListener("ckeditor-open-emoji", handler);
-
-//     return () =>
-//       window.removeEventListener("ckeditor-open-emoji", handler);
-//   }, []);
-
-//   // Handle shortcodes
-//   useEffect(() => {
-//     const handler = (e) => {
-//       setCurrentEditor(e.detail.editor);
-//       setShowShortcodes(true);
-//     };
-
-//     window.addEventListener("ckeditor-open-shortcodes", handler);
-
-//     return () => {
-//       window.removeEventListener("ckeditor-open-shortcodes", handler);
-//     };
-//   }, []);
-
-//   const insertShortcode = (value) => {
-//     if (!currentEditor) return;
-
-//     currentEditor.model.change((writer) => {
-//       currentEditor.model.insertContent(
-//         writer.createText(`[${value}]`),
-//         currentEditor.model.document.selection
-//       );
-//     });
-
-//     setShowShortcodes(false);
-//   };
-
-//   const insertEmoji = (emojiData) => {
-//     const editor = editorRef.current;
-
-//     if (!editor) return;
-
-//     editor.model.change((writer) => {
-//       editor.model.insertContent(
-//         writer.createText(emojiData.emoji),
-//         editor.model.document.selection
-//       );
-//     });
-
-//     setShowPicker(false);
-//   };
-
-//   const filteredShortcuts = accountShortcuts.filter((item) => {
-//     if (item.isBold) return true;
-
-//     return (
-//       item.title.toLowerCase().includes(search.toLowerCase()) ||
-//       item.value.toLowerCase().includes(search.toLowerCase())
-//     );
-//   });
-
-//   return (
-//     <div style={{ position: "relative" }}>
-//       {/* Loading overlay */}
-//       {uploading && (
-//         <div style={{
-//           position: 'fixed',
-//           top: 0,
-//           left: 0,
-//           right: 0,
-//           bottom: 0,
-//           background: 'rgba(0,0,0,0.5)',
-//           display: 'flex',
-//           alignItems: 'center',
-//           justifyContent: 'center',
-//           zIndex: 10000
-//         }}>
-//           <div style={{
-//             background: 'white',
-//             padding: 20,
-//             borderRadius: 8,
-//             boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-//           }}>
-//             Uploading file...
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Emoji Picker */}
-//       {showPicker && (
-//         <div
-//           style={{
-//             position: "absolute",
-//             top: 45,
-//             left: 10,
-//             zIndex: 9999,
-//           }}
-//         >
-//           <EmojiPicker onEmojiClick={insertEmoji} />
-//         </div>
-//       )}
-
-//       {/* Shortcodes Picker */}
-//       {showShortcodes && (
-//         <div
-//           style={{
-//             position: "absolute",
-//             top: 45,
-//             left: 10,
-//             width: 380,
-//             maxHeight: 450,
-//             background: "#fff",
-//             borderRadius: 8,
-//             boxShadow: "0 8px 25px rgba(0,0,0,.18)",
-//             overflow: "hidden",
-//             zIndex: 9999,
-//           }}
-//         >
-//           <div style={{ padding: 12 }}>
-//             <input
-//               placeholder="Search shortcodes..."
-//               value={search}
-//               onChange={(e) => setSearch(e.target.value)}
-//               style={{
-//                 width: "100%",
-//                 padding: "10px 14px",
-//                 borderRadius: 6,
-//                 border: "1px solid #ddd",
-//                 outline: "none",
-//               }}
-//             />
-//           </div>
-
-//           <div
-//             style={{
-//               maxHeight: 360,
-//               overflowY: "auto",
-//             }}
-//           >
-//             {filteredShortcuts.map((item, index) =>
-//               item.isBold ? (
-//                 <div
-//                   key={index}
-//                   style={{
-//                     padding: "10px 16px",
-//                     background: "#f7f7f7",
-//                     fontWeight: 700,
-//                     fontSize: 13,
-//                     color: "#666",
-//                   }}
-//                 >
-//                   {item.title}
-//                 </div>
-//               ) : (
-//                 <div
-//                   key={index}
-//                   onClick={() => insertShortcode(item.value)}
-//                   style={{
-//                     padding: "10px 16px",
-//                     cursor: "pointer",
-//                     display: "flex",
-//                     justifyContent: "space-between",
-//                     alignItems: "center",
-//                   }}
-//                   onMouseEnter={(e) =>
-//                     (e.currentTarget.style.background = "#f5f8ff")
-//                   }
-//                   onMouseLeave={(e) =>
-//                     (e.currentTarget.style.background = "white")
-//                   }
-//                 >
-//                   <div>{item.title}</div>
-
-//                   <div
-//                     style={{
-//                       color: "#1976d2",
-//                       fontSize: 12,
-//                       fontFamily: "monospace",
-//                     }}
-//                   >
-//                     {"[" + item.value + "]"}
-//                   </div>
-//                 </div>
-//               )
-//             )}
-//           </div>
-//         </div>
-//       )}
-
-//       {/* File Upload Drawer */}
-//       <FileUploadDrawer
-//         isOpen={isDrawerOpen}
-//         onClose={() => setIsDrawerOpen(false)}
-//         accountId={accountId}
-//         selectedFolderForMenu={selectedFolderForMenu}
-//         onFilesSelected={handleFilesSelected}
-//       />
-
-//       {/* CKEditor */}
-//       <CKEditor
-//         editor={ClassicEditor}
-//              data={value}
-//         config={{
-//           licenseKey: "GPL",
-//           plugins: [
-//             Essentials,
-//             Paragraph,
-//             Heading,
-//             Bold,
-//             Italic,
-//             Underline,
-//             Strikethrough,
-//             Font,
-//             FontColor,
-//             FontBackgroundColor,
-//             Alignment,
-//             List,
-//             Link,
-//             LinkImage,
-//             Table,
-//             TableToolbar,
-//             TableProperties,
-//             TableCellProperties,
-//             Image,
-//             ImageToolbar,
-//             ImageCaption,
-//             ImageStyle,
-//             ImageResize,
-//             ImageInsert,
-//             BlockQuote,
-//             Code,
-//             CodeBlock,
-//             Autoformat,
-//             PasteFromOffice,
-//             Base64UploadAdapter,
-//             Undo,
-//             EmojiPlugin,
-//             ShortcodePlugin,
-//             FileUploadPlugin
-//           ],
-//           toolbar: {
-//             items: [
-//               "undo",
-//               "redo",
-//               "|",
-//               "emoji",
-//               "shortcodes",
-//               "attachFile",
-//               "|",
-//               "heading",
-//               "|",
-//               "fontFamily",
-//               "fontSize",
-//               "|",
-//               "fontColor",
-//               "fontBackgroundColor",
-//               "|",
-//               "bold",
-//               "italic",
-//               "underline",
-//               "strikethrough",
-//               "|",
-//               "alignment",
-//               "|",
-//               "bulletedList",
-//               "numberedList",
-//               "|",
-//               "link",
-//               "insertTable",
-//               "blockQuote",
-//               "code",
-//               "codeBlock",
-//               "insertImage",
-//             ]
-//           },
-//           link: {
-//             addTargetToExternalLinks: true,
-//             defaultProtocol: 'https://',
-//             decorators: {
-//               openInNewTab: {
-//                 mode: 'manual',
-//                 label: 'Open in a new tab',
-//                 attributes: {
-//                   target: '_blank',
-//                   rel: 'noopener noreferrer'
-//                 }
-//               }
-//             }
-//           },
-//           image: {
-//             toolbar: [
-//               'imageStyle:inline',
-//               'imageStyle:block',
-//               'imageStyle:side',
-//               '|',
-//               'toggleImageCaption',
-//               'imageTextAlternative'
-//             ],
-//             styles: [
-//               'inline',
-//               'block',
-//               'side'
-//             ]
-//           },
-//           table: {
-//             contentToolbar: [
-//               "tableColumn",
-//               "tableRow",
-//               "mergeTableCells",
-//               "tableProperties",
-//               "tableCellProperties",
-//             ],
-//           },
-//         }}
-//         onReady={(editor) => {
-//           editorRef.current = editor;
-          
-//           // Enable link clicking in the editor
-//           editor.editing.view.document.on('click', (evt, data) => {
-//             const target = data.domTarget;
-            
-//             // Check if clicked element or its parent is a link
-//             let linkElement = target;
-//             if (target && target.tagName !== 'A') {
-//               linkElement = target.closest('a');
-//             }
-            
-//             if (linkElement && linkElement.tagName === 'A') {
-//               const href = linkElement.getAttribute('href');
-//               if (href && href.startsWith('http')) {
-//                 evt.stop();
-//                 window.open(href, '_blank');
-//                 return false;
-//               }
-//             }
-//           }, { priority: 'highest' });
-//         }}
-//          onChange={(event, editor) => {
-//             const data = editor.getData();
-
-//             if (onChange) {
-//               onChange(data);
-//             }
-//           }}
-//       />
-//     </div>
-//   );
-// }
-
 import { useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
@@ -964,7 +273,6 @@ const FileUploadDrawer = ({
     setMessage("");
   };
 // In FileUploadDrawer component - update handleUpload function
-// In FileUploadDrawer component - update handleUpload function
 
 // const handleUpload = async () => {
 //   if (!files.length || !selectedFolder) {
@@ -977,82 +285,87 @@ const FileUploadDrawer = ({
 
 //   try {
 //     const formData = new FormData();
+
 //     files.forEach((file) => formData.append("files", file));
 //     formData.append("adminUserName", user?.username || "Unknown");
-    
+
 //     const res = await accountDocsAPI.uploadFile(formData, selectedFolder);
+
 //     console.log("Upload response:", res);
 
 //     if (res.status === 200 || res.status === 201) {
-//       // Extract file data from the response
-//       let uploadedFiles = [];
-//       let folderPath = '';
-      
-//       // Check the response structure
-//       if (res.data?.folderMeta?.files) {
-//         uploadedFiles = res.data.folderMeta.files;
-//         folderPath = res.data.folderMeta.path;
-//       } else if (res.data?.files) {
-//         uploadedFiles = res.data.files;
-//         folderPath = res.data.folder || '';
-//       } else {
-//         // Fallback - use the original files
-//         uploadedFiles = files.map((f, i) => ({
-//           name: f.name,
-//           size: f.size,
-//           documentId: `temp_${i}`,
-//           folder: selectedFolder
-//         }));
-//         folderPath = selectedFolder;
-//       }
+//       // Files returned from the upload API
+//       const uploadedFiles = res.data?.files || [];
 
-//       // Base URL for the API
-//       const baseUrl = 'https://www.snptaxes.com/uploads/accounts'; // Adjust this to your actual base URL/
-      
-//       // Create clickable file links with proper URLs
+//       // Your website base URL
+//       const baseUrl = "https://www.snptaxes.com";
+
 //       const fileLinks = uploadedFiles.map((file, index) => {
-//         const fileName = file.name || files[index]?.name || `File ${index + 1}`;
-//         const fileSize = file.size || files[index]?.size || 0;
-//         const documentId = file.documentId || file.id || '';
-//         const fileFolder = file.folder || folderPath || selectedFolder;
-        
+//         const fileName =
+//           file.originalname || file.filename || `File ${index + 1}`;
+
+//         const fileSize = file.size || 0;
+
 //         const sizeKB = Math.round(fileSize / 1024);
-//         const sizeStr = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
+//         const sizeStr =
+//           sizeKB > 1024
+//             ? `${(sizeKB / 1024).toFixed(1)} MB`
+//             : `${sizeKB} KB`;
 
-//         // Method 1: Construct URL using folder path and filename
-//         // This assumes files are accessible at: /{folderPath}/{filename}
-//         const encodedFileName = encodeURIComponent(fileName);
-//         const fileUrl = `${baseUrl}/${fileFolder}/${encodedFileName}`;
-        
-//         // Method 2: If you have a specific document view endpoint
-//         // const fileUrl = `${baseUrl}/api/documents/${documentId}/view`;
-        
-//         // Method 3: If you have a download endpoint
-//         // const fileUrl = `${baseUrl}/api/documents/${documentId}/download`;
+//         // Convert absolute server path to public URL
+//         // Example:
+//         // /var/www/pms-backend-multitenant/folder-mangement/uploads/accounts/...
+//         // ->
+//         // https://www.snptaxes.com/uploads/accounts/...
+//         let fileUrl = "#";
 
-//         return `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer" 
-//                   style="color: #1976d2; text-decoration: none; font-weight: 500; 
-//                          border-bottom: 1px dashed #1976d2; 
-//                          padding: 2px 0; display: inline-block; cursor: pointer;"
-//                   onmouseover="this.style.borderBottom='2px solid #1976d2'"
-//                   onmouseout="this.style.borderBottom='1px dashed #1976d2'">
-//                   📎 ${fileName}
-//                 </a> <span style="color: #666; font-size: 12px;">(${sizeStr})</span>`;
+//         if (file.path) {
+//           const publicPath = file.path
+//             .replace(/\\/g, "/")
+//             .replace(
+//               "/var/www/pms-backend-multitenant/folder-mangement/",
+//               ""
+//             );
+
+//           fileUrl = `${baseUrl}/${encodeURI(publicPath)}`;
+//         }
+
+//         return `
+//           <a
+//             href="${fileUrl}"
+//             target="_blank"
+//             rel="noopener noreferrer"
+//             style="
+//               color:#1976d2;
+//               text-decoration:none;
+//               font-weight:500;
+
+//               padding:2px 0;
+//               display:inline-block;
+//             "
+//           >
+//             📎 ${fileName}
+//           </a>
+        
+//         `;
 //       });
+//         // <span style="color:#666;font-size:12px;">
+//         //     (${sizeStr})
+//         //   </span>
 
-//       const fileMessage = `📎 ${fileLinks.join('<br>')}`;
+//       const fileMessage = fileLinks.join("<br>");
 
-//       // Send message
+//       // Send HTML message to chat
 //       if (onFileUploadComplete) {
-//         onFileUploadComplete(files, fileMessage, true);
+//         onFileUploadComplete(uploadedFiles, fileMessage, true);
 //       }
 
 //       if (onConfirm) {
-//         onConfirm(selectedFolder, files);
+//         onConfirm(selectedFolder, uploadedFiles);
 //       }
 
 //       setMessage(`${uploadedFiles.length} file(s) uploaded successfully!`);
-      
+
 //       setTimeout(() => {
 //         setFiles([]);
 //         setSelectedFolder("");
@@ -1061,11 +374,16 @@ const FileUploadDrawer = ({
 //         onClose();
 //       }, 1000);
 //     } else {
-//       throw new Error(res.message || "Upload failed");
+//       throw new Error(res.data?.message || "Upload failed");
 //     }
 //   } catch (err) {
 //     console.error("Upload failed:", err);
-//     setMessage(`Upload failed: ${err.message}`);
+
+//     setMessage(
+//       `Upload failed: ${
+//         err.response?.data?.message || err.message || "Unknown error"
+//       }`
+//     );
 //   } finally {
 //     setUploading(false);
 //   }
@@ -1081,77 +399,79 @@ const handleUpload = async () => {
 
   try {
     const formData = new FormData();
-
     files.forEach((file) => formData.append("files", file));
     formData.append("adminUserName", user?.username || "Unknown");
 
     const res = await accountDocsAPI.uploadFile(formData, selectedFolder);
-
     console.log("Upload response:", res);
 
     if (res.status === 200 || res.status === 201) {
-      // Files returned from the upload API
       const uploadedFiles = res.data?.files || [];
-
-      // Your website base URL
       const baseUrl = "https://www.snptaxes.com";
 
-      const fileLinks = uploadedFiles.map((file, index) => {
-        const fileName =
-          file.originalname || file.filename || `File ${index + 1}`;
+      // Helper function to check if file is an image
+      const isImageFile = (file) => {
+        const fileName = file.originalname || file.filename || file.name || '';
+        const ext = fileName.split('.').pop()?.toLowerCase();
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico'].includes(ext);
+      };
 
+      // Generate HTML for files - images as actual images, others as links
+      let fileHtml = '';
+      
+      uploadedFiles.forEach((file) => {
+        const fileName = file.originalname || file.filename || file.name || 'file';
         const fileSize = file.size || 0;
-
         const sizeKB = Math.round(fileSize / 1024);
-        const sizeStr =
-          sizeKB > 1024
-            ? `${(sizeKB / 1024).toFixed(1)} MB`
-            : `${sizeKB} KB`;
-
-        // Convert absolute server path to public URL
-        // Example:
-        // /var/www/pms-backend-multitenant/folder-mangement/uploads/accounts/...
-        // ->
-        // https://www.snptaxes.com/uploads/accounts/...
-        let fileUrl = "#";
-
+        const sizeStr = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
+        
         if (file.path) {
           const publicPath = file.path
             .replace(/\\/g, "/")
-            .replace(
-              "/var/www/pms-backend-multitenant/folder-mangement/",
-              ""
-            );
+            .replace("/var/www/pms-backend-multitenant/folder-mangement/", "");
+          const fileUrl = `${baseUrl}/${encodeURI(publicPath)}`;
+          
+          if (isImageFile(file)) {
+            // For images - display the actual image with click to enlarge
+            fileHtml += `
+              <div style=" display: inline-block; max-width: 100%;">
+                <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" 
+                   style="display: block; text-decoration: none;">
+                  <img src="${fileUrl}" alt="${fileName}" 
+                    style=" width: auto; height: auto;
+                           border-radius: 8px; border: 1px solid #e0e0e0; 
+                           cursor: pointer; object-fit: contain;
+                           background: #f5f5f5; padding: 4px;
+                           transition: transform 0.2s, box-shadow 0.2s;"
+                    onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+                  />
+                </a>
+              </div>
+            `;
+                            // <div style="font-size: 11px; color: #888; margin-top: 4px; text-align: center; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                //   ${fileName} (${sizeStr})
+                // </div>
 
-          fileUrl = `${baseUrl}/${encodeURI(publicPath)}`;
+          } else {
+            // For non-image files - show as links
+            fileHtml += `
+              <div >
+                <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" 
+                  style="color: #1976d2; text-decoration: none; font-weight: 500; 
+                        display: inline-block; padding: 2px 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  📎 ${fileName}
+                  <span style="color: #666; font-size: 12px; font-weight: normal;">(${sizeStr})</span>
+                </a>
+              </div>
+            `;
+          }
         }
-
-        return `
-          <a
-            href="${fileUrl}"
-            target="_blank"
-            rel="noopener noreferrer"
-            style="
-              color:#1976d2;
-              text-decoration:none;
-              font-weight:500;
-
-              padding:2px 0;
-              display:inline-block;
-            "
-          >
-            📎 ${fileName}
-          </a>
-        
-        `;
       });
-        // <span style="color:#666;font-size:12px;">
-        //     (${sizeStr})
-        //   </span>
 
-      const fileMessage = fileLinks.join("<br>");
+      const fileMessage = fileHtml;
 
-      // Send HTML message to chat
+      // Send to parent component with HTML flag
       if (onFileUploadComplete) {
         onFileUploadComplete(uploadedFiles, fileMessage, true);
       }
@@ -1174,7 +494,6 @@ const handleUpload = async () => {
     }
   } catch (err) {
     console.error("Upload failed:", err);
-
     setMessage(
       `Upload failed: ${
         err.response?.data?.message || err.message || "Unknown error"
@@ -1184,7 +503,6 @@ const handleUpload = async () => {
     setUploading(false);
   }
 };
-
   // Remove file from list
   const removeFile = (index) => {
     setFiles(files.filter((_, i) => i !== index));

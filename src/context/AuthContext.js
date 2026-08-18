@@ -397,45 +397,7 @@ const refreshToken = useCallback(async () => {
      
   }
 }, [navigate, showToast]);
-// const refreshToken = useCallback(async () => {
-//   try {
-//     const response = await authAPI.refresh();
 
-//     const token = response.data.accessToken;
-
-//     if (!token) return null;
-
-//     // setAccessToken(token);
-// saveAccessToken(token);      // IMPORTANT
-// setAccessToken(token);       // React state
-//     sessionExpiredRef.current = false;
-
-//     return token;
-//   } catch (err) {
-//     if (manualLogoutRef.current) return null;
-
-//     if (sessionExpiredRef.current) return null;
-
-//     sessionExpiredRef.current = true;
-
-//     setAccessToken(null);
-//     setUser(null);
-//     setRoleData(null);
-//     setIsAuthenticated(false);
-
-//     showToast({
-//       title: "Session Expired",
-//       description: "Please login again.",
-//       type: "warning",
-//     });
-
-//     navigate("/login", {
-//       replace: true,
-//     });
-
-//     return null;
-//   }
-// }, [navigate, showToast]);
 
 const loadUser = useCallback(async () => {
   try {
