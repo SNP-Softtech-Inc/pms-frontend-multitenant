@@ -231,9 +231,9 @@ export default function InboxPlus() {
   const filteredThreads = useMemo(() => {
     return currentData.filter((thread) => {
       const subject = thread.latest?.subject || "";
-      const body = getPreview(thread.latest?.body || "");
-      const from = thread.latest?.from || "";
-      const combinedText = `${subject} ${body} ${from}`.toLowerCase();
+      // const body = getPreview(thread.latest?.body || "");
+      // const from = thread.latest?.from || "";
+      const combinedText = `${subject} `.toLowerCase();
 
       // Search filter
       if (searchQuery.trim()) {

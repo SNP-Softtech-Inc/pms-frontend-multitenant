@@ -677,23 +677,59 @@ import { Switch } from "../../../components/ui/switch";
 import { Loader2, ChevronLeft } from "lucide-react";
 import { templateAPI, authAPI } from "../../../services/api";
 import { Checkbox } from "../../../components/ui/checkbox";
+// const pipelineSchema = z.object({
+//   pipelineName: z.string().min(1, "Pipeline name is required"),
+//   availableto: z.array(z.any()).optional(),
+//   sortjobsby: z.any().optional(),
+//   defaultjobtemplate: z.any().optional(),
+//   accountId: z.boolean().optional(),
+//   days_on_Stage: z.boolean().optional(),
+//   accounttags: z.boolean().optional(),
+//   clientFacing_status: z.boolean().optional(),
+//   startdate: z.boolean().optional(),
+//   name: z.boolean().optional(),
+//   duedate: z.boolean().optional(),
+//   description: z.boolean().optional(),
+//   assignees: z.boolean().optional(),
+//   priority: z.boolean().optional(),
+// });
 const pipelineSchema = z.object({
   pipelineName: z.string().min(1, "Pipeline name is required"),
-  availableto: z.array(z.any()).optional(),
-  sortjobsby: z.any().optional(),
-  defaultjobtemplate: z.any().optional(),
-  accountId: z.boolean().optional(),
-  days_on_Stage: z.boolean().optional(),
-  accounttags: z.boolean().optional(),
-  clientFacing_status: z.boolean().optional(),
-  startdate: z.boolean().optional(),
-  name: z.boolean().optional(),
-  duedate: z.boolean().optional(),
-  description: z.boolean().optional(),
-  assignees: z.boolean().optional(),
-  priority: z.boolean().optional(),
-});
 
+  availableto: z.array(z.any()).default([]),
+
+  sortjobsby: z.any().nullable().optional(),
+
+  defaultjobtemplate: z.any().nullable().optional(),
+
+  accountId: z.boolean().default(false),
+  accounttags: z.boolean().default(false),
+
+  stageTimeLimit: z.boolean().default(false),
+
+  name: z.boolean().default(false),
+  description: z.boolean().default(false),
+  priority: z.boolean().default(false),
+
+  startdate: z.boolean().default(false),
+  duedate: z.boolean().default(false),
+
+  intakeDate: z.boolean().default(false),
+  internalDeadlineDate: z.boolean().default(false),
+
+  timeBudget: z.boolean().default(false),
+  tracked: z.boolean().default(false),
+  timeVariance: z.boolean().default(false),
+  budgetTimeSpent: z.boolean().default(false),
+
+  assignees: z.boolean().default(false),
+
+  clientFacingStatus: z.boolean().default(false),
+
+  daysInStage: z.boolean().default(false),
+
+  days_on_Stage: z.boolean().default(false),
+});
 const PipelineForm = () => {
   const form = useForm({
     resolver: zodResolver(pipelineSchema),

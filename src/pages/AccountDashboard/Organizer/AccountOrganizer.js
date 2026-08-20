@@ -2217,7 +2217,7 @@ import { format } from "date-fns";
 
 import { organizerAPI, accountsAPI } from "../../../services/api";
 import AccountMultiSelectDropdown from "../../../components/AccountMultiSelectDropdown";
-
+import {Plus, Loader2} from "lucide-react";
 // shadcn/ui imports
 import {
   Card,
@@ -2737,9 +2737,10 @@ const AccountOrganizer = () => {
   const handleAbsolutesDates = (checked) => {
     setReminder(checked);
   };
-
+const [loading, setLoading] = useState(false);
   const createOrganizerOfAccount = async () => {
     try {
+      setLoading(true);
       const requestData = {
         accountid: accountId,
         organizertemplateid: selectedOrganizerTemplate,
@@ -2820,6 +2821,9 @@ const AccountOrganizer = () => {
         title: "Failed to create organizer",
         type: "error",
       });
+    }
+    finally { 
+      setLoading(false);
     }
   };
 
@@ -2966,7 +2970,8 @@ const AccountOrganizer = () => {
 
           {/* ACTIONS */}
           <div className="flex gap-4 items-center">
-            <Button onClick={createOrganizerOfAccount} className="rounded-xl">
+            <Button onClick={createOrganizerOfAccount} className="rounded-xl" disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Create
             </Button>
 
