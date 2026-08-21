@@ -149,7 +149,7 @@ const [isChatLoading, setIsChatLoading] = useState(false);
 
       setChatId(chatId);
 
-      const res = await chatAPI.getChatById(chatId);
+      const res = await chatAPI.getChatById(chatId, "admin");
       setSelectedChat(res.data.chat);
 
       await accountwiseChatlist(accountId, isActiveTrue);
@@ -162,7 +162,7 @@ const [isChatLoading, setIsChatLoading] = useState(false);
   };
   const getsChatDetails = async () => {
     try {
-      const res = await chatAPI.getChatById(chatId);
+      const res = await chatAPI.getChatById(chatId, "admin");
       setSelectedChat(res.data.chat);
     } catch (error) {
       console.error("Error fetching chat details:", error);
@@ -441,12 +441,12 @@ const renderMessage = (message) => {
                       : lastMessage.senderid || "Client";
 
                   const truncatedMessage =
-                    lastMessageText.length > 50
-                      ? lastMessageText.substring(0, 50) + "..."
+                    lastMessageText.length > 30
+                      ? lastMessageText.substring(0, 30) + "..."
                       : lastMessageText;
                       const truncatedSubject =
-  (chat.chatsubject || "No subject").length > 50
-    ? (chat.chatsubject || "No subject").substring(0, 50) + "..."
+  (chat.chatsubject || "No subject").length > 30
+    ? (chat.chatsubject || "No subject").substring(0, 30) + "..."
     : (chat.chatsubject || "No subject");
                   return (
                     <div

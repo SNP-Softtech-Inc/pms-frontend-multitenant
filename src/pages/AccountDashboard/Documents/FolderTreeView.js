@@ -2182,6 +2182,7 @@ export const FolderTreeView = ({ accountId }) => {
   const confirm = useConfirm();
   const { tenantId } = useAuth();
   const { showToast } = useToastContext();
+  const {user}=useAuth();
   const [clientEmail, setClientEmail] = useState("");
   const [expandedFolders, setExpandedFolders] = useState({});
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
@@ -3015,6 +3016,7 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
         fileUrl,
         clientEmail,
         description,
+        adminUserId:user?.id,
       };
 
       const res = await accountDocsAPI.toggleApproval(payload);
