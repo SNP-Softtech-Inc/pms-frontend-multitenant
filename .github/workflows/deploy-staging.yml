@@ -5,6 +5,9 @@ on:
     branches: [staging]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-staging
+
 env:
   DEPLOY_PATH: /var/www/pmsAdmin-staging/build
   BUILD_DIR: build
@@ -21,6 +24,13 @@ jobs:
           node-version: '22.13.0'
           cache: 'npm'
 
+      - name: Create .env from staging variables
+        env:
+          ENV_STAGING: ${{ vars.ENV_STAGING }}
+        run: |
+          rm -f .env
+          printf '%s\n' "$ENV_STAGING" > .env
+
       - run: npm ci
 
       - run: npm run build
@@ -32,11 +42,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Upload build to server
         run: |
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/id_deploy -o BatchMode=yes" \
+            -e "ssh -i ~/.ssh/id_deploy -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectionAttempts=3" \
             ./$BUILD_DIR/ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$DEPLOY_PATH/
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy

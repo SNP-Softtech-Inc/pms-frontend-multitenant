@@ -8,10 +8,11 @@ on:
     branches: [main, release/*]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-production
+
 env:
-  # [FILL] Nginx root path on the PRODUCTION server (the `root` in your server block)
   DEPLOY_PATH: /var/www/pmsAdmin
-  # [FLAG] CRA outputs "build", Vite outputs "dist"
   BUILD_DIR: build
 
 jobs:
@@ -22,27 +23,35 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.13.0'   # [FLAG] guessed
+          node-version: '22.13.0'
           cache: 'npm'
 
-      - run: npm ci             # [FLAG] needs package-lock.json committed
+      - name: Create .env from production variables
+        env:
+          ENV_PRODUCTION: ${{ vars.ENV_PRODUCTION }}
+        run: |
+          rm -f .env
+          printf '%s\n' "$ENV_PRODUCTION" > .env
+
+      - run: npm ci
 
       - run: npm run build
         env:
           NODE_ENV: production
-          # [FILL] build-time vars for production, e.g.
-          # VITE_API_URL: ${{ vars.API_URL }}
 
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Upload build to server
         run: |
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/id_deploy -o BatchMode=yes" \
+            -e "ssh -i ~/.ssh/id_deploy -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectionAttempts=3" \
             ./$BUILD_DIR/ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$DEPLOY_PATH/build/
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy
