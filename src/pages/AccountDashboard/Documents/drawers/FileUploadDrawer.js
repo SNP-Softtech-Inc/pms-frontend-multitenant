@@ -85,7 +85,7 @@ const SettingsDrawer = ({
       // Get client email from user or account
       // const clientEmail = user?.email || user?.username || "client@example.com";
       
-      const fileUrl = `${process.env.REACT_APP_FILE_URL || ''}/uploads/accounts/${filePath}`;
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${filePath}`;
 
       const payload = {
         filePath: filePath,

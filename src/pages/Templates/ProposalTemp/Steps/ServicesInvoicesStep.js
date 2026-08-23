@@ -40,7 +40,7 @@ const ServicesInvoicesStep = ({
   const [servicedata, setServiceData] = useState([]);
   const [touched, setTouched] = useState({});
 console.log("servicesinvoices",invoices)
-  const LOGIN_API = process.env.REACT_APP_USER_LOGIN || 'https://www.snptaxes.com';
+  const LOGIN_API = process.env.REACT_APP_AUTH_USER;
 
   function getEmptyInvoice() {
     return {

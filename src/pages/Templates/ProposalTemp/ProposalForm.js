@@ -73,7 +73,7 @@
 //   const navigate = useNavigate();
 //   const [searchParams] = useSearchParams();
 //   const proposalId = searchParams.get('edit');
-//   const LOGIN_API = process.env.REACT_APP_USER_LOGIN || 'https://www.snptaxes.com';
+//   const LOGIN_API = process.env.REACT_APP_AUTH_USER;
 
 //   // Helper function for empty row
 //   function getEmptyRow() {
@@ -847,7 +847,7 @@ const ProposalForm = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const proposalId = searchParams.get('edit');
-  const LOGIN_API = process.env.REACT_APP_USER_LOGIN || 'https://www.snptaxes.com';
+  const LOGIN_API = process.env.REACT_APP_AUTH_USER;
 
   // Helper function for empty row
   function getEmptyRow() {

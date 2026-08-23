@@ -169,7 +169,7 @@ const DocumentViewer = ({
   onDownload,
   onPrint,
 }) => {
-  const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT || '';
+  const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);

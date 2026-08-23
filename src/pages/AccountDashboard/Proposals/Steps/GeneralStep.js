@@ -102,8 +102,7 @@ const GeneralStep = ({
     setFilteredShortcuts(accountShortcuts);
   }, []);
 
-  const LOGIN_API =
-    process.env.REACT_APP_USER_LOGIN || "https://www.snptaxes.com";
+  const LOGIN_API = process.env.REACT_APP_AUTH_USER;
 
   // Fetch team members data
   useEffect(() => {

@@ -23,8 +23,9 @@ const AccountDetails = () => {
   const [account, setAccount] = useState(null);
   const [tagList, setTagList] = useState([]);
 const [teamMemberList, setTeamMemberList] = useState([]);
-  const LOGIN_API = process.env.REACT_APP_USER_LOGIN;
-  const TAGS_API = process.env.REACT_APP_TAGS_TEMP_URL;
+  const LOGIN_API = process.env.REACT_APP_AUTH_USER;
+  const TAGS_API = process.env.REACT_APP_TEMPLATE;
+  const ACCOUNT_API = process.env.REACT_APP_ACCOUNT_CONTACT;
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
@@ -48,7 +49,7 @@ useEffect(() => {
   const fetchAccountDetails = async () => {
     try {
       const res = await axios.get(
-        `https://www.snptaxes.com/api/accounts/${id}`
+        `${ACCOUNT_API}/api/accounts/${id}`
       );
       setAccount(res.data);
       console.log("result", res.data);
@@ -70,7 +71,7 @@ console.log("selected contact list",selectedContact)
   const handleNotifyToggle = async (contact) => {
     try {
       await axios.patch(
-        `https://www.snptaxes.com/api/accounts/${account._id}/contact/${contact.contact._id}`,
+        `${ACCOUNT_API}/api/accounts/${account._id}/contact/${contact.contact._id}`,
         { canNotify: !contact.canNotify }
       );
 
@@ -91,7 +92,7 @@ console.log("selected contact list",selectedContact)
   const handleEmailSyncToggle = async (contact) => {
     try {
       await axios.patch(
-        `https://www.snptaxes.com/api/accounts/${account._id}/contact/${contact.contact._id}`,
+        `${ACCOUNT_API}/api/accounts/${account._id}/contact/${contact.contact._id}`,
         { canEmailSync: !contact.canEmailSync }
       );
 
@@ -114,7 +115,7 @@ console.log("selected contact list",selectedContact)
 
     try {
       await axios.patch(
-        `https://www.snptaxes.com/api/accounts/${account._id}/contact/${selectedContact.contact._id}`,
+        `${ACCOUNT_API}/api/accounts/${account._id}/contact/${selectedContact.contact._id}`,
         { canLogin: newCanLoginValue }
       );
 

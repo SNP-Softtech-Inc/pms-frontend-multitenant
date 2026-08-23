@@ -32,7 +32,7 @@ root.render(
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-       <BrowserRouter basename={process.env.REACT_APP_BASE_PATH || "/"}>
+       <BrowserRouter basename={process.env.REACT_APP_BASE_PATH}>
          <ToastProvider>
           <AuthProvider>
             

@@ -242,7 +242,7 @@
 //       return;
 
 //     try {
-//       await fetch(`${process.env.REACT_APP_USER_LOGIN}/auth/forgot-password`, {
+//       await fetch(`${process.env.REACT_APP_AUTH_USER}/auth/forgot-password`, {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify({ email: contact.contact.email }),
@@ -910,7 +910,7 @@ const availableContacts = useMemo(() => {
     if (!window.confirm(`Reset password for ${contact.contact.contactName}?`))
       return;
     try {
-      await fetch(`${process.env.REACT_APP_USER_LOGIN}/auth/forgot-password`, {
+      await fetch(`${process.env.REACT_APP_AUTH_USER}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: contact.contact.email }),
