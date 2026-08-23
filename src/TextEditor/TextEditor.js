@@ -298,7 +298,7 @@ const FileUploadDrawer = ({
 //       const uploadedFiles = res.data?.files || [];
 
 //       // Your website base URL
-//       const baseUrl = "https://www.snptaxes.com";
+//       const baseUrl = process.env.REACT_APP_FOLDER_MANAGEMENT;
 
 //       const fileLinks = uploadedFiles.map((file, index) => {
 //         const fileName =
@@ -407,7 +407,7 @@ const handleUpload = async () => {
 
     if (res.status === 200 || res.status === 201) {
       const uploadedFiles = res.data?.files || [];
-      const baseUrl = "https://www.snptaxes.com";
+      const baseUrl = process.env.REACT_APP_FOLDER_MANAGEMENT;
 
       // Helper function to check if file is an image
       const isImageFile = (file) => {

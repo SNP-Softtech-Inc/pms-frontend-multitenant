@@ -26,7 +26,7 @@ import TagsMultiSelectDropDown from "./TagsMultiSelectDropDown";
 import countryList from "react-select-country-list";
 
 const ContactForm = ({ open, onClose, contact, onSave }) => {
-  const CONTACT_API = process.env.REACT_APP_CONTACTS_URL;
+  const CONTACT_API = process.env.REACT_APP_ACCOUNT_CONTACT;
 const { showToast } = useToastContext();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -248,8 +248,8 @@ const { showToast } = useToastContext();
     };
 
     const url = contact 
-      ? `https://www.snptaxes.com/api/contacts/${contact.id}` // Adjust endpoint for update
-      : "https://www.snptaxes.com/api/contacts";
+      ? `${CONTACT_API}/api/contacts/${contact.id}` // Adjust endpoint for update
+      : `${CONTACT_API}/api/contacts`;
 
     try {
       const response = await fetch(url, requestOptions);

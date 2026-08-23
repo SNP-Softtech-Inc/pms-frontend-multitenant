@@ -109,12 +109,9 @@ const GeneralStep = ({
     setShortcuts(accountShortcuts);
     setFilteredShortcuts(accountShortcuts);
   }, []);
-  const LOGIN_API =
-    process.env.REACT_APP_USER_LOGIN || "https://www.snptaxes.com";
-  const ACCOUNT_API =
-    process.env.REACT_APP_ACCOUNTS_URL || "https://www.snptaxes.com";
-  const INVOICE_API =
-    process.env.REACT_APP_INVOICE_API || "https://www.snptaxes.com";
+  const LOGIN_API = process.env.REACT_APP_AUTH_USER;
+  const ACCOUNT_API = process.env.REACT_APP_ACCOUNT_CONTACT;
+  const INVOICE_API = process.env.REACT_APP_INVOICE;
 
   // Fetch accounts and templates on component mount
   useEffect(() => {
@@ -137,13 +134,13 @@ const GeneralStep = ({
 //     // === ROLE BASED ACCOUNT FETCH ===
 //     if (storedUserRole === "Admin") {
 //       url =
-//         "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true";
+//         `${ACCOUNT_API}/api/accounts/accountlist/names-by-status?active=true`;
 //     } else {
 //       // Team Member
 //       url =
 //         viewAllAccounts === true
-//           ? "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true"
-//           : `https://www.snptaxes.com/api/accounts/byTeam?userId=${loginuserid}&active=true`;
+//           ? `${ACCOUNT_API}/api/accounts/accountlist/names-by-status?active=true`
+//           : `${ACCOUNT_API}/api/accounts/byTeam?userId=${loginuserid}&active=true`;
 //     }
 
 //     console.log("Fetching Accounts From:", url);
@@ -239,12 +236,12 @@ const fetchAccounts = async () => {
 
     if (storedUserRole === "Admin") {
       url =
-        "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true";
+        `${ACCOUNT_API}/api/accounts/accountlist/names-by-status?active=true`;
     } else {
       url =
         viewAllAccounts === true
-          ? "https://www.snptaxes.com/api/accounts/accountlist/names-by-status?active=true"
-          : `https://www.snptaxes.com/api/accounts/byTeam?userId=${loginuserid}&active=true`;
+          ? `${ACCOUNT_API}/api/accounts/accountlist/names-by-status?active=true`
+          : `${ACCOUNT_API}/api/accounts/byTeam?userId=${loginuserid}&active=true`;
     }
 
     console.log("Fetching Accounts From:", url);
@@ -300,7 +297,7 @@ const fetchAccounts = async () => {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://www.snptaxes.com/api/proposals");
+      const response = await fetch(`${process.env.REACT_APP_PROPOSAL}/api/proposals`);
       if (!response.ok) throw new Error("Failed to fetch templates");
       const data = await response.json();
       setTemplates(data.proposallist || []);
@@ -348,7 +345,7 @@ const fetchAccounts = async () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://www.snptaxes.com/api/proposals/${templateId}`
+        `${process.env.REACT_APP_PROPOSAL}/api/proposals/${templateId}`
       );
       if (!response.ok) throw new Error("Failed to fetch template data");
       const templateData = await response.json();

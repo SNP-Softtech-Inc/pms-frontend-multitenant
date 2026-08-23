@@ -220,7 +220,7 @@
 
 // //   console.log("Sending reply to:", replyTo);
 
-// //   await axios.post("https://www.snptaxes.com/emailsync/user/reply", {
+// //   await axios.post(`${process.env.REACT_APP_EMAIL_SYNC}/emailsync/user/reply`, {
 // //     to: replyTo,
 // //     subject: `Re: ${lastEmail.subject || "No Subject"}`,
 // //     message: replyText,
@@ -235,7 +235,7 @@
 // //   const markThreadAsRead = async (threadId) => {
 // //     try {
 // //       await axios.patch(
-// //         "https://www.snptaxes.com/emailsync/messagesList/threads/mark-read",
+// //         `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/messagesList/threads/mark-read`,
 // //         { threadId }
 // //       );
 // //       fetchEmailSyncedContactsAndEmails();
@@ -1093,7 +1093,7 @@
 //     async (threadId) => {
 //       try {
 //         await axios.patch(
-//           "https://www.snptaxes.com/emailsync/messagesList/threads/mark-read",
+//           `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/messagesList/threads/mark-read`,
 //           {
 //             threadId,
 //           }
@@ -2339,7 +2339,7 @@ setThreads(filteredThreads);
         toList[toList.length - 1];
 
       await axios.post(
-        "https://www.snptaxes.com/emailsync/user/reply",
+        `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/user/reply`,
         {
           to: replyTo,
           subject: `Re: ${
@@ -2370,7 +2370,7 @@ setThreads(filteredThreads);
   ) => {
     try {
       await axios.patch(
-        "https://www.snptaxes.com/emailsync/messagesList/threads/mark-read",
+        `${process.env.REACT_APP_EMAIL_SYNC}/emailsync/messagesList/threads/mark-read`,
         { threadId }
       );
 

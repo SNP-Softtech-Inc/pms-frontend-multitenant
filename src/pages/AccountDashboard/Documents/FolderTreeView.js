@@ -2800,7 +2800,7 @@ const handleBulkDownload = async () => {
 //       await accountDocsAPI.removeNewTag({ filePath: fullPath });
 //       await fetchFolderTree();
 //     }
-//  const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT || '';
+//  const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
 //     const fileUrl = `${FILE_MANAGER_BASE_URL}/uploads/accounts/${fullPath}`;
 //     const extension = fileName.split(".").pop().toLowerCase();
 
@@ -2862,7 +2862,7 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       await fetchFolderTree();
     }
     
-    const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT || '';
+    const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
     const fileUrl = `${FILE_MANAGER_BASE_URL}/uploads/accounts/${fullPath}`;
     const extension = fileName.split(".").pop().toLowerCase();
 
