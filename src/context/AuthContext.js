@@ -371,6 +371,16 @@ const refreshToken = useCallback(async () => {
   } catch (err) {
     if (manualLogoutRef.current) return null;
 
+    const status = err?.response?.status;
+    const isRefreshTokenInvalid = status === 401 || status === 403;
+
+    if (!isRefreshTokenInvalid) {
+      // Transient failure (network blip, timeout, 5xx) - the refresh cookie
+      // may still be valid, so don't kill the session; let the next
+      // periodic refresh retry instead.
+      return null;
+    }
+
     if (sessionExpiredRef.current) return null;
 
     sessionExpiredRef.current = true;
@@ -435,8 +445,10 @@ useEffect(() => {
   const interval = setInterval(async () => {
     const token = await refreshToken();
 
-    // refreshToken() already handles logout/navigation on failure
-    if (!token) {
+    // Only stop retrying once refreshToken() has confirmed the session is
+    // actually over (invalid/expired refresh token) - a transient failure
+    // returns null too but should not stop future retries.
+    if (!token && sessionExpiredRef.current) {
       clearInterval(interval);
     }
   }, 5 * 60 * 1000); // check every minute
