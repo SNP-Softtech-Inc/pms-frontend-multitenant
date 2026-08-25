@@ -2285,34 +2285,56 @@ setThreads(filteredThreads);
   const openAttachment = (
     attachment
   ) => {
-    const byteCharacters = atob(
-      attachment.data
-    );
-
-    const byteNumbers = new Array(
-      byteCharacters.length
-    );
-
-    for (
-      let i = 0;
-      i < byteCharacters.length;
-      i++
-    ) {
-      byteNumbers[i] =
-        byteCharacters.charCodeAt(i);
+    if (!attachment?.data) {
+      alert(
+        "This attachment could not be opened. Please try again."
+      );
+      return;
     }
 
-    const blob = new Blob(
-      [new Uint8Array(byteNumbers)],
-      {
-        type: attachment.mimeType,
-      }
-    );
+    try {
+      const byteCharacters = atob(
+        attachment.data
+      );
 
-    setPreviewFile({
-      ...attachment,
-      url: URL.createObjectURL(blob),
-    });
+      const byteNumbers = new Array(
+        byteCharacters.length
+      );
+
+      for (
+        let i = 0;
+        i < byteCharacters.length;
+        i++
+      ) {
+        byteNumbers[i] =
+          byteCharacters.charCodeAt(i);
+      }
+
+      // Use a named File (not a bare Blob) so browser-native viewers
+      // (e.g. the PDF viewer rendered inside the iframe below) display
+      // the real filename instead of the blob URL's auto-generated UUID.
+      const file = new File(
+        [new Uint8Array(byteNumbers)],
+        attachment.filename || "document",
+        {
+          type: attachment.mimeType,
+        }
+      );
+
+      setPreviewFile({
+        ...attachment,
+        url: URL.createObjectURL(file),
+      });
+    } catch (err) {
+      console.error(
+        "Failed to open attachment",
+        err
+      );
+
+      alert(
+        "This attachment could not be opened. Please try again."
+      );
+    }
   };
 
   // ✅ SEND REPLY
