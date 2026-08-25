@@ -3372,7 +3372,11 @@ const [currentFileIndex, setCurrentFileIndex] = useState(0);
       const isPdf = extension === 'pdf';
       
       if (isImage || isPdf) {
-        const fileUrl = URL.createObjectURL(blob);
+        // Use a named File (not a bare Blob) so the browser's native PDF
+        // viewer shows the real filename in its tab/title bar instead of
+        // the blob URL's auto-generated UUID.
+        const namedFile = new File([blob], file.name, { type: blob.type });
+        const fileUrl = URL.createObjectURL(namedFile);
         const printWindow = window.open('', '_blank', 'width=800,height=600');
         
         if (!printWindow) {
