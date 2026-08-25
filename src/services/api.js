@@ -449,7 +449,9 @@ getEmailCommunications: () =>
     emailSyncApi.put(
       `/api/emailsync/mark-read/${threadId}`
     ),
-
+// Send email reply
+replyEmail: (data) =>
+  authUserApi.post("/api/emailsync/reply", data),
   // Archive thread
   archiveThread: (
     threadId
