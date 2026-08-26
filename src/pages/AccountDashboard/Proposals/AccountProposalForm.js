@@ -1048,7 +1048,7 @@
 
 
 import React, { useState, useEffect, useContext } from "react";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, AlertCircle,Loader2 } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from '../../../components/ui/button';
 import GeneralStep from "./Steps/AccountGeneral";
@@ -1059,6 +1059,7 @@ import PaymentStep from "./Steps/PaymentStep";
 import {useToastContext} from '../../../context/ToastContext';
 import Cookies from "js-cookie";
 import { proposalAPI, accountsAPI } from "../../../services/api";
+import { set } from "date-fns";
 
 const ProposalForm = () => {
   const { accountId } = useParams();
@@ -1616,10 +1617,11 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
       totalAmount: parseFloat(itemizedData.totalAmount) || 0,
     };
   };
-
+const [loadingProposal, setLoadingProposal] = useState(false);
   // Updated handleSubmit for single account
   const handleSubmit = async () => {
     try {
+      setLoadingProposal(true);
       console.log("Submitting proposal...");
       setError("");
 
@@ -1703,6 +1705,9 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
         title: "Error submitting proposal",
         type: "error",
       });
+    }
+    finally {
+      setLoadingProposal(false);
     }
   };
 
@@ -1900,10 +1905,36 @@ const transformDataForForm = (apiData, accounts = [], templates = []) => {
           <Button variant="outline" onClick={prevStep} disabled={currentStep === 0} className="rounded-full px-5 gap-2">
             <ChevronLeft className="h-4 w-4" /> Previous
           </Button>
-          <Button onClick={nextStep} className="rounded-full px-6 gap-2">
+          {/* <Button onClick={nextStep} className="rounded-full px-6 gap-2">
             {isLastStep ? (proposalId ? 'Update Proposal' : 'Submit Proposal') : 'Next'}
             {!isLastStep && <ChevronRight className="h-4 w-4" />}
-          </Button>
+          </Button> */}
+          <Button
+  onClick={nextStep}
+  className="rounded-full px-6 gap-2"
+  disabled={loadingProposal}
+>
+  {loadingProposal ? (
+    <>
+      <Loader2 className="h-4 w-4 animate-spin" />
+      {isLastStep
+        ? proposalId
+          ? "Updating..."
+          : "Submitting..."
+        : "Loading..."}
+    </>
+  ) : (
+    <>
+      {isLastStep
+        ? proposalId
+          ? "Update Proposal"
+          : "Submit Proposal"
+        : "Next"}
+
+      {!isLastStep && <ChevronRight className="h-4 w-4" />}
+    </>
+  )}
+</Button>
         </div>
       </div>
     </div>

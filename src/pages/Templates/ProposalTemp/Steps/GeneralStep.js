@@ -373,7 +373,7 @@ const GeneralStep = ({
 }) => {
   const [touched, setTouched] = useState({});
 
-
+console.log("GeneralStep formData:", formData);
   // SHORTCODES
   const [anchorEl, setAnchorEl] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);

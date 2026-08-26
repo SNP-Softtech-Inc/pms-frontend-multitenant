@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { X, ChevronDown, Plus, Trash2, Loader2 } from "lucide-react";
 import {useToastContext} from "../../../context/ToastContext";
 import { useAuth } from "../../../context/AuthContext";
 import { templateAPI, chatAPI ,authAPI} from "../../../services/api";
@@ -170,9 +170,11 @@ const fetchGroupedUsers = async () => {
     { title: "Next year", isBold: false, value: "NEXT_YEAR" },
   ];
 const [attachments, setAttachments] = useState([]);
+const [loading, setLoading] = useState(false);
   // ================= SAVE =================
   // ================= SAVE =================
   const saveChat = async () => {
+    setLoading(true);
     if (!selectedaccount.length) {
       showToast({
         title: "Select account",
@@ -190,6 +192,7 @@ const [attachments, setAttachments] = useState([]);
     }
 
     try {
+      
       const payload = {
         accountids: selectedaccount.map((a) => a.value),
         chatsubject: inputText,
@@ -231,6 +234,9 @@ const [attachments, setAttachments] = useState([]);
         title: err.response?.data?.message || "Failed to create chat",
         type: "error",
       });
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -790,7 +796,9 @@ const [attachments, setAttachments] = useState([]);
             rounded-xl
             shadow-sm
           "
+          disabled={loading}
           >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Create Chat
           </Button>
         </div>

@@ -66,15 +66,15 @@ const [showUnanswered, setShowUnanswered] = useState(false);
     }
   };
 
-  const [expandedSections, setExpandedSections] = useState([]);
+  // const [expandedSections, setExpandedSections] = useState([]);
 
-  const handleToggleSection = (sectionId) => {
-    setExpandedSections((prev) =>
-      prev.includes(sectionId)
-        ? prev.filter((id) => id !== sectionId)
-        : [...prev, sectionId]
-    );
-  };
+  // const handleToggleSection = (sectionId) => {
+  //   setExpandedSections((prev) =>
+  //     prev.includes(sectionId)
+  //       ? prev.filter((id) => id !== sectionId)
+  //       : [...prev, sectionId]
+  //   );
+  // };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState("");
@@ -126,23 +126,21 @@ const [showUnanswered, setShowUnanswered] = useState(false);
 const filteredSections = sections.filter((section) => {
   return !section.sectionsettings?.conditional || showConditional;
 });
+const expandedSections = filteredSections
+  .filter((section) =>
+    section.formElements.some(
+      (el) =>
+        !el.questionsectionsettings?.conditional ||
+        showConditional
+    ) && section.formElements.some(
+      (el) => el.textvalue?.trim()
+    )
+  )
+  .map((section) => section.id);
   return (
   <div className="space-y-6">
 
-    {/* TOP SWITCH */}
-    {/* <div className="flex items-center gap-3 mb-4">
-      <Switch
-        id="show-conditional"
-        checked={showConditional}
-        onCheckedChange={setShowConditional}
-      />
-      <Label
-        htmlFor="show-conditional"
-        className="text-sm font-medium text-foreground"
-      >
-        Show Hidden Questions
-      </Label>
-    </div> */}
+ 
 <div className="flex items-center gap-8 mb-4">
 
   {/* Hidden Questions */}
@@ -179,13 +177,17 @@ const filteredSections = sections.filter((section) => {
     {/* SECTIONS */}
     {filteredSections.length > 0 ? (
       filteredSections.map((section) => (
-        <Collapsible
-          key={section.id}
-          open={expandedSections.includes(section.id)}
-          onOpenChange={() => handleToggleSection(section.id)}
-          className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
-        >
-
+        // <Collapsible
+        //   key={section.id}
+        //   open={expandedSections.includes(section.id)}
+        //   onOpenChange={() => handleToggleSection(section.id)}
+        //   className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
+        // >
+<Collapsible
+  key={section.id}
+  open={expandedSections.includes(section.id)}
+  className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
+>
           {/* HEADER */}
           <div className="flex items-center justify-between p-4 bg-muted/30">
 

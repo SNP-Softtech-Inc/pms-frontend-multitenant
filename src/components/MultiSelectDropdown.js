@@ -423,6 +423,7 @@ const MultiSelectDropdown = ({
   placeholder = "Select Users",
   width = "100%",
 }) => {
+  console.log("MultiSelectDropdown value:", value);
   const { user } = useAuth();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);

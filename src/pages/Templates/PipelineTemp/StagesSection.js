@@ -3473,7 +3473,7 @@ const handleAutomationMenuOpen = (stageIndex) => {
                       <Badge
                         key={tag._id}
                         style={{ backgroundColor: tag.tagColour }}
-                        className="text-white text-[11px] h-[22px] opacity-70 line-through"
+                        className="text-white text-[11px] h-[22px] opacity-70 "
                       >
                         {tag.tagName}
                       </Badge>

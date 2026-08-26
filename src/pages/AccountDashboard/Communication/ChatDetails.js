@@ -198,8 +198,11 @@ const ChatDetails = ({
     if (!messageTime) return false;
     const messageTimestamp = new Date(messageTime).getTime();
     const currentTime = new Date().getTime();
-    const tenMinutes = 10 * 60 * 1000;
-    return currentTime - messageTimestamp <= tenMinutes;
+   // const tenMinutes = 10 * 60 * 1000;
+   // return currentTime - messageTimestamp <= tenMinutes;
+
+   const oneDay = 24 * 60 * 60 * 1000;
+return currentTime - messageTimestamp <= oneDay;
   };
   const updateChatDescription = async (message = "", isHTML = false) => {
     const contentToSend = message.trim() || editorContent.trim();
@@ -454,7 +457,7 @@ const ChatDetails = ({
     console.log("Attempting to edit message:", message);
     if (!canEditMessage(message.time)) {
       showToast({
-        title: "Cannot edit message after 10 minutes",
+        title: "Cannot edit message after 24 hours",
         type: "error",
       });
       return;
@@ -567,6 +570,40 @@ const ChatDetails = ({
     );
   };
   const [isResending, setIsResending] = useState(false);
+  const debounceRef = useRef(null);
+const isFirstRender = useRef(true); // avoid firing on initial mount/load
+
+useEffect(() => {
+  // Skip the very first render (e.g. when tasks are loaded from the server)
+  if (isFirstRender.current) {
+    isFirstRender.current = false;
+    return;
+  }
+
+  // Clear any pending save
+  if (debounceRef.current) {
+    clearTimeout(debounceRef.current);
+  }
+
+  // Schedule a new save 800ms after the last change
+  debounceRef.current = setTimeout(() => {
+    resendClientTaskAuto();
+  }, 800);
+
+  // Cleanup on unmount or before next effect run
+  return () => clearTimeout(debounceRef.current);
+}, [tasks]);
+
+const resendClientTaskAuto = async () => {
+  setIsResending(true);
+  try {
+   await chatAPI.addClientTask({ chatId, newTask: tasks });
+  } catch (err) {
+    console.error("Failed to auto-save tasks:", err);
+  } finally {
+    setIsResending(false);
+  }
+};
   const resendClientTask = async () => {
     if (isResending) return;
 
@@ -629,10 +666,7 @@ const ChatDetails = ({
         "Are you sure you want to delete this message? This action cannot be undone.",
       onConfirm: async () => {
         try {
-          await chatAPI.deleteMessage({
-            chatId,
-            messageId: messageToDelete._id,
-          });
+          await chatAPI.deleteMessageForAdmin(chatId, messageToDelete._id);
 
           showToast({
             title: "Message deleted successfully",
