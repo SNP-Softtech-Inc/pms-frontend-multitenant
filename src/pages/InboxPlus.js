@@ -164,10 +164,20 @@ export default function InboxPlus() {
 
   useEffect(() => {
     fetchData();
+
+    // The list previously only ever loaded once on mount - a new client
+    // message/notification wouldn't show up until the admin manually
+    // reloaded the page. Poll quietly in the background so new items
+    // appear on their own while this page is open.
+    const pollId = setInterval(() => fetchData(true), 20000);
+    return () => clearInterval(pollId);
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (silent = false) => {
+    // Background polling refetches shouldn't flash the full-page loading
+    // spinner or pop an error toast for a single transient failure - only
+    // the initial load and manual actions do that.
+    if (!silent) setLoading(true);
     try {
       // Fetch both inbox and archived in parallel using the query parameter
       const [inboxRes, archivedRes] = await Promise.all([
@@ -188,14 +198,16 @@ export default function InboxPlus() {
       });
     } catch (err) {
       console.error(err);
-      showToast({
-        title: "Error",
-        description: "Failed to fetch notifications",
-        type: "error",
-        duration: 4000,
-      });
+      if (!silent) {
+        showToast({
+          title: "Error",
+          description: "Failed to fetch notifications",
+          type: "error",
+          duration: 4000,
+        });
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
