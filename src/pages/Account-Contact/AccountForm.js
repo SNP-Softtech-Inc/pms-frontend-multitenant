@@ -140,6 +140,32 @@ useEffect(() => {
 
   fetchTags();
 }, []);
+
+  // ================= EDIT MODE: hydrate selected tags =================
+  // accountData.tags comes back from the backend as raw tag id strings,
+  // not {value,label} objects, and it's loaded asynchronously by the
+  // parent drawer (after this form has already mounted) - so this can't
+  // live inside the fetchTags effect above, it needs to react whenever
+  // either the tag options or accountData.tags become available. Without
+  // this mapping, accountData.tags stays as raw ids, and saving the form
+  // sends [undefined, ...] for tags (AccountContactForm reads tag.value
+  // off each entry), wiping out the account's real tags on every save
+  // regardless of which field was actually edited.
+  useEffect(() => {
+    if (
+      isEditing &&
+      tags.length > 0 &&
+      accountData.tags &&
+      accountData.tags.length > 0 &&
+      typeof accountData.tags[0] === "string"
+    ) {
+      const selectedTags = tags.filter((tag) =>
+        accountData.tags.includes(tag.value),
+      );
+
+      dispatch(setAccountData({ tags: selectedTags }));
+    }
+  }, [isEditing, tags, accountData.tags, dispatch]);
  useEffect(() => {
   const fetchTeamMembers = async () => {
     try {

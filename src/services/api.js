@@ -234,11 +234,20 @@ saveAccessToken(data.accessToken);
       } catch (refreshError) {
         processQueue(refreshError);
 
-        clearAccessToken();
+        // Only a genuine 401/403 from the refresh-token endpoint means the
+        // session itself is actually invalid/expired - force logout then.
+        // Anything else (network blip, timeout, transient 5xx/CORS hiccup)
+        // is not proof the session ended, so don't wipe the token or force
+        // a redirect for those - just fail this one request and let the
+        // user keep working; the next request will retry the refresh.
+        const refreshStatus = refreshError?.response?.status;
+        if (refreshStatus === 401 || refreshStatus === 403) {
+          clearAccessToken();
 
-        localStorage.removeItem("user");
+          localStorage.removeItem("user");
 
-        window.location.href = "/admin/login";
+          window.location.href = "/admin/login";
+        }
 
         return Promise.reject(refreshError);
       } finally {

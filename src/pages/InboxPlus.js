@@ -42,6 +42,14 @@ const getPreview = (html = "") => html.replace(/<[^>]*>?/gm, "");
 const buildAccountLink = (mongoId) => {
   return `/admin/clients/accounts/accountsdash/overview/${mongoId}`;
 };
+// React Router's navigate() resolves paths relative to the router's
+// basename (="/admin"), unlike a plain <a href>. Passing buildAccountLink's
+// /admin-prefixed path into navigate() double-prefixes the URL
+// (/admin/admin/...), so navigate() calls must use this basename-relative
+// path instead.
+const buildAccountPath = (mongoId) => {
+  return `/clients/accounts/accountsdash/overview/${mongoId}`;
+};
 
 // const renderLinkedSubject = (subject) => {
 //   const mongoId = extractMongoId(subject);
@@ -78,7 +86,7 @@ const renderLinkedSubject = (subject, navigate) => {
 
   const goToAccount = (e) => {
     e.preventDefault();
-    navigate(buildAccountLink(mongoId));
+    navigate(buildAccountPath(mongoId));
   };
 
   // Match "from", "for", "by", or "with" and everything after it
@@ -579,7 +587,10 @@ export default function InboxPlus() {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
 
-      const blob = new Blob([byteNumbers], {
+      // Build a named File (not an anonymous Blob) so the browser tab /
+      // downloaded file shows the real filename instead of a generated
+      // blob UUID.
+      const blob = new File([byteNumbers], filename, {
         type: mimeType || "application/octet-stream",
       });
 
@@ -1338,7 +1349,7 @@ const renderEmailThread = (messages) => {
       return;
     }
 
-    navigate(buildAccountLink(mongoId));
+    navigate(buildAccountPath(mongoId));
   }}
   className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
 >

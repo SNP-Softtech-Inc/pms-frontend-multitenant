@@ -312,7 +312,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useToastContext } from "..//context/ToastContext";
-import { NavLink, useNavigate, Link } from "react-router-dom";
+import { NavLink, useNavigate, useLocation, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import logo from "../Images/logoAdmin.png";
 
@@ -340,6 +340,14 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // A deep link (e.g. from an email notification) that hit ProtectedRoute
+  // while logged out arrives here with the originally-requested path in
+  // location.state.from - send the user back there after login instead of
+  // always dropping them on the default dashboard.
+  const redirectPath = location.state?.from
+    ? `${location.state.from.pathname}${location.state.from.search || ""}`
+    : "/insights";
 
   const { login, isAuthenticated, loading } = useAuth();
 const {showToast} = useToastContext()
@@ -363,8 +371,9 @@ const {showToast} = useToastContext()
   // ================= REDIRECT =================
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/insights");
+      navigate(redirectPath);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, navigate]);
 
   // ================= INPUT CHANGE =================
@@ -528,7 +537,7 @@ setInpval({
 setSelectedUser(null);
 setAgreeToTerms(false);
 
-navigate("/insights");
+navigate(redirectPath);
       // if (result.success) {
       //   showToast({
       //     title: "Login successful",

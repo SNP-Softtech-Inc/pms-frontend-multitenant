@@ -1,10 +1,11 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
 
 const ProtectedRoute = ({ children, allowedRoles = [], redirectTo = '/login' }) => {
   const { isAuthenticated, loading, hasRole } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -15,7 +16,10 @@ const ProtectedRoute = ({ children, allowedRoles = [], redirectTo = '/login' }) 
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    // Preserve the originally-requested URL (e.g. a deep link from an
+    // email notification) so Login can send the user back to it instead
+    // of always landing on the default dashboard after signing in.
+    return <Navigate to={redirectTo} replace state={{ from: location }} />;
   }
 
   // Check role-based access

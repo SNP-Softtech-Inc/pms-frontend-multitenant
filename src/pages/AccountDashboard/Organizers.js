@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {useToastContext} from "../../context/ToastContext"
 import { MoreHorizontal, Trash2, CheckSquare, Square } from "lucide-react";
 
@@ -47,6 +47,7 @@ import { useConfirm } from "../../components/ConfirmDialogContext";
 const Organizers = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
 const {showToast} = useToastContext()
   const [organizerTemplatesData, setOrganizerTemplatesData] = useState([]);
@@ -244,6 +245,21 @@ const handleBulkDelete = () => {
   const handleClosePreview = () => {
     setShowForm(false);
   };
+
+  // Deep-link support: the "Organizer completed" admin notification email
+  // links here with ?organizerId=<id> so it opens the specific completed
+  // organizer directly instead of just landing on the account's organizer
+  // list. Strip the param afterwards so it doesn't re-trigger.
+  useEffect(() => {
+    const organizerId = searchParams.get("organizerId");
+    if (organizerId) {
+      handleEdit(organizerId);
+      const next = new URLSearchParams(searchParams);
+      next.delete("organizerId");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const handleDownload = async (organizer) => {
   if (!organizer) return;
 

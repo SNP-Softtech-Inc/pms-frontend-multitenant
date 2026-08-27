@@ -12,6 +12,17 @@ import {
 } from "../../components/ui/table";
 import { chatAPI } from "../../services/api";
 
+// Strips tags to plain text via the DOM parser (not a regex) so
+// HTML-entity-encoded content (e.g. "&nbsp;", "&lt;b&gt;") decodes
+// correctly instead of showing the raw entity text in the preview.
+const getMessagePreview = (html) => {
+  if (!html) return "No message";
+  const text = new DOMParser()
+    .parseFromString(html, "text/html")
+    .body.textContent.trim();
+  return text || "No message";
+};
+
 const ActiveChats = ({ accountId, setChatsCount }) => {
   const [chatList, setChatList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -108,13 +119,7 @@ const ActiveChats = ({ accountId, setChatsCount }) => {
 
                       {/* Last Message */}
                       <TableCell className="max-w-[300px] truncate text-muted-foreground">
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html:
-                              lastMessage?.message ||
-                              "No message",
-                          }}
-                        />
+                        {getMessagePreview(lastMessage?.message)}
                       </TableCell>
 
                       {/* Sender */}

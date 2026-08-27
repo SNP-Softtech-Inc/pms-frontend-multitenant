@@ -182,7 +182,14 @@ const assignfoldertemp = async (accountId, foldertempId) => {
       companyName: accountData.companyName || "",
       teamMember:
         accountData.teamMembers?.map((m) => m.value) || [],
-      tags: accountData.tags?.map((t) => t.value) || [],
+      // Defensive filter: only send tag entries that actually resolved to
+      // an id. If accountData.tags ever contains a raw (unhydrated) tag id
+      // string instead of a {value,label} option, t.value would be
+      // undefined and silently wipe the account's real tags on save.
+      tags:
+        accountData.tags
+          ?.map((t) => t.value)
+          .filter((v) => v !== undefined && v !== null) || [],
       country: accountData.country
         ? { name: accountData.country.label }
         : {},
