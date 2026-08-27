@@ -224,8 +224,13 @@ const Dashboard = () => {
                   return false;
                 if (sub.label === "Invoices" && !permissions.viewallAccounts)
                   return false;
-                if (sub.label === "Accounts" && !permissions.viewallAccounts)
-                  return false;
+                // Accounts nav must stay visible even without
+                // viewallAccounts - a team member specifically
+                // tagged/assigned to an account still needs to reach the
+                // Accounts section to open it. The backend already scopes
+                // which accounts they actually see (all vs. only tagged),
+                // so this was blocking legitimate tagged-only access
+                // entirely rather than just narrowing the list.
                 return true;
               });
             }
@@ -265,8 +270,11 @@ const Dashboard = () => {
               return false;
             if (item.label === "Contact" && !permissions.manageContacts)
               return false;
-            if (item.label === "Jobs" && !permissions.managePipelines)
-              return false;
+            // "managePipelines" governs Pipeline Templates management, not
+            // job creation - there is no dedicated job-creation permission,
+            // and the backend enforces none either, so gating this on the
+            // wrong flag was blocking team members from creating Jobs for
+            // accounts they otherwise have full access to.
             if (item.label === "Organizer" && !permissions.manageOrganizers)
               return false;
             if (item.label === "Invoice" && !permissions.manageInvoices)

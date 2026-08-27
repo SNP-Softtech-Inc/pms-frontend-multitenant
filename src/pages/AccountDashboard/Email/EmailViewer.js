@@ -1320,6 +1320,13 @@ const {showToast} = useToastContext();
         .map((thread) => {
           // Only keep messages that match the direction for this tab
           const matchingMessages = thread.messages.filter((msg) => {
+            // Internal team-member activation emails aren't client
+            // correspondence - exclude them outright rather than letting
+            // them leak in via a coincidental contact-email substring match.
+            if (/has invited you to join PMS/i.test(msg.subject || "")) {
+              return false;
+            }
+
             const from = msg.from?.toLowerCase() || "";
             const toList = Array.isArray(msg.to)
               ? msg.to.map((t) => t.toLowerCase())

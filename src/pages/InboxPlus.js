@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Archive,
   Check,
@@ -62,13 +63,23 @@ const buildAccountLink = (mongoId) => {
 //     </a>
 //   );
 // };
-const renderLinkedSubject = (subject) => {
+// navigate is passed in from the component so clicking a linked subject
+// stays inside the SPA (React Router navigation) instead of a hard
+// target="_blank" navigation into a brand-new tab/window - a new tab has
+// no in-memory auth state and has to cold-start a token refresh, which is
+// what was causing "please log in again" even with an active session.
+const renderLinkedSubject = (subject, navigate) => {
   const mongoId = extractMongoId(subject);
   const text = cleanSubjectText(subject) || "(No Subject)";
 
   if (!mongoId) {
     return text;
   }
+
+  const goToAccount = (e) => {
+    e.preventDefault();
+    navigate(buildAccountLink(mongoId));
+  };
 
   // Match "from", "for", "by", or "with" and everything after it
   const match = text.match(/^(.*?\b(from|for|by|with)\b\s+)(.+)$/i);
@@ -77,8 +88,7 @@ const renderLinkedSubject = (subject) => {
     return (
       <a
         href={buildAccountLink(mongoId)}
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={goToAccount}
         className="text-primary hover:underline font-medium"
       >
         {text}
@@ -94,8 +104,7 @@ const renderLinkedSubject = (subject) => {
       {prefix}
       <a
         href={buildAccountLink(mongoId)}
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={goToAccount}
         className="text-primary hover:underline font-medium"
       >
         {linkedText}
@@ -104,6 +113,7 @@ const renderLinkedSubject = (subject) => {
   );
 };
 export default function InboxPlus() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [archivedNotifications, setArchivedNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1134,8 +1144,11 @@ const renderEmailThread = (messages) => {
               
               filteredThreads.map((thread) => (
                 <React.Fragment key={thread._id}>
-                  <tr className="border-b hover:bg-slate-50">
-                    <td className="p-3">
+                  <tr
+                    className="border-b hover:bg-slate-50 cursor-pointer"
+                    onClick={() => toggleRow(thread._id)}
+                  >
+                    <td className="p-3" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selectedRows.includes(thread._id)}
@@ -1163,7 +1176,7 @@ const renderEmailThread = (messages) => {
 
                     <td className="p-3">
                       <div className="font-medium">
-                        {renderLinkedSubject(thread.latest?.subject)}
+                        {renderLinkedSubject(thread.latest?.subject, navigate)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {getPreview(thread.latest?.body || "").slice(0, 100)}
@@ -1174,7 +1187,7 @@ const renderEmailThread = (messages) => {
                       {formatDate(thread.latest?.messageDate)}
                     </td>
 
-                    <td className="p-3">
+                    <td className="p-3" onClick={(e) => e.stopPropagation()}>
                       {thread.latest?.attachments?.[0] ? (
                         <button
                           onClick={() =>
@@ -1190,7 +1203,7 @@ const renderEmailThread = (messages) => {
                       )}
                     </td>
 
-                    <td className="p-3 text-center">
+                    <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                       {thread.latest?.isRead ? (
                         <Check className="mx-auto text-green-600" size={16} />
                       ) : (
@@ -1203,9 +1216,9 @@ const renderEmailThread = (messages) => {
                       )}
                     </td>
 
-                    <td className="p-3 text-center">
+                    <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-center gap-2">
-                       
+
 
                         {viewMode === "inbox" ? (
                           <button
@@ -1325,7 +1338,7 @@ const renderEmailThread = (messages) => {
       return;
     }
 
-    window.open(buildAccountLink(mongoId), "_blank");
+    navigate(buildAccountLink(mongoId));
   }}
   className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
 >
@@ -1351,7 +1364,7 @@ const renderEmailThread = (messages) => {
           <div className="w-[700px] bg-white h-full overflow-auto">
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
               <h2 className="font-semibold text-lg">
-                {renderLinkedSubject(selectedThread.latest?.subject)}
+                {renderLinkedSubject(selectedThread.latest?.subject, navigate)}
               </h2>
               <div className="flex gap-2">
                 {viewMode === "inbox" ? (

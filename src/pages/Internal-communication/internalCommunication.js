@@ -427,7 +427,12 @@ const InternalCommunication = () => {
 
               const unreadCount = countUnreadMessages(chat);
               const latestMessage = chat.description?.[chat.description.length - 1];
-              const preview = latestMessage?.message?.replace(/<[^>]+>/g, "") || "";
+              // Stripping tags with a regex leaves HTML entities (e.g.
+              // "&nbsp;") visible as literal text; parse and read
+              // .textContent instead so entities are decoded correctly.
+              const preview = latestMessage?.message
+                ? new DOMParser().parseFromString(latestMessage.message, "text/html").body.textContent.trim()
+                : "";
               const isSelected = selectedChat?._id === chat._id;
 
               return (
