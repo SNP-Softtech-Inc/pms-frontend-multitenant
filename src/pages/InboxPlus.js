@@ -39,6 +39,35 @@ const cleanSubjectText = (subject = "") =>
   subject.replace(/#[a-f0-9]{24}\b/i, "").trim();
 
 const getPreview = (html = "") => html.replace(/<[^>]*>?/gm, "");
+
+const escapeHtml = (str = "") =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+// Opens a blob URL inside a real HTML wrapper (with a proper <title> and
+// the file embedded via <iframe>) instead of navigating the tab directly
+// to the blob: URL. Direct navigation makes Chrome's standalone PDF
+// viewer derive its displayed name from the URL itself - always a random
+// UUID for blob: URLs - regardless of the underlying object's filename.
+const openNamedFileInViewer = (blobUrl, filename) => {
+  const viewerWindow = window.open("", "_blank");
+  if (!viewerWindow) return;
+
+  viewerWindow.document.write(`
+    <html>
+      <head><title>${escapeHtml(filename)}</title></head>
+      <body style="margin:0;">
+        <iframe src="${blobUrl}" title="${escapeHtml(
+          filename,
+        )}" style="width:100%;height:100vh;border:none;"></iframe>
+      </body>
+    </html>
+  `);
+  viewerWindow.document.close();
+};
 const buildAccountLink = (mongoId) => {
   return `/admin/clients/accounts/accountsdash/overview/${mongoId}`;
 };
@@ -611,8 +640,14 @@ export default function InboxPlus() {
 
       // ============ PDF FILES ============
       if (mimeType === "application/pdf" || fileExtension === "pdf") {
-        // Open PDF in new tab
-        window.open(url, "_blank");
+        // window.open(url, "_blank") navigates the tab directly to the
+        // blob: URL, and Chrome's standalone PDF viewer then derives its
+        // displayed title from that URL - which is always a random UUID
+        // for a blob: URL no matter what name the underlying object was
+        // given. Wrapping it in a page with a real <title> and embedding
+        // the PDF via <iframe> (instead of top-level navigation) is what
+        // actually makes the browser tab show the real filename.
+        openNamedFileInViewer(url, filename);
       }
 
       // ============ IMAGE FILES ============
@@ -630,7 +665,7 @@ export default function InboxPlus() {
           filename: filename,
           mimeType: mimeType,
         });
-        window.open(url, "_blank");
+        openNamedFileInViewer(url, filename);
       }
 
       // ============ EXCEL FILES ============

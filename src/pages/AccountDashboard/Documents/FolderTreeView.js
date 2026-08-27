@@ -3391,7 +3391,22 @@ const [currentFileIndex, setCurrentFileIndex] = useState(0);
         }
         
         if (isPdf) {
-          printWindow.location.href = fileUrl;
+          // Navigating printWindow directly to the blob: URL makes
+          // Chrome's standalone PDF viewer derive its displayed name from
+          // the URL itself - always a random UUID for blob: URLs,
+          // regardless of the underlying File's name. Writing a wrapper
+          // page with a real <title> and embedding the PDF via <iframe>
+          // (instead of a top-level navigation) is what actually makes
+          // the browser tab show the real filename.
+          printWindow.document.write(`
+            <html>
+              <head><title>${file.name.replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}</title></head>
+              <body style="margin:0;">
+                <iframe src="${fileUrl}" style="width:100%;height:100vh;border:none;"></iframe>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
         } else {
           const reader = new FileReader();
           reader.onload = function(e) {
