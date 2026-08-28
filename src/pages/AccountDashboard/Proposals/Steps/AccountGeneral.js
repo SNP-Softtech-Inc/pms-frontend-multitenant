@@ -921,7 +921,8 @@ const GeneralStep = ({
   const [loading, setLoading] = useState(false);
   const [invoiceTemplates, setInvoiceTemplates] = useState([]);
   const [internalOptions, setInternalOptions] = useState([]);
-
+const [permissions, setPermissions] = useState(null);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
   // === SHORTCODES States ===
   const [anchorEl, setAnchorEl] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -1073,6 +1074,41 @@ console.log("location.state",location.state);
   //     console.error("Error fetching accounts:", error);
   //   }
   // };
+useEffect(() => {
+  const fetchPermissions = async () => {
+    try {
+      if (user?.role === "team_member") {
+        const res = await authAPI.getSingleUser(user.id);
+
+        const userPermissions = res?.data?.user?.permissions || {};
+
+        console.log("Proposal user permissions:", userPermissions);
+
+        setPermissions(userPermissions);
+      } else {
+        setPermissions({
+          viewallAccounts: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      setPermissions({});
+    }
+  };
+
+  if (user) {
+    fetchPermissions();
+  }
+}, [user]);
+  useEffect(() => {
+  if (!user) return;
+
+  if (user.role === "team_member" && !permissions) {
+    return;
+  }
+
+  fetchAccounts();
+}, [user, permissions]);
 const fetchAccounts = async () => {
   try {
     // 🔹 1. CHECK LOCATION STATE FIRST
@@ -1128,47 +1164,95 @@ const fetchAccounts = async () => {
     }
 
     // 🔹 3. API CALL
-    let response;
+  //   let response;
 
-    if (user?.role === "team_member") {
-      response = await accountsAPI.getAccountsByTeamMember(true);
-    } else {
-      response = await accountsAPI.getAccountsList(true);
-    }
-  const result = response?.data || {};
-      console.log("accounts list for proposals",result)
-      const accountList = Array.isArray(result.accountlist)
-        ? result.accountlist
-        : [];
+  //   if (user?.role === "team_member") {
+  //     response = await accountsAPI.getAccountsByTeamMember(true);
+  //   } else {
+  //     response = await accountsAPI.getAccountsList(true);
+  //   }
+  // const result = response?.data || {};
+  //     console.log("accounts list for proposals",result)
+  //     const accountList = Array.isArray(result.accountlist)
+  //       ? result.accountlist
+  //       : [];
 
-      setAccounts(accountList);
-      console.log("Fetched accounts:", accountList);
+  //     setAccounts(accountList);
+  //     console.log("Fetched accounts:", accountList);
 
-      // 🔹 3. AUTO-SELECT FROM PARAMS (if exists)
-      const selectedAccountData = accountList.find(
-        (account) => account._id === accountId
-      );
+  //     // 🔹 3. AUTO-SELECT FROM PARAMS (if exists)
+  //     const selectedAccountData = accountList.find(
+  //       (account) => account._id === accountId
+  //     );
 
-      if (selectedAccountData) {
-        const selectedAccount = {
-          label: selectedAccountData.accountName,
-          value: selectedAccountData._id,
-        };
+  //     if (selectedAccountData) {
+  //       const selectedAccount = {
+  //         label: selectedAccountData.accountName,
+  //         value: selectedAccountData._id,
+  //       };
 
-        updateFormData("general", {
-          account: selectedAccount,
-        });
+  //       updateFormData("general", {
+  //         account: selectedAccount,
+  //       });
 
-        if (stepErrors.account) {
-          setStepErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors.account;
-            return newErrors;
-          });
-        }
+  //       if (stepErrors.account) {
+  //         setStepErrors((prev) => {
+  //           const newErrors = { ...prev };
+  //           delete newErrors.account;
+  //           return newErrors;
+  //         });
+  //       }
+// 🔹 3. API CALL
+let response;
 
+if (
+  user?.role === "team_member" &&
+  permissions?.viewallAccounts !== true
+) {
+  // Team member without permission to view all accounts
+  response = await accountsAPI.getAccountsByTeamMember(true);
+} else {
+  // Admin OR team member with viewallAccounts permission
+  response = await accountsAPI.getAccountsList(true);
+}
+
+const result = response?.data || {};
+
+console.log("accounts list for proposals", result);
+
+const accountList = Array.isArray(result.accountlist)
+  ? result.accountlist
+  : [];
+
+setAccounts(accountList);
+
+console.log("Fetched accounts:", accountList);
+
+// 🔹 AUTO-SELECT FROM PARAMS (if exists)
+const selectedAccountData = accountList.find(
+  (account) => account._id === accountId
+);
+
+if (selectedAccountData) {
+  const selectedAccount = {
+    label: selectedAccountData.accountName,
+    value: selectedAccountData._id,
+  };
+
+  updateFormData("general", {
+    account: selectedAccount,
+  });
+
+  if (stepErrors.account) {
+    setStepErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.account;
+      return newErrors;
+    });
+  }
+}
         // console.log("Auto-selected account:", selectedAccount);
-      }
+      
     // ...rest of your code
   } catch (error) {
     console.error("Error fetching accounts:", error);
