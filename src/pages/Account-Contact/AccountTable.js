@@ -253,7 +253,8 @@ const { data: accountList = [], isLoading: loading } = useQuery({
   enabled:
     !!user &&
     (user.role !== "team_member" || permissions !== null),
-});  // Extract unique tags from accounts
+});  
+// Extract unique tags from accounts
   useEffect(() => {
     const tags = [
       ...new Map(
