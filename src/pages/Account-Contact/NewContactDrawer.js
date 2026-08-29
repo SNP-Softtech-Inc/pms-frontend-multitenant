@@ -45,6 +45,12 @@ const { showToast } = useToastContext();
   const [companyName, setCompanyName] = useState("");
   const [note, setNote] = useState("");
   const [ssn, setSsn] = useState("");
+  const [tdUnformattedPhoneNumber, setTdUnformattedPhoneNumber] = useState("");
+  const [tpSocial, setTpSocial] = useState("");
+  const [tpDob, setTpDob] = useState("");
+  const [resState, setResState] = useState("");
+  const [tpDayPhone, setTpDayPhone] = useState("");
+  const [tpOccupation, setTpOccupation] = useState("");
   const [email, setEmail] = useState("");
 const [loading, setLoading] = useState(false);
   const [streetAddress, setStreetAddress] = useState("");
@@ -147,6 +153,14 @@ const [loading, setLoading] = useState(false);
       setEmail(selectedContact.email || "");
       setNote(selectedContact.note || "");
       setSsn(selectedContact.ssn || "");
+      setTdUnformattedPhoneNumber(
+        selectedContact.tdUnformattedPhoneNumber || "",
+      );
+      setTpSocial(selectedContact.tpSocial || "");
+      setTpDob(selectedContact.tpDob || "");
+      setResState(selectedContact.resState || "");
+      setTpDayPhone(selectedContact.tpDayPhone || "");
+      setTpOccupation(selectedContact.tpOccupation || "");
 
       setStreetAddress(selectedContact.streetAddress || "");
       setCity(selectedContact.city || "");
@@ -202,6 +216,12 @@ const [loading, setLoading] = useState(false);
     setEmail("");
     setNote("");
     setSsn("");
+    setTdUnformattedPhoneNumber("");
+    setTpSocial("");
+    setTpDob("");
+    setResState("");
+    setTpDayPhone("");
+    setTpOccupation("");
     setStreetAddress("");
     setCity("");
     setState("");
@@ -325,6 +345,12 @@ const [loading, setLoading] = useState(false);
       companyName,
       note,
       ssn,
+      tdUnformattedPhoneNumber,
+      tpSocial,
+      tpDob,
+      resState,
+      tpDayPhone,
+      tpOccupation,
       email,
       tags: combinedValues,
       country: countryPayload,
@@ -618,6 +644,102 @@ const [loading, setLoading] = useState(false);
               value={ssn}
               placeholder="SSN"
               onChange={handleSSNChange}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              [TD] Unformatted Phone Number
+            </Label>
+            <Input
+              value={tdUnformattedPhoneNumber}
+              placeholder="[TD] Unformatted Phone Number"
+              onChange={(e) => setTdUnformattedPhoneNumber(e.target.value)}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              TP_Social
+            </Label>
+            <Input
+              value={tpSocial}
+              placeholder="TP_Social"
+              onChange={(e) => setTpSocial(e.target.value)}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              TP_DoB
+            </Label>
+            <Input
+              value={tpDob}
+              placeholder="TP_DoB"
+              onChange={(e) => setTpDob(e.target.value)}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              Res_State
+            </Label>
+            <Input
+              value={resState}
+              placeholder="Res_State"
+              onChange={(e) => setResState(e.target.value)}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              TP_Day_Phone
+            </Label>
+            <Input
+              value={tpDayPhone}
+              placeholder="TP_Day_Phone"
+              onChange={(e) => setTpDayPhone(e.target.value)}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              TP_Occupation
+            </Label>
+            <Input
+              value={tpOccupation}
+              placeholder="TP_Occupation"
+              onChange={(e) => setTpOccupation(e.target.value)}
               className="
                 h-11 rounded-xl
                 border-border/60
