@@ -455,19 +455,6 @@ const Dashboard = () => {
 
           {/* ── Sidebar Menu ─────────────────────────── */}
           <div className="flex-1 overflow-y-auto px-2.5 py-4 space-y-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/60 hover:[&::-webkit-scrollbar-thumb]:bg-border">
-            {/* ───────── MAIN SECTION ───────── */}
-            {open && (
-              <p
-                className="px-2.5 pb-1.5 pt-1 font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 select-none"
-                style={{
-                  fontSize:
-                    "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
-                }}
-              >
-                Main
-              </p>
-            )}
-
             {sidebarItems.slice(0, 4).map((item, index) => {
               const active = isActive(item.path, item.submenu);
 
@@ -486,7 +473,7 @@ const Dashboard = () => {
                     className={`group relative flex w-full items-center gap-2.5 rounded-lg border-l-[3px] px-2.5 py-2.5 transition-all duration-150
                   ${
                     active
-                      ? "border-primary bg-primary/10 text-primary font-semibold"
+                      ? "border-transparent bg-primary text-primary-foreground font-semibold shadow-sm"
                       : "border-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                   }
                   ${!open && "justify-center px-2"}
@@ -523,37 +510,47 @@ const Dashboard = () => {
                   </button>
 
                   {/* Submenu */}
-                  {item.submenu?.length > 0 && openMenus[index] && (
-                    <div className="ml-5 mt-1 border-l border-border/60 pl-3 space-y-0.5">
-                      {item.submenu.map((sub, i) => {
-                        const subActive = isSubActive(sub.path);
+                  {item.submenu?.length > 0 && (
+                    <div
+                      className={`grid transition-all duration-300 ease-in-out ${
+                        openMenus[index]
+                          ? "grid-rows-[1fr] opacity-100 mt-1"
+                          : "grid-rows-[0fr] opacity-0"
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="ml-5 border-l border-border/60 pl-3 space-y-0.5 py-0.5">
+                          {item.submenu.map((sub, i) => {
+                            const subActive = isSubActive(sub.path);
 
-                        return (
-                          <button
-                            key={i}
-                            onClick={() => {
-                              navigate(sub.path);
-                              if (!isSmUp) setMobileOpen(false);
-                            }}
-                            className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors duration-150
-                          ${
-                            subActive
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                          }
-                        `}
-                            style={{
-                              fontSize:
-                                "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
-                            }}
-                          >
-                            <span style={{ fontSize: "var(--text-body)" }}>
-                              {getIcon(sub.icon)}
-                            </span>
-                            {open && <span>{sub.label}</span>}
-                          </button>
-                        );
-                      })}
+                            return (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  navigate(sub.path);
+                                  if (!isSmUp) setMobileOpen(false);
+                                }}
+                                className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors duration-150
+                              ${
+                                subActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                              }
+                            `}
+                                style={{
+                                  fontSize:
+                                    "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                                }}
+                              >
+                                <span style={{ fontSize: "var(--text-body)" }}>
+                                  {getIcon(sub.icon)}
+                                </span>
+                                {open && <span>{sub.label}</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -562,19 +559,6 @@ const Dashboard = () => {
 
             {/* ───────── DIVIDER ───────── */}
             <div className="h-px bg-border/50 mx-2.5 my-3" />
-
-            {/* ───────── TOOLS SECTION ───────── */}
-            {open && (
-              <p
-                className="px-2.5 pb-1.5 pt-1 font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 select-none"
-                style={{
-                  fontSize:
-                    "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
-                }}
-              >
-                Tools
-              </p>
-            )}
 
             {sidebarItems.slice(4).map((item, index) => {
               const realIndex = index + 4;
@@ -595,7 +579,7 @@ const Dashboard = () => {
                     className={`group relative flex w-full items-center gap-2.5 rounded-lg border-l-[3px] px-2.5 py-2.5 transition-all duration-150
                   ${
                     active
-                      ? "border-primary bg-primary/10 text-primary font-semibold"
+                      ? "border-transparent bg-primary text-primary-foreground font-semibold shadow-sm"
                       : "border-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                   }
                   ${!open && "justify-center px-2"}
@@ -630,42 +614,94 @@ const Dashboard = () => {
                   </button>
 
                   {/* Submenu */}
-                  {item.submenu?.length > 0 && openMenus[realIndex] && (
-                    <div className="ml-5 mt-1 border-l border-border/60 pl-3 space-y-0.5">
-                      {item.submenu.map((sub, i) => {
-                        const subActive = isSubActive(sub.path);
+                  {item.submenu?.length > 0 && (
+                    <div
+                      className={`grid transition-all duration-300 ease-in-out ${
+                        openMenus[realIndex]
+                          ? "grid-rows-[1fr] opacity-100 mt-1"
+                          : "grid-rows-[0fr] opacity-0"
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="ml-5 border-l border-border/60 pl-3 space-y-0.5 py-0.5">
+                          {item.submenu.map((sub, i) => {
+                            const subActive = isSubActive(sub.path);
 
-                        return (
-                          <button
-                            key={i}
-                            onClick={() => {
-                              navigate(sub.path);
-                              if (!isSmUp) setMobileOpen(false);
-                            }}
-                            className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors duration-150
-                          ${
-                            subActive
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                          }
-                        `}
-                            style={{
-                              fontSize:
-                                "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
-                            }}
-                          >
-                            <span style={{ fontSize: "var(--text-body)" }}>
-                              {getIcon(sub.icon)}
-                            </span>
-                            {open && <span>{sub.label}</span>}
-                          </button>
-                        );
-                      })}
+                            return (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  navigate(sub.path);
+                                  if (!isSmUp) setMobileOpen(false);
+                                }}
+                                className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors duration-150
+                              ${
+                                subActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                              }
+                            `}
+                                style={{
+                                  fontSize:
+                                    "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                                }}
+                              >
+                                <span style={{ fontSize: "var(--text-body)" }}>
+                                  {getIcon(sub.icon)}
+                                </span>
+                                {open && <span>{sub.label}</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
               );
             })}
+          </div>
+
+          {/* ── Sidebar Footer ───────────────────────── */}
+          <div
+            onClick={() => navigate("/settings/myaccount")}
+            className={cn(
+              "flex shrink-0 items-center gap-2.5 border-t border-border/60 px-2.5 py-3 cursor-pointer transition-colors hover:bg-muted/50",
+              !open && "justify-center px-2",
+            )}
+          >
+            <div
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold uppercase text-primary"
+              style={{
+                fontSize:
+                  "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+              }}
+            >
+              {user?.username?.charAt(0)?.toUpperCase() || "U"}
+            </div>
+
+            {open && (
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate font-medium text-foreground"
+                  style={{
+                    fontSize:
+                      "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
+                  }}
+                >
+                  {user?.username || "User"}
+                </p>
+                <p
+                  className="truncate capitalize text-muted-foreground"
+                  style={{
+                    fontSize:
+                      "calc(var(--text-caption) * parseFloat(var(--font-scale)) / 100)",
+                  }}
+                >
+                  {user?.role?.replace(/_/g, " ") || ""}
+                </p>
+              </div>
+            )}
           </div>
         </aside>
 
