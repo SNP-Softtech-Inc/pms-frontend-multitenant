@@ -745,6 +745,18 @@ export const templateAPI = {
 
 // ================= ACCOUNTS APIs =================
 
+export const customFieldAPI = {
+  getCustomFields: (entityType = "contact") =>
+    accountcontactApi.get(`/api/customfields?entityType=${entityType}`),
+
+  createCustomField: (data) => accountcontactApi.post("/api/customfields", data),
+
+  updateCustomField: (id, data) =>
+    accountcontactApi.patch(`/api/customfields/${id}`, data),
+
+  deleteCustomField: (id) => accountcontactApi.delete(`/api/customfields/${id}`),
+};
+
 export const accountsAPI = {
   // ================= CREATE =================
   createAccount: (data) => accountcontactApi.post("/api/clientaccounts/", data),

@@ -775,6 +775,8 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 import ThemeSettings from "./ThemeSettings";
+import { customFieldAPI } from "../../services/api";
+import { useToastContext } from "../../context/ToastContext";
 // Custom Switch component to match the shadcn/ui style
 const Switch = ({ checked, onCheckedChange, disabled }) => (
   <button
@@ -861,6 +863,68 @@ const SaveBtn = ({ onClick }) => (
 );
 
 const FirmSetting = () => {
+  const { showToast } = useToastContext();
+
+  // Custom Fields (Contacts)
+  const [customFields, setCustomFields] = useState([]);
+  const [customFieldsLoading, setCustomFieldsLoading] = useState(false);
+  const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [newFieldRequired, setNewFieldRequired] = useState(false);
+  const [savingCustomField, setSavingCustomField] = useState(false);
+
+  const fetchCustomFields = async () => {
+    setCustomFieldsLoading(true);
+    try {
+      const res = await customFieldAPI.getCustomFields("contact");
+      setCustomFields(res?.data?.customFields || []);
+    } catch (err) {
+      console.error("Failed to load custom fields:", err);
+    } finally {
+      setCustomFieldsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomFields();
+  }, []);
+
+  const handleAddCustomField = async () => {
+    if (!newFieldLabel.trim()) return;
+
+    setSavingCustomField(true);
+    try {
+      await customFieldAPI.createCustomField({
+        label: newFieldLabel.trim(),
+        required: newFieldRequired,
+        entityType: "contact",
+      });
+      setNewFieldLabel("");
+      setNewFieldRequired(false);
+      showToast({ title: "Custom field added", type: "success" });
+      fetchCustomFields();
+    } catch (err) {
+      showToast({
+        title: err?.response?.data?.error || "Failed to add custom field",
+        type: "error",
+      });
+    } finally {
+      setSavingCustomField(false);
+    }
+  };
+
+  const handleDeleteCustomField = async (id) => {
+    try {
+      await customFieldAPI.deleteCustomField(id);
+      setCustomFields((prev) => prev.filter((f) => f._id !== id));
+      showToast({ title: "Custom field removed", type: "success" });
+    } catch (err) {
+      showToast({
+        title: err?.response?.data?.error || "Failed to remove custom field",
+        type: "error",
+      });
+    }
+  };
+
   // ------------------ States ------------------
   // Contact details
   const [firmName, setFirmName] = useState("");
@@ -1081,6 +1145,12 @@ const FirmSetting = () => {
             className="text-sm px-5 rounded-md py-1.5 transition-all"
           >
             Appearance
+          </TabsTrigger>
+          <TabsTrigger
+            value="customfields"
+            className="text-sm px-5 rounded-md py-1.5 transition-all"
+          >
+            Custom Fields
           </TabsTrigger>
         </TabsList>
 
@@ -1559,6 +1629,83 @@ const FirmSetting = () => {
         {/* APPEARANCE TAB */}
         <TabsContent value="appearance" className="space-y-6">
           <ThemeSettings />
+        </TabsContent>
+
+        {/* CUSTOM FIELDS TAB */}
+        <TabsContent value="customfields" className="space-y-6">
+          <SettingsCard title="Contact custom fields">
+            <p className="text-sm text-muted-foreground -mt-2">
+              Add extra text fields that show up on every contact's form,
+              alongside Tags/Note/SSN.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Field name
+                </label>
+                <input
+                  value={newFieldLabel}
+                  onChange={(e) => setNewFieldLabel(e.target.value)}
+                  placeholder="e.g. TP_Social"
+                  className="flex h-10 w-full rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 pb-2 sm:pb-0 sm:h-10">
+                <Switch
+                  checked={newFieldRequired}
+                  onCheckedChange={setNewFieldRequired}
+                />
+                <span className="text-sm text-foreground">Required</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={handleAddCustomField}
+                disabled={savingCustomField || !newFieldLabel.trim()}
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed sm:h-10"
+              >
+                Add Field
+              </button>
+            </div>
+
+            <div className="divide-y divide-border border border-border rounded-lg">
+              {customFieldsLoading ? (
+                <p className="text-sm text-muted-foreground p-4">Loading...</p>
+              ) : customFields.length === 0 ? (
+                <p className="text-sm text-muted-foreground p-4">
+                  No custom fields yet.
+                </p>
+              ) : (
+                customFields.map((field) => (
+                  <div
+                    key={field._id}
+                    className="flex items-center justify-between px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {field.label}
+                        {field.required && (
+                          <span className="text-destructive ml-1">*</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Key: {field.key}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCustomField(field._id)}
+                      className="text-sm font-medium text-destructive hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </SettingsCard>
         </TabsContent>
       </Tabs>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { contactsAPI } from "../../services/api";
+import { contactsAPI, customFieldAPI } from "../../services/api";
 import countryList from "react-select-country-list";
 import PhoneInput from "react-phone-input-2";
 import {
@@ -13,6 +13,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
+import { Label } from "../../components/ui/label";
 
 import {
   Popover,
@@ -52,6 +53,17 @@ const [loading, setLoading] = useState(false);
   const [postalCode, setPostalCode] = useState("");
   const [combinedValues, setCombinedValues] = useState();
   const [ssnError, setSsnError] = useState("");
+  // Tenant-defined custom fields (e.g. "TP_Social") - definitions come
+  // from the backend, values are per-contact.
+  const [customFieldDefs, setCustomFieldDefs] = useState([]);
+  const [customFieldValues, setCustomFieldValues] = useState({});
+
+  useEffect(() => {
+    customFieldAPI
+      .getCustomFields("contact")
+      .then((res) => setCustomFieldDefs(res?.data?.customFields || []))
+      .catch((err) => console.error("Failed to load custom fields:", err));
+  }, []);
   console.log(selectedCountry);
   // SSN auto-formatter
   const formatSSN = (value) => {
@@ -91,6 +103,7 @@ const [loading, setLoading] = useState(false);
       setCity(selectedContact.city || "");
       setState(selectedContact.state || "");
       setPostalCode(selectedContact.postalCode || "");
+      setCustomFieldValues(selectedContact.customFields || {});
       if (selectedContact.country) {
         const countryOption = options.find(
           (opt) =>
@@ -147,6 +160,7 @@ const [loading, setLoading] = useState(false);
     setPhoneNumbers([]);
     setSelectedTags([]);
     setCombinedValues([]);
+    setCustomFieldValues({});
   };
 
   // Main change handler
@@ -267,6 +281,7 @@ const [loading, setLoading] = useState(false);
       state,
       postalCode,
       phoneNumbers: formattedPhoneNumbers,
+      customFields: customFieldValues,
     };
 
     try {
@@ -514,35 +529,76 @@ const [loading, setLoading] = useState(false);
             </p>
           </div>
 
-          <TagsMultiSelectDropDown
-            value={selectedTags}
-            onChange={handleTagChange}
-            placeholder="Select tags"
-          />
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              Tags
+            </Label>
+            <TagsMultiSelectDropDown
+              value={selectedTags}
+              onChange={handleTagChange}
+              placeholder="Select tags"
+            />
+          </div>
 
-          <Textarea
-            value={note}
-            placeholder="Write a note..."
-            onChange={(e) => setNote(e.target.value)}
-            className="
-              min-h-[110px]
-              rounded-xl
-              border-border/60
-              bg-background/80
-              resize-none
-            "
-          />
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              Note
+            </Label>
+            <Textarea
+              value={note}
+              placeholder="Write a note..."
+              onChange={(e) => setNote(e.target.value)}
+              className="
+                min-h-[110px]
+                rounded-xl
+                border-border/60
+                bg-background/80
+                resize-none
+              "
+            />
+          </div>
 
-          <Input
-            value={ssn}
-            placeholder="SSN"
-            onChange={handleSSNChange}
-            className="
-              h-11 rounded-xl
-              border-border/60
-              bg-background/80
-            "
-          />
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">
+              SSN
+            </Label>
+            <Input
+              value={ssn}
+              placeholder="SSN"
+              onChange={handleSSNChange}
+              className="
+                h-11 rounded-xl
+                border-border/60
+                bg-background/80
+              "
+            />
+          </div>
+
+          {customFieldDefs.map((field) => (
+            <div key={field._id} className="space-y-1.5">
+              <Label className="text-xs font-medium text-foreground">
+                {field.label}
+                {field.required && (
+                  <span className="text-destructive ml-1">*</span>
+                )}
+              </Label>
+              <Input
+                value={customFieldValues[field.key] || ""}
+                placeholder={field.label}
+                onChange={(e) =>
+                  setCustomFieldValues((prev) => ({
+                    ...prev,
+                    [field.key]: e.target.value,
+                  }))
+                }
+                className="
+                  h-11 rounded-xl
+                  border-border/60
+                  bg-background/80
+                "
+              />
+            </div>
+          ))}
         </div>
 
         {/* Phone Numbers */}
