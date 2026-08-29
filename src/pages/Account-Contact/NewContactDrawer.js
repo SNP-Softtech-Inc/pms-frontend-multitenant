@@ -57,13 +57,62 @@ const [loading, setLoading] = useState(false);
   // from the backend, values are per-contact.
   const [customFieldDefs, setCustomFieldDefs] = useState([]);
   const [customFieldValues, setCustomFieldValues] = useState({});
+  const [showAddFieldForm, setShowAddFieldForm] = useState(false);
+  const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [newFieldRequired, setNewFieldRequired] = useState(false);
+  const [savingCustomField, setSavingCustomField] = useState(false);
 
-  useEffect(() => {
+  const fetchCustomFieldDefs = () => {
     customFieldAPI
       .getCustomFields("contact")
       .then((res) => setCustomFieldDefs(res?.data?.customFields || []))
       .catch((err) => console.error("Failed to load custom fields:", err));
+  };
+
+  useEffect(() => {
+    fetchCustomFieldDefs();
   }, []);
+
+  const handleAddCustomField = async () => {
+    if (!newFieldLabel.trim()) return;
+
+    setSavingCustomField(true);
+    try {
+      await customFieldAPI.createCustomField({
+        label: newFieldLabel.trim(),
+        required: newFieldRequired,
+        entityType: "contact",
+      });
+      setNewFieldLabel("");
+      setNewFieldRequired(false);
+      setShowAddFieldForm(false);
+      fetchCustomFieldDefs();
+    } catch (err) {
+      showToast({
+        title: err?.response?.data?.error || "Failed to add custom field",
+        type: "error",
+      });
+    } finally {
+      setSavingCustomField(false);
+    }
+  };
+
+  const handleRemoveCustomField = async (field) => {
+    try {
+      await customFieldAPI.deleteCustomField(field._id);
+      setCustomFieldDefs((prev) => prev.filter((f) => f._id !== field._id));
+      setCustomFieldValues((prev) => {
+        const next = { ...prev };
+        delete next[field.key];
+        return next;
+      });
+    } catch (err) {
+      showToast({
+        title: err?.response?.data?.error || "Failed to remove custom field",
+        type: "error",
+      });
+    }
+  };
   console.log(selectedCountry);
   // SSN auto-formatter
   const formatSSN = (value) => {
@@ -161,6 +210,9 @@ const [loading, setLoading] = useState(false);
     setSelectedTags([]);
     setCombinedValues([]);
     setCustomFieldValues({});
+    setShowAddFieldForm(false);
+    setNewFieldLabel("");
+    setNewFieldRequired(false);
   };
 
   // Main change handler
@@ -576,12 +628,22 @@ const [loading, setLoading] = useState(false);
 
           {customFieldDefs.map((field) => (
             <div key={field._id} className="space-y-1.5">
-              <Label className="text-xs font-medium text-foreground">
-                {field.label}
-                {field.required && (
-                  <span className="text-destructive ml-1">*</span>
-                )}
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-foreground">
+                  {field.label}
+                  {field.required && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveCustomField(field)}
+                  className="text-xs text-muted-foreground hover:text-destructive"
+                  title="Remove this custom field for everyone"
+                >
+                  Remove field
+                </button>
+              </div>
               <Input
                 value={customFieldValues[field.key] || ""}
                 placeholder={field.label}
@@ -599,6 +661,56 @@ const [loading, setLoading] = useState(false);
               />
             </div>
           ))}
+
+          {showAddFieldForm ? (
+            <div className="space-y-2 rounded-xl border border-dashed border-border/60 p-3">
+              <Input
+                autoFocus
+                value={newFieldLabel}
+                placeholder="Field name, e.g. TP_Social"
+                onChange={(e) => setNewFieldLabel(e.target.value)}
+                className="h-10 rounded-lg border-border/60 bg-background/80"
+              />
+              <label className="flex items-center gap-2 text-xs text-foreground">
+                <input
+                  type="checkbox"
+                  checked={newFieldRequired}
+                  onChange={(e) => setNewFieldRequired(e.target.checked)}
+                />
+                Required
+              </label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleAddCustomField}
+                  disabled={savingCustomField || !newFieldLabel.trim()}
+                >
+                  Add
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowAddFieldForm(false);
+                    setNewFieldLabel("");
+                    setNewFieldRequired(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowAddFieldForm(true)}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              + Add custom field
+            </button>
+          )}
         </div>
 
         {/* Phone Numbers */}
