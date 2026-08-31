@@ -411,9 +411,37 @@ const handleBulkDelete = () => {
   // =====================================================
   // LOOP SECTIONS
   // =====================================================
+  const isTextEditorElement = (el) =>
+    el?.type === "Text Editor" ||
+    el?.type === "texteditor" ||
+    el?.type === "textEditor";
+
+  const elementHasValue = (el) =>
+    !!(
+      el?.textvalue ||
+      el?.files?.length ||
+      el?.imageUrl ||
+      el?.images?.length
+    );
+
   for (const section of organizer?.sections ||
     []) {
     if (!section) continue;
+
+    // real questions in this section, excluding instructional
+    // Text Editor blocks (those never carry a client answer)
+    const sectionFields = (
+      section?.formElements || []
+    ).filter((el) => el && !isTextEditorElement(el));
+
+    const filledFieldCount = sectionFields.filter(
+      elementHasValue
+    ).length;
+
+    // The client left every field in this section blank - omit the
+    // whole section from the download instead of showing an empty
+    // header with nothing underneath it.
+    if (filledFieldCount === 0) continue;
 
     // avoid section title at bottom
     checkPageBreak(120);
@@ -428,11 +456,7 @@ const handleBulkDelete = () => {
     const sectionName =
       section?.name || "Section";
 
-    const sectionCount = `${
-      section?.formElements?.length || 0
-    } / ${
-      section?.formElements?.length || 0
-    }`;
+    const sectionCount = `${filledFieldCount} / ${sectionFields.length}`;
 
     // available width for title
     const titleWidth =
@@ -494,6 +518,10 @@ const handleBulkDelete = () => {
         continue;
       }
 
+      // The client left this field blank - omit it from the download
+      // instead of rendering a "-" placeholder row for it.
+      if (!elementHasValue(el)) continue;
+
       const question =
         stripHtml(el.text || "");
 
@@ -520,17 +548,6 @@ const handleBulkDelete = () => {
         el.images?.length
       ) {
         answer = "Image Attached";
-      }
-
-      // skip empty rows
-      if (
-        !question &&
-        !answer &&
-        !el.files?.length &&
-        !el.images?.length &&
-        !el.imageUrl
-      ) {
-        continue;
       }
 
       // =====================================================
