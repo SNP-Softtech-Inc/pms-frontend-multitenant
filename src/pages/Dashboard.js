@@ -542,10 +542,17 @@ const Dashboard = () => {
                                     "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
                                 }}
                               >
-                                <span style={{ fontSize: "var(--text-body)" }}>
+                                <span
+                                  className="shrink-0"
+                                  style={{ fontSize: "var(--text-body)" }}
+                                >
                                   {getIcon(sub.icon)}
                                 </span>
-                                {open && <span>{sub.label}</span>}
+                                {open && (
+                                  <span className="min-w-0 flex-1 truncate text-left">
+                                    {sub.label}
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -646,10 +653,17 @@ const Dashboard = () => {
                                     "calc(var(--text-body) * parseFloat(var(--font-scale)) / 100)",
                                 }}
                               >
-                                <span style={{ fontSize: "var(--text-body)" }}>
+                                <span
+                                  className="shrink-0"
+                                  style={{ fontSize: "var(--text-body)" }}
+                                >
                                   {getIcon(sub.icon)}
                                 </span>
-                                {open && <span>{sub.label}</span>}
+                                {open && (
+                                  <span className="min-w-0 flex-1 truncate text-left">
+                                    {sub.label}
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
