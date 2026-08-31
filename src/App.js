@@ -195,7 +195,7 @@ function App() {
         <Route
           path="/settings/firmsettings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute blockedRoles={["team_member"]}>
               <FirmSetting />
             </ProtectedRoute>
           }
@@ -289,7 +289,14 @@ function App() {
           path="firmtemp/pipelines/pipelineform"
           element={<PipelineForm />}
         />
-        <Route path="firmtemp/teammember" element={<TeamMember />} />
+        <Route
+          path="firmtemp/teammember"
+          element={
+            <ProtectedRoute blockedRoles={["team_member"]}>
+              <TeamMember />
+            </ProtectedRoute>
+          }
+        />
 
       {/* <Route path="firmtemp/teammember" element={<TeamMember />}>
   <Route index element={<ActiveMember />} />
