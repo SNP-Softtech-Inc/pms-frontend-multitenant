@@ -2097,6 +2097,8 @@ import {
   ChevronDown,
   Pencil,
   FileText,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { History } from "lucide-react";
 import {
@@ -2212,6 +2214,7 @@ const [submitters, setSubmitters] = useState([]);
   const [openFileViewer, setOpenFileViewer] = useState(false);
   const [openExcelDialog, setOpenExcelDialog] = useState(false);
   const [openWordDialog, setOpenWordDialog] = useState(false);
+  const [wordZoom, setWordZoom] = useState(1);
   const [openTextDialog, setOpenTextDialog] = useState(false);
   const [textContent, setTextContent] = useState("");
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
@@ -3552,6 +3555,18 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
       };
 
       const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
+
+      // Word/Excel can't be rendered natively by the browser, so opening
+      // the raw file URL directly (e.g. ctrl/cmd-click "open in new tab"
+      // on the link below) just forces a download instead of a preview.
+      // Point those extensions at the same Office Online embed viewer
+      // used for the normal in-app preview instead of the raw file.
+      const officeExts = ["doc", "docx", "xls", "xlsx", "xlsm", "xlsb"];
+      const itemExt = item.name?.toLowerCase().split(".").pop() || "";
+      const newTabUrl = officeExts.includes(itemExt)
+        ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`
+        : fileUrl;
+
       return (
         <React.Fragment key={fullPath}>
           <TableRow
@@ -3732,7 +3747,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                       <div className="flex flex-wrap items-center gap-1.5">
                         
                         <a
-                          href={fileUrl}
+                          href={newTabUrl}
                           className="
     text-left
     text-sm
@@ -4784,7 +4799,17 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
         </Dialog>
 
         {/* WORD VIEWER */}
-        <Dialog open={openWordDialog} onOpenChange={setOpenWordDialog}>
+        <Dialog
+          open={openWordDialog}
+          onOpenChange={(open) => {
+            setOpenWordDialog(open);
+            // Reset zoom for the next file this dialog is opened for -
+            // Microsoft's anonymous embed viewer for Word doesn't expose a
+            // working zoom control of its own, so this is the only zoom
+            // available for Word documents here.
+            if (!open) setWordZoom(1);
+          }}
+        >
           <DialogContent
             className="w-[96vw] max-w-[1800px] h-[94vh] overflow-hidden rounded-3xl border p-0 shadow-2xl flex flex-col"
             style={{
@@ -4793,7 +4818,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             }}
           >
             <DialogHeader
-              className="border-b px-6 py-5"
+              className="flex flex-row items-center justify-between border-b px-6 py-5"
               style={{
                 borderColor: "hsl(var(--border))",
                 background: "hsl(var(--muted))",
@@ -4805,19 +4830,57 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
               >
                 {selectedFileName}
               </DialogTitle>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setWordZoom((prev) => Math.max(prev - 0.25, 0.5))
+                  }
+                  disabled={wordZoom <= 0.5}
+                  className="h-7 w-7 p-0"
+                  title="Zoom out"
+                >
+                  <ZoomOut className="h-3.5 w-3.5" />
+                </Button>
+                <span className="text-xs font-medium min-w-[40px] text-center text-muted-foreground">
+                  {Math.round(wordZoom * 100)}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setWordZoom((prev) => Math.min(prev + 0.25, 3))
+                  }
+                  disabled={wordZoom >= 3}
+                  className="h-7 w-7 p-0"
+                  title="Zoom in"
+                >
+                  <ZoomIn className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </DialogHeader>
 
             <div
-              className="flex-1 overflow-hidden"
+              className="flex-1 overflow-auto"
               style={{ background: "hsl(var(--muted))" }}
             >
-              <iframe
-                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                  selectedFileUrl,
-                )}`}
-                className="h-full w-full border-0"
-                title="Word Viewer"
-              />
+              <div
+                className="h-full w-full"
+                style={{
+                  transform: `scale(${wordZoom})`,
+                  transformOrigin: "top center",
+                }}
+              >
+                <iframe
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                    selectedFileUrl,
+                  )}`}
+                  className="h-full w-full border-0"
+                  title="Word Viewer"
+                />
+              </div>
             </div>
           </DialogContent>
         </Dialog>
