@@ -1434,11 +1434,25 @@ console.log("active pipeline",activePipeline)
     mutationFn: (jobData) => jobAPI.createJob(jobData),
     onSuccess: (response) => {
       if (response?.data) {
-        showToast({
-          title: "Job created successfully",
-          
-          type: "success",
-        });
+        const { jobs, failed } = response.data;
+
+        if (failed?.length > 0) {
+          // Some accounts in the bulk selection failed while others
+          // succeeded - say so plainly instead of a blanket success,
+          // since the previous accounts' jobs are already created and
+          // don't need retrying.
+          showToast({
+            title: `${jobs?.length || 0} job(s) created, ${failed.length} failed`,
+            description: "Some selected accounts could not be processed - check them and retry individually.",
+            type: "warning",
+          });
+        } else {
+          showToast({
+            title: "Job created successfully",
+
+            type: "success",
+          });
+        }
         queryClient.invalidateQueries(["jobs-all"]);
         handleClose();
         resetForm();
