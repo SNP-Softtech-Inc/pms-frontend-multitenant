@@ -426,10 +426,17 @@ const handleUpload = async () => {
         const sizeStr = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
         
         if (file.path) {
-          const publicPath = file.path
+          // The disk root differs per environment/deployment
+          // (.../pms-backend-multitenant/... in production,
+          // .../pms-backend-staging/... on staging), so stripping a
+          // hardcoded production root here left staging URLs broken.
+          // "uploads/accounts/" is the one path segment that's the same
+          // everywhere, matching the pattern already used elsewhere in
+          // this codebase for the same reason.
+          const relativePath = file.path
             .replace(/\\/g, "/")
-            .replace("/var/www/pms-backend-multitenant/folder-mangement/", "");
-          const fileUrl = `${baseUrl}/${encodeURI(publicPath)}`;
+            .split("/uploads/accounts/")[1];
+          const fileUrl = `${baseUrl}/uploads/accounts/${encodeURI(relativePath)}`;
           
           if (isImageFile(file)) {
             // For images - display the actual image with click to enlarge

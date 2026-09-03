@@ -2991,13 +2991,19 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       });
 
       if (res.status === 200 || res.status === 201) {
-        alert("Approval Request Cancelled");
+        showToast({
+          title: "Approval Request Cancelled",
+          type: "success",
+        });
         fetchFolderTree();
       } else {
         throw new Error("Cancel failed");
       }
     } catch (err) {
-      alert("Cancel request failed");
+      showToast({
+        title: "Cancel request failed",
+        type: "error",
+      });
     }
   };
 
@@ -3025,7 +3031,10 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       const res = await accountDocsAPI.toggleApproval(payload);
 
       if (res.status === 200 || res.status === 201) {
-        alert(`Approval request sent to ${clientEmail}`);
+        showToast({
+          title: `Approval request sent to ${clientEmail}`,
+          type: "success",
+        });
         handleCloseDialog();
         fetchFolderTree();
       } else {
@@ -3033,7 +3042,10 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       }
     } catch (error) {
       console.error("Approval request failed:", error);
-      alert("Failed to send approval.");
+      showToast({
+        title: "Failed to send approval.",
+        type: "error",
+      });
     } finally {
       setSending(false);
     }
