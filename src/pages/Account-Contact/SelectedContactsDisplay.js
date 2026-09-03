@@ -3,6 +3,10 @@ import React from "react";
 import { Checkbox } from "../../components/ui/checkbox";
 import CloseIcon from "@mui/icons-material/Close";
 
+// Login/Notify/Email Sync are disabled for now (feature on hold, not
+// removed) - flip this back to true to re-enable the controls.
+const CONTACT_LOGIN_FEATURES_ENABLED = false;
+
 export default function SelectedContactsDisplay({ contacts, onRemove, onUpdateField, isEditing = false }) {
   if (!contacts.length) return null;
   console.log("contacts",contacts)
@@ -157,6 +161,7 @@ export default function SelectedContactsDisplay({ contacts, onRemove, onUpdateFi
                   >
                     <Checkbox
                       checked={contact[field] || false}
+                      disabled={!CONTACT_LOGIN_FEATURES_ENABLED}
                       // onCheckedChange={(checked) =>
                       //   onUpdateField(
                       //     index,

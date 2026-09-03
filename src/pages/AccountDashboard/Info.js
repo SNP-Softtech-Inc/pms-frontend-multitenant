@@ -663,6 +663,10 @@ import { useConfirm } from "../../components/ConfirmDialogContext";
 import { ShieldCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+// Login/Notify/Email Sync are disabled for now (feature on hold, not
+// removed) - flip this back to true to re-enable the controls.
+const CONTACT_LOGIN_FEATURES_ENABLED = false;
+
 const AccountDetails = () => {
   const { accountId } = useParams();
   const queryClient = useQueryClient();
@@ -1205,6 +1209,7 @@ const handleContactUpdated = async () => {
 
                           <Switch
                             checked={c.canLogin}
+                            disabled={!CONTACT_LOGIN_FEATURES_ENABLED}
                             onCheckedChange={() => handleSwitchClick(c)}
                             className="
                   data-[state=checked]:bg-primary
@@ -1227,6 +1232,7 @@ const handleContactUpdated = async () => {
 
                           <Switch
                             checked={c.canNotify}
+                            disabled={!CONTACT_LOGIN_FEATURES_ENABLED}
                             onCheckedChange={() => handleNotifyToggle(c)}
                             className="
                   data-[state=checked]:bg-primary
@@ -1249,6 +1255,7 @@ const handleContactUpdated = async () => {
 
                           <Switch
                             checked={c.canEmailSync}
+                            disabled={!CONTACT_LOGIN_FEATURES_ENABLED}
                             onCheckedChange={() => handleEmailSyncToggle(c)}
                             className="
                   data-[state=checked]:bg-primary

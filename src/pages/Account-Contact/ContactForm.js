@@ -35,6 +35,10 @@ import { Label } from "../../components/ui/label";
 import ContactSelectionDialog from "./ContactSelectionDialog";
 import SelectedContactsDisplay from "./SelectedContactsDisplay";
 import { templateAPI } from "../../services/api";
+
+// Login/Notify/Email Sync are disabled for now (feature on hold, not
+// removed) - flip this back to true to re-enable the controls.
+const CONTACT_LOGIN_FEATURES_ENABLED = false;
 // Personalization Dialog Component
 const PersonalizationDialog = ({
   open,
@@ -1228,6 +1232,7 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
                       checked={
                         contact[field] || false
                       }
+                      disabled={!CONTACT_LOGIN_FEATURES_ENABLED}
                       onChange={(e) =>
                         dispatch(
                           updateContactField({
@@ -1244,6 +1249,8 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
                         rounded
                         border-border
                         accent-primary
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
                       "
                     />
 
