@@ -193,12 +193,13 @@ const handleUploadWithApproval = async () => {
           {/* Settings Section */}
           <div className="space-y-4 border-t border-border pt-4">
             {/* Notify client */}
-            <label className="flex items-center justify-between cursor-pointer">
+            <label className="flex items-center justify-between cursor-not-allowed opacity-50">
               <span className="text-sm text-foreground">Notify client</span>
               <input
                 type="checkbox"
                 checked={notifyClient}
                 onChange={(e) => setNotifyClient(e.target.checked)}
+                disabled
                 className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
               />
             </label>
