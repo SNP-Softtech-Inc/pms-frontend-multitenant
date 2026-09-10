@@ -305,7 +305,12 @@ login: ({ email, password, expiryTime, userId }) =>
    // Get Current Logged-in User
 getCurrentUser: () => authUserApi.get("/api/auth/me"),
   // ✅ NEW API
-  getAllUsers: (params) => authUserApi.post("/api/auth/users", { params }),
+  // params (status/page/limit/search) must go as axios request config, not
+  // the POST body - the backend reads them from req.query. Passing
+  // `{ params }` as the body meant status:"active" never reached the
+  // server, so every caller of this (Job Assignees, Pipeline Access, and
+  // several other pickers) silently got back inactive/deleted users too.
+  getAllUsers: (params) => authUserApi.post("/api/auth/users", {}, { params }),
   getSingleUser: (id) => authUserApi.get(`/api/auth/user/${id}`),
   // ✅ NEW: UPDATE MY PROFILE (BEST PRACTICE 🚀)
   updateMyProfile: (data) => {

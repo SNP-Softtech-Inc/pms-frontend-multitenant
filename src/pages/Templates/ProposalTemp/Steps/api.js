@@ -298,7 +298,9 @@ login: ({ email, password, expiryTime, userId }) =>
   getUsersByEmail: (email) =>
     authUserApi.post("/api/auth/get-users", { email }),
   // ✅ NEW API
-  getAllUsers: (params) => authUserApi.post("/api/auth/users", { params }),
+  // See src/services/api.js's getAllUsers for why this must be axios
+  // request config, not the POST body.
+  getAllUsers: (params) => authUserApi.post("/api/auth/users", {}, { params }),
   getSingleUser: (id) => authUserApi.get(`/api/auth/user/${id}`),
   // ✅ NEW: UPDATE MY PROFILE (BEST PRACTICE 🚀)
   updateMyProfile: (data) => {
