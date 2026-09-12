@@ -312,7 +312,7 @@ const expandedSections = filteredSections
                         </TableCell>
 
                         {/* ANSWER */}
-                        <TableCell className="text-sm text-muted-foreground">
+                        {/* <TableCell className="text-sm text-muted-foreground">
                           {formElement.type === "Text Editor" ? (
                             <Button
                               variant="link"
@@ -328,8 +328,28 @@ const expandedSections = filteredSections
                               {formElement.textvalue}
                             </div>
                           )}
-                        </TableCell>
-
+                        </TableCell> */}
+<TableCell className="text-sm text-muted-foreground">
+  {formElement.type === "Text Editor" ? (
+    <Button
+      variant="link"
+      className="text-primary p-0 h-auto"
+      onClick={() => handleOpenDrawer(formElement.text)}
+    >
+      Display
+    </Button>
+  ) : (
+    <div className="whitespace-pre-line">
+      {formElement.type === "Date"
+        ? new Date(formElement.textvalue).toLocaleDateString("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+          })
+        : formElement.textvalue}
+    </div>
+  )}
+</TableCell>
                         {/* REVIEW */}
                         <TableCell>
                           {formElement.type !== "Text Editor" && (
