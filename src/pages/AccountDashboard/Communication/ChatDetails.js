@@ -1516,7 +1516,7 @@ const MessageItem = ({
         {/* Message Content */}
 
         <div
-          className="text-sm leading-relaxed break-words whitespace-pre-wrap"
+          className="chat-rich-text text-sm leading-relaxed break-words whitespace-pre-wrap"
           dangerouslySetInnerHTML={{
             __html: desc.message || "No message available",
           }}

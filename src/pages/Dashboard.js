@@ -431,8 +431,13 @@ const Dashboard = () => {
           )}
         >
           {/* ── Sidebar Header ───────────────────────── */}
+          {/* The logo navigates home rather than collapsing the sidebar -
+              the hamburger button in the top header still does that. */}
           <div
-            onClick={handleDrawerToggle}
+            onClick={() => {
+              navigate("/insights");
+              if (!isSmUp) setMobileOpen(false);
+            }}
             className={cn(
               "flex h-16 shrink-0 items-center border-b border-border/60 cursor-pointer transition-colors hover:bg-muted/40",
               open ? "px-5 justify-center" : "px-2 justify-center",

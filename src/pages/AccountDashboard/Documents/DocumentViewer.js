@@ -1230,8 +1230,12 @@ const DocumentViewer = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      {/* flex flex-col overrides DialogContent's default `grid`, which made
+          flex-1 on the preview pane a no-op - the preview then collapsed to
+          its min-h-[400px] and only about a quarter of the page was visible
+          inside a 95vh dialog. */}
       <DialogContent
-        className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-background"
+        className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-background flex flex-col"
         style={{ width: '95vw', height: '95vh' }}
         ref={containerRef}
       >
@@ -1246,8 +1250,12 @@ const DocumentViewer = ({
         </p>
 
         {/* Header - Like your reference image */}
-        <DialogHeader className="p-4 border-b border-border bg-background">
-          <div className="flex items-center justify-between">
+        {/* shrink-0 keeps the header at its natural height now that the
+            dialog is a flex column. pr-10 reserves room for DialogContent's
+            own absolutely-positioned close button (right-4), which was
+            landing on top of the maximize/minimize button. */}
+        <DialogHeader className="p-4 pr-10 border-b border-border bg-background shrink-0">
+          <div className="flex items-center justify-between gap-3">
             {/* Left side: Navigation arrows and file counter */}
             <div className="flex items-center gap-2">
               <Button
@@ -1286,14 +1294,22 @@ const DocumentViewer = ({
               </span>
             </div>
 
-            {/* Center: File type badge with icon */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/30 border border-border">
+            {/* Center: file name (the single, readable instance) with its
+                type badge - previously the name only appeared in small muted
+                text in the zoom bar and again in the footer. */}
+            <div className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/30 border border-border shrink-0">
                 {getFileIcon(currentFile?.name, "h-5 w-5")}
                 <span className="text-xs font-semibold text-muted-foreground">
                   {getFileTypeLabel(currentFile?.name)}
                 </span>
               </div>
+              <span
+                className="truncate text-sm font-medium text-foreground"
+                title={currentFile?.name || ''}
+              >
+                {currentFile?.name || ''}
+              </span>
             </div>
 
             {/* Right side: Action buttons */}
@@ -1334,7 +1350,7 @@ const DocumentViewer = ({
         </DialogHeader>
 
         {/* Toolbar - Zoom, Rotate, Reset controls */}
-        <div className="flex flex-wrap items-center gap-1 px-4 py-1.5 border-b border-border bg-muted/5">
+        <div className="flex flex-wrap items-center gap-1 px-4 py-1.5 border-b border-border bg-muted/5 shrink-0">
           {/* Zoom controls - Not applicable to native PDF rendering, hidden for PDFs */}
           {!isPdf && (
             <div className="flex items-center gap-1">
@@ -1397,10 +1413,6 @@ const DocumentViewer = ({
             </span>
           )}
 
-          {/* File name display (optional) */}
-          <span className="ml-auto text-xs text-muted-foreground truncate max-w-[200px] hidden sm:block">
-            {currentFile?.name || ''}
-          </span>
         </div>
 
         {/* Document Preview */}
@@ -1414,13 +1426,10 @@ const DocumentViewer = ({
           </div>
         </div>
 
-        {/* Footer with file info */}
-        <DialogFooter className="p-2.5 border-t border-border bg-muted/5">
-          <div className="flex flex-wrap items-center justify-between w-full text-xs text-muted-foreground gap-2">
-            <span className="truncate flex items-center gap-2">
-              <span className="font-medium">File:</span>
-              <span>{currentFile?.name || ''}</span>
-            </span>
+        {/* Footer with file info - the file name lives in the header now,
+            so only the metadata that isn't shown up there remains here. */}
+        <DialogFooter className="p-2.5 border-t border-border bg-muted/5 shrink-0">
+          <div className="flex flex-wrap items-center justify-end w-full text-xs text-muted-foreground gap-2">
             <span className="flex items-center gap-3">
               <span>
                 <span className="font-medium">Type:</span> {fileExtension.toUpperCase() || 'Unknown'}

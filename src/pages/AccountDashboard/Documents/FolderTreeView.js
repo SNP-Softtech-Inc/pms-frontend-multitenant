@@ -3959,10 +3959,12 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
       style={{ background: "hsl(var(--background))" }}
     >
       <div className="mx-auto w-full max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
-        {/* TOP ACTION BAR */}
-        <div className="mx-auto mb-6 max-w-[1200px]">
+        {/* TOP ACTION BAR - pinned below the account header (~134px) plus the
+            Documents/Approvals/Signatures/Trash tab strip (~52px), so the
+            upload actions stay reachable while scrolling the folder list. */}
+        <div className="sticky top-[186px] z-20 mx-auto mb-6 max-w-[1200px]">
           <div
-            className="rounded-2xl border p-4 shadow-sm"
+            className="rounded-2xl border p-3 shadow-sm"
             style={{
               borderColor: "hsl(var(--border))",
               background: "hsl(var(--card))",

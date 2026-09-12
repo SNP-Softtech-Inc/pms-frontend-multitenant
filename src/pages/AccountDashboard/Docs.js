@@ -215,8 +215,11 @@ const Docs = () => {
 
   return (
     <div>
-      {/* ✅ Tabs */}
-      <div className="mt-3 overflow-x-auto">
+      {/* ✅ Tabs - pinned directly beneath the account header (which is
+          sticky at top-0 and roughly 134px tall) so Documents / Approvals /
+          Signatures / Trash stay reachable while scrolling a long file list.
+          z stays under the header's z-40. */}
+      <div className="sticky top-[134px] z-30 -mt-1 overflow-x-auto bg-background/95 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex gap-2 border-b pb-2">
           {tabs.map((tab, index) => (
             <NavLink

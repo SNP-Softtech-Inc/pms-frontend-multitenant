@@ -262,3 +262,46 @@ code {
 .ck-content li {
     display: list-item !important;
 }
+
+/* Rich text pasted into chat - most often a block of cells copied out of
+   Excel, which arrives as a bare <table> carrying no borders and its own
+   hardcoded widths. Without these rules it renders as unreadable runs of
+   text that spill outside the message bubble. Scrolling the container
+   (rather than the table) keeps a wide table inside the bubble, since the
+   markup is injected and can't be wrapped in a scroll container. */
+.chat-rich-text {
+    overflow-x: auto;
+}
+
+.chat-rich-text table,
+.ck-content table {
+    border-collapse: collapse;
+    max-width: 100%;
+    margin: 6px 0;
+    font-size: 0.92em;
+}
+
+.chat-rich-text th,
+.chat-rich-text td,
+.ck-content table th,
+.ck-content table td {
+    border: 1px solid hsl(var(--border));
+    padding: 4px 8px;
+    /* the message container sets whitespace-pre-wrap for plain-text line
+       breaks; inside cells that would preserve Excel's padding spaces */
+    white-space: normal;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.chat-rich-text th,
+.ck-content table th {
+    background: hsl(var(--muted));
+    font-weight: 600;
+    text-align: left;
+}
+
+.chat-rich-text img {
+    max-width: 100%;
+    height: auto;
+}
