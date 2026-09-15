@@ -5308,10 +5308,19 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 <DocusealBuilder
                   token={token}
                   submitters={submitters}
-
+                  // Turns on DocuSeal's Signature ID for newly added fields,
+                  // which is what prints the signer's identity next to the
+                  // signature itself rather than only in the audit trail:
+                  // "ID: <uuid>", "Digitally signed by <name>", "<email>"
+                  // and the signing timestamp. Without it, a signature is
+                  // just an image with no attribution on the document.
+                  withSignatureId={true}
                   customCss={customCss}
-                  onComplete={() => {
-                    console.log("DocuSeal finished sending document");
+                  // @docuseal/react v1 has no onComplete prop - it was being
+                  // ignored, so the dialog never closed after sending and the
+                  // builder stayed open on the "SENT" state. onSend is the
+                  // documented callback for "document sent to recipients".
+                  onSend={() => {
                     setShowBuilderFor(null);
                     setOpenDialog(false);
                   }}
