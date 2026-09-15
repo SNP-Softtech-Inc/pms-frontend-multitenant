@@ -440,6 +440,7 @@ const MultiSelectDropdown = ({
           status: "active",
         });
         const users = res?.data?.users || [];
+        console.log("users list",users);
         const formattedUsers = users.map((u) => ({
           value: u._id,
           label: u.username,

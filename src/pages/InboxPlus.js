@@ -1508,14 +1508,14 @@ const renderEmailThread = (messages) => {
         </div>
       )}
 
-      <Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
+      {/* <Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
         <SheetContent side="right">
           <SheetHeader>
             <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
-            {/* Filter Categories */}
+           
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-3">
                 Categories
@@ -1547,7 +1547,7 @@ const renderEmailThread = (messages) => {
               </div>
             </div>
 
-            {/* Active Filters Summary */}
+            
             {!activeFilters.all &&
               Object.keys(activeFilters).some(
                 (key) => key !== "all" && activeFilters[key],
@@ -1570,7 +1570,7 @@ const renderEmailThread = (messages) => {
                 </div>
               )}
 
-            {/* Clear Filters Button */}
+            
             <div className="pt-4 border-t">
               <ShadButton
                 variant="outline"
@@ -1588,7 +1588,7 @@ const renderEmailThread = (messages) => {
               </ShadButton>
             </div>
 
-            {/* Apply Filters Button */}
+            
             <ShadButton
               className="w-full bg-blue-600 hover:bg-blue-700"
               onClick={() => setFilterDrawerOpen(false)}
@@ -1597,7 +1597,98 @@ const renderEmailThread = (messages) => {
             </ShadButton>
           </div>
         </SheetContent>
-      </Sheet>
+      </Sheet> */}
+<Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
+  <SheetContent side="right" className="flex flex-col p-0">
+    <SheetHeader className="px-6 pt-6">
+      <SheetTitle>Filters</SheetTitle>
+    </SheetHeader>
+
+    {/* Scrollable middle section */}
+    <div className="flex-1 overflow-y-auto px-6 mt-6 space-y-6">
+      {/* Filter Categories */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-500 mb-3">
+          Categories
+        </h4>
+        <div className="space-y-2">
+          {filterCategories.map((category) => (
+            <button
+              key={category.key}
+              onClick={() => handleFilterChange(category.key)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-colors ${
+                activeFilters[category.key]
+                  ? "bg-blue-50 text-blue-700 border border-blue-200"
+                  : "hover:bg-gray-50 text-gray-700"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{category.label}</span>
+                {category.key !== "all" && (
+                  <span className="text-xs text-gray-400">
+                    ({category.keywords.length} keywords)
+                  </span>
+                )}
+              </div>
+              {activeFilters[category.key] && (
+                <Check size={16} className="text-blue-600" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Active Filters Summary */}
+      {!activeFilters.all &&
+        Object.keys(activeFilters).some(
+          (key) => key !== "all" && activeFilters[key],
+        ) && (
+          <div className="p-3 bg-blue-50 rounded-md">
+            <p className="text-xs text-blue-700">
+              <span className="font-medium">Active filters:</span>{" "}
+              {Object.keys(activeFilters)
+                .filter((key) => key !== "all" && activeFilters[key])
+                .map(
+                  (key) =>
+                    filterCategories.find((f) => f.key === key)?.label,
+                )
+                .filter(Boolean)
+                .join(", ")}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Searching in subject, body, and sender
+            </p>
+          </div>
+        )}
+    </div>
+
+    {/* Fixed footer with action buttons */}
+    <div className="px-6 pb-6 pt-4 border-t space-y-3">
+      <ShadButton
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={() => {
+          const newFilters = {};
+          Object.keys(activeFilters).forEach((key) => {
+            newFilters[key] = key === "all";
+          });
+          setActiveFilters(newFilters);
+        }}
+      >
+        Clear All Filters
+      </ShadButton>
+
+      <ShadButton
+        className="w-full bg-blue-600 hover:bg-blue-700"
+        onClick={() => setFilterDrawerOpen(false)}
+      >
+        Apply Filters
+      </ShadButton>
+    </div>
+  </SheetContent>
+</Sheet>
+      
     </div>
   );
 }

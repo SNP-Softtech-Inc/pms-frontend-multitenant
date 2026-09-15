@@ -5306,7 +5306,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 <DocusealBuilder
                   token={token}
                   submitters={submitters}
-
+  dateFormats={ ['MM/DD/YYYY', ] }
                   customCss={customCss}
                   onComplete={() => {
                     console.log("DocuSeal finished sending document");
