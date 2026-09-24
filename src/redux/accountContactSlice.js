@@ -38,6 +38,13 @@ const initialState = {
   },
   contacts: [], // ✅ manually added contacts
   selectedContacts: [], // ✅ existing contacts selected from backend
+  // What the data above currently belongs to: null when empty, "new" while a
+  // new account is being drafted, or an accountId while editing one. Closing
+  // the drawer no longer wipes the form (an accidental Back used to discard
+  // everything and silently reset clientType to Individual), so this is how
+  // we tell "reopening the same thing - keep the draft" apart from "opening
+  // something else - load/clear it".
+  draftFor: null,
 };
 
 const accountContactSlice = createSlice({
@@ -130,6 +137,9 @@ const accountContactSlice = createSlice({
   const { index, tags } = action.payload;
   state.contacts[index].tags = tags;
 },
+    setDraftFor: (state, action) => {
+      state.draftFor = action.payload;
+    },
     resetForm: () => initialState,
   },
 });
@@ -143,6 +153,7 @@ export const {
   updatePhoneNumber,
   removePhoneNumber,
   resetForm,
+  setDraftFor,
   updateContactField,
   addSelectedContacts,
   removeSelectedContact,

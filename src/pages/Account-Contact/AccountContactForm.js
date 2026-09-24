@@ -1,5 +1,6 @@
 import React, { useState,  } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { resetForm } from "../../redux/accountContactSlice";
 // import { Box, Stepper, Step, StepLabel } from "@mui/material";
 import { Card,CardContent } from "../../components/ui/card";
 
@@ -10,7 +11,6 @@ import { useToastContext } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext"; // adjust path
 import { accountsAPI, contactsAPI,docAPI } from "../../services/api";
 import { useQueryClient } from "@tanstack/react-query";
-const steps = ["Account Information", "Contact Information"];
 import {
   SheetHeader,
   SheetTitle,
@@ -18,6 +18,8 @@ import {
   SheetFooter,
 } from "../../components/ui/sheet";
 import { Check } from "lucide-react";
+
+const steps = ["Account Information", "Contact Information"];
 export default function AccountContactForm({
   isEditing,
   accountId,
@@ -30,6 +32,7 @@ export default function AccountContactForm({
   const { accountData, contacts, selectedContacts } = useSelector(
     (state) => state.accountContact,
   );
+  const dispatch = useDispatch();
 const { user } = useAuth();
 console.log("userData for account",user)
 console.log("selected existing contact",selectedContacts)
@@ -280,6 +283,10 @@ for (let contact of selectedContacts) {
       title: "Account saved successfully!",
       type: "success",
     });
+
+    // The drawer no longer clears on close (so an accidental Back keeps the
+    // draft) - clearing happens here instead, once the work is safely saved.
+    dispatch(resetForm());
 
     // ===== REFRESH ACCOUNT TABLE =====
     queryClient.invalidateQueries({

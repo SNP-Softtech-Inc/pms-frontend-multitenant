@@ -12,10 +12,11 @@ import {
 import { Button } from "../../components/ui/button";
 import { X } from "lucide-react";
 import AccountContactForm from "./AccountContactForm";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setAccountData,
   setSelectedContacts,
+  setDraftFor,
   resetForm,
 } from "../../redux/accountContactSlice";
 import { accountsAPI } from "../../services/api";
@@ -27,15 +28,25 @@ export default function AccountContactDrawer({
   handleDrawerClose,
 }) {
   const dispatch = useDispatch();
+  const draftFor = useSelector((state) => state.accountContact.draftFor);
 
   useEffect(() => {
-    if (open && accountId) {
+    // Closing no longer clears anything - a half-filled form survives an
+    // accidental Back/overlay click and is still there on reopen. The form is
+    // cleared instead when a different thing is opened, and after a
+    // successful save (see AccountContactForm).
+    if (!open) return;
+
+    const target = accountId || "new";
+
+    // Already holding the draft for this exact target - leave it alone.
+    if (draftFor === target) return;
+
+    if (accountId) {
       (async () => {
         try {
           const { data: account } =
             await accountsAPI.getAccountById(accountId);
-
-          console.log("Fetched account details:", account);
 
           dispatch(setAccountData(account));
 
@@ -49,16 +60,20 @@ export default function AccountContactDrawer({
             })) || [];
 
           dispatch(setSelectedContacts(selectedContacts));
+          dispatch(setDraftFor(accountId));
         } catch (error) {
           console.error("Failed to load account data:", error);
           dispatch(resetForm());
           onClose();
         }
       })();
-    } else if (!open) {
+    } else {
+      // Opening a fresh "new account" while the form still holds something
+      // else (a previous edit, or a saved draft's leftovers) - start clean.
       dispatch(resetForm());
+      dispatch(setDraftFor("new"));
     }
-  }, [open, accountId, dispatch, onClose]);
+  }, [open, accountId, draftFor, dispatch, onClose]);
 
   return (
 
