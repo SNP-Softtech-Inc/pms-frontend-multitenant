@@ -137,6 +137,13 @@ const assignfoldertemp = async (accountId, foldertempId) => {
         try {
           const { data } = await contactsAPI.createContact(payload);
 
+          // Duplicate name/email is a warning, not a block - the contact is
+          // created either way, but say so instead of silently accepting a
+          // duplicate (or silently renaming it to "Name (2)").
+          (data?.warnings || []).forEach((message) => {
+            showToast({ title: message, type: "warning" });
+          });
+
           // preserve frontend flags
           createdContacts.push({
             ...data,
@@ -147,7 +154,9 @@ const assignfoldertemp = async (accountId, foldertempId) => {
         } catch (err) {
           if (err.response?.status === 409) {
             showToast({
-              title: `Email ${contact.email} already exists`,
+              title:
+                err.response?.data?.error ||
+                `Email ${contact.email} already exists`,
               type: "error",
             });
             return;
@@ -297,8 +306,14 @@ for (let contact of selectedContacts) {
     if (handleDrawerClose) handleDrawerClose();
   } catch (err) {
     console.error(err);
+    // Prefer the server's own message. A duplicate account returns 409
+    // "Account name is taken", which was being thrown away here - the user
+    // saw a generic failure and no indication the name already existed.
     showToast({
-      title: "Something went wrong",
+      title:
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Something went wrong",
       type: "error",
     });
   }
