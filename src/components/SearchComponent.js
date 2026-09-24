@@ -267,7 +267,7 @@
 // export default SearchComponent;
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X, Loader2, User, Building2, Clock } from "lucide-react";
+import { Search, X, Loader2, User, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { accountsAPI, contactsAPI } from "../services/api";
@@ -287,7 +287,6 @@ import {
   PopoverTrigger,
 } from "../components/ui/popover";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
 import { cn } from "../lib/utils";
 
 // ---------------- Debounce Hook ----------------
@@ -524,7 +523,13 @@ const SearchComponent = () => {
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-80 p-0" align="start">
+        {/* Wider than the 320px trigger: a client name plus a full email
+            needs the room, and at w-80 the row chrome left only ~150px for
+            both. Capped to the viewport so it can't overflow on mobile. */}
+        <PopoverContent
+          className="w-[440px] max-w-[calc(100vw-2rem)] p-0"
+          align="start"
+        >
           <Command shouldFilter={false}>
             <CommandInput
               placeholder="Search accounts & contacts..."
@@ -569,25 +574,35 @@ const SearchComponent = () => {
                       onSelect={() => handleClick(item)}
                       className="flex items-center gap-3"
                     >
-                      <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                        <div className="flex min-w-0 flex-col">
-                          <span className="truncate text-sm" title={item.label}>
-                            {item.label}
-                          </span>
-                          <span
-                            className="truncate text-xs text-muted-foreground"
-                            title={item.subLabel}
-                          >
-                            {item.subLabel}
-                          </span>
-                        </div>
-                        <Badge
-                          variant={item.type === "Accounts" ? "default" : "secondary"}
-                          className="shrink-0 whitespace-nowrap text-[10px]"
+                      {/* Same type icon as the results below, in place of the
+                          old clock: it says account vs contact without the
+                          right-hand badge, which was taking the width a long
+                          email needs. The group heading already says these
+                          are recent searches. */}
+                      <div
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                          item.type === "Accounts"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-green-500/10 text-green-500"
+                        )}
+                      >
+                        {item.type === "Accounts" ? (
+                          <Building2 className="h-4 w-4" />
+                        ) : (
+                          <User className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-sm" title={item.label}>
+                          {item.label}
+                        </span>
+                        <span
+                          className="truncate text-xs text-muted-foreground"
+                          title={item.subLabel}
                         >
-                          {item.type === "Accounts" ? "Account" : "Contact"}
-                        </Badge>
+                          {item.subLabel}
+                        </span>
                       </div>
                       <Button
                         variant="ghost"
@@ -636,9 +651,12 @@ const SearchComponent = () => {
                           <User className="h-4 w-4" />
                         )}
                       </div>
-                      {/* min-w-0 lets this shrink below its content width, and
-                          truncate keeps a long email from pushing the badge
-                          out of the fixed-width dropdown */}
+                      {/* min-w-0 lets this shrink below its content width so a
+                          long name/email truncates instead of stretching the
+                          row. The type badge that used to sit on the right was
+                          dropped: the coloured icon on the left already says
+                          account vs contact, and the badge was costing ~70px
+                          of the space the email needs. */}
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="truncate text-sm" title={option.label}>
                           {option.label}
@@ -650,12 +668,6 @@ const SearchComponent = () => {
                           {option.subLabel}
                         </span>
                       </div>
-                      <Badge
-                        variant={option.type === "Accounts" ? "default" : "secondary"}
-                        className="shrink-0 whitespace-nowrap text-[10px]"
-                      >
-                        {option.type === "Accounts" ? "Account" : "Contact"}
-                      </Badge>
                     </CommandItem>
                   ))}
                 </CommandGroup>
