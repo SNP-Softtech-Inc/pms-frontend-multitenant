@@ -913,9 +913,16 @@ const PdfViewer = ({ fileUrl, fileName, rotation, onDownload }) => {
     );
   }
 
+  // The browser's built-in PDF viewer defaults to fit-whole-page zoom, so a
+  // portrait page inside this wide dialog was scaled down to fit vertically
+  // and left large empty margins either side. FitH fits the page to the
+  // viewer's width instead, so the document actually fills the space.
+  // (Standard PDF open parameter - appended after any existing fragment.)
+  const pdfSrc = `${fileUrl}${fileUrl.includes("#") ? "&" : "#"}view=FitH`;
+
   return (
     <iframe
-      src={fileUrl}
+      src={pdfSrc}
       title={fileName}
       className="w-full h-full border-0 rounded-lg bg-white"
       style={{
@@ -1418,10 +1425,13 @@ const DocumentViewer = ({
         {/* Document Preview */}
         <div
           ref={viewerRef}
-          className="flex-1 overflow-auto p-4 bg-muted/5"
+          className="flex-1 overflow-auto p-2 bg-muted/5"
           style={{ minHeight: 0 }}
         >
-          <div className="flex justify-center items-center min-h-[400px] w-full h-full">
+          {/* min-h floor removed: the pane is already a sized flex child, and
+              the floor could force a scrollbar on short viewports. Centering
+              stays for images and the fallback card, which don't fill. */}
+          <div className="flex justify-center items-center w-full h-full">
             {renderContent()}
           </div>
         </div>
