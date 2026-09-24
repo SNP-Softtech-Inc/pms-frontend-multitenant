@@ -304,425 +304,845 @@ const InvoiceTable = () => {
   //   }
   // };
 
-  const handlePrint = async (_id) => {
-    try {
-      const res = await invoiceAPI.getInvoiceForPrint(_id);
+//   const handlePrint = async (_id) => {
+//     try {
+//       const res = await invoiceAPI.getInvoiceForPrint(_id);
 
-      const invoice = res.data.invoice;
+//       const invoice = res.data.invoice;
 
-      const account = invoice.account || {};
-      const summary = invoice.summary || {};
+//       const account = invoice.account || {};
+//       const summary = invoice.summary || {};
 
-      const company = {
-        name: "SNP Tax & Financials",
-        address: "3015 Hopyard Rd, Ste M Pleasanton, CA 94588 ",
-        phone: "(925) 800-3561",
-        email: "silpa@snptaxandfinancials.com",
-        website: "http://www.snptaxandfinancials.com",
-        logo, // <-- replace with your logo path
-      };
+//       const company = {
+//         name: "SNP Tax & Financials",
+//         address: "3015 Hopyard Rd, Ste M Pleasanton, CA 94588 ",
+//         phone: "(925) 800-3561",
+//         email: "silpa@snptaxandfinancials.com",
+//         website: "http://www.snptaxandfinancials.com",
+//         logo, // <-- replace with your logo path
+//       };
 
-      const isPaid =
-        invoice.invoiceStatus && invoice.invoiceStatus.toLowerCase() === "paid";
+//       const isPaid =
+//         invoice.invoiceStatus && invoice.invoiceStatus.toLowerCase() === "paid";
 
-      const printContent = `
-<!DOCTYPE html>
-<html>
+//       const printContent = `
+// <!DOCTYPE html>
+// <html>
 
-<head>
+// <head>
 
-<meta charset="UTF-8">
+// <meta charset="UTF-8">
 
-<title>Invoice</title>
+// <title>Invoice</title>
 
-<style>
+// <style>
 
-*{
-    box-sizing:border-box;
-}
+// *{
+//     box-sizing:border-box;
+// }
 
-body{
+// body{
 
-    font-family:Arial,Helvetica,sans-serif;
-    color:#333;
-    padding:40px;
-    margin:0;
-    position:relative;
+//     font-family:Arial,Helvetica,sans-serif;
+//     color:#333;
+//     padding:40px;
+//     margin:0;
+//     position:relative;
 
-}
+// }
 
-.invoice{
+// .invoice{
 
-    width:100%;
-}
+//     width:100%;
+// }
 
-.header{
+// .header{
 
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    border-bottom:2px solid #1976d2;
-    padding-bottom:20px;
+//     display:flex;
+//     justify-content:space-between;
+//     align-items:flex-start;
+//     border-bottom:2px solid #1976d2;
+//     padding-bottom:20px;
 
-}
+// }
 
-.logo{
+// .logo{
 
-    width:170px;
+//     width:170px;
 
-}
+// }
 
-.company{
+// .company{
 
-    text-align:right;
-    line-height:1.6;
-}
+//     text-align:right;
+//     line-height:1.6;
+// }
 
-.company h2{
+// .company h2{
 
-    margin:0;
-    color:#1976d2;
+//     margin:0;
+//     color:#1976d2;
 
-}
+// }
 
-.title{
+// .title{
 
-    margin-top:30px;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
+//     margin-top:30px;
+//     display:flex;
+//     justify-content:space-between;
+//     align-items:flex-start;
 
-}
+// }
 
-.title h1{
+// .title h1{
 
-    margin:0;
-    font-size:38px;
-    color:#1976d2;
+//     margin:0;
+//     font-size:38px;
+//     color:#1976d2;
 
-}
+// }
 
-.info{
+// .info{
 
-    display:flex;
-    justify-content:space-between;
-    margin-top:30px;
+//     display:flex;
+//     justify-content:space-between;
+//     margin-top:30px;
 
-}
+// }
 
-.billTo{
+// .billTo{
 
-    width:45%;
-}
+//     width:45%;
+// }
 
-.invoiceInfo{
+// .invoiceInfo{
 
-    width:40%;
-}
+//     width:40%;
+// }
 
-.invoiceInfo table{
+// .invoiceInfo table{
 
-    width:100%;
-}
+//     width:100%;
+// }
 
-.invoiceInfo td{
+// .invoiceInfo td{
 
-    padding:5px 0;
-}
+//     padding:5px 0;
+// }
 
-.description{
+// .description{
 
-    margin-top:25px;
-}
+//     margin-top:25px;
+// }
 
-.description b{
+// .description b{
 
-    color:#1976d2;
-}
+//     color:#1976d2;
+// }
 
-.items{
+// .items{
 
-    width:100%;
-    border-collapse:collapse;
-    margin-top:25px;
+//     width:100%;
+//     border-collapse:collapse;
+//     margin-top:25px;
 
-}
+// }
 
-.items th{
+// .items th{
 
-    background:#1976d2;
-    color:#fff;
-    padding:12px;
-    text-align:left;
+//     background:#1976d2;
+//     color:#fff;
+//     padding:12px;
+//     text-align:left;
 
-}
+// }
 
-.items td{
+// .items td{
 
-    padding:12px;
-    border-bottom:1px solid #ddd;
+//     padding:12px;
+//     border-bottom:1px solid #ddd;
 
-}
+// }
 
-.items tr:nth-child(even){
+// .items tr:nth-child(even){
 
-    background:#fafafa;
+//     background:#fafafa;
 
-}
+// }
 
-.summary{
+// .summary{
 
-    width:320px;
-    margin-left:auto;
-    margin-top:30px;
-}
+//     width:320px;
+//     margin-left:auto;
+//     margin-top:30px;
+// }
 
-.summary table{
+// .summary table{
 
-    width:100%;
-    border-collapse:collapse;
-}
+//     width:100%;
+//     border-collapse:collapse;
+// }
 
-.summary td{
+// .summary td{
 
-    padding:10px;
-    border-bottom:1px solid #ddd;
+//     padding:10px;
+//     border-bottom:1px solid #ddd;
 
-}
+// }
 
-.total{
+// .total{
 
-    font-size:18px;
-    font-weight:bold;
-}
+//     font-size:18px;
+//     font-weight:bold;
+// }
 
-.footer{
+// .footer{
 
-    margin-top:70px;
-    text-align:center;
-    font-size:13px;
-    color:#666;
-    border-top:1px solid #ddd;
-    padding-top:20px;
+//     margin-top:70px;
+//     text-align:center;
+//     font-size:13px;
+//     color:#666;
+//     border-top:1px solid #ddd;
+//     padding-top:20px;
 
-}
+// }
 
-.paid{
+// .paid{
 
-    position:fixed;
-    top:55%;
-    left:50%;
-    transform:translate(-50%,-50%) rotate(-25deg);
-    font-size:85px;
-    font-weight:bold;
-    color:#c62828;
-    border:6px solid #c62828;
-    padding:12px 40px;
-    opacity:.18;
-    letter-spacing:5px;
-    pointer-events:none;
+//     position:fixed;
+//     top:55%;
+//     left:50%;
+//     transform:translate(-50%,-50%) rotate(-25deg);
+//     font-size:85px;
+//     font-weight:bold;
+//     color:#c62828;
+//     border:6px solid #c62828;
+//     padding:12px 40px;
+//     opacity:.18;
+//     letter-spacing:5px;
+//     pointer-events:none;
 
-}
+// }
 
-</style>
+// </style>
 
-</head>
+// </head>
 
-<body>
+// <body>
 
-${isPaid ? `<div class="paid">PAID</div>` : ""}
+// ${isPaid ? `<div class="paid">PAID</div>` : ""}
 
-<div class="invoice">
+// <div class="invoice">
 
-<div class="header">
+// <div class="header">
 
-<div>
+// <div>
 
-<img src="${company.logo}" class="logo">
+// <img src="${company.logo}" class="logo">
 
-</div>
+// </div>
 
-<div class="company">
+// <div class="company">
 
-<h2>${company.name}</h2>
+// <h2>${company.name}</h2>
 
-<div>${company.address}</div>
+// <div>${company.address}</div>
 
 
 
-<div>${company.email}</div>
+// <div>${company.email}</div>
 
-<div>${company.website}</div>
+// <div>${company.website}</div>
 
 
-<div>${company.phone}</div>
+// <div>${company.phone}</div>
 
-</div>
+// </div>
 
-</div>
+// </div>
 
-<div class="title">
+// <div class="title">
 
-<h1>Invoice</h1>
+// <h1>Invoice</h1>
 
-</div>
+// </div>
 
-<div class="info">
+// <div class="info">
 
-<div class="billTo">
+// <div class="billTo">
 
-<h3>Bill To</h3>
+// <h3>Bill To</h3>
 
-<div><b>${account.accountName || ""}</b></div>
+// <div><b>${account.accountName || ""}</b></div>
 
-<div>${account.email || ""}</div>
+// <div>${account.email || ""}</div>
 
 
-</div>
+// </div>
 
-<div class="invoiceInfo">
+// <div class="invoiceInfo">
 
-<table>
+// <table>
 
-<tr>
+// <tr>
 
-<td><b>Invoice #</b></td>
+// <td><b>Invoice #</b></td>
 
-<td>${invoice.invoicenumber}</td>
+// <td>${invoice.invoicenumber}</td>
 
-</tr>
+// </tr>
 
-<tr>
+// <tr>
 
-<td><b>Invoice Date</b></td>
+// <td><b>Invoice Date</b></td>
 
-<td>${new Date(invoice.invoicedate).toLocaleDateString()}</td>
+// <td>${new Date(invoice.invoicedate).toLocaleDateString()}</td>
 
-</tr>
-<tr>
+// </tr>
+// <tr>
 
-<td><b>Payment Method</b></td>
+// <td><b>Payment Method</b></td>
 
-<td>${invoice.paymentMethod || "-"}</td>
+// <td>${invoice.paymentMethod || "-"}</td>
 
-</tr>
-<tr>
+// </tr>
+// <tr>
 
-<td><b>Paid Date</b></td>
+// <td><b>Paid Date</b></td>
 
-<td>${
-        invoice.updatedAt && invoice.invoiceStatus.toLowerCase() === "paid"
-          ? new Date(invoice.updatedAt).toLocaleDateString()
-          : "-"
-      }</td>
+// <td>${
+//         invoice.updatedAt && invoice.invoiceStatus.toLowerCase() === "paid"
+//           ? new Date(invoice.updatedAt).toLocaleDateString()
+//           : "-"
+//       }</td>
 
-</tr>
+// </tr>
 
 
 
 
 
-</table>
+// </table>
 
-</div>
+// </div>
 
-</div>
+// </div>
 
-<div class="description">
+// <div class="description">
 
-<b>Description</b>
+// <b>Description</b>
 
-<p>${invoice.description || "-"}</p>
+// <p>${invoice.description || "-"}</p>
 
-</div>
+// </div>
 
 
-<div class="summary">
+// <div class="summary">
 
-<table>
+// <table>
 
-<tr>
+// <tr>
 
-<td>Subtotal</td>
+// <td>Subtotal</td>
 
-<td align="right">$${Number(summary.subtotal || 0).toFixed(2)}</td>
+// <td align="right">$${Number(summary.subtotal || 0).toFixed(2)}</td>
 
-</tr>
+// </tr>
 
-<tr>
+// <tr>
 
-<td>Tax</td>
+// <td>Tax</td>
 
-<td align="right">$${Number(summary.taxTotal || 0).toFixed(2)}</td>
+// <td align="right">$${Number(summary.taxTotal || 0).toFixed(2)}</td>
 
-</tr>
+// </tr>
 
-<tr class="total">
+// <tr class="total">
 
-<td>Total</td>
+// <td>Total</td>
 
-<td align="right">$${Number(summary.total || 0).toFixed(2)}</td>
+// <td align="right">$${Number(summary.total || 0).toFixed(2)}</td>
 
-</tr>
+// </tr>
 
-</table>
+// </table>
 
-</div>
+// </div>
 
 
 
-</div>
+// </div>
 
-</body>
+// </body>
 
-</html>
-`;
+// </html>
+// `;
 
-      // const printWindow = window.open("", "_blank");
+//       // const printWindow = window.open("", "_blank");
 
-      // printWindow.document.open();
-      // printWindow.document.write(printContent);
-      // printWindow.document.close();
+//       // printWindow.document.open();
+//       // printWindow.document.write(printContent);
+//       // printWindow.document.close();
 
-      // printWindow.onload = () => {
-      //   printWindow.focus();
-      //   printWindow.print();
-      //   printWindow.close();
-      // };
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.right = "0";
-      iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
-      document.body.appendChild(iframe);
+//       // printWindow.onload = () => {
+//       //   printWindow.focus();
+//       //   printWindow.print();
+//       //   printWindow.close();
+//       // };
+//       const iframe = document.createElement("iframe");
+//       iframe.style.position = "fixed";
+//       iframe.style.right = "0";
+//       iframe.style.bottom = "0";
+//       iframe.style.width = "0";
+//       iframe.style.height = "0";
+//       iframe.style.border = "0";
+//       document.body.appendChild(iframe);
 
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(printContent);
-      doc.close();
+//       const doc = iframe.contentWindow.document;
+//       doc.open();
+//       doc.write(printContent);
+//       doc.close();
 
-      iframe.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
+//       iframe.onload = () => {
+//         iframe.contentWindow.focus();
+//         iframe.contentWindow.print();
 
-        // setTimeout(() => {
-        //   document.body.removeChild(iframe);
-        // }, 1000);
-      };
+//         // setTimeout(() => {
+//         //   document.body.removeChild(iframe);
+//         // }, 1000);
+//       };
+
+//       handleMenuClose();
+//       // handleMenuClose();
+//     } catch (error) {
+//       console.error(error);
+
+//       showToast({
+//         title: "Failed to print invoice",
+//         type: "error",
+//       });
+//     }
+//   };
+const handlePrint = async (_id) => {
+  try {
+    const res = await invoiceAPI.getInvoiceForPrint(_id);
+
+    const invoice = res.data.invoice;
+    const account = invoice.account || {};
+    const summary = invoice.summary || {};
+
+    const isPaid = invoice.invoiceStatus?.toLowerCase() === "paid";
+
+    // Escape HTML values
+    const escapeHTML = (value) =>
+      String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const formatDate = (date) =>
+      date ? new Date(date).toLocaleDateString() : "-";
+
+    const formatAmount = (amount) =>
+      `$${Number(amount || 0).toFixed(2)}`;
+
+    const lineItems = (invoice.lineItems || [])
+      .map(
+        (item) => `
+          <tr>
+            <td>${escapeHTML(item.productorService)}</td>
+            <td>${formatAmount(item.rate)}</td>
+            <td>${escapeHTML(item.quantity)}</td>
+            <td>${formatAmount(item.amount)}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice_${escapeHTML(invoice.invoicenumber)}</title>
+
+        <style>
+          @page {
+            size: A4;
+            margin: 12mm;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #222;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            position: relative;
+          }
+
+          .invoice-container {
+            width: 100%;
+            position: relative;
+            background: #fff;
+          }
+
+          /* HEADER */
+
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            min-height: 55px;
+          }
+
+          .logo {
+            width: 130px;
+            height: auto;
+            max-height: 70px;
+            object-fit: contain;
+          }
+
+          .company-details {
+            text-align: right;
+            line-height: 1.6;
+            font-size: 10px;
+          }
+
+          .company-details h2 {
+            font-size: 18px;
+            margin: 0 0 4px;
+          }
+
+          .divider {
+            border: none;
+            border-top: 2px solid #1e88e5;
+            margin: 12px 0 20px;
+          }
+
+          /* INVOICE TITLE */
+
+          .invoice-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 25px;
+          }
+
+          /* BILL TO + INVOICE DETAILS */
+
+          .details {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+          }
+
+          .bill-to {
+            width: 55%;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+          }
+
+          .invoice-info {
+            width: 45%;
+          }
+
+          .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+          }
+
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+          }
+
+          .info-row strong {
+            min-width: 65px;
+          }
+
+          .info-row span {
+            text-align: right;
+            overflow-wrap: anywhere;
+          }
+
+          /* DESCRIPTION */
+
+          .description {
+            margin: 20px 0;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+          }
+
+          /* TABLE */
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+          }
+
+          thead {
+            display: table-header-group;
+          }
+
+          tr {
+            page-break-inside: avoid;
+          }
+
+          th {
+            background-color: #1976d2;
+            color: #fff;
+            font-weight: bold;
+            padding: 11px 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+          }
+
+          td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            overflow-wrap: anywhere;
+          }
+
+          tbody tr:nth-child(even) {
+            background-color: #f8f8f8;
+          }
+
+          /* TOTALS */
+
+          .summary {
+            width: 240px;
+            margin-left: auto;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+          }
+
+          .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+          }
+
+          .total-row {
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 1px solid #ccc;
+            margin-top: 8px;
+            padding-top: 12px;
+          }
+
+          /* PAID WATERMARK */
+
+          .paid-watermark {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 90px;
+            font-weight: bold;
+            color: rgba(200, 0, 0, 0.15);
+            z-index: 0;
+            pointer-events: none;
+          }
+
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            .invoice-container {
+              width: 100%;
+            }
+          }
+        </style>
+      </head>
+
+      <body>
+        <div class="invoice-container">
+
+          ${
+            isPaid
+              ? `<div class="paid-watermark">PAID</div>`
+              : ""
+          }
+
+          <!-- HEADER -->
+
+          <div class="header">
+            <div>
+              <img src="${logo}" class="logo" />
+            </div>
+
+            <div class="company-details">
+              <h2>SNP Tax & Financials</h2>
+              <div>3015 Hopyard Rd, Ste M Pleasanton, CA 94588 </div>
+              <div>(925) 800-3561</div>
+              <div>silpa@snptaxandfinancials.com</div>
+              <div>http://www.snptaxandfinancials.com</div>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <!-- INVOICE TITLE -->
+
+          <div class="invoice-title">INVOICE</div>
+
+          <!-- BILL TO + INVOICE DETAILS -->
+
+          <div class="details">
+
+            <div class="bill-to">
+              <div class="section-title">Bill To</div>
+
+              <div>${escapeHTML(account.accountName)}</div>
+              <div>${escapeHTML(account.contactName)}</div>
+              <div>${escapeHTML(account.email)}</div>
+              <div>${escapeHTML(account.streetAddress)}</div>
+            </div>
+
+            <div class="invoice-info">
+
+              <div class="info-row">
+                <strong>Invoice #</strong>
+                <span>${escapeHTML(invoice.invoicenumber)}</span>
+              </div>
+
+              <div class="info-row">
+                <strong>Date</strong>
+                <span>${formatDate(invoice.invoicedate)}</span>
+              </div>
+
+              <div class="info-row">
+                <strong>Status</strong>
+                <span>${escapeHTML(invoice.invoiceStatus || "-")}</span>
+              </div>
+
+              <div class="info-row">
+                <strong>Paid Date</strong>
+                <span>
+                  ${
+                    isPaid
+                      ? formatDate(invoice.updatedAt)
+                      : "-"
+                  }
+                </span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- DESCRIPTION -->
+
+          <div class="description">
+            <strong>Description</strong>
+            <div>${escapeHTML(invoice.description || "-")}</div>
+          </div>
+
+          <!-- PRODUCT / SERVICE TABLE -->
+
+          <table>
+            <thead>
+              <tr>
+                <th>Product/Service</th>
+                <th>Rate</th>
+                <th>Quantity</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${lineItems}
+            </tbody>
+          </table>
+
+          <!-- SUMMARY -->
+
+          <div class="summary">
+
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>${formatAmount(summary.subtotal)}</span>
+            </div>
+
+            <div class="summary-row">
+              <span>Tax</span>
+              <span>${formatAmount(summary.taxTotal)}</span>
+            </div>
+
+            <div class="summary-row total-row">
+              <span>TOTAL</span>
+              <span>${formatAmount(summary.total)}</span>
+            </div>
+
+          </div>
+
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create a hidden iframe for printing
+    const iframe = document.createElement("iframe");
+
+    iframe.style.position = "fixed";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+
+    document.body.appendChild(iframe);
+
+    const printDoc = iframe.contentWindow.document;
+
+    printDoc.open();
+    printDoc.write(printContent);
+    printDoc.close();
+
+    // Wait for the logo and document to load before printing
+    iframe.onload = async () => {
+      const images = Array.from(printDoc.images);
+
+      await Promise.all(
+        images.map((img) => {
+          if (img.complete) return Promise.resolve();
+
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
 
       handleMenuClose();
-      // handleMenuClose();
-    } catch (error) {
-      console.error(error);
+    };
 
-      showToast({
-        title: "Failed to print invoice",
-        type: "error",
-      });
-    }
-  };
+  } catch (error) {
+    console.error("Error printing invoice:", error);
+
+    showToast({
+      title: "Failed to print invoice",
+      type: "error",
+    });
+  }
+};
   const [payDrawerOpen, setPayDrawerOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 

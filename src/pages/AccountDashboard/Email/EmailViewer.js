@@ -1778,34 +1778,7 @@ showToast({
                   }}
                   className="group relative flex items-center gap-3 pl-3 pr-4 h-11 cursor-pointer border-b border-[#F1F1F1] transition-colors"
                 >
-                  {/* checkbox (hover) / star */}
-                  {/* <div className="flex items-center gap-2 shrink-0 w-[46px]">
-                    <button
-                      onClick={(e) => toggleRowSelect(e, thread._id)}
-                      className={`${
-                        isChecked || isRowHovered ? "flex" : "hidden group-hover:flex"
-                      } h-4 w-4 items-center justify-center text-[#5F6368] hover:text-[#202124]`}
-                    >
-                      {isChecked ? (
-                        <CheckSquare className="h-4 w-4" style={{ color: GMAIL.blue }} />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={(e) => toggleStar(e, thread._id)}
-                      className="h-4 w-4 flex items-center justify-center"
-                    >
-                      <Star
-                        className="h-4 w-4"
-                        style={{
-                          color: isStarred ? GMAIL.star : "#C9CDD1",
-                        }}
-                        fill={isStarred ? GMAIL.star : "none"}
-                      />
-                    </button>
-                  </div> */}
+                 
 
                   {/* sender / subject / snippet, single truncating line like Gmail */}
                   <div className="flex-1 min-w-0 flex items-baseline gap-2">
@@ -1857,27 +1830,7 @@ showToast({
                       </span>
                     </div>
 
-                    {/* hover actions, Gmail shows archive/delete/mark-read icons here */}
-                    {/* <div
-                      className={`items-center gap-0.5 ${
-                        isRowHovered ? "flex" : "hidden"
-                      }`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        title="Archive"
-                        className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-[#E8EAED] text-[#5F6368]"
-                      >
-                        <Archive className="h-4 w-4" />
-                      </button>
-
-                      <button
-                        title="Delete"
-                        className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-[#E8EAED] text-[#5F6368]"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div> */}
+                 
                   </div>
                 </div>
               );

@@ -5315,6 +5315,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   // and the signing timestamp. Without it, a signature is
                   // just an image with no attribution on the document.
                   withSignatureId={true}
+                  dateFormats={['MM/DD/YYYY']}
                   customCss={customCss}
                   // @docuseal/react v1 has no onComplete prop - it was being
                   // ignored, so the dialog never closed after sending and the
