@@ -18,8 +18,10 @@ import MultiSelectDropdown from "../../components/MultiSelectDropdown";
 import TagsMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 import { folderManagementAPI,authAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext"; // adjust path
-export default function AccountForm({ onContinue, isEditing = false }) {
+export default function AccountForm({ onContinue, isEditing = false ,accountNameError}) {
   const dispatch = useDispatch();
+        console.log("Account name conflict:", accountNameError);
+
   const { user } = useAuth();
   const { accountData } = useSelector((state) => state.accountContact);
   const [errors, setErrors] = useState({});
@@ -353,7 +355,7 @@ useEffect(() => {
             <span className="text-destructive ml-1">*</span>
           </Label>
 
-          <Input
+          {/* <Input
             name="accountName"
             value={accountData.accountName || ""}
             placeholder="Enter account name"
@@ -368,9 +370,30 @@ useEffect(() => {
               fontSize:
                 "calc(0.86rem * (var(--font-scale) / 100))",
             }}
-          />
+            errorMessage={accountNameError}
+          /> */}
+<Input
+  name="accountName"
+  value={accountData.accountName || ""}
+  placeholder="Enter account name"
+  className={`
+    h-10 rounded-xl bg-background
+    shadow-sm transition-all
+    focus-visible:ring-2 focus-visible:ring-primary/30
+    ${errors.accountName ? "border-destructive" : ""}
+  `}
+  onChange={handleChange}
+  style={{
+    fontSize: "calc(0.86rem * (var(--font-scale) / 100))",
+  }}
+/>
 
-          {errors.accountName && (
+{accountNameError && (
+  <p className="mt-1 text-sm text-destructive">
+    {accountNameError}
+  </p>
+)}
+          {/* {errors.accountName && (
             <p
               className="text-destructive"
               style={{
@@ -380,7 +403,7 @@ useEffect(() => {
             >
               {errors.accountName}
             </p>
-          )}
+          )} */}
         </div>
 
         {/* Company Name */}
