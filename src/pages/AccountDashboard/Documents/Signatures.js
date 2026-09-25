@@ -4,6 +4,14 @@ import { useParams } from "react-router-dom";
 import { FileSignature } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 import { esignAPI } from "../../../services/api";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
 const Signatures = () => {
   const { accountId } = useParams();
   console.log("accoiunt id for sign", accountId);
@@ -121,93 +129,53 @@ const Signatures = () => {
       {/* Table Container */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* Table Header */}
-            <thead>
-              <tr className="border-b border-border bg-muted/40">
-                <th
-                  className="
-                  px-4 py-3
-                  text-left
-                  uppercase
-                  tracking-wide
-                  text-muted-foreground
-                  font-semibold
-                  whitespace-nowrap
-                "
-                  style={{
-                    fontFamily: "var(--font-family)",
-                    fontSize:
-                      "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
-                  }}
-                >
-                  Document Name
-                </th>
+          <Table>
+            {/* Header - mirrors Approvals.js so the two tabs stay in sync */}
+            <TableHeader>
+              <TableRow className="border-b border-border bg-muted/40 hover:bg-muted/40">
+                {[
+                  "Document Name",
+                  "Status",
+                  "Date Uploaded",
+                  "Date Requested",
+                  "Date Signed",
+                ].map((heading) => (
+                  <TableHead
+                    key={heading}
+                    className="
+                      px-4 py-3
+                      text-left
+                      uppercase
+                      tracking-wide
+                      text-muted-foreground
+                      font-semibold
+                      whitespace-nowrap
+                    "
+                    style={{
+                      fontFamily: "var(--font-family)",
+                      fontSize:
+                        "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
+                    }}
+                  >
+                    {heading}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
 
-                <th
-                  className="
-                  px-4 py-3
-                  text-left
-                  uppercase
-                  tracking-wide
-                  text-muted-foreground
-                  font-semibold
-                  whitespace-nowrap
-                "
-                  style={{
-                    fontFamily: "var(--font-family)",
-                    fontSize:
-                      "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
-                  }}
-                >
-                  Status
-                </th>
-                <th
-                  className="px-4 py-3 text-left uppercase tracking-wide text-muted-foreground font-semibold whitespace-nowrap"
-                  style={{
-                    fontFamily: "var(--font-family)",
-                    fontSize:
-                      "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
-                  }}
-                >
-             Date uploaded
-                </th>
-                <th
-                  className="px-4 py-3 text-left uppercase tracking-wide text-muted-foreground font-semibold whitespace-nowrap"
-                  style={{
-                    fontFamily: "var(--font-family)",
-                    fontSize:
-                      "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
-                  }}
-                >
-                 Date requested
-                </th>
-                <th
-                  className="px-4 py-3 text-left uppercase tracking-wide text-muted-foreground font-semibold whitespace-nowrap"
-                  style={{
-                    fontFamily: "var(--font-family)",
-                    fontSize:
-                      "calc(0.72rem * parseFloat(var(--font-scale)) / 100)",
-                  }}
-                >
-                  Date signed
-                </th>
-              </tr>
-            </thead>
-
-            {/* Table Body */}
-            <tbody className="divide-y divide-border">
+            {/* Body */}
+            <TableBody className="divide-y divide-border">
               {signatureList.length > 0 ? (
                 signatureList.map((signautrelist, index) => (
-                  <tr
+                  <TableRow
                     key={signautrelist._id || index}
                     className="
-                    transition-colors
-                    hover:bg-muted/30
-                  "
+                      transition-colors
+                      hover:bg-muted/30
+                    "
                   >
                     {/* File Name */}
-                    <td
+                    <TableCell
                       className="px-4 py-3 font-medium text-foreground"
                       style={{
                         fontFamily: "var(--font-family)",
@@ -216,87 +184,90 @@ const Signatures = () => {
                       }}
                     >
                       {signautrelist.filename || "—"}
-                    </td>
+                    </TableCell>
 
                     {/* Status */}
-                    <td className="px-4 py-3">
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`
-                        inline-flex items-center
-                        rounded-full
-                        px-2.5 py-1
-                        text-[11px]
-                        font-semibold
-                        ring-1 ring-inset
-                        ${statusStyles(signautrelist.status)}
-                      `}
+                          inline-flex items-center
+                          rounded-full
+                          px-2.5 py-1
+                          text-[11px]
+                          font-semibold
+                          ring-1 ring-inset
+                          ${statusStyles(signautrelist.status)}
+                        `}
                         style={{
                           fontFamily: "var(--font-family)",
                         }}
                       >
                         {signautrelist.status || "—"}
                       </span>
-                    </td>
-                    {/* <td
-                      className="px-4 py-3 text-muted-foreground"
+                    </TableCell>
+
+                    {/* Date Uploaded */}
+                    <TableCell
+                      className="
+                        whitespace-nowrap
+                        px-4 py-3
+                        text-muted-foreground
+                      "
                       style={{
                         fontFamily: "var(--font-family)",
                         fontSize:
-                          "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+                          "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
                       }}
                     >
                       {formatDate(signautrelist.createdAt)}
-                    </td>
-                    <td
-                      className="px-4 py-3 text-muted-foreground"
+                    </TableCell>
+
+                    {/* Date Requested */}
+                    <TableCell
+                      className="
+                        whitespace-nowrap
+                        px-4 py-3
+                        text-muted-foreground
+                      "
                       style={{
                         fontFamily: "var(--font-family)",
                         fontSize:
-                          "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
+                          "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
+                      }}
+                    >
+                      {formatDate(getRequestedAt(signautrelist))}
+                    </TableCell>
+
+                    {/* Date Signed */}
+                    <TableCell
+                      className="
+                        whitespace-nowrap
+                        px-4 py-3
+                        text-muted-foreground
+                      "
+                      style={{
+                        fontFamily: "var(--font-family)",
+                        fontSize:
+                          "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
                       }}
                     >
                       {formatDate(getSignedAt(signautrelist))}
-                    </td> */}
-                    <td
-  className="px-4 py-3 text-blue-600/80"
-  style={{
-    fontFamily: "var(--font-family)",
-    fontSize: "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
-  }}
->
-  {formatDate(signautrelist.createdAt)}
-</td>
-<td
-  className="px-4 py-3 text-blue-600/80"
-  style={{
-    fontFamily: "var(--font-family)",
-    fontSize: "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
-  }}
->
-  {formatDate(getRequestedAt(signautrelist))}
-</td>
-<td
-  className="px-4 py-3 text-blue-600/80"
-  style={{
-    fontFamily: "var(--font-family)",
-    fontSize: "calc(0.82rem * parseFloat(var(--font-scale)) / 100)",
-  }}
->
-  {formatDate(getSignedAt(signautrelist))}
-</td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={2} className="px-4 py-14 text-center">
+                <TableRow>
+                  {/* colSpan must cover all five columns, otherwise the empty
+                      state is centred over only part of the table. */}
+                  <TableCell colSpan={5} className="px-4 py-14 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div
                         className="
-                        flex h-12 w-12 items-center justify-center
-                        rounded-full
-                        border border-border
-                        bg-muted/40
-                      "
+                          flex h-12 w-12 items-center justify-center
+                          rounded-full
+                          border border-border
+                          bg-muted/40
+                        "
                       >
                         <FileSignature
                           size={18}
@@ -328,11 +299,11 @@ const Signatures = () => {
                         </p>
                       </div>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>
