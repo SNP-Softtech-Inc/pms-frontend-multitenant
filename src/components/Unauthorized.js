@@ -40,9 +40,12 @@ const Unauthorized = () => {
           >
             Go Back
           </Button>
-          <Button 
-            variant="outlined" 
-            onClick={() => navigate('/dashboard')}
+          {/* There is no /dashboard route, so this landed on a blank page.
+              Insights is the app's landing page; the router basename makes
+              this resolve to /admin/insights. */}
+          <Button
+            variant="outlined"
+            onClick={() => navigate('/insights')}
           >
             Go to Dashboard
           </Button>
