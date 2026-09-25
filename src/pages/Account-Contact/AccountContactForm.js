@@ -29,6 +29,7 @@ export default function AccountContactForm({
   const [activeStep, setActiveStep] = useState(0);
   const queryClient = useQueryClient();
   const {showToast} = useToastContext();
+  const [accountNameError, setAccountNameError] = useState(""); // New state for account name error
   const { accountData, contacts, selectedContacts } = useSelector(
     (state) => state.accountContact,
   );
@@ -217,20 +218,38 @@ const assignfoldertemp = async (accountId, foldertempId) => {
     // ===== CREATE / UPDATE ACCOUNT =====
     let finalAccountId;
 
-    if (isEditing && accountId) {
-      await accountsAPI.updateAccount(
-        accountId,
-        accountPayload,
-      );
+    // if (isEditing && accountId) {
+    //   await accountsAPI.updateAccount(
+    //     accountId,
+    //     accountPayload,
+    //   );
 
-      finalAccountId = accountId;
-    } else {
-      const { data } =
-        await accountsAPI.createAccount(accountPayload);
+    //   finalAccountId = accountId;
+    // } else {
+    //   const { data } =
+    //     await accountsAPI.createAccount(accountPayload);
 
-      finalAccountId = data._id;
+    //   finalAccountId = data._id;
+    // }
+if (isEditing && accountId) {
+  await accountsAPI.updateAccount(accountId, accountPayload);
+  finalAccountId = accountId;
+} else {
+  try {
+    const { data } = await accountsAPI.createAccount(accountPayload);
+    finalAccountId = data._id;
+  } catch (err) {
+    if (err?.response?.status === 409) {
+      const msg = err.response.data?.error || "Account name is taken";
+      console.log("Account name conflict:", msg);
+      setAccountNameError(msg);                   // inline error, always visible
+      showToast({ title: msg, type: "error" });   // keep the toast too, for when it's fixed
+      setActiveStep(0);                           // go back to the step with the name field
+      return;
     }
-
+    throw err;
+  }
+}
     // ===== UPDATE CONTACT ACCOUNT IDS =====
     for (let c of allContacts) {
       try {
@@ -476,6 +495,7 @@ for (let contact of selectedContacts) {
             <AccountForm
               onContinue={() => setActiveStep(1)}
               isEditing={isEditing}
+              accountNameError={accountNameError} // Pass the error state to AccountForm
             />
           )}
 

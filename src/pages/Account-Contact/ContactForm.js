@@ -35,6 +35,7 @@ import { Label } from "../../components/ui/label";
 import ContactSelectionDialog from "./ContactSelectionDialog";
 import SelectedContactsDisplay from "./SelectedContactsDisplay";
 import { templateAPI } from "../../services/api";
+import { useToastContext } from "../../context/ToastContext";
 
 // Login/Notify/Email Sync are disabled for now (feature on hold, not
 // removed) - flip this back to true to re-enable the controls.
@@ -285,7 +286,8 @@ const PersonalizationDialog = ({
 
 export default function ContactForm({ onBack, onSubmit, isEditing }) {
   const dispatch = useDispatch();
-  const { contacts, selectedContacts } = useSelector(
+  const {showToast} = useToastContext();
+    const { contacts, selectedContacts } = useSelector(
     (state) => state.accountContact,
   );
 
@@ -390,9 +392,11 @@ export default function ContactForm({ onBack, onSubmit, isEditing }) {
   // }
 
   if (!isValid) {
-  toast.error(
-    "Please fill all required contact details correctly"
-  );
+
+      showToast({
+        title: "Please fill all required contact details correctly",
+        type: "error",
+      });
 
   return;
 }
