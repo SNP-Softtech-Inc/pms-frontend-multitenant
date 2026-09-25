@@ -577,6 +577,8 @@ import {
   Plus,
   X,
   Loader2,
+  Lock,
+  AlertTriangle,
 } from "lucide-react";
 
 import { accountNoteAPI } from "../../services/api";
@@ -591,6 +593,10 @@ const NoteApp = () => {
   const { showToast } = useToastContext();
 
   const [view, setView] = useState("active");
+  // Which note type is being shown. Reviewer notes are an append-only log -
+  // permanent once written - so they live in their own tab rather than mixed
+  // in with editable notes.
+  const [noteTab, setNoteTab] = useState("standard");
   const [notes, setNotes] = useState([]);
 
   // Drawer
@@ -625,6 +631,8 @@ const NoteApp = () => {
         time: new Date(note.createdAt).toLocaleString(),
         archived: !note.active,
         pinned: note.pinned || false,
+        // Older notes predate the field and are standard by default.
+        noteType: note.noteType || "standard",
       }));
 
       formatted.sort((a, b) => {
@@ -697,9 +705,25 @@ const NoteApp = () => {
   };
 
   // ---------------- CREATE NOTE ----------------
+  // Creating a reviewer note is irreversible, so confirm before writing it.
+  // Standard notes save straight away as before.
   const handleAddNote = async () => {
     if (!noteTitle.trim() || isSaving) return;
 
+    if (noteTab === "reviewer") {
+      confirm({
+        title: "Save reviewer note?",
+        description:
+          "Reviewer notes are a permanent record. Once saved, this note cannot be edited or deleted - you can only add further notes.",
+        onConfirm: () => saveNote("reviewer"),
+      });
+      return;
+    }
+
+    await saveNote("standard");
+  };
+
+  const saveNote = async (noteType) => {
     try {
       setIsSaving(true);
 
@@ -708,6 +732,7 @@ const NoteApp = () => {
       formData.append("account", accountId);
       formData.append("title", noteTitle.trim());
       formData.append("noteData", noteText);
+      formData.append("noteType", noteType);
       formData.append(
         "createdBy",
         user?.username || user?.firstName || "Unknown"
@@ -886,12 +911,43 @@ const NoteApp = () => {
     });
   };
 
-  const filtered = notes.filter((n) =>
-    view === "active" ? !n.archived : n.archived
+  const isReviewerTab = noteTab === "reviewer";
+
+  const filtered = notes.filter(
+    (n) =>
+      n.noteType === noteTab &&
+      (view === "active" ? !n.archived : n.archived)
   );
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6">
+      {/* Note type tabs */}
+      <div className="mb-4 flex gap-2 p-1 rounded-xl border border-border bg-muted/30 shadow-sm w-fit">
+        <Button
+          variant={noteTab === "standard" ? "default" : "ghost"}
+          onClick={() => setNoteTab("standard")}
+        >
+          Notes
+        </Button>
+
+        <Button
+          variant={noteTab === "reviewer" ? "default" : "ghost"}
+          onClick={() => setNoteTab("reviewer")}
+        >
+          Reviewer Notes
+        </Button>
+      </div>
+
+      {isReviewerTab && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
+          <span>
+            Reviewer notes are a permanent record. Once saved they cannot be
+            edited or deleted - you can only add further notes.
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         {/* View Toggle */}
@@ -968,7 +1024,11 @@ const NoteApp = () => {
                       "calc(1.05rem * parseFloat(var(--font-scale)) / 100)",
                   }}
                 >
-                  {drawerMode === "edit" ? "Edit Note" : "Create Note"}
+                  {drawerMode === "edit"
+                    ? "Edit Note"
+                    : isReviewerTab
+                      ? "Create Reviewer Note"
+                      : "Create Note"}
                 </h2>
 
                 <p
@@ -981,7 +1041,9 @@ const NoteApp = () => {
                 >
                   {drawerMode === "edit"
                     ? "Update the title and description for this note."
-                    : "Add a title and description for this note."}
+                    : isReviewerTab
+                      ? "This will be saved as a permanent record - it cannot be edited or deleted afterwards."
+                      : "Add a title and description for this note."}
                 </p>
               </div>
 
@@ -1155,9 +1217,16 @@ const NoteApp = () => {
 
               {/* FOOTER */}
               <div className="mt-5 flex items-center justify-between">
-                {/* ACTIONS */}
+                {/* ACTIONS - a reviewer note is permanent, so it gets no
+                    edit, delete, pin or archive controls. The server rejects
+                    those operations too; this just keeps them off screen. */}
                 <div className="flex items-center gap-1">
-                  {view === "active" ? (
+                  {note.noteType === "reviewer" ? (
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Lock className="h-3.5 w-3.5" />
+                      Permanent record
+                    </span>
+                  ) : view === "active" ? (
                     <>
                       <Button
                         variant="ghost"
