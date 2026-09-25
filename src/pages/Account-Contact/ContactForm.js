@@ -1165,6 +1165,44 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
                 )}
               </div>
 
+              {/* Tax-prep fields. These existed only in the standalone
+                  contact drawer, so creating a contact as part of a new
+                  account had no way to capture them - they only appeared
+                  later when editing the contact. Names match what
+                  createContact expects, and handleChange keys off the input
+                  name, so no extra wiring is needed. */}
+              {[
+                { name: "tpSocial", label: "TP_Social" },
+                { name: "tpDob", label: "TP_DoB" },
+                { name: "resState", label: "Res_State" },
+                { name: "tpDayPhone", label: "TP_Day_Phone" },
+                { name: "tpOccupation", label: "TP_Occupation" },
+              ].map((field) => (
+                <div className="space-y-1.5" key={field.name}>
+                  <Label className="text-xs font-medium text-foreground">
+                    {field.label}
+                  </Label>
+
+                  <Input
+                    name={field.name}
+                    value={contact[field.name] || ""}
+                    placeholder={field.label}
+                    className="
+                      h-10
+                      bg-background
+                      border-border/60
+                    "
+                    style={{
+                      fontFamily:
+                        "var(--font-family)",
+                    }}
+                    onChange={(e) =>
+                      handleChange(contactIndex, e)
+                    }
+                  />
+                </div>
+              ))}
+
               {/* Email */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-foreground">
@@ -1497,9 +1535,12 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
                     Street Address
                   </Label>
 
+                  {/* name must match what createContact reads - it was
+                      "streetAdd", which the API never looks at, so the
+                      street address entered here was silently discarded. */}
                   <Input
-                    name="streetAdd"
-                    value={contact.streetAdd || ""}
+                    name="streetAddress"
+                    value={contact.streetAddress || ""}
                     placeholder="Street address"
                     className="
                       h-10
@@ -1576,9 +1617,11 @@ const selectCls = "h-9 w-full rounded-md border border-input bg-background px-3 
                       ZIP Code
                     </Label>
 
+                    {/* was "zipCode", which createContact never reads - the
+                        API field is postalCode, so this was discarded too. */}
                     <Input
-                      name="zipCode"
-                      value={contact.zipCode || ""}
+                      name="postalCode"
+                      value={contact.postalCode || ""}
                       placeholder="ZIP Code"
                       className="
                         h-10
