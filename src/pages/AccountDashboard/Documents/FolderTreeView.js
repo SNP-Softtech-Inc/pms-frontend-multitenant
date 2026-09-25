@@ -4115,68 +4115,76 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             </div>
           )}
 
-          {/* DRAWERS - Keep as is */}
-          <FileUploadDrawer
-            isOpen={fileUploadDrawerOpen}
-            onClose={() => setFileUploadDrawerOpen(false)}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            accountId={accountId}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <CreateFolderDrawer
-            isOpen={newFolderDrawerOpen}
-            onClose={() => {
-              setNewFolderDrawerOpen(false);
-            }}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            accountId={accountId}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <FolderUploadDrawer
-            isOpen={folderUploaDrawerOpen}
-            onClose={() => setFolderUploaDrawerOpen(false)}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <MoveDrawer
-            isOpen={moveDrawerOpen}
-            onClose={() => {
-              setMoveDrawerOpen(false);
-            }}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <RenameDrawer
-            isOpen={renameDrawer}
-            onClose={() => {
-              SetRenameDrawer(false);
-            }}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <MoveDrawer
-            isOpen={bulkMoveDrawerOpen}
-            onClose={() => setBulkMoveDrawerOpen(false)}
-            folderTree={folderTree}
-            fetchFolderTree={fetchFolderTree}
-            isBulkOperation={true}
-            selectedPaths={Array.from(selectedItems)}
-            onMoveComplete={(targetPath) => {
-              console.log("Bulk move completed to:", targetPath);
-              setSelectedItems(new Set());
-            }}
-          />
         </div>
+
+        {/* DRAWERS - these must stay OUTSIDE the sticky action bar above.
+            `position: sticky` combined with a z-index creates its own stacking
+            context, so while the drawers lived inside it their `fixed z-50`
+            overlays were trapped at the bar's z-20. The document table's
+            `sticky top-0 z-20` header then tied on z-index and, being later in
+            the DOM, painted straight over the open drawer - the page and the
+            drawer appeared merged together. Out here they sit in the root
+            stacking context, where z-50 genuinely wins. */}
+        <FileUploadDrawer
+          isOpen={fileUploadDrawerOpen}
+          onClose={() => setFileUploadDrawerOpen(false)}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          accountId={accountId}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <CreateFolderDrawer
+          isOpen={newFolderDrawerOpen}
+          onClose={() => {
+            setNewFolderDrawerOpen(false);
+          }}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          accountId={accountId}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <FolderUploadDrawer
+          isOpen={folderUploaDrawerOpen}
+          onClose={() => setFolderUploaDrawerOpen(false)}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <MoveDrawer
+          isOpen={moveDrawerOpen}
+          onClose={() => {
+            setMoveDrawerOpen(false);
+          }}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <RenameDrawer
+          isOpen={renameDrawer}
+          onClose={() => {
+            SetRenameDrawer(false);
+          }}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <MoveDrawer
+          isOpen={bulkMoveDrawerOpen}
+          onClose={() => setBulkMoveDrawerOpen(false)}
+          folderTree={folderTree}
+          fetchFolderTree={fetchFolderTree}
+          isBulkOperation={true}
+          selectedPaths={Array.from(selectedItems)}
+          onMoveComplete={(targetPath) => {
+            console.log("Bulk move completed to:", targetPath);
+            setSelectedItems(new Set());
+          }}
+        />
 
         {/* DOCUMENT EXPLORER */}
         <div
