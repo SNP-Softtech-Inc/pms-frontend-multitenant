@@ -140,6 +140,16 @@ const accountContactSlice = createSlice({
     setDraftFor: (state, action) => {
       state.draftFor = action.payload;
     },
+    // Put a draft recovered from sessionStorage back into the form. Used when
+    // the create-account drawer opens and a previous half-filled draft is
+    // still around - see redux/accountContactDraft.js for why it can be.
+    restoreNewDraft: (state, action) => {
+      const { accountData, contacts, selectedContacts } = action.payload;
+      state.accountData = { ...initialState.accountData, ...accountData };
+      state.contacts = contacts || [];
+      state.selectedContacts = selectedContacts || [];
+      state.draftFor = "new";
+    },
     resetForm: () => initialState,
   },
 });
@@ -154,6 +164,7 @@ export const {
   removePhoneNumber,
   resetForm,
   setDraftFor,
+  restoreNewDraft,
   updateContactField,
   addSelectedContacts,
   removeSelectedContact,

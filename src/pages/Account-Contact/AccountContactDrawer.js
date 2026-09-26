@@ -18,7 +18,9 @@ import {
   setSelectedContacts,
   setDraftFor,
   resetForm,
+  restoreNewDraft,
 } from "../../redux/accountContactSlice";
+import { loadNewDraft } from "../../redux/accountContactDraft";
 import { accountsAPI } from "../../services/api";
 
 export default function AccountContactDrawer({
@@ -68,10 +70,18 @@ export default function AccountContactDrawer({
         }
       })();
     } else {
-      // Opening a fresh "new account" while the form still holds something
-      // else (a previous edit, or a saved draft's leftovers) - start clean.
-      dispatch(resetForm());
-      dispatch(setDraftFor("new"));
+      // Opening "new account" while the form holds something else - usually
+      // an account that was opened for editing in between. Before clearing,
+      // check whether a half-filled draft was stashed: losing it here is how
+      // a typed-out Company account came back blank and reset to Individual.
+      const draft = loadNewDraft();
+
+      if (draft) {
+        dispatch(restoreNewDraft(draft));
+      } else {
+        dispatch(resetForm());
+        dispatch(setDraftFor("new"));
+      }
     }
   }, [open, accountId, draftFor, dispatch, onClose]);
 

@@ -1,6 +1,7 @@
 import React, { useState,  } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { resetForm } from "../../redux/accountContactSlice";
+import { clearNewDraft } from "../../redux/accountContactDraft";
 // import { Box, Stepper, Step, StepLabel } from "@mui/material";
 import { Card,CardContent } from "../../components/ui/card";
 
@@ -314,6 +315,9 @@ for (let contact of selectedContacts) {
 
     // The drawer no longer clears on close (so an accidental Back keeps the
     // draft) - clearing happens here instead, once the work is safely saved.
+    // The stashed copy goes too, otherwise the next "Create Account" would
+    // reopen on the account that was just created.
+    clearNewDraft();
     dispatch(resetForm());
 
     // ===== REFRESH ACCOUNT TABLE =====
