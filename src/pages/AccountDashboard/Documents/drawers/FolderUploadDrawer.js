@@ -363,8 +363,8 @@ const FolderUploadDrawer = ({
 }) => {
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
-  const [folderName, setFolderName] = useState("my-uploaded-folder");
   const [files, setFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const hiddenFileInput = useRef(null);
 const {showToast} = useToastContext();
   const handleClick = () => {
@@ -374,29 +374,54 @@ const {showToast} = useToastContext();
   useEffect(() => {
     if (isOpen && selectedFolderForMenu) {
       setSelectedFolder(selectedFolderForMenu.path);
-      setFolderName("");
     } else if (!isOpen) {
       setSelectedFolder("");
-      setFolderName("");
       setFiles([]);
       setMessage("");
+      setUploading(false);
     }
   }, [isOpen, selectedFolderForMenu]);
 
   const handleFolderSelect = (path) => setSelectedFolder(path);
 
-  const handleUploadFolderSelect = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles(selectedFiles);
+  // Group the picked files by their top-level directory. A folder picker only
+  // ever returns one folder per dialog, so several folders means several
+  // trips through it - the groups are what we accumulate.
+  const folderGroups = files.reduce((groups, file) => {
+    const root = file.webkitRelativePath.split("/")[0];
+    (groups[root] = groups[root] || []).push(file);
+    return groups;
+  }, {});
 
-    if (selectedFiles.length > 0) {
-      const firstPath = selectedFiles[0].webkitRelativePath;
-      const topLevelFolder = firstPath.split("/")[0];
-      setFolderName(topLevelFolder);
-    }
+  const folderNames = Object.keys(folderGroups);
+
+  const handleUploadFolderSelect = (e) => {
+    const picked = Array.from(e.target.files);
+    if (picked.length === 0) return;
+
+    // Add to what is already staged rather than replacing it, so folders can
+    // be collected one dialog at a time. Re-picking the same folder should
+    // not stage its files twice, hence the path check.
+    setFiles((prev) => {
+      const seen = new Set(prev.map((f) => f.webkitRelativePath));
+      return [...prev, ...picked.filter((f) => !seen.has(f.webkitRelativePath))];
+    });
+
+    // Let the same folder be re-picked later; without this the input keeps
+    // its value and firing change again for it is not guaranteed.
+    e.target.value = "";
+  };
+
+  const removeFolder = (name) => {
+    setFiles((prev) =>
+      prev.filter((f) => f.webkitRelativePath.split("/")[0] !== name),
+    );
   };
 
   const handleUpload = async () => {
+    // Guard a second click while a batch is still running.
+    if (uploading) return;
+
     if (!files.length) {
       showToast({
         title: "Please select a folder first!",
@@ -413,50 +438,82 @@ const {showToast} = useToastContext();
       return;
     }
 
+    setUploading(true);
+
+    // One request per folder, deliberately. The server strips the first path
+    // segment off every zip entry and extracts into folderPath, so a single
+    // zip holding two top-level folders would have both roots stripped and
+    // their contents merged together.
+    const failed = [];
+
     try {
-      setMessage("Zipping folder...");
+      for (let i = 0; i < folderNames.length; i++) {
+        const name = folderNames[i];
 
-      let targetFolderPath = selectedFolder
-        ? `${selectedFolder}/${folderName}`
-        : folderName;
+        setMessage(
+          `Zipping ${name} (${i + 1} of ${folderNames.length})...`,
+        );
 
-      targetFolderPath = targetFolderPath.replace(/\/+/g, "/");
+        const targetFolderPath = `${selectedFolder}/${name}`.replace(
+          /\/+/g,
+          "/",
+        );
 
-      const zip = new JSZip();
+        const zip = new JSZip();
+        folderGroups[name].forEach((file) => {
+          zip.file(file.webkitRelativePath, file);
+        });
 
-      files.forEach((file) => {
-        zip.file(file.webkitRelativePath, file);
-      });
+        const zipBlob = await zip.generateAsync({ type: "blob" });
 
-      const zipBlob = await zip.generateAsync({ type: "blob" });
+        const formData = new FormData();
+        formData.append("folderZip", zipBlob, `${name}.zip`);
+        formData.append("folderName", name);
+        formData.append("folderPath", targetFolderPath);
 
-      const formData = new FormData();
-      formData.append("folderZip", zipBlob, `${folderName}.zip`);
-      formData.append("folderName", folderName);
-      formData.append("folderPath", targetFolderPath);
+        setMessage(`Uploading ${name} (${i + 1} of ${folderNames.length})...`);
 
-      setMessage("Uploading...");
+        try {
+          await accountDocsAPI.uploadFolderZip(formData);
+        } catch (err) {
+          // Keep going: one bad folder should not abandon the rest of the
+          // batch, and the user is told exactly which ones did not make it.
+          console.error(`Upload failed for ${name}:`, err);
+          failed.push(name);
+        }
+      }
 
-      const res = await accountDocsAPI.uploadFolderZip(formData);
+      const uploaded = folderNames.length - failed.length;
 
-      const successMsg = res?.data?.message || "Uploaded successfully!";
-
-      setMessage(successMsg);
-      showToast({
-        title: "Folder uploaded successfully",
-        type: "success",
-      });
+      if (failed.length > 0) {
+        showToast({
+          title: `${uploaded} of ${folderNames.length} folder(s) uploaded. Failed: ${failed.join(", ")}`,
+          type: uploaded > 0 ? "warning" : "error",
+        });
+        setMessage(`❌ Failed: ${failed.join(", ")}`);
+      } else {
+        showToast({
+          title: `${uploaded} folder${uploaded === 1 ? "" : "s"} uploaded successfully`,
+          type: "success",
+        });
+        setMessage("Uploaded successfully!");
+      }
 
       await fetchFolderTree();
-      onClose();
-    } catch (err) {
-      console.error(err);
-      const errorMsg = err?.response?.data?.error || "Upload failed!";
-      showToast({
-        title: errorMsg,
-        type: "error",
-      });
-      setMessage(`❌ ${errorMsg}`);
+
+      // Only close when everything landed - otherwise leave the drawer open
+      // with the folders that failed still staged, so they can be retried.
+      if (failed.length === 0) {
+        onClose();
+      } else {
+        setFiles((prev) =>
+          prev.filter((f) =>
+            failed.includes(f.webkitRelativePath.split("/")[0]),
+          ),
+        );
+      }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -494,10 +551,17 @@ const {showToast} = useToastContext();
               className="flex items-center gap-2.5 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-3 text-sm font-medium text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors w-full justify-center"
             >
               <Upload className="h-4 w-4 text-muted-foreground" />
-              {files.length > 0 
-                ? `${files.length} file(s) selected — ${folderName}` 
+              {folderNames.length > 0
+                ? "Add Another Folder"
                 : "Select Folder"}
             </button>
+
+            {folderNames.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                Pick one folder at a time — each is uploaded separately.
+              </p>
+            )}
+
             <input
               type="file"
               ref={hiddenFileInput}
@@ -509,12 +573,38 @@ const {showToast} = useToastContext();
             />
           </div>
 
-          {/* Selected folder info */}
-          {folderName && files.length > 0 && (
-            <div className="rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
-              <p className="text-xs font-medium text-primary mb-0.5">Folder to upload</p>
-              <p className="text-sm text-foreground font-medium">{folderName}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{files.length} file(s)</p>
+          {/* Staged folders */}
+          {folderNames.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-primary">
+                {folderNames.length} folder
+                {folderNames.length === 1 ? "" : "s"} to upload
+              </p>
+
+              {folderNames.map((name) => (
+                <div
+                  key={name}
+                  className="flex items-center justify-between gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm text-foreground font-medium truncate">
+                      {name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {folderGroups[name].length} file(s)
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => removeFolder(name)}
+                    disabled={uploading}
+                    aria-label={`Remove ${name}`}
+                    className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
@@ -546,11 +636,24 @@ const {showToast} = useToastContext();
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border shrink-0">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={uploading}
+            className="flex-1"
+          >
             Close
           </Button>
-          <Button onClick={handleUpload} className="flex-1">
-            Upload
+          <Button
+            onClick={handleUpload}
+            disabled={uploading || folderNames.length === 0}
+            className="flex-1 disabled:opacity-50"
+          >
+            {uploading
+              ? "Uploading..."
+              : folderNames.length > 1
+                ? `Upload ${folderNames.length} Folders`
+                : "Upload"}
           </Button>
         </div>
       </div>
