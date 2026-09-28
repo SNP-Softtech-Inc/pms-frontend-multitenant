@@ -2927,6 +2927,9 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       url: fileUrl,
       name: item.name,
       accountId,
+      // Carried through so the Signatures tab can show when the document was
+      // uploaded rather than repeating the request date under that heading.
+      uploadedAt: item.meta?.uploadedAt || "",
     });
 
     console.log(data);

@@ -48,6 +48,13 @@ const Signatures = () => {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
+
+    // Folder metadata stores an already-formatted date such as "SEP-28-2026",
+    // which new Date() does not parse reliably. Pass it straight through.
+    if (typeof dateStr === "string" && /^[A-Z]{3}-\d{2}-\d{4}$/.test(dateStr)) {
+      return dateStr;
+    }
+
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return "—";
 
@@ -219,7 +226,14 @@ const Signatures = () => {
                           "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
                       }}
                     >
-                      {formatDate(signautrelist.createdAt)}
+                      {/* The document's own upload date when we have it.
+                          Requests raised before that was captured fall back
+                          to the request date, which is what this column
+                          always showed. */}
+                      {formatDate(
+                        signautrelist.documentUploadedAt ||
+                          signautrelist.createdAt,
+                      )}
                     </TableCell>
 
                     {/* Date Requested */}
