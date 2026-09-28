@@ -463,6 +463,54 @@ const {showToast} = useToastContext();
     );
   };
 
+  // Up to 500MB can be uploaded in one go, but not in one request. The
+  // service buffers each upload wholly in memory (multer.memoryStorage), so a
+  // single 500MB body would allocate a 500MB Buffer in the Node process and
+  // could take folder-management down for every tenant. The total is spread
+  // over several requests of this size instead, which also keeps each one
+  // under nginx's client_max_body_size - the 413 seen with six folders.
+  //
+  // Raw file bytes are used as the estimate: a zip of documents is rarely
+  // larger than its input, so this errs on the safe side.
+  const MAX_BATCH_BYTES = 40 * 1024 * 1024;
+  const MAX_TOTAL_BYTES = 500 * 1024 * 1024;
+
+  const totalBytes = files.reduce((sum, i) => sum + (i.file.size || 0), 0);
+
+  const formatBytes = (bytes) => {
+    if (bytes >= 1024 * 1024 * 1024)
+      return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+    if (bytes >= 1024 * 1024) return `${Math.round(bytes / 1024 / 1024)} MB`;
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  };
+
+  const folderBytes = (name) =>
+    folderGroups[name].reduce((sum, i) => sum + (i.file.size || 0), 0);
+
+  const buildBatches = () => {
+    const batches = [];
+    let current = [];
+    let currentBytes = 0;
+
+    for (const name of folderNames) {
+      const bytes = folderBytes(name);
+
+      // Start a new batch when this folder would push the current one over.
+      // A single folder larger than the budget still goes on its own.
+      if (current.length > 0 && currentBytes + bytes > MAX_BATCH_BYTES) {
+        batches.push(current);
+        current = [];
+        currentBytes = 0;
+      }
+
+      current.push(name);
+      currentBytes += bytes;
+    }
+
+    if (current.length > 0) batches.push(current);
+    return batches;
+  };
+
   const handleUpload = async () => {
     // Guard a second click while a batch is still running.
     if (uploading) return;
@@ -483,91 +531,100 @@ const {showToast} = useToastContext();
       return;
     }
 
-    setUploading(true);
-
-    const destination = selectedFolder.replace(/\/+$/, "");
-
-    // Several folders go out as one archive to /upload-multi-folder, which
-    // keeps each entry's root folder. The single-folder endpoint cannot be
-    // used for this: it strips the first path segment, so two roots would be
-    // stripped and their contents merged into one directory.
-    if (folderNames.length > 1) {
-      try {
-        setMessage(`Zipping ${folderNames.length} folders...`);
-
-        const zip = new JSZip();
-        files.forEach((item) => {
-          zip.file(item.relativePath, item.file);
-        });
-
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-
-        const formData = new FormData();
-        formData.append("folderZip", zipBlob, "folders.zip");
-        formData.append("folderPath", destination);
-
-        setMessage(`Uploading ${folderNames.length} folders...`);
-
-        const res = await accountDocsAPI.uploadMultiFolderZip(formData);
-
-        const uploaded = res?.data?.folders?.length ?? folderNames.length;
-
-        showToast({
-          title: `${uploaded} folders uploaded successfully`,
-          type: "success",
-        });
-        setMessage("Uploaded successfully!");
-
-        await fetchFolderTree();
-        onClose();
-      } catch (err) {
-        console.error(err);
-        const errorMsg = err?.response?.data?.error || "Upload failed!";
-        showToast({ title: errorMsg, type: "error" });
-        setMessage(`❌ ${errorMsg}`);
-      } finally {
-        setUploading(false);
-      }
+    // Stop before zipping rather than partway through the batches, so nothing
+    // is half-uploaded when the selection was never going to fit.
+    if (totalBytes > MAX_TOTAL_BYTES) {
+      showToast({
+        title: `Selection is ${formatBytes(totalBytes)} — the limit is ${formatBytes(
+          MAX_TOTAL_BYTES,
+        )}. Remove some folders and upload the rest separately.`,
+        type: "error",
+      });
       return;
     }
 
-    // A single folder keeps using the original endpoint, unchanged.
+    setUploading(true);
+
+    const destination = selectedFolder.replace(/\/+$/, "");
+    const batches = buildBatches();
     const failed = [];
+    let tooLarge = false;
 
     try {
-      for (let i = 0; i < folderNames.length; i++) {
-        const name = folderNames[i];
+      for (let b = 0; b < batches.length; b++) {
+        const batch = batches[b];
+        const label =
+          batches.length > 1 ? ` (part ${b + 1} of ${batches.length})` : "";
 
-        setMessage(
-          `Zipping ${name} (${i + 1} of ${folderNames.length})...`,
-        );
-
-        const targetFolderPath = `${selectedFolder}/${name}`.replace(
-          /\/+/g,
-          "/",
-        );
+        setMessage(`Zipping ${batch.join(", ")}${label}...`);
 
         const zip = new JSZip();
-        folderGroups[name].forEach((item) => {
-          zip.file(item.relativePath, item.file);
+        batch.forEach((name) => {
+          folderGroups[name].forEach((item) => {
+            zip.file(item.relativePath, item.file);
+          });
         });
 
-        const zipBlob = await zip.generateAsync({ type: "blob" });
+        // JSZip defaults to STORE - no compression - so the archive went over
+        // the wire at the full size of the files. Deflating first costs some
+        // browser CPU but sends far fewer bytes, which is the slow part here.
+        // Level 3 rather than the default 6: most of the saving on documents,
+        // a fraction of the time.
+        // Both callbacks fire far more often than once per percent, and a
+        // setState per call would make re-rendering its own bottleneck.
+        let lastShown = -1;
+        const report = (verb, percent) => {
+          const whole = Math.round(percent);
+          if (whole === lastShown) return;
+          lastShown = whole;
+          setMessage(`${verb} ${batch.join(", ")}${label} — ${whole}%`);
+        };
+
+        const zipBlob = await zip.generateAsync(
+          {
+            type: "blob",
+            compression: "DEFLATE",
+            compressionOptions: { level: 3 },
+          },
+          (meta) => report("Compressing", meta.percent),
+        );
+
+        lastShown = -1;
+        const onUploadProgress = (evt) => {
+          if (!evt.total) return;
+          report("Uploading", (evt.loaded / evt.total) * 100);
+        };
 
         const formData = new FormData();
-        formData.append("folderZip", zipBlob, `${name}.zip`);
-        formData.append("folderName", name);
-        formData.append("folderPath", targetFolderPath);
+        formData.append("folderZip", zipBlob, `${batch[0]}.zip`);
 
-        setMessage(`Uploading ${name} (${i + 1} of ${folderNames.length})...`);
+        setMessage(`Uploading ${batch.join(", ")}${label}...`);
 
         try {
-          await accountDocsAPI.uploadFolderZip(formData);
+          if (batch.length === 1) {
+            // One folder keeps using the original endpoint so its behaviour
+            // stays exactly as it has always been.
+            formData.append("folderName", batch[0]);
+            formData.append(
+              "folderPath",
+              `${destination}/${batch[0]}`.replace(/\/+/g, "/"),
+            );
+            await accountDocsAPI.uploadFolderZip(formData, onUploadProgress);
+          } else {
+            // Several folders in one archive: this endpoint keeps each
+            // entry's root rather than stripping it.
+            formData.append("folderPath", destination);
+            await accountDocsAPI.uploadMultiFolderZip(
+              formData,
+              onUploadProgress,
+            );
+          }
         } catch (err) {
-          // Keep going: one bad folder should not abandon the rest of the
-          // batch, and the user is told exactly which ones did not make it.
-          console.error(`Upload failed for ${name}:`, err);
-          failed.push(name);
+          // One bad batch should not abandon the rest, and the user is told
+          // exactly which folders did not make it.
+          console.error(`Upload failed for ${batch.join(", ")}:`, err);
+          if (err?.response?.status === 413) tooLarge = true;
+          failed.push(...batch);
         }
       }
 
@@ -575,10 +632,16 @@ const {showToast} = useToastContext();
 
       if (failed.length > 0) {
         showToast({
-          title: `${uploaded} of ${folderNames.length} folder(s) uploaded. Failed: ${failed.join(", ")}`,
+          title: tooLarge
+            ? `Server rejected the upload as too large. ${uploaded} of ${folderNames.length} folder(s) uploaded.`
+            : `${uploaded} of ${folderNames.length} folder(s) uploaded. Failed: ${failed.join(", ")}`,
           type: uploaded > 0 ? "warning" : "error",
         });
-        setMessage(`❌ Failed: ${failed.join(", ")}`);
+        setMessage(
+          tooLarge
+            ? "❌ Too large for the server's upload limit — try fewer or smaller folders."
+            : `❌ Failed: ${failed.join(", ")}`,
+        );
       } else {
         showToast({
           title: `${uploaded} folder${uploaded === 1 ? "" : "s"} uploaded successfully`,
@@ -688,9 +751,18 @@ const {showToast} = useToastContext();
           {/* Staged folders */}
           {folderNames.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-primary">
+              <p
+                className={`text-xs font-medium ${
+                  totalBytes > MAX_TOTAL_BYTES
+                    ? "text-destructive"
+                    : "text-primary"
+                }`}
+              >
                 {folderNames.length} folder
-                {folderNames.length === 1 ? "" : "s"} to upload
+                {folderNames.length === 1 ? "" : "s"} to upload —{" "}
+                {formatBytes(totalBytes)}
+                {totalBytes > MAX_TOTAL_BYTES &&
+                  ` (over the ${formatBytes(MAX_TOTAL_BYTES)} limit)`}
               </p>
 
               {folderNames.map((name) => (

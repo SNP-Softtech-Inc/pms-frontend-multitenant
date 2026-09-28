@@ -1325,16 +1325,18 @@ export const accountDocsAPI = {
     folderManagementApi.post("/accounts/docs/folder/upload", data),
 
   // Upload ZIP folder
-  uploadFolderZip: (formData) =>
+  uploadFolderZip: (formData, onUploadProgress) =>
     folderManagementApi.post("/accounts/docs/upload-folder", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress,
     }),
 
   // Upload several folders as one ZIP. A separate endpoint because
   // /upload-folder strips each entry's root folder, which would merge them.
-  uploadMultiFolderZip: (formData) =>
+  uploadMultiFolderZip: (formData, onUploadProgress) =>
     folderManagementApi.post("/accounts/docs/upload-multi-folder", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress,
     }),
 
   // Upload ZIP & merge to account
