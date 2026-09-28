@@ -713,27 +713,39 @@ const {showToast} = useToastContext();
               at a time. A file dialog can only ever return a single folder,
               so dropping is the only way to select several in one action. */}
           <div>
-            {/* Purely a prompt - the drop itself is handled by the whole
-                panel, so dropping need not be aimed at this box. */}
-            <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-6 text-center">
-              <Upload className="h-5 w-5 text-muted-foreground" />
+            {/* Dropping is the primary route, and browsing is played down on
+                purpose. The file dialog can only return one folder at a time,
+                and it is the directory picker - not uploading - that makes the
+                browser show its "Upload N files to this site?" confirmation.
+                Dropping avoids both. This box is only a prompt: the drop
+                itself is handled by the whole panel, so it need not be aimed
+                at the box. */}
+            <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 px-4 py-8 text-center">
+              <Upload className="h-6 w-6 text-primary" />
 
-              <p className="text-sm font-medium text-foreground">
-                Drag folders anywhere in this panel
+              <p className="text-base font-semibold text-foreground">
+                Drag folders here
               </p>
 
               <p className="text-xs text-muted-foreground">
-                Select several in Explorer and drop them together
+                Select as many as you like in Explorer and drop them anywhere
+                in this panel — fastest, and no browser prompt.
               </p>
+            </div>
+
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Can't drag?
+              </span>
 
               <button
                 onClick={handleClick}
                 disabled={uploading}
-                className="mt-1 text-xs font-medium text-primary underline-offset-2 hover:underline disabled:opacity-50"
+                className="text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-50"
               >
                 {folderNames.length > 0
-                  ? "or add another folder"
-                  : "or browse for a folder"}
+                  ? "Browse for another folder"
+                  : "Browse for one folder"}
               </button>
             </div>
 
