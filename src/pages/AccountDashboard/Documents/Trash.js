@@ -617,6 +617,7 @@ import {
 } from "../../../components/ui/dialog";
 
 import { Input } from "../../../components/ui/input";
+import { Checkbox } from "../../../components/ui/checkbox";
 
 import { MoreVertical, Trash2, RotateCcw, Download } from "lucide-react";
 
@@ -632,10 +633,53 @@ console.log("Account ID in Trash component:", accountId);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
+    // Bulk selection. itemToDelete stays null for a bulk delete, which is how
+    // the shared confirmation dialog tells the two flows apart.
+    const [selectedPaths, setSelectedPaths] = useState(new Set());
+    const [bulkDeleting, setBulkDeleting] = useState(false);
 
     useEffect(() => {
       fetchFolderTree(accountId);
     }, [accountId]);
+
+    // Every path in the tree, parents and children alike, so "select all"
+    // covers rows hidden inside collapsed folders too.
+    const flattenPaths = (items) =>
+      items.flatMap((item) => [
+        item.path,
+        ...(item.children ? flattenPaths(item.children) : []),
+      ]);
+
+    const allPaths = flattenPaths(folderTree);
+    const allSelected =
+      allPaths.length > 0 && allPaths.every((p) => selectedPaths.has(p));
+    const someSelected = selectedPaths.size > 0 && !allSelected;
+
+    const toggleSelected = (path) => {
+      setSelectedPaths((prev) => {
+        const next = new Set(prev);
+        if (next.has(path)) {
+          next.delete(path);
+        } else {
+          next.add(path);
+        }
+        return next;
+      });
+    };
+
+    const toggleSelectAll = () => {
+      setSelectedPaths((prev) =>
+        prev.size === allPaths.length ? new Set() : new Set(allPaths),
+      );
+    };
+
+    // Deleting a folder removes everything under it, so sending a child path
+    // as well would come back as a "not found" error for something that was
+    // deleted on purpose. Keep only the topmost selected path of each branch.
+    const collapseToTopLevel = (paths) =>
+      paths.filter(
+        (path) => !paths.some((other) => path.startsWith(`${other}/`)),
+      );
 
     const fetchFolderTree = async () => {
       try {
@@ -709,12 +753,65 @@ console.log("Account ID in Trash component:", accountId);
           title: res?.data?.message || "Deleted successfully",
           type: "success",
         });
+        // Drop it from the selection too, so the count cannot keep referring
+        // to something that is already gone.
+        setSelectedPaths((prev) => {
+          const next = new Set(prev);
+          next.delete(item.path);
+          return next;
+        });
         await fetchFolderTree(accountId);
       } catch (err) {
         showToast({
           title: err?.response?.data?.message || "Delete failed",
           type: "error",
         });
+      }
+    };
+
+    const bulkDeleteSelected = async () => {
+      // Guard against a second request while the first is still running - the
+      // confirm button is disabled too, but this covers a double submit.
+      if (bulkDeleting || selectedPaths.size === 0) return;
+
+      const paths = collapseToTopLevel(Array.from(selectedPaths));
+
+      setBulkDeleting(true);
+      try {
+        const res = await accountDocsAPI.bulkDeleteItems({
+          paths,
+          accountId,
+        });
+
+        const summary = res?.data?.summary;
+        const failed = summary?.failed ?? res?.data?.errors?.length ?? 0;
+        const deleted = summary?.success ?? paths.length;
+
+        // The API reports success:false when *any* item failed, so a partial
+        // result must not be shown as a flat failure - say what got through.
+        if (failed > 0) {
+          showToast({
+            title: `${deleted} item(s) deleted, ${failed} failed`,
+            type: "warning",
+          });
+        } else {
+          showToast({
+            title: `${deleted} item(s) deleted permanently`,
+            type: "success",
+          });
+        }
+
+        setSelectedPaths(new Set());
+        await fetchFolderTree(accountId);
+      } catch (err) {
+        showToast({
+          title:
+            err?.response?.data?.message ||
+            "Failed to delete the selected items",
+          type: "error",
+        });
+      } finally {
+        setBulkDeleting(false);
       }
     };
 
@@ -777,6 +874,15 @@ const renderRows = (items, level = 0) =>
             hover:bg-muted/30
           "
         >
+          {/* Selection */}
+          <TableCell className="w-[48px] py-3 pl-4">
+            <Checkbox
+              checked={selectedPaths.has(item.path)}
+              onCheckedChange={() => toggleSelected(item.path)}
+              aria-label={`Select ${item.name}`}
+            />
+          </TableCell>
+
           {/* Name */}
           <TableCell
             className="pl-4 py-3"
@@ -905,6 +1011,7 @@ const renderRows = (items, level = 0) =>
                 <DropdownMenuItem
                   onClick={() => {
                     setItemToDelete(item);
+                    setDeleteConfirmText("");
                     setDeleteDialogOpen(true);
                   }}
                   className="
@@ -1004,6 +1111,64 @@ return (
         </div>
       </div>
 
+      {/* Bulk selection bar - only present once something is selected, so the
+          destructive action stays out of the way during normal browsing. */}
+      {selectedPaths.size > 0 && (
+        <div className="px-5 pt-4">
+          <div
+            className="
+              flex flex-wrap items-center justify-between gap-3
+              rounded-xl border border-destructive/20
+              bg-destructive/5
+              px-4 py-3
+            "
+          >
+            <span
+              className="font-medium text-foreground"
+              style={{
+                fontFamily: "var(--font-family)",
+                fontSize:
+                  "calc(0.85rem * parseFloat(var(--font-scale)) / 100)",
+              }}
+            >
+              {selectedPaths.size} item
+              {selectedPaths.size === 1 ? "" : "s"} selected
+            </span>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedPaths(new Set())}
+                disabled={bulkDeleting}
+                className="rounded-lg"
+                style={{ fontFamily: "var(--font-family)" }}
+              >
+                Clear selection
+              </Button>
+
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={bulkDeleting}
+                onClick={() => {
+                  // A null itemToDelete is what marks this as a bulk delete
+                  // when the shared dialog is confirmed.
+                  setItemToDelete(null);
+                  setDeleteConfirmText("");
+                  setDeleteDialogOpen(true);
+                }}
+                className="gap-1.5 rounded-lg disabled:opacity-50"
+                style={{ fontFamily: "var(--font-family)" }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete Permanently ({selectedPaths.size})
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="p-5">
         {folderTree.length > 0 ? (
@@ -1011,6 +1176,15 @@ return (
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40 border-border">
+                  <TableHead className="h-11 w-[48px] pl-4">
+                    <Checkbox
+                      checked={allSelected}
+                      data-indeterminate={someSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all trashed items"
+                    />
+                  </TableHead>
+
                   <TableHead
                     className="
                       h-11 px-4
@@ -1218,7 +1392,12 @@ return (
               "calc(0.84rem * parseFloat(var(--font-scale)) / 100)",
           }}
         >
-          This action cannot be undone. Type{" "}
+          {itemToDelete
+            ? "This action cannot be undone."
+            : `${selectedPaths.size} selected item${
+                selectedPaths.size === 1 ? "" : "s"
+              } will be permanently deleted. Any folder you selected takes its contents with it. This action cannot be undone.`}{" "}
+          Type{" "}
           <span className="font-semibold text-foreground">
             DELETE
           </span>{" "}
@@ -1276,7 +1455,11 @@ return (
       <DialogFooter className="gap-2 sm:justify-end">
         <Button
           variant="outline"
-          onClick={() => setDeleteDialogOpen(false)}
+          disabled={bulkDeleting}
+          onClick={() => {
+            setDeleteConfirmText("");
+            setDeleteDialogOpen(false);
+          }}
           className="
             rounded-xl
             border-border
@@ -1293,9 +1476,14 @@ return (
 
         <Button
           variant="destructive"
-          disabled={deleteConfirmText !== "DELETE"}
+          disabled={deleteConfirmText !== "DELETE" || bulkDeleting}
           onClick={async () => {
-            await deleteItem(itemToDelete);
+            if (itemToDelete) {
+              await deleteItem(itemToDelete);
+            } else {
+              await bulkDeleteSelected();
+            }
+            setDeleteConfirmText("");
             setDeleteDialogOpen(false);
           }}
           className="
@@ -1310,7 +1498,11 @@ return (
             fontFamily: "var(--font-family)",
           }}
         >
-          Delete Permanently
+          {bulkDeleting
+            ? "Deleting..."
+            : itemToDelete
+              ? "Delete Permanently"
+              : `Delete Permanently (${selectedPaths.size})`}
         </Button>
       </DialogFooter>
     </div>
