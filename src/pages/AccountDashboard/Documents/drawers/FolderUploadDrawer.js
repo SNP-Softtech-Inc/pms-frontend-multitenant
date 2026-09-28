@@ -332,6 +332,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import JSZip from "jszip";
+import { useDropzone } from "react-dropzone";
 import {useToastContext} from "../../../../context/ToastContext";
 import { Button } from "../../../../components/ui/button";
 import { 
@@ -365,7 +366,6 @@ const FolderUploadDrawer = ({
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
   const hiddenFileInput = useRef(null);
 const {showToast} = useToastContext();
   const handleClick = () => {
@@ -422,47 +422,24 @@ const {showToast} = useToastContext();
     e.target.value = "";
   };
 
-  // readEntries hands back at most 100 entries per call, so it has to be
-  // drained in a loop or large folders arrive truncated.
-  const readAllEntries = (reader) =>
-    new Promise((resolve, reject) => {
-      const out = [];
-      const next = () =>
-        reader.readEntries((batch) => {
-          if (batch.length === 0) return resolve(out);
-          out.push(...batch);
-          next();
-        }, reject);
-      next();
-    });
-
-  const collectFiles = async (entry, prefix) => {
-    if (entry.isFile) {
-      const file = await new Promise((res, rej) => entry.file(res, rej));
-      return [{ file, relativePath: `${prefix}${entry.name}` }];
-    }
-
-    const entries = await readAllEntries(entry.createReader());
-    const nested = await Promise.all(
-      entries.map((child) => collectFiles(child, `${prefix}${entry.name}/`)),
-    );
-    return nested.flat();
-  };
-
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setDragActive(false);
+  // Dropping is handled by react-dropzone rather than raw drag events. It is
+  // already a dependency and used elsewhere in the app, and its file-selector
+  // walks dropped directories for us - recursion, the 100-entry readEntries
+  // limit and the browser differences around webkitGetAsEntry included.
+  // Each file comes back with a `path` such as "/Reports/2025/q1.pdf".
+  const handleDropAccepted = (accepted) => {
     if (uploading) return;
 
-    // Read every dropped item's entry up front: the DataTransfer list is
-    // emptied as soon as this handler yields, so awaiting first loses it.
-    const entries = Array.from(e.dataTransfer.items)
-      .map((item) => item.webkitGetAsEntry?.())
-      .filter(Boolean);
+    const staged = accepted
+      .map((file) => ({
+        file,
+        relativePath: (file.path || file.name).replace(/^\/+/, ""),
+      }))
+      // Only items that sit inside a folder - a loose file has nothing to
+      // group under and this drawer uploads folders.
+      .filter((item) => item.relativePath.includes("/"));
 
-    const directories = entries.filter((entry) => entry.isDirectory);
-
-    if (directories.length === 0) {
+    if (staged.length === 0) {
       showToast({
         title: "Drop folders here, not individual files",
         type: "warning",
@@ -470,19 +447,15 @@ const {showToast} = useToastContext();
       return;
     }
 
-    try {
-      const collected = await Promise.all(
-        directories.map((entry) => collectFiles(entry, "")),
-      );
-      stageItems(collected.flat());
-    } catch (err) {
-      console.error("Failed to read dropped folders:", err);
-      showToast({
-        title: "Could not read one of the dropped folders",
-        type: "error",
-      });
-    }
+    stageItems(staged);
   };
+
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop: handleDropAccepted,
+    noClick: true,
+    noKeyboard: true,
+    disabled: uploading,
+  });
 
   const removeFolder = (name) => {
     setFiles((prev) =>
@@ -640,7 +613,23 @@ const {showToast} = useToastContext();
       </div>
 
       {/* Drawer panel */}
-      <div className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[450px] flex-col bg-background shadow-2xl">
+      {/* The whole panel is the drop target, not just the dashed box. A small
+          target is easy to miss, and a folder dropped anywhere else either
+          does nothing or makes the browser navigate away from the app. */}
+      <div
+        {...getRootProps({
+          className:
+            "fixed right-0 top-0 z-50 flex h-full w-full max-w-[450px] flex-col bg-background shadow-2xl",
+        })}
+      >
+        {isDragActive && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-primary bg-primary/10">
+            <p className="text-sm font-semibold text-primary">
+              Drop folders to add them
+            </p>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -661,27 +650,17 @@ const {showToast} = useToastContext();
               at a time. A file dialog can only ever return a single folder,
               so dropping is the only way to select several in one action. */}
           <div>
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                if (!uploading) setDragActive(true);
-              }}
-              onDragLeave={() => setDragActive(false)}
-              onDrop={handleDrop}
-              className={`flex flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors ${
-                dragActive
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-muted/30"
-              }`}
-            >
+            {/* Purely a prompt - the drop itself is handled by the whole
+                panel, so dropping need not be aimed at this box. */}
+            <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-6 text-center">
               <Upload className="h-5 w-5 text-muted-foreground" />
 
               <p className="text-sm font-medium text-foreground">
-                Drag folders here
+                Drag folders anywhere in this panel
               </p>
 
               <p className="text-xs text-muted-foreground">
-                Drop as many as you like at once
+                Select several in Explorer and drop them together
               </p>
 
               <button
