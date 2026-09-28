@@ -365,6 +365,7 @@ const FolderUploadDrawer = ({
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const hiddenFileInput = useRef(null);
 const {showToast} = useToastContext();
   const handleClick = () => {
@@ -384,37 +385,108 @@ const {showToast} = useToastContext();
 
   const handleFolderSelect = (path) => setSelectedFolder(path);
 
-  // Group the picked files by their top-level directory. A folder picker only
-  // ever returns one folder per dialog, so several folders means several
-  // trips through it - the groups are what we accumulate.
-  const folderGroups = files.reduce((groups, file) => {
-    const root = file.webkitRelativePath.split("/")[0];
-    (groups[root] = groups[root] || []).push(file);
+  // Staged entries are { file, relativePath }. Dropped files carry their path
+  // in the directory entry rather than in webkitRelativePath (which is
+  // read-only and empty for drops), so the path is tracked alongside the file
+  // instead of read off it.
+  const folderGroups = files.reduce((groups, item) => {
+    const root = item.relativePath.split("/")[0];
+    (groups[root] = groups[root] || []).push(item);
     return groups;
   }, {});
 
   const folderNames = Object.keys(folderGroups);
 
+  // Add to what is already staged rather than replacing it. Re-adding the
+  // same folder must not stage its files twice, hence the path check.
+  const stageItems = (incoming) => {
+    setFiles((prev) => {
+      const seen = new Set(prev.map((i) => i.relativePath));
+      return [
+        ...prev,
+        ...incoming.filter((i) => !seen.has(i.relativePath)),
+      ];
+    });
+  };
+
   const handleUploadFolderSelect = (e) => {
     const picked = Array.from(e.target.files);
     if (picked.length === 0) return;
 
-    // Add to what is already staged rather than replacing it, so folders can
-    // be collected one dialog at a time. Re-picking the same folder should
-    // not stage its files twice, hence the path check.
-    setFiles((prev) => {
-      const seen = new Set(prev.map((f) => f.webkitRelativePath));
-      return [...prev, ...picked.filter((f) => !seen.has(f.webkitRelativePath))];
-    });
+    stageItems(
+      picked.map((file) => ({ file, relativePath: file.webkitRelativePath })),
+    );
 
     // Let the same folder be re-picked later; without this the input keeps
     // its value and firing change again for it is not guaranteed.
     e.target.value = "";
   };
 
+  // readEntries hands back at most 100 entries per call, so it has to be
+  // drained in a loop or large folders arrive truncated.
+  const readAllEntries = (reader) =>
+    new Promise((resolve, reject) => {
+      const out = [];
+      const next = () =>
+        reader.readEntries((batch) => {
+          if (batch.length === 0) return resolve(out);
+          out.push(...batch);
+          next();
+        }, reject);
+      next();
+    });
+
+  const collectFiles = async (entry, prefix) => {
+    if (entry.isFile) {
+      const file = await new Promise((res, rej) => entry.file(res, rej));
+      return [{ file, relativePath: `${prefix}${entry.name}` }];
+    }
+
+    const entries = await readAllEntries(entry.createReader());
+    const nested = await Promise.all(
+      entries.map((child) => collectFiles(child, `${prefix}${entry.name}/`)),
+    );
+    return nested.flat();
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    if (uploading) return;
+
+    // Read every dropped item's entry up front: the DataTransfer list is
+    // emptied as soon as this handler yields, so awaiting first loses it.
+    const entries = Array.from(e.dataTransfer.items)
+      .map((item) => item.webkitGetAsEntry?.())
+      .filter(Boolean);
+
+    const directories = entries.filter((entry) => entry.isDirectory);
+
+    if (directories.length === 0) {
+      showToast({
+        title: "Drop folders here, not individual files",
+        type: "warning",
+      });
+      return;
+    }
+
+    try {
+      const collected = await Promise.all(
+        directories.map((entry) => collectFiles(entry, "")),
+      );
+      stageItems(collected.flat());
+    } catch (err) {
+      console.error("Failed to read dropped folders:", err);
+      showToast({
+        title: "Could not read one of the dropped folders",
+        type: "error",
+      });
+    }
+  };
+
   const removeFolder = (name) => {
     setFiles((prev) =>
-      prev.filter((f) => f.webkitRelativePath.split("/")[0] !== name),
+      prev.filter((i) => i.relativePath.split("/")[0] !== name),
     );
   };
 
@@ -440,10 +512,53 @@ const {showToast} = useToastContext();
 
     setUploading(true);
 
-    // One request per folder, deliberately. The server strips the first path
-    // segment off every zip entry and extracts into folderPath, so a single
-    // zip holding two top-level folders would have both roots stripped and
-    // their contents merged together.
+    const destination = selectedFolder.replace(/\/+$/, "");
+
+    // Several folders go out as one archive to /upload-multi-folder, which
+    // keeps each entry's root folder. The single-folder endpoint cannot be
+    // used for this: it strips the first path segment, so two roots would be
+    // stripped and their contents merged into one directory.
+    if (folderNames.length > 1) {
+      try {
+        setMessage(`Zipping ${folderNames.length} folders...`);
+
+        const zip = new JSZip();
+        files.forEach((item) => {
+          zip.file(item.relativePath, item.file);
+        });
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+
+        const formData = new FormData();
+        formData.append("folderZip", zipBlob, "folders.zip");
+        formData.append("folderPath", destination);
+
+        setMessage(`Uploading ${folderNames.length} folders...`);
+
+        const res = await accountDocsAPI.uploadMultiFolderZip(formData);
+
+        const uploaded = res?.data?.folders?.length ?? folderNames.length;
+
+        showToast({
+          title: `${uploaded} folders uploaded successfully`,
+          type: "success",
+        });
+        setMessage("Uploaded successfully!");
+
+        await fetchFolderTree();
+        onClose();
+      } catch (err) {
+        console.error(err);
+        const errorMsg = err?.response?.data?.error || "Upload failed!";
+        showToast({ title: errorMsg, type: "error" });
+        setMessage(`❌ ${errorMsg}`);
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    // A single folder keeps using the original endpoint, unchanged.
     const failed = [];
 
     try {
@@ -460,8 +575,8 @@ const {showToast} = useToastContext();
         );
 
         const zip = new JSZip();
-        folderGroups[name].forEach((file) => {
-          zip.file(file.webkitRelativePath, file);
+        folderGroups[name].forEach((item) => {
+          zip.file(item.relativePath, item.file);
         });
 
         const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -507,9 +622,7 @@ const {showToast} = useToastContext();
         onClose();
       } else {
         setFiles((prev) =>
-          prev.filter((f) =>
-            failed.includes(f.webkitRelativePath.split("/")[0]),
-          ),
+          prev.filter((i) => failed.includes(i.relativePath.split("/")[0])),
         );
       }
     } finally {
@@ -544,23 +657,43 @@ const {showToast} = useToastContext();
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
-          {/* Folder picker */}
+          {/* Folder picker - drop several folders at once, or browse for one
+              at a time. A file dialog can only ever return a single folder,
+              so dropping is the only way to select several in one action. */}
           <div>
-            <button
-              onClick={handleClick}
-              className="flex items-center gap-2.5 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-3 text-sm font-medium text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors w-full justify-center"
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (!uploading) setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={handleDrop}
+              className={`flex flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors ${
+                dragActive
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-muted/30"
+              }`}
             >
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              {folderNames.length > 0
-                ? "Add Another Folder"
-                : "Select Folder"}
-            </button>
+              <Upload className="h-5 w-5 text-muted-foreground" />
 
-            {folderNames.length > 0 && (
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                Pick one folder at a time — each is uploaded separately.
+              <p className="text-sm font-medium text-foreground">
+                Drag folders here
               </p>
-            )}
+
+              <p className="text-xs text-muted-foreground">
+                Drop as many as you like at once
+              </p>
+
+              <button
+                onClick={handleClick}
+                disabled={uploading}
+                className="mt-1 text-xs font-medium text-primary underline-offset-2 hover:underline disabled:opacity-50"
+              >
+                {folderNames.length > 0
+                  ? "or add another folder"
+                  : "or browse for a folder"}
+              </button>
+            </div>
 
             <input
               type="file"
