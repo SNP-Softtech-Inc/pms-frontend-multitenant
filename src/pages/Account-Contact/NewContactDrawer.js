@@ -381,7 +381,14 @@ const [loading, setLoading] = useState(false);
       }
 
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
-      //  onContactUpdated();
+
+      // Tell the parent to refetch. Invalidating the "contacts" query alone
+      // is not enough for the account dashboard, which renders contacts from
+      // account details fetched separately - without this the save succeeded
+      // but the screen kept showing the old values, which read as the save
+      // having silently failed. Optional: not every parent passes it.
+      onContactUpdated?.();
+
       onClose();
     resetForm();
     } catch (error) {
