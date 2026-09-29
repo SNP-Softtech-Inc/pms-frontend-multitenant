@@ -52,9 +52,13 @@ const escapeHtml = (str = "") =>
 // to the blob: URL. Direct navigation makes Chrome's standalone PDF
 // viewer derive its displayed name from the URL itself - always a random
 // UUID for blob: URLs - regardless of the underlying object's filename.
-const openNamedFileInViewer = (blobUrl, filename) => {
-  const viewerWindow = window.open("", "_blank");
-  if (!viewerWindow) return;
+// The window must be opened synchronously inside the click handler and
+// passed in here. Browsers only honour window.open while a user gesture is
+// still active, and the attachment has to be fetched first - opening it
+// after that await was silently blocked, which is why clicking a document
+// appeared to do nothing at all.
+const openNamedFileInViewer = (viewerWindow, blobUrl, filename) => {
+  if (!viewerWindow) return false;
 
   viewerWindow.document.write(`
     <html>
@@ -67,6 +71,18 @@ const openNamedFileInViewer = (blobUrl, filename) => {
     </html>
   `);
   viewerWindow.document.close();
+  return true;
+};
+
+// Falls back to a normal download when the viewer tab could not be opened,
+// so a blocked popup still gets the user their file instead of nothing.
+const downloadBlobUrl = (blobUrl, filename) => {
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 const buildAccountLink = (mongoId) => {
   return `/admin/clients/accounts/accountsdash/overview/${mongoId}`;
@@ -582,8 +598,28 @@ export default function InboxPlus() {
     console.log("Attachment ID being sent:", attachment?.attachmentId);
     console.log("Filename:", attachment?.filename);
 
+    // Claim the tab now, while the click's user gesture is still active.
+    // Doing this after the fetch below gets blocked by the popup blocker,
+    // which is what made clicking a document do nothing. Files that turn
+    // out to be downloads rather than previews close it again.
+    let viewerWindow = null;
+    try {
+      viewerWindow = window.open("", "_blank");
+    } catch {
+      viewerWindow = null;
+    }
+
+    const closeViewer = () => {
+      try {
+        if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
+      } catch {
+        // Nothing to do - the tab is the user's to close at that point.
+      }
+    };
+
     try {
       if (!attachment) {
+        closeViewer();
         showToast({
           title: "Error",
           description: "No attachment found",
@@ -659,7 +695,18 @@ export default function InboxPlus() {
         // given. Wrapping it in a page with a real <title> and embedding
         // the PDF via <iframe> (instead of top-level navigation) is what
         // actually makes the browser tab show the real filename.
-        openNamedFileInViewer(url, filename);
+        if (!openNamedFileInViewer(viewerWindow, url, filename)) {
+          // Popup blocked - download it rather than leaving the user with
+          // nothing and no explanation.
+          downloadBlobUrl(url, filename);
+          showToast({
+            title: "Opened as a download",
+            description:
+              "Allow pop-ups for this site to preview documents in a tab instead.",
+            type: "info",
+            duration: 5000,
+          });
+        }
       }
 
       // ============ IMAGE FILES ============
@@ -677,7 +724,16 @@ export default function InboxPlus() {
           filename: filename,
           mimeType: mimeType,
         });
-        openNamedFileInViewer(url, filename);
+        if (!openNamedFileInViewer(viewerWindow, url, filename)) {
+          downloadBlobUrl(url, filename);
+          showToast({
+            title: "Opened as a download",
+            description:
+              "Allow pop-ups for this site to preview documents in a tab instead.",
+            type: "info",
+            duration: 5000,
+          });
+        }
       }
 
       // ============ EXCEL FILES ============
@@ -689,12 +745,10 @@ export default function InboxPlus() {
         ["xls", "xlsx", "xlsm", "xlsb", "csv", "tsv"].includes(fileExtension)
       ) {
         // For Excel files, download directly
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // This type downloads rather than previews, so release the tab
+        // that was claimed on click.
+        closeViewer();
+        downloadBlobUrl(url, filename);
 
         showToast({
           title: "Download Started",
@@ -714,12 +768,10 @@ export default function InboxPlus() {
         ["doc", "docx"].includes(fileExtension)
       ) {
         // For Word files, download directly
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // This type downloads rather than previews, so release the tab
+        // that was claimed on click.
+        closeViewer();
+        downloadBlobUrl(url, filename);
 
         showToast({
           title: "Download Started",
@@ -739,12 +791,10 @@ export default function InboxPlus() {
         ["ppt", "pptx", "pps", "ppsx"].includes(fileExtension)
       ) {
         // For PowerPoint files, download directly
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // This type downloads rather than previews, so release the tab
+        // that was claimed on click.
+        closeViewer();
+        downloadBlobUrl(url, filename);
 
         showToast({
           title: "Download Started",
@@ -761,8 +811,11 @@ export default function InboxPlus() {
         mimeType?.startsWith("text/") ||
         ["txt", "log", "md", "rtf"].includes(fileExtension)
       ) {
-        // For text files, open in new tab
-        window.open(url, "_blank");
+        // Text opens in the tab claimed on click; if that was blocked,
+        // fall back to downloading it.
+        if (!openNamedFileInViewer(viewerWindow, url, filename)) {
+          downloadBlobUrl(url, filename);
+        }
       }
 
       // ============ ZIP/ARCHIVE FILES ============
@@ -774,12 +827,10 @@ export default function InboxPlus() {
         ["zip", "rar", "7z", "tar", "gz"].includes(fileExtension)
       ) {
         // For archive files, download directly
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // This type downloads rather than previews, so release the tab
+        // that was claimed on click.
+        closeViewer();
+        downloadBlobUrl(url, filename);
 
         showToast({
           title: "Download Started",
@@ -820,12 +871,10 @@ export default function InboxPlus() {
       // ============ DEFAULT - Download ============
       else {
         // For unknown file types, download directly
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // This type downloads rather than previews, so release the tab
+        // that was claimed on click.
+        closeViewer();
+        downloadBlobUrl(url, filename);
 
         showToast({
           title: "Download Started",
@@ -838,6 +887,8 @@ export default function InboxPlus() {
       }
     } catch (error) {
       console.error("Error opening attachment:", error);
+      // Don't strand the blank tab that was claimed on click.
+      closeViewer();
       showToast({
         title: "Error",
         description: `Failed to open attachment: ${error.message}`,
