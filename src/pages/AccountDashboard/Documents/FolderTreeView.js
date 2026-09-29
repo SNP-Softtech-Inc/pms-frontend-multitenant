@@ -5364,13 +5364,18 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 <DocusealBuilder
                   token={token}
                   submitters={submitters}
-                  // Turns on DocuSeal's Signature ID for newly added fields,
-                  // which is what prints the signer's identity next to the
-                  // signature itself rather than only in the audit trail:
-                  // "ID: <uuid>", "Digitally signed by <name>", "<email>"
-                  // and the signing timestamp. Without it, a signature is
-                  // just an image with no attribution on the document.
-                  withSignatureId={true}
+                  // Signature ID prints a block beside the signature - "ID:
+                  // <uuid>", "Digitally signed by <name>", the signer's email
+                  // and the timestamp. It was switched on to give signatures
+                  // attribution on the document, but it reads as clutter next
+                  // to the signature, so it is off again to match the
+                  // TaxDome layout: the signature, and a Date field placed
+                  // beside it in the template.
+                  //
+                  // The identity is not lost - it stays in DocuSeal's audit
+                  // trail and certificate, which is where the evidential
+                  // record belongs.
+                  withSignatureId={false}
                   dateFormats={['MM/DD/YYYY']}
                   customCss={customCss}
                   // @docuseal/react v1 has no onComplete prop - it was being
