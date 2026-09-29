@@ -655,14 +655,28 @@ console.log("Account ID in Trash component:", accountId);
       allPaths.length > 0 && allPaths.every((p) => selectedPaths.has(p));
     const someSelected = selectedPaths.size > 0 && !allSelected;
 
+    // Ticking a folder ticks everything inside it. Deleting a folder already
+    // takes its contents, so leaving the children visibly unchecked while
+    // they were about to be deleted anyway was misleading. Paths are
+    // hierarchical, so a descendant is any path under "<folder>/".
+    const withDescendants = (path) => [
+      path,
+      ...allPaths.filter((p) => p.startsWith(`${path}/`)),
+    ];
+
     const toggleSelected = (path) => {
       setSelectedPaths((prev) => {
         const next = new Set(prev);
+        const family = withDescendants(path);
+
+        // Whether the clicked row was on decides the direction for the whole
+        // subtree, so one click never leaves it half-toggled.
         if (next.has(path)) {
-          next.delete(path);
+          family.forEach((p) => next.delete(p));
         } else {
-          next.add(path);
+          family.forEach((p) => next.add(p));
         }
+
         return next;
       });
     };
@@ -838,26 +852,49 @@ console.log("Account ID in Trash component:", accountId);
       }
     };
 
+    // Retention is 60 days - the same figure the banner above this table
+    // states. The countdown was computing against 2 hours, so a freshly
+    // trashed item showed "1 hr 59 min left" and then flipped to "Deleting
+    // soon" for the remaining 59-and-a-bit days.
+    const TRASH_RETENTION_DAYS = 60;
+
     const TrashedInfo = ({ meta }) => {
       if (!meta?.trash?.trashedAt) return null;
 
       const trashedAt = new Date(meta.trash.trashedAt);
-      const now = new Date();
+      if (isNaN(trashedAt.getTime())) return null;
 
-      const diffTime =
-        trashedAt.getTime() + 2 * 60 * 60 * 1000 - now.getTime();
+      const expiresAt =
+        trashedAt.getTime() + TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+      const diffTime = expiresAt - Date.now();
 
       if (diffTime <= 0) {
         return <span className="text-red-500 text-xs">Deleting soon</span>;
       }
 
-      const mins = Math.ceil(diffTime / 60000);
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
+      const totalMins = Math.ceil(diffTime / 60000);
+      const days = Math.floor(totalMins / (60 * 24));
+      const hours = Math.floor((totalMins % (60 * 24)) / 60);
+      const mins = totalMins % 60;
+
+      // Coarse while it is far off, precise as it gets close - "45 days left"
+      // is more use than a minute count two months out.
+      let label;
+      if (days > 0) {
+        label = `${days} day${days === 1 ? "" : "s"} left`;
+      } else if (hours > 0) {
+        label = `${hours} hr ${mins} min left`;
+      } else {
+        label = `${mins} min left`;
+      }
 
       return (
-        <span className="text-xs font-medium">
-          {h > 0 && `${h} hr `} {m} min left
+        <span
+          className={`text-xs font-medium ${
+            days < 7 ? "text-amber-600" : ""
+          }`}
+        >
+          {label}
         </span>
       );
     };

@@ -2509,17 +2509,38 @@ const [submitters, setSubmitters] = useState([]);
       });
 
       if (response.data?.success) {
-        showToast({
-          title: `${response.data.trashedItems?.length || selectedItems.size} item(s) moved to trash successfully`,
-          type: "success",
-        });
-        if (response.data.failedItems?.length > 0) {
+        // Report what actually happened. The count used to fall back to
+        // `|| selectedItems.size`, and since a wholly failed run returns
+        // trashedItems: [], `0 || 5` printed "5 item(s) moved to trash
+        // successfully" alongside "5 item(s) failed" - telling the user
+        // their documents were safe when nothing had moved at all. The
+        // endpoint answers success:true whenever it ran, so the arrays are
+        // the only reliable signal.
+        const trashed = response.data.trashedItems?.length ?? 0;
+        const failed = response.data.failedItems ?? [];
+
+        if (trashed > 0) {
           showToast({
-            title: `${response.data.failedItems.length} item(s) failed`,
-            type: "warning",
+            title: `${trashed} item(s) moved to trash`,
+            type: "success",
           });
         }
-        setSelectedItems(new Set());
+
+        if (failed.length > 0) {
+          // Surface the server's reason - "Not found", a missing .meta.json
+          // - instead of a bare count, so a failure can be diagnosed.
+          const reason = failed[0]?.error ? ` (${failed[0].error})` : "";
+          showToast({
+            title: `${failed.length} item(s) could not be moved to trash${reason}`,
+            type: trashed > 0 ? "warning" : "error",
+          });
+        }
+
+        // Keep whatever failed selected so it can be retried; clear the rest.
+        const failedPaths = new Set(failed.map((f) => f.path));
+        setSelectedItems(
+          new Set([...selectedItems].filter((p) => failedPaths.has(p))),
+        );
         fetchFolderTree();
       } else {
         showToast({
@@ -2559,17 +2580,31 @@ const [submitters, setSubmitters] = useState([]);
       const response = await accountDocsAPI.bulkDeleteItems({ paths });
 
       if (response.data?.success) {
-        showToast({
-          title: `${response.data.summary?.success || selectedItems.size} item(s) deleted successfully`,
-          type: "success",
-        });
-        if (response.data.errors?.length > 0) {
+        // Same falsy-zero trap as bulk trash: `0 || selectedItems.size`
+        // reported a full success when nothing had been deleted.
+        const deleted = response.data.summary?.success ?? 0;
+        const errors = response.data.errors ?? [];
+
+        if (deleted > 0) {
           showToast({
-            title: `${response.data.errors.length} item(s) failed to delete`,
-            type: "warning",
+            title: `${deleted} item(s) deleted`,
+            type: "success",
           });
         }
-        setSelectedItems(new Set());
+
+        if (errors.length > 0) {
+          const reason = errors[0]?.error ? ` (${errors[0].error})` : "";
+          showToast({
+            title: `${errors.length} item(s) could not be deleted${reason}`,
+            type: deleted > 0 ? "warning" : "error",
+          });
+        }
+
+        // Leave anything that failed selected so it can be retried.
+        const failedPaths = new Set(errors.map((e) => e.path));
+        setSelectedItems(
+          new Set([...selectedItems].filter((p) => failedPaths.has(p))),
+        );
         fetchFolderTree();
       } else {
         showToast({
@@ -2607,10 +2642,18 @@ const [submitters, setSubmitters] = useState([]);
       });
 
       if (response.data?.success) {
+        // Same falsy-zero trap as bulk trash and bulk delete.
+        const changed = response.data.summary?.success ?? 0;
+        const verb = lockStatus === "lock" ? "locked" : "unlocked";
+
         showToast({
-          title: `${response.data.summary?.success || selectedItems.size} item(s) ${lockStatus === "lock" ? "locked" : "unlocked"} successfully`,
-          type: "success",
+          title:
+            changed > 0
+              ? `${changed} item(s) ${verb}`
+              : `No items were ${verb}`,
+          type: changed > 0 ? "success" : "error",
         });
+
         setSelectedItems(new Set());
         fetchFolderTree();
         setBulkLockDialogOpen(false);
