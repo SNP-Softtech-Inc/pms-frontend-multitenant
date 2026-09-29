@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { FileSignature } from "lucide-react";
+import { FileSignature, ExternalLink } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 import { esignAPI } from "../../../services/api";
 import {
@@ -146,6 +146,7 @@ const Signatures = () => {
                   "Date Uploaded",
                   "Date Requested",
                   "Date Signed",
+                  "Actions",
                 ].map((heading) => (
                   <TableHead
                     key={heading}
@@ -267,13 +268,40 @@ const Signatures = () => {
                     >
                       {formatDate(getSignedAt(signautrelist))}
                     </TableCell>
+
+                    {/* Open - lets the sender check the signed document and
+                        verify where the signatures landed. Opened straight
+                        from the click with no await first, so the browser
+                        does not block the tab. */}
+                    <TableCell className="whitespace-nowrap px-4 py-3">
+                      <button
+                        type="button"
+                        disabled={!signautrelist.fileUrl}
+                        onClick={() =>
+                          signautrelist.fileUrl &&
+                          window.open(
+                            signautrelist.fileUrl,
+                            "_blank",
+                            "noopener,noreferrer",
+                          )
+                        }
+                        title={
+                          signautrelist.fileUrl
+                            ? "Open document in a new tab"
+                            : "Document unavailable"
+                        }
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground disabled:opacity-40"
+                      >
+                        <ExternalLink size={15} />
+                      </button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   {/* colSpan must cover all five columns, otherwise the empty
                       state is centred over only part of the table. */}
-                  <TableCell colSpan={5} className="px-4 py-14 text-center">
+                  <TableCell colSpan={6} className="px-4 py-14 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div
                         className="

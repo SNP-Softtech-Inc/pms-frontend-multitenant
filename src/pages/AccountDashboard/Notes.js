@@ -943,7 +943,9 @@ const NoteApp = () => {
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
           <span>
             Reviewer notes are a permanent record. Once saved they cannot be
-            edited or deleted - you can only add further notes.
+            edited or deleted - you can only add further notes. They can be
+            archived to move them out of the active list; archiving does not
+            change or remove the entry.
           </span>
         </div>
       )}
@@ -1222,10 +1224,37 @@ const NoteApp = () => {
                     those operations too; this just keeps them off screen. */}
                 <div className="flex items-center gap-1">
                   {note.noteType === "reviewer" ? (
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Lock className="h-3.5 w-3.5" />
-                      Permanent record
-                    </span>
+                    // A reviewer note is permanent: never editable, never
+                    // deletable. Archiving is allowed because it files the
+                    // entry away without altering it, so an active one can be
+                    // moved to Archived and brought back. Archived reviewer
+                    // notes get Restore only - no Delete.
+                    <>
+                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Lock className="h-3.5 w-3.5" />
+                        Permanent record
+                      </span>
+
+                      {view === "active" ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Archive this note"
+                          onClick={() => handleArchive(note.id)}
+                        >
+                          <Archive className="w-4 h-4 text-muted-foreground" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          title="Restore this note"
+                          onClick={() => handleUnarchive(note.id)}
+                        >
+                          <ArchiveRestore className="w-4 h-4 mr-2" />
+                          Restore
+                        </Button>
+                      )}
+                    </>
                   ) : view === "active" ? (
                     <>
                       <Button

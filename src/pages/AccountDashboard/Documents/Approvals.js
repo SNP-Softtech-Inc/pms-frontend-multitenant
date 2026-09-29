@@ -143,7 +143,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useToastContext } from "../../../context/ToastContext";
-import { Trash2 } from "lucide-react";
+import { Trash2, ExternalLink } from "lucide-react";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 // ✅ use centralized API
 import { accountDocsAPI } from "../../../services/api"; // adjust path
@@ -395,6 +395,41 @@ const Approvals = () => {
 
                   {/* Actions */}
                   <TableCell className="px-4 py-3 text-center">
+                    {/* There was no way to see the document this approval is
+                        for - only to delete the request. Opened straight from
+                        the click with no await first, so the browser still
+                        treats it as user-initiated and does not block the
+                        tab. */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={!approval.fileUrl}
+                      onClick={() =>
+                        approval.fileUrl &&
+                        window.open(
+                          approval.fileUrl,
+                          "_blank",
+                          "noopener,noreferrer",
+                        )
+                      }
+                      title={
+                        approval.fileUrl
+                          ? "Open document in a new tab"
+                          : "Document unavailable"
+                      }
+                      className="
+                        h-8 w-8 rounded-lg
+                        text-muted-foreground
+                        transition-all duration-200
+                        hover:bg-muted
+                        hover:text-foreground
+                        disabled:opacity-40
+                      "
+                    >
+                      <ExternalLink size={15} />
+                    </Button>
+
                     <Button
                       type="button"
                       variant="ghost"
