@@ -5134,7 +5134,9 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 <TableCell>
 
                   <div>
-                    {new Date(audit.createdAt).toLocaleDateString()}
+                    {/* Pinned to en-US so the audit trail reads the same for
+                        every admin, whatever locale their browser is set to. */}
+                    {new Date(audit.createdAt).toLocaleDateString("en-US")}
                   </div>
 
                   <div className="text-xs text-gray-500">
