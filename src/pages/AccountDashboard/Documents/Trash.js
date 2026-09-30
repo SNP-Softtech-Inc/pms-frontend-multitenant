@@ -735,6 +735,31 @@ console.log("Account ID in Trash component:", accountId);
       }
     };
 
+    // Trashing only flags an item in its metadata - the file is still on
+    // disk at the same path - so a trashed document can be opened and read
+    // without restoring it first.
+    const openTrashedFile = (item) => {
+      if (!item?.path) return;
+
+      const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
+      const ext = item.name?.split(".").pop()?.toLowerCase() || "";
+      const viewable = ["pdf", "jpg", "jpeg", "png", "gif", "webp", "txt"];
+
+      if (viewable.includes(ext)) {
+        // Opened straight from the click with no await first, so the browser
+        // does not treat it as an unsolicited popup.
+        window.open(fileUrl, "_blank", "noopener,noreferrer");
+      } else {
+        // Anything the browser will not render is downloaded instead.
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = item.name || "download";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+
     const handleDownload = async (item) => {
       try {
         const res = await accountDocsAPI.downloadItems({
@@ -975,8 +1000,11 @@ const renderRows = (items, level = 0) =>
                     {getFileIcon(item.name)}
                   </div>
 
-                  <span
-                    className="text-foreground"
+                  <button
+                    type="button"
+                    onClick={() => openTrashedFile(item)}
+                    title="Open document in a new tab"
+                    className="text-left text-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
                     style={{
                       fontFamily: "var(--font-family)",
                       fontSize:
@@ -987,7 +1015,7 @@ const renderRows = (items, level = 0) =>
                     <span className="ml-1 text-muted-foreground text-xs">
                       (Trashed)
                     </span>
-                  </span>
+                  </button>
                 </>
               )}
             </div>
