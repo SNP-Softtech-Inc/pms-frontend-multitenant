@@ -18,6 +18,13 @@ import {
   ArrowUpDown,
   AtSign,
   Settings2,
+  MessageSquare,
+  Receipt,
+  ListTodo,
+  CalendarDays,
+  PenLine,
+  FileCheck,
+  Bell,
   // ExternalLink,
   // Paperclip,
 } from "lucide-react";
@@ -255,6 +262,30 @@ export default function InboxPlus() {
     sms: false,
     clientRequests: false,
   });
+
+  // A notification's symbol comes from what it is about, so a document, a
+  // chat message and a signature are told apart at a glance rather than all
+  // sharing one generic icon. Order matters: "Document ... signed by ..."
+  // carries both "document" and "signed", and the signature reading is the
+  // more specific one, so it is tested first.
+  const NOTIFICATION_ICONS = [
+    { match: ["signed", "signature", "esign"], Icon: PenLine, className: "text-violet-600" },
+    { match: ["invoice", "payment", "bill", "receipt", "paid"], Icon: Receipt, className: "text-amber-600" },
+    { match: ["task", "todo", "assignment", "assigned"], Icon: ListTodo, className: "text-indigo-600" },
+    { match: ["organizer", "calendar", "meeting", "event"], Icon: CalendarDays, className: "text-rose-600" },
+    { match: ["approval", "approved", "proposal", "quote", "estimate"], Icon: FileCheck, className: "text-teal-600" },
+    { match: ["message", "chat", "conversation", "replied"], Icon: MessageSquare, className: "text-emerald-600" },
+    { match: ["document", "file", "attachment", "pdf", "upload"], Icon: FileText, className: "text-blue-600" },
+    { match: ["email", "mail"], Icon: Mail, className: "text-sky-600" },
+  ];
+
+  const getNotificationIcon = (subject = "") => {
+    const text = String(subject).toLowerCase();
+    const hit = NOTIFICATION_ICONS.find((entry) =>
+      entry.match.some((keyword) => text.includes(keyword)),
+    );
+    return hit || { Icon: Bell, className: "text-gray-400" };
+  };
 
   // Add filter categories with their search keywords
   const filterCategories = [
@@ -1166,7 +1197,7 @@ const renderEmailThread = (messages) => {
   return (
     <div className="h-full flex bg-white">
       {/* ================= LEFT NAV ================= */}
-      <aside className="hidden w-[200px] shrink-0 flex-col border-r bg-white px-4 py-5 md:flex">
+      <aside className="hidden w-[248px] shrink-0 flex-col border-r bg-white px-4 py-5 md:flex">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight text-gray-900">
           Inbox+
         </h1>
@@ -1187,7 +1218,7 @@ const renderEmailThread = (messages) => {
             }`}
           >
             <Mail className="h-4 w-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate text-left">
+            <span className="flex-1 whitespace-nowrap text-left">
               All notifications
             </span>
             {unreadCount > 0 && (
@@ -1207,7 +1238,7 @@ const renderEmailThread = (messages) => {
             className="flex cursor-not-allowed items-center gap-2 rounded-md px-2 py-1.5 pl-6 text-sm text-gray-400"
           >
             <AtSign className="h-4 w-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate text-left">Mentions</span>
+            <span className="flex-1 whitespace-nowrap text-left">Mentions</span>
           </button>
 
           <button
@@ -1223,7 +1254,7 @@ const renderEmailThread = (messages) => {
             }`}
           >
             <Archive className="h-4 w-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate text-left">Archived</span>
+            <span className="flex-1 whitespace-nowrap text-left">Archived</span>
             {archivedNotifications.length > 0 && (
               <span className="shrink-0 text-[11px] text-gray-400">
                 {archivedNotifications.length}
@@ -1237,7 +1268,7 @@ const renderEmailThread = (messages) => {
             className="mt-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-blue-600 transition-colors hover:bg-blue-50"
           >
             <Settings2 className="h-4 w-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate text-left">
+            <span className="flex-1 whitespace-nowrap text-left">
               Manage notifications
             </span>
           </button>
@@ -1364,9 +1395,18 @@ const renderEmailThread = (messages) => {
                       }}
                     />
 
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-blue-600">
-                      <FileText className="h-4 w-4" />
-                    </span>
+                    {(() => {
+                      const { Icon, className } = getNotificationIcon(
+                        thread.latest?.subject,
+                      );
+                      return (
+                        <span
+                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center ${className}`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                      );
+                    })()}
 
                     {/* Subject and preview. Clicking opens the thread detail,
                         as the row did before. min-w-0 is what lets the text
@@ -1380,8 +1420,17 @@ const renderEmailThread = (messages) => {
                       <div className="truncate text-sm text-gray-900">
                         {renderLinkedSubject(thread.latest?.subject, navigate)}
                       </div>
+                      {/* The slice is a hard cut, so it needs its own
+                          ellipsis - CSS truncate only adds one when the text
+                          overflows its box, which it no longer does once it
+                          has been cut to length. */}
                       <div className="truncate text-xs text-gray-500">
-                        {getPreview(thread.latest?.body || "").slice(0, 120)}
+                        {(() => {
+                          const preview = getPreview(thread.latest?.body || "");
+                          return preview.length > 120
+                            ? `${preview.slice(0, 120).trimEnd()}...`
+                            : preview;
+                        })()}
                       </div>
                     </button>
 

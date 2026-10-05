@@ -56,7 +56,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [open, setOpen] = useState(true);
+  const [openPinned, setOpenPinned] = useState(true);
+  // Hovering a collapsed sidebar reopens it. Kept separate from the pinned
+  // state so moving the pointer away restores the collapsed sidebar rather
+  // than silently changing what the toggle button remembers.
+  const [hoverExpanded, setHoverExpanded] = useState(false);
+  const open = openPinned || hoverExpanded;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarItems, setSidebarItems] = useState([]);
   const [openMenus, setOpenMenus] = useState({});
@@ -378,13 +383,16 @@ const Dashboard = () => {
 
   const handleDrawerToggle = () => {
     if (isSmUp) {
-      setOpen((prev) => {
+      setOpenPinned((prev) => {
         const newState = !prev;
 
         // ✅ if collapsing → close all menus
         if (!newState) {
           setOpenMenus({});
         }
+
+        // An explicit toggle wins over a hover that is still in effect.
+        setHoverExpanded(false);
 
         return newState;
       });
@@ -421,6 +429,10 @@ const Dashboard = () => {
       ${!isSmUp && mobileOpen ? "fixed inset-y-0 left-0 z-50" : ""}`}
       > */}
         <aside
+          onMouseEnter={() => {
+            if (isSmUp && !openPinned) setHoverExpanded(true);
+          }}
+          onMouseLeave={() => setHoverExpanded(false)}
           className={cn(
             "flex flex-col border-r border-border/60 bg-background shadow-[1px_0_0_0_rgba(0,0,0,0.02),2px_0_16px_-4px_rgba(0,0,0,0.06)] transition-all duration-300",
             open ? "w-[240px]" : "w-[70px]",
