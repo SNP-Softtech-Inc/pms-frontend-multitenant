@@ -1,6 +1,10 @@
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  useActionGuard,
+  ActionInProgressDialog,
+} from "./useActionGuard";
 import { useToastContext } from "../../../../context/ToastContext";
 import { useAuth } from "../../../../context/AuthContext";
 import { accountDocsAPI, invoiceAPI } from "../../../../services/api";
@@ -488,6 +492,12 @@ const FileUploadDrawer = ({
   const { user } = useAuth();
   console.log("hvdhgs accointid",accountId)
   const [uploading, setUploading] = useState(false);
+  // Lets the guard below actually stop the request, so "terminate" is not
+  // just a word for hiding the drawer.
+  const uploadAbortRef = useRef(null);
+
+  const { confirmOpen, requestClose, resumeAction, terminateAction } =
+    useActionGuard(uploading, onClose, uploadAbortRef);
   const [files, setFiles] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
@@ -616,6 +626,8 @@ useEffect(() => {
     }
   };
 const handleUpload = async (settings = {}) => {
+  const controller = new AbortController();
+  uploadAbortRef.current = controller;
   try {
     setUploading(true);
 
@@ -631,7 +643,9 @@ const handleUpload = async (settings = {}) => {
     formData.append("clientEmail", settings.clientEmail || "");
 
     // await accountDocsAPI.uploadFile(formData, selectedFolder);
-const result = await accountDocsAPI.uploadFile(formData, selectedFolder);
+const result = await accountDocsAPI.uploadFile(formData, selectedFolder, {
+      signal: controller.signal,
+    });
 
     // Pass uploaded files back with details
     // if (onFilesSelected && result.data?.files) {
@@ -714,9 +728,18 @@ const result = await accountDocsAPI.uploadFile(formData, selectedFolder);
 
   return (
     <>
+      <ActionInProgressDialog
+        open={confirmOpen}
+        title="Upload still in progress"
+        description="This upload has not finished. Continue it, or terminate it and close?"
+        onResume={resumeAction}
+        onTerminate={terminateAction}
+      />
+
       {/* MAIN UPLOAD DRAWER */}
       <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+        {/* Dismissing mid-upload now asks first - see useActionGuard. */}
+        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={requestClose} />
         
         <div className="absolute right-0 top-0 h-full w-full sm:w-[450px] bg-background shadow-xl flex flex-col">
           {/* Header */}
@@ -726,7 +749,7 @@ const result = await accountDocsAPI.uploadFile(formData, selectedFolder);
               <h2 className="text-base font-semibold text-foreground">Upload File</h2>
             </div>
             <button
-              onClick={onClose}
+              onClick={requestClose}
               className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="h-4 w-4" />

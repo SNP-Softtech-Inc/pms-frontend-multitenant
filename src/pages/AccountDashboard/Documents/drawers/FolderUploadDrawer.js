@@ -331,6 +331,10 @@
 
 
 import React, { useState, useEffect, useRef } from "react";
+import {
+  useActionGuard,
+  ActionInProgressDialog,
+} from "./useActionGuard";
 import JSZip from "jszip";
 import { useDropzone } from "react-dropzone";
 import {useToastContext} from "../../../../context/ToastContext";
@@ -366,6 +370,12 @@ const FolderUploadDrawer = ({
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  // Lets the guard below actually stop the in-flight batch rather than only
+  // hiding the drawer.
+  const uploadAbortRef = useRef(null);
+
+  const { confirmOpen, requestClose, resumeAction, terminateAction } =
+    useActionGuard(uploading, onClose, uploadAbortRef);
   const hiddenFileInput = useRef(null);
 const {showToast} = useToastContext();
   const handleClick = () => {
@@ -544,6 +554,9 @@ const {showToast} = useToastContext();
     }
 
     setUploading(true);
+    // Fresh controller per run, so terminating one upload cannot abort a
+    // later one through a stale signal.
+    uploadAbortRef.current = new AbortController();
 
     const destination = selectedFolder.replace(/\/+$/, "");
     const batches = buildBatches();
@@ -609,7 +622,11 @@ const {showToast} = useToastContext();
               "folderPath",
               `${destination}/${batch[0]}`.replace(/\/+/g, "/"),
             );
-            await accountDocsAPI.uploadFolderZip(formData, onUploadProgress);
+            await accountDocsAPI.uploadFolderZip(
+              formData,
+              onUploadProgress,
+              { signal: uploadAbortRef.current?.signal },
+            );
           } else {
             // Several folders in one archive: this endpoint keeps each
             // entry's root rather than stripping it.
@@ -617,6 +634,7 @@ const {showToast} = useToastContext();
             await accountDocsAPI.uploadMultiFolderZip(
               formData,
               onUploadProgress,
+              { signal: uploadAbortRef.current?.signal },
             );
           }
         } catch (err) {
@@ -671,8 +689,17 @@ const {showToast} = useToastContext();
   return (
     <>
       {/* Backdrop */}
+      <ActionInProgressDialog
+        open={confirmOpen}
+        title="Upload still in progress"
+        description="These folders have not finished uploading. Continue, or terminate and close?"
+        onResume={resumeAction}
+        onTerminate={terminateAction}
+      />
+
       <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+        {/* Dismissing mid-upload now asks first - see useActionGuard. */}
+        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={requestClose} />
       </div>
 
       {/* Drawer panel */}

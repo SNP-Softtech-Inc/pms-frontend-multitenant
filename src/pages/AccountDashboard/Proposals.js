@@ -939,6 +939,10 @@ const handleDownload = async (proposal) => {
           setProposals((prev) =>
             prev.filter((p) => p._id !== proposal._id)
           );
+
+          // Deleting from the row menu left the selection untouched, so the
+          // bulk bar could still be showing a count for a row that is gone.
+          setSelectedIds((prev) => prev.filter((id) => id !== proposal._id));
         } catch (err) {
           console.error(err);
           showToast({
@@ -1137,11 +1141,15 @@ const handleDownload = async (proposal) => {
             }}
           />
         }
+        // Without getRowId the table keys selection by ARRAY INDEX, so after
+        // a delete the same index pointed at the row that shifted up and the
+        // next proposal appeared to select itself. Keyed by _id, a deleted
+        // row's key simply no longer matches anything.
+        getRowId={(row) => row._id}
         onRowSelectionChange={(selection) => {
-          const selected = Object.keys(selection).map(
-            (index) => paginatedProposals[parseInt(index)]?._id
-          ).filter(Boolean);
-          setSelectedIds(selected);
+          setSelectedIds(
+            Object.keys(selection).filter((id) => selection[id]),
+          );
         }}
       />
 

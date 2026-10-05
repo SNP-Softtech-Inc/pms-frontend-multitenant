@@ -3338,19 +3338,31 @@ const [auditLoading, setAuditLoading] = useState(false);
                 <span>{signChip}</span>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {meta.signers.map((signer, i) => (
                     <div key={i} className="text-xs">
                       <div className="flex items-center gap-2">
                         <span>{signer.signed ? "✓" : "•"}</span>
+                        {/* Fall back to the email rather than "Unknown" - an
+                            address identifies the party, "Unknown" does not.
+                            The name itself is preserved backend-side now, so
+                            this only applies to a signer we never had one for. */}
                         <span className="font-medium">
-                          {signer.name || "Unknown"}
+                          {signer.name || signer.email || "Unknown signer"}
                         </span>
-                        <span className="text-muted-foreground">
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${
+                            signer.signed
+                              ? "bg-emerald-500 text-white"
+                              : "bg-amber-500 text-white"
+                          }`}
+                        >
                           {signer.signed ? "Signed" : "Pending Signature"}
                         </span>
                       </div>
-                      {signer.email && (
+                      {/* Only repeat the address when it is not already
+                          standing in for the name above. */}
+                      {signer.email && signer.name && (
                         <div className="pl-5 text-muted-foreground">
                           {signer.email}
                         </div>

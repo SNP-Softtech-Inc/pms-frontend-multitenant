@@ -176,6 +176,26 @@ useEffect(() => {
     globalFilterFn: "includesString",
   });
 
+  // Drop selection entries whose row is no longer in the data. Without this,
+  // deleting a selected row leaves its key behind - and because selection is
+  // keyed by row INDEX unless getRowId is supplied, that stale key then
+  // points at whatever row shifted up into the slot, so the next item looked
+  // like it had selected itself. Keyed by id the row simply vanishes, but the
+  // orphaned key would still be counted in the bulk bar.
+  const coreRowIds = table.getCoreRowModel().rows.map((row) => row.id);
+  useEffect(() => {
+    const valid = new Set(coreRowIds);
+    const stale = Object.keys(rowSelection).filter((key) => !valid.has(key));
+    if (stale.length === 0) return;
+
+    setRowSelection((prev) => {
+      const next = { ...prev };
+      stale.forEach((key) => delete next[key]);
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coreRowIds.join("|")]);
+
   const selectedCount = Object.keys(rowSelection).filter((k) => rowSelection[k]).length;
 
   return (

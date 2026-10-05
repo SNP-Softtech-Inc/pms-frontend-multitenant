@@ -35,15 +35,35 @@ const Signatures = () => {
       fetchSignatures();
     }
   }, [accountId]);
+  // EsignRequest.status is one of pending / in_progress / completed. Only
+  // "completed" and "pending" were matched here, so a partially signed
+  // document ("in_progress") fell through to the neutral grey and read as
+  // having no status at all.
   const statusStyles = (status) => {
     const s = (status || "").toLowerCase();
-    if (s === "completed" || s === "signed")
-      return "bg-green-50 text-green-700 border border-green-200";
-    if (s === "rejected" || s === "declined")
+    if (s === "completed" || s === "signed" || s === "signaturecompleted")
+      return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+    if (s === "rejected" || s === "declined" || s === "cancelled")
       return "bg-red-50 text-red-700 border border-red-200";
-    if (s === "pending")
-      return "bg-yellow-50 text-yellow-700 border border-yellow-200";
+    if (s === "in_progress" || s === "partiallysigned")
+      return "bg-sky-50 text-sky-700 border border-sky-200";
+    if (s === "pending" || s === "sent" || s === "opened" || s === "pendingsignature")
+      return "bg-amber-50 text-amber-700 border border-amber-200";
     return "bg-gray-100 text-gray-600 border border-gray-200";
+  };
+
+  // The raw value was printed straight into the cell, so the column read
+  // "pending" and "in_progress" rather than naming the state.
+  const statusLabel = (status) => {
+    const s = (status || "").toLowerCase();
+    if (s === "completed" || s === "signed" || s === "signaturecompleted")
+      return "Signed";
+    if (s === "in_progress" || s === "partiallysigned") return "Partially Signed";
+    if (s === "pending" || s === "sent" || s === "opened" || s === "pendingsignature")
+      return "Pending Signature";
+    if (s === "declined" || s === "rejected") return "Declined";
+    if (s === "cancelled") return "Cancelled";
+    return status || "—";
   };
 
   const formatDate = (dateStr) => {
@@ -230,7 +250,7 @@ const Signatures = () => {
                           fontFamily: "var(--font-family)",
                         }}
                       >
-                        {signautrelist.status || "—"}
+                        {statusLabel(signautrelist.status)}
                       </span>
                     </TableCell>
 
