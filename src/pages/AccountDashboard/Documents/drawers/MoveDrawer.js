@@ -666,7 +666,16 @@ const FolderTreeSelector = ({
 
         const isSelected = selectedFolder === item.path;
         const isExpanded = expanded[item.path];
-        const isDisabled = isFolderDisabled(item.path) || item.meta?.readOnly;
+        // A sealed folder is no longer disabled as a destination here. The
+        // seal is there to stop the CLIENT changing things; staff are meant
+        // to keep managing documents inside it. Treating it as disabled
+        // greyed it out for admins too, and because the row carries
+        // pointer-events-none it could not even be expanded - so every
+        // subfolder underneath a sealed folder became unreachable as well
+        // (sealing is applied recursively). The backend's move enforces no
+        // such restriction, so this was the only thing in the way. The lock
+        // icon below stays, so staff can still see what is sealed.
+        const isDisabled = isFolderDisabled(item.path);
         const hasChildren = item.children?.length > 0;
 
         return (

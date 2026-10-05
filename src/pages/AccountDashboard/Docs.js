@@ -186,7 +186,7 @@
 // export default Docs;
 
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { NavLink, Outlet, useParams, useLocation } from "react-router-dom";
 
 const Docs = () => {
@@ -213,21 +213,51 @@ const Docs = () => {
     { label: "Trash", path: tabRoutes[3] },
   ];
 
+  // Sub-views pin their own toolbars below this strip, so publish its height
+  // the same way the account header publishes its own.
+  const tabsRef = useRef(null);
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return undefined;
+
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        "--acct-subtab-h",
+        `${el.offsetHeight}px`,
+      );
+
+    publish();
+
+    // jsdom and older browsers have no ResizeObserver; the measurement taken
+    // above still stands, it just stops tracking later size changes.
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publish);
+    if (observer) observer.observe(el);
+
+    return () => {
+      if (observer) observer.disconnect();
+      document.documentElement.style.removeProperty("--acct-subtab-h");
+    };
+  }, []);
+
   return (
     <div>
-      {/* ✅ Tabs - pinned directly beneath the account header (which is
-          sticky at top-0 and roughly 134px tall) so Documents / Approvals /
-          Signatures / Trash stay reachable while scrolling a long file list.
-          z stays under the header's z-40. */}
-      <div className="sticky top-[134px] z-30 -mt-1 overflow-x-auto bg-background/95 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex gap-2 border-b pb-2">
+      {/* ✅ Tabs - pinned directly beneath the account header so Documents /
+          Approvals / Signatures / Trash stay reachable while scrolling a long
+          file list. z stays under the header's z-40. */}
+      <div
+        ref={tabsRef}
+        className="sticky z-30 -mt-1 overflow-x-auto border-b bg-background/95 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+        style={{ top: "var(--acct-header-h, 46px)" }}
+      >
+        <div className="flex gap-1">
           {tabs.map((tab, index) => (
             <NavLink
               key={tab.label}
               to={tab.path}
               end={index === 0} // optional: makes first tab exact match
               className={({ isActive }) =>
-                `no-underline px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                `no-underline px-3 py-1 rounded-lg text-[13px] font-medium transition-all duration-150 ${
                   isActive ||
                   (currentTab === -1 && index === 0) // fallback like MUI default
                     ? "bg-card text-foreground shadow-sm"
@@ -240,9 +270,6 @@ const Docs = () => {
           ))}
         </div>
       </div>
-
-      {/* Divider */}
-      <div className="my-4 border-t" />
 
       {/* Content */}
       <div className="mt-2">

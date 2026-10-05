@@ -498,9 +498,26 @@ const renderMessage = (message) => {
                       <div className="flex-1 min-w-0">
                         {/* Row 1: Name and Time */}
                         <div className="flex justify-between items-baseline gap-2">
-                          <span className="text-sm font-semibold text-foreground truncate flex-1">
+                          <span
+                            className={`truncate flex-1 text-sm ${
+                              unread > 0
+                                ? "font-bold text-foreground"
+                                : "font-semibold text-foreground"
+                            }`}
+                          >
                             {chat.accountid?.accountName || "Unknown"}
                           </span>
+
+                          {/* The only unread signal was a 9px number at the
+                              end of the preview line, which was easy to miss
+                              when scanning the list. A labelled badge next to
+                              the account name says plainly that the client has
+                              written, and the name goes bold with it. */}
+                          {unread > 0 && (
+                            <Badge className="shrink-0 rounded-full bg-primary px-2 py-0 text-[10px] font-semibold text-primary-foreground">
+                              {unread > 1 ? `${unread} New` : "New"}
+                            </Badge>
+                          )}
                           <span className="text-[10px] text-muted-foreground shrink-0">
                             {/* {formatTime(
                               lastMessage?.time ||

@@ -187,7 +187,7 @@
 // export default AccountsDash;
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   NavLink,
   Link,
@@ -230,6 +230,35 @@ const AccountsDash = () => {
     if (accountId) fetchAccount();
   }, [accountId]);
 
+  // Sub-views (the Documents tab strip, the folder toolbar) pin themselves
+  // directly below this header. Publishing its measured height keeps those
+  // offsets honest instead of relying on hard-coded pixel guesses that drift
+  // whenever the header's padding changes.
+  const headerRef = useRef(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return undefined;
+
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        "--acct-header-h",
+        `${el.offsetHeight}px`,
+      );
+
+    publish();
+
+    // jsdom and older browsers have no ResizeObserver; the measurement taken
+    // above still stands, it just stops tracking later size changes.
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publish);
+    if (observer) observer.observe(el);
+
+    return () => {
+      if (observer) observer.disconnect();
+      document.documentElement.style.removeProperty("--acct-header-h");
+    };
+  }, []);
+
   const navItems = [
     { label: "Overview", to: `/clients/accounts/accountsdash/overview/${accountId}` },
     { label: "Info", to: `/clients/accounts/accountsdash/info/${accountId}` },
@@ -244,72 +273,62 @@ const AccountsDash = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    // -mt-4 cancels the top padding of the dashboard shell's <main>, which was
+    // leaving a band of empty background above the account name.
+    <div className="-mt-4 min-h-screen bg-muted/20">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        {/* Top */}
-        <div className="flex items-center justify-between px-8 py-5">
-          <div className="flex items-center gap-5">
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      >
+        {/* The account name and the section tabs share a single row so the
+            selected tab's content starts as high up the page as possible. */}
+        <div className="flex items-center gap-4 px-6">
+          <div className="flex shrink-0 items-center gap-2.5 py-1.5">
             <Link
               to="/clients/accounts/activeaccounts"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border bg-background transition hover:bg-muted"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border bg-background transition hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
 
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Building2 className="h-6 w-6" />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-semibold tracking-tight">
-                    {accName || "Account"}
-                  </h1>
-
-                  <ExternalLink className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" />
-                </div>
-
-                <p className="text-sm text-muted-foreground mt-1">
-                  Client Account Management
-                </p>
-              </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Building2 className="h-4 w-4" />
             </div>
+
+            <h1
+              className="max-w-[220px] truncate text-base font-semibold tracking-tight"
+              title={accName || "Account"}
+            >
+              {accName || "Account"}
+            </h1>
+
+            <ExternalLink className="h-3.5 w-3.5 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground" />
           </div>
 
-          {/* Optional Actions */}
-          <div className="flex items-center gap-3">
-            {/* Add Buttons here */}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="border-t bg-background">
-          <div className="px-8">
-            <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `relative flex items-center whitespace-nowrap rounded-none border-b-2 px-4 py-3 text-sm font-medium transition-all ${
-                      isActive
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                    }`
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
+          {/* Navigation */}
+          <nav className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto scrollbar-hide">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `relative flex items-center whitespace-nowrap rounded-none border-b-2 px-3 py-2.5 text-sm font-medium transition-all ${
+                    isActive
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
       </header>
 
       {/* Content */}
-      <main className="p-6">
+      <main className="p-4">
         <Outlet />
       </main>
     </div>

@@ -124,7 +124,12 @@ const Service = () => {
 
   // ================= SAVE SERVICE =================
   const saveService = async () => {
-    if (!servicename) return toast.error("Service name is required");
+    // Same as above: `toast` is not imported here, so this validation
+    // guard threw instead of warning, and the save silently did nothing.
+    if (!servicename) {
+      showToast({ title: "Service name is required", type: "error" });
+      return;
+    }
 
     const data = {
       serviceName: servicename,

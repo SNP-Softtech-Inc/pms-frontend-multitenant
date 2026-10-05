@@ -2181,12 +2181,14 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "../../../components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../../components/ui/dialog";
 import { Button } from "../../../components/ui/button";
 import {
   Select,
@@ -2196,7 +2198,7 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { LayoutTemplate, Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import {useToastContext} from "../../../context/ToastContext";
 import { FolderTreeView } from "./FolderTreeView";
@@ -2211,6 +2213,10 @@ const DocsFolderTree = () => {
   console.log("selected template", selectedTemplate);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  // Bumping this remounts the tree so a freshly applied template shows up
+  // without the user having to reload the page.
+  const [treeKey, setTreeKey] = useState(0);
 
   // Fetch templates list - Using folderManagementAPI
   useEffect(() => {
@@ -2249,6 +2255,8 @@ const DocsFolderTree = () => {
           type: "success",
         });
         setSelectedTemplate("");
+        setTemplateDialogOpen(false);
+        setTreeKey((key) => key + 1);
       })
       .catch((error) => {
         console.error("Error applying template:", error);
@@ -2260,53 +2268,63 @@ const DocsFolderTree = () => {
       });
   };
 
-  return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Apply Template to Account</CardTitle>
-          <CardDescription>
-            Select a folder template to apply to this account
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Select Template
-            </label>
-            <Select
-              value={selectedTemplate}
-              onValueChange={setSelectedTemplate}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a template" />
-              </SelectTrigger>
-              <SelectContent>
-                {templates.map((template) => (
-                  <SelectItem key={template._id} value={template._id}>
-                    {template.templatename}
-                  </SelectItem>
-                ))}
-                {templates.length === 0 && !loading && (
-                  <SelectItem value="no-templates" disabled>
-                    No templates available
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+  // The template picker used to sit in a card of its own above the tree, which
+  // pushed the explorer off-screen. It now rides in the tree's own toolbar.
+  const applyTemplateAction = (
+    <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="h-9 rounded-lg text-[13px] font-medium shadow-sm transition-all hover:shadow-md"
+        >
+          <LayoutTemplate className="mr-2 h-4 w-4" />
+          Apply Folder Template
+        </Button>
+      </DialogTrigger>
 
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Apply Folder Template</DialogTitle>
+          <DialogDescription>
+            Select a folder template to apply to this account.
+          </DialogDescription>
+        </DialogHeader>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Choose a template" />
+          </SelectTrigger>
+          <SelectContent>
+            {templates.map((template) => (
+              <SelectItem key={template._id} value={template._id}>
+                {template.templatename}
+              </SelectItem>
+            ))}
+            {templates.length === 0 && !loading && (
+              <SelectItem value="no-templates" disabled>
+                No templates available
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setTemplateDialogOpen(false)}
+          >
+            Cancel
+          </Button>
           <Button
             variant="default"
             disabled={loading || !selectedTemplate}
             onClick={applyTemplateToAccount}
-            className="w-full sm:w-auto"
           >
             {loading ? (
               <>
@@ -2317,21 +2335,17 @@ const DocsFolderTree = () => {
               "Apply Template"
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Folder Structure</CardTitle>
-          <CardDescription>
-            View and manage folder hierarchy for this account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FolderTreeView accountId={accountId} />
-        </CardContent>
-      </Card>
-    </div>
+  return (
+    <FolderTreeView
+      key={treeKey}
+      accountId={accountId}
+      templateAction={applyTemplateAction}
+    />
   );
 };
 

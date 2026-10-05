@@ -406,11 +406,24 @@ const ProposalsEls = () => {
             proposalIds: [_id],
           });
 
-          toast.success(res.data.message || "Deleted successfully");
+          // `toast` was never imported here - the react-toastify import at the
+          // top of the file is commented out, and this component uses
+          // showToast from ToastContext like the rest of the app. So this line
+          // threw ReferenceError the moment a delete succeeded: no success
+          // popup, and because it threw before the refetch below, the list
+          // never reloaded either. The catch then threw a second time on
+          // toast.error. DISABLE_ESLINT_PLUGIN hides exactly this (no-undef).
+          showToast({
+            title: res.data?.message || "Deleted successfully",
+            type: "success",
+          });
           fetchPrprosalsAllData();
         } catch (err) {
           console.error(err);
-          toast.error(err.response?.data?.message || "Delete failed");
+          showToast({
+            title: err.response?.data?.message || "Delete failed",
+            type: "error",
+          });
         }
       },
     });

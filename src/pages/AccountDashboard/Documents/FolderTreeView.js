@@ -2180,7 +2180,7 @@ import {
 import DocumentViewer from "./DocumentViewer";
 // import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 // import { Badge } from "../../../components/ui/badge";
-export const FolderTreeView = ({ accountId }) => {
+export const FolderTreeView = ({ accountId, templateAction = null }) => {
   const confirm = useConfirm();
   const { tenantId } = useAuth();
   const { showToast } = useToastContext();
@@ -2228,12 +2228,14 @@ const [submitters, setSubmitters] = useState([]);
   const SIGN_STATUSES = [
     "sendForSignature",
     "pendingSignature",
+    "partiallySigned",
     "signatureCompleted",
   ];
 
   const statusTextMap = {
     sendForSignature: "Send for Sign",
     pendingSignature: "Waiting for Signature",
+    partiallySigned: "Partially Signed",
     signatureCompleted: "Signature Received",
   };
 
@@ -3281,11 +3283,31 @@ const [auditLoading, setAuditLoading] = useState(false);
   };
 
   const getStatusChip = (meta, isFolder) => {
-    if (isFolder) return null;
     const chips = [];
 
-    if (SIGN_STATUSES.includes(meta.signStatus)) {
+    // Locking applies to folders as well as files, so this no longer bails
+    // out early on folders - it previously returned null for them, which is
+    // why a locked folder had nothing in the Status column. The sign and
+    // approval chips below stay file-only, since those statuses only ever
+    // exist on a document.
+    if (meta?.readOnly) {
       chips.push(
+        <Badge
+          key="sealedChip"
+          className="rounded-md text-white hover:opacity-90"
+          style={{ backgroundColor: "#1976D3", borderColor: "#1976D3" }}
+        >
+          Sealed
+        </Badge>,
+      );
+    }
+
+    if (isFolder) return chips.length ? chips : null;
+
+    if (SIGN_STATUSES.includes(meta.signStatus)) {
+      const isPartial = meta.signStatus === "partiallySigned";
+
+      const signChip = (
         <Badge
           key="signChip"
           className={
@@ -3293,12 +3315,56 @@ const [auditLoading, setAuditLoading] = useState(false);
               ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
               : meta.signStatus === "signatureCompleted"
                 ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
-                : "bg-slate-500 hover:bg-slate-600 text-white"
+                : isPartial
+                  ? "bg-sky-600 hover:bg-sky-700 text-white border-sky-700"
+                  : "bg-slate-500 hover:bg-slate-600 text-white"
           }
         >
-          {statusTextMap[meta.signStatus]}
-        </Badge>,
+          {isPartial && meta.totalSigners
+            ? `${statusTextMap.partiallySigned} ${meta.signedCount ?? 0}/${meta.totalSigners}`
+            : statusTextMap[meta.signStatus]}
+        </Badge>
       );
+
+      // The status alone never said who the document went to. Hovering now
+      // names each party and whether they have signed - for a single signer
+      // as well as a joint account, and while still pending as well as
+      // partially signed.
+      if (meta.signers?.length) {
+        chips.push(
+          <TooltipProvider key="signChip">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>{signChip}</span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <div className="space-y-1">
+                  {meta.signers.map((signer, i) => (
+                    <div key={i} className="text-xs">
+                      <div className="flex items-center gap-2">
+                        <span>{signer.signed ? "✓" : "•"}</span>
+                        <span className="font-medium">
+                          {signer.name || "Unknown"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {signer.signed ? "Signed" : "Pending Signature"}
+                        </span>
+                      </div>
+                      {signer.email && (
+                        <div className="pl-5 text-muted-foreground">
+                          {signer.email}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>,
+        );
+      } else {
+        chips.push(signChip);
+      }
     }
 
     if (APPROVAL_STATUSES.includes(meta.authStatus)) {
@@ -3644,7 +3710,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
       `}
           >
             {/* Checkbox */}
-            <TableCell className="w-[52px] px-4 py-3 align-middle">
+            <TableCell className="w-[44px] px-3 py-1.5 align-middle">
               <div className="flex items-center justify-center">
                 {isFolder ? (
                   <Checkbox
@@ -3665,7 +3731,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
 
             {/* Name */}
             <TableCell
-              className="py-3 pr-3 align-middle"
+              className="py-1.5 pr-3 align-middle"
               style={{
                 paddingLeft: `${level * 20 + 12}px`,
                 fontFamily: "var(--font-family)",
@@ -3689,7 +3755,6 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   hover:text-foreground
                 "
                       onClick={() => toggleFolder(fullPath, meta.readOnly)}
-                      disabled={meta.readOnly}
                     >
                       {expandedFolders[fullPath] ? (
                         <ChevronDown className="h-4 w-4 text-primary" />
@@ -3741,15 +3806,6 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                           >
                             {item.name}
                           </span>
-
-                          {meta.readOnly && (
-                            <Badge
-                              variant="destructive"
-                              className="rounded-md text-[10px]"
-                            >
-                              Locked
-                            </Badge>
-                          )}
 
                           {inheritedNewTag && (
                             <Badge
@@ -3832,15 +3888,6 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                         >
                           {item.name}
                         </a>
-                        {meta.readOnly && (
-                          <Badge
-                            variant="destructive"
-                            className="rounded-md text-[10px]"
-                          >
-                            Locked
-                          </Badge>
-                        )}
-
                         {meta.tags?.map((tag, index) => (
                           <Badge
                             key={index}
@@ -3878,7 +3925,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             </TableCell>
 
             {/* Content */}
-            <TableCell className="px-3 py-3 align-middle">
+            <TableCell className="px-3 py-1.5 align-middle">
               <div
                 className="
             inline-flex
@@ -3902,14 +3949,14 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             </TableCell>
 
             {/* Status */}
-            <TableCell className="px-3 py-3 align-middle">
+            <TableCell className="px-3 py-1.5 align-middle">
               <div className="flex items-center">
                 {getStatusChip(meta, isFolder)}
               </div>
             </TableCell>
 
             {/* Uploaded */}
-            <TableCell className="px-3 py-3 align-middle">
+            <TableCell className="px-3 py-1.5 align-middle">
               <div className="flex flex-col">
                 <span
                   className="text-sm font-medium text-foreground"
@@ -3927,7 +3974,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             </TableCell>
 
             {/* User */}
-            <TableCell className="px-3 py-3 align-middle">
+            <TableCell className="px-3 py-1.5 align-middle">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8 border border-border">
                   <AvatarFallback
@@ -3965,7 +4012,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             </TableCell>
 
             {/* Actions */}
-            <TableCell className="px-3 py-3 text-right align-middle">
+            <TableCell className="px-3 py-1.5 text-right align-middle">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -4000,26 +4047,29 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
     });
   };
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "hsl(var(--background))" }}
-    >
-      <div className="mx-auto w-full max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
-        {/* TOP ACTION BAR - pinned below the account header (~134px) plus the
-            Documents/Approvals/Signatures/Trash tab strip (~52px), so the
-            upload actions stay reachable while scrolling the folder list. */}
-        <div className="sticky top-[186px] z-20 mx-auto mb-6 max-w-[1200px]">
+    <div style={{ background: "hsl(var(--background))" }}>
+      <div className="mx-auto w-full max-w-[1700px] py-2">
+        {/* TOP ACTION BAR - pinned below the account header plus the
+            Documents/Approvals/Signatures/Trash tab strip (both publish their
+            measured heights as CSS variables), so the upload actions stay
+            reachable while scrolling the folder list. */}
+        <div
+          className="sticky z-20 mb-3"
+          style={{
+            top: "calc(var(--acct-header-h, 46px) + var(--acct-subtab-h, 40px))",
+          }}
+        >
           <div
-            className="rounded-2xl border p-3 shadow-sm"
+            className="rounded-xl border p-2 shadow-sm"
             style={{
               borderColor: "hsl(var(--border))",
               background: "hsl(var(--card))",
             }}
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-[700px]">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="default"
-                className="h-11 rounded-xl shadow-sm transition-all hover:shadow-md"
+                className="h-9 rounded-lg text-[13px] font-medium shadow-sm transition-all hover:shadow-md"
                 style={{
                   background: "hsl(var(--primary))",
                   color: "hsl(var(--primary-foreground))",
@@ -4035,7 +4085,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
 
               <Button
                 variant="default"
-                className="h-11 rounded-xl shadow-sm transition-all hover:shadow-md"
+                className="h-9 rounded-lg text-[13px] font-medium shadow-sm transition-all hover:shadow-md"
                 style={{
                   background: "hsl(217 89% 61%)",
                   color: "hsl(var(--primary-foreground))",
@@ -4048,7 +4098,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
 
               <Button
                 variant="default"
-                className="h-11 rounded-xl shadow-sm transition-all hover:shadow-md"
+                className="h-9 rounded-lg text-[13px] font-medium shadow-sm transition-all hover:shadow-md"
                 style={{
                   background: "hsl(158 64% 42%)",
                   color: "hsl(var(--primary-foreground))",
@@ -4058,6 +4108,8 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 <FolderUp className="mr-2 h-4 w-4" />
                 Upload Folder
               </Button>
+
+              {templateAction}
             </div>
           </div>
 
@@ -4234,7 +4286,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
 
         {/* DOCUMENT EXPLORER */}
         <div
-          className="overflow-hidden rounded-3xl border shadow-xl"
+          className="overflow-hidden rounded-xl border shadow-sm"
           style={{
             borderColor: "hsl(var(--border))",
             background: "hsl(var(--card))",
@@ -4244,30 +4296,30 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
         >
           {/* HEADER */}
           <div
-            className="flex items-center justify-between border-b px-6 py-5"
+            className="flex items-center justify-between border-b px-4 py-2"
             style={{
               borderColor: "hsl(var(--border))",
               background: "hsl(var(--secondary))",
             }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div
-                className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-md"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-white shadow-md"
                 style={{ background: "hsl(var(--primary))" }}
               >
-                <FolderIcon className="h-5 w-5" />
+                <FolderIcon className="h-4 w-4" />
               </div>
 
               <div>
                 <h2
-                  className="text-lg font-bold"
+                  className="text-sm font-bold leading-tight"
                   style={{ color: "hsl(var(--foreground))" }}
                 >
                   Document Explorer
                 </h2>
 
                 <p
-                  className="text-sm"
+                  className="text-xs leading-tight"
                   style={{ color: "hsl(var(--muted-foreground))" }}
                 >
                   Manage folders, files, approvals and signatures
@@ -4288,7 +4340,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   }}
                 >
                   <tr>
-                    <th className="w-[50px] px-4 py-4 text-left">
+                    <th className="w-[44px] px-3 py-2 text-left">
                       <Checkbox
                         checked={selectAll}
                         data-indeterminate={
@@ -4299,42 +4351,42 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                     </th>
 
                     <th
-                      className="px-4 py-4 text-left text-sm font-semibold"
+                      className="px-3 py-2 text-left text-xs font-semibold"
                       style={{ color: "hsl(var(--foreground))" }}
                     >
                       Name
                     </th>
 
                     <th
-                      className="px-4 py-4 text-left text-sm font-semibold"
+                      className="px-3 py-2 text-left text-xs font-semibold"
                       style={{ color: "hsl(var(--foreground))" }}
                     >
                       Content
                     </th>
 
                     <th
-                      className="px-4 py-4 text-left text-sm font-semibold"
+                      className="px-3 py-2 text-left text-xs font-semibold"
                       style={{ color: "hsl(var(--foreground))" }}
                     >
                       Status
                     </th>
 
                     <th
-                      className="px-4 py-4 text-left text-sm font-semibold"
+                      className="px-3 py-2 text-left text-xs font-semibold"
                       style={{ color: "hsl(var(--foreground))" }}
                     >
                       Uploaded
                     </th>
 
                     <th
-                      className="px-4 py-4 text-left text-sm font-semibold"
+                      className="px-3 py-2 text-left text-xs font-semibold"
                       style={{ color: "hsl(var(--foreground))" }}
                     >
                       User
                     </th>
 
                     <th
-                      className="px-4 py-4 text-right text-sm font-semibold"
+                      className="px-3 py-2 text-right text-xs font-semibold"
                       style={{ color: "hsl(var(--foreground))" }}
                     >
                       Actions

@@ -239,6 +239,7 @@ return (
     <DialogContent
       className="
         max-w-2xl overflow-hidden
+        max-h-[90vh] flex flex-col
         rounded-3xl
         border border-border/60
         bg-background/95
@@ -253,6 +254,7 @@ return (
       {/* Header */}
       <DialogHeader
         className="
+          shrink-0
           border-b border-border/50
           px-6 py-5
           bg-muted/20
@@ -295,7 +297,12 @@ return (
       </DialogHeader>
 
       {/* Body */}
-      <div className="px-6 py-5 space-y-5">
+      {/* min-h-0 is what lets this actually shrink inside the flex column -
+          without it the body keeps its content height and the header and
+          footer get pushed off a laptop screen, which is why the text looked
+          overlapped at the top and bottom on smaller displays but fine on an
+          external monitor. */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 space-y-5">
         {/* Selected Chips */}
         {selectedContacts.length > 0 && (
           <div className="space-y-2">
@@ -435,7 +442,7 @@ return (
 
           <ScrollArea
             className="
-              h-[340px]
+              h-[clamp(160px,34vh,340px)]
               rounded-2xl
               border border-border/50
               bg-muted/10
@@ -546,6 +553,7 @@ return (
       {/* Footer */}
       <DialogFooter
         className="
+          shrink-0
           border-t border-border/50
           bg-muted/10
           px-6 py-4

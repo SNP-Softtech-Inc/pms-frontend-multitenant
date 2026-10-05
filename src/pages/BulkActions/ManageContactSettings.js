@@ -319,7 +319,13 @@ const ManageContactSettings = forwardRef(
         onClose();
       } catch (err) {
         console.error(err);
-        toast.error("Failed to update settings");
+        // `toast` is not imported in this file - this component uses
+        // showToast from ToastContext. The bare call threw ReferenceError,
+        // so a failed save reported nothing at all to the user.
+        showToast({
+          title: "Failed to update settings",
+          type: "error",
+        });
       }
     };
 

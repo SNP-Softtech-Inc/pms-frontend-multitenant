@@ -15,6 +15,9 @@ import {
   FileText,
   // Archive,
   RefreshCw,
+  ArrowUpDown,
+  AtSign,
+  Settings2,
   // ExternalLink,
   // Paperclip,
 } from "lucide-react";
@@ -175,6 +178,8 @@ export default function InboxPlus() {
   const [previewFile, setPreviewFile] = useState(null);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [viewMode, setViewMode] = useState("inbox");
+  // Newest first by default, matching the reference layout's sort control.
+  const [sortNewestFirst, setSortNewestFirst] = useState(true);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToastContext();
 
@@ -303,8 +308,14 @@ export default function InboxPlus() {
   ];
 
   // Update the filteredThreads useMemo to include filters
+  // Badge on "All notifications" in the left nav.
+  const unreadCount = useMemo(
+    () => notifications.filter((t) => !t.latest?.isRead).length,
+    [notifications],
+  );
+
   const filteredThreads = useMemo(() => {
-    return currentData.filter((thread) => {
+    const rows = currentData.filter((thread) => {
       const subject = thread.latest?.subject || "";
       const body = getPreview(thread.latest?.body || "");
       const from = thread.latest?.from || "";
@@ -346,7 +357,20 @@ export default function InboxPlus() {
 
       return true;
     });
-  }, [currentData, searchQuery, activeFilters]);
+
+    // The list had no ordering of its own - it rendered in whatever order the
+    // API returned. Sorting here, newest first by default, matches the
+    // reference layout's "Newest first" control.
+    const byDate = (thread) => {
+      const raw = thread.latest?.date || thread.latest?.createdAt;
+      const t = raw ? new Date(raw).getTime() : 0;
+      return Number.isNaN(t) ? 0 : t;
+    };
+
+    return [...rows].sort((a, b) =>
+      sortNewestFirst ? byDate(b) - byDate(a) : byDate(a) - byDate(b),
+    );
+  }, [currentData, searchQuery, activeFilters, sortNewestFirst]);
 
   // Add this function to handle filter changes
   const handleFilterChange = (filterKey) => {
@@ -617,6 +641,21 @@ export default function InboxPlus() {
       }
     };
 
+    // Hand the claimed tab the file. Calling window.open() again at this
+    // point would be blocked, because the click's user gesture is long gone
+    // by the time the fetch resolves.
+    const previewInClaimedTab = (blobUrl, name) => {
+      if (openNamedFileInViewer(viewerWindow, blobUrl, name)) return;
+      downloadBlobUrl(blobUrl, name);
+      showToast({
+        title: "Opened as a download",
+        description:
+          "Allow pop-ups for this site to preview documents in a tab instead.",
+        type: "info",
+        duration: 5000,
+      });
+    };
+
     try {
       if (!attachment) {
         closeViewer();
@@ -849,8 +888,8 @@ export default function InboxPlus() {
           fileExtension,
         )
       ) {
-        // For video files, open in new tab
-        window.open(url, "_blank");
+        // For video files, open in the tab claimed on click
+        previewInClaimedTab(url, filename);
       }
 
       // ============ AUDIO FILES ============
@@ -858,14 +897,14 @@ export default function InboxPlus() {
         mimeType?.startsWith("audio/") ||
         ["mp3", "wav", "ogg", "flac", "aac"].includes(fileExtension)
       ) {
-        // For audio files, open in new tab
-        window.open(url, "_blank");
+        // For audio files, open in the tab claimed on click
+        previewInClaimedTab(url, filename);
       }
 
       // ============ JSON/XML FILES ============
       else if (["json", "xml", "yaml", "yml"].includes(fileExtension)) {
-        // For JSON/XML files, open in new tab
-        window.open(url, "_blank");
+        // For JSON/XML files, open in the tab claimed on click
+        previewInClaimedTab(url, filename);
       }
 
       // ============ DEFAULT - Download ============
@@ -1125,231 +1164,322 @@ const renderEmailThread = (messages) => {
   });
 };
   return (
-    <div className="h-full flex flex-col bg-white">
-      {/* Loading indicator */}
-      {loading && (
-        <div className="flex items-center justify-center p-2 bg-gray-50 border-b">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-sm text-gray-600">Loading...</span>
-        </div>
-      )}
+    <div className="h-full flex bg-white">
+      {/* ================= LEFT NAV ================= */}
+      <aside className="hidden w-[200px] shrink-0 flex-col border-r bg-white px-4 py-5 md:flex">
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight text-gray-900">
+          Inbox+
+        </h1>
 
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-3">
-          <h1 className="font-semibold text-lg">
-            {viewMode === "inbox" ? "Notifications" : "Archived"}
-          </h1>
+        <p className="mb-2 px-2 text-xs font-medium text-gray-500">Shared</p>
 
-          {/* View Toggle Buttons */}
-          <div className="flex items-center gap-1 ml-4 border rounded-md p-1 bg-gray-50">
-            <button
-              onClick={() => {
-                setViewMode("inbox");
-                setSelectedRows([]);
-              }}
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                viewMode === "inbox"
-                  ? "bg-white shadow-sm text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Inbox ({notifications.length})
-            </button>
-            <button
-              onClick={() => {
-                setViewMode("archived");
-                setSelectedRows([]);
-              }}
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                viewMode === "archived"
-                  ? "bg-white shadow-sm text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Archived ({archivedNotifications.length})
-            </button>
-          </div>
-
-          <ShadButton
-            variant="ghost"
-            size="sm"
-            onClick={() => setFilterDrawerOpen(true)}
+        <nav className="flex flex-col gap-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("inbox");
+              setSelectedRows([]);
+            }}
+            className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+              viewMode === "inbox"
+                ? "bg-blue-50 font-medium text-blue-700"
+                : "text-gray-700 hover:bg-slate-100"
+            }`}
           >
-            <SlidersHorizontal size={16} />
-          </ShadButton>
-        </div>
+            <Mail className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate text-left">
+              All notifications
+            </span>
+            {unreadCount > 0 && (
+              <span className="shrink-0 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
 
-        <div className="relative w-80">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            className="pl-9"
-            placeholder={`Search ${viewMode === "inbox" ? "notifications" : "archived"}`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+          {/* Mentions sits under All notifications in the reference. There is
+              no mention data in this app yet, so it is shown disabled rather
+              than as a link that goes nowhere. */}
+          <button
+            type="button"
+            disabled
+            title="Mentions are not available yet"
+            className="flex cursor-not-allowed items-center gap-2 rounded-md px-2 py-1.5 pl-6 text-sm text-gray-400"
+          >
+            <AtSign className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate text-left">Mentions</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("archived");
+              setSelectedRows([]);
+            }}
+            className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+              viewMode === "archived"
+                ? "bg-blue-50 font-medium text-blue-700"
+                : "text-gray-700 hover:bg-slate-100"
+            }`}
+          >
+            <Archive className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate text-left">Archived</span>
+            {archivedNotifications.length > 0 && (
+              <span className="shrink-0 text-[11px] text-gray-400">
+                {archivedNotifications.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterDrawerOpen(true)}
+            className="mt-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-blue-600 transition-colors hover:bg-blue-50"
+          >
+            <Settings2 className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate text-left">
+              Manage notifications
+            </span>
+          </button>
+        </nav>
+      </aside>
+
+      {/* ================= MAIN ================= */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Loading indicator */}
+        {loading && (
+          <div className="flex items-center justify-center p-2 bg-gray-50 border-b">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <span className="ml-2 text-sm text-gray-600">Loading...</span>
+          </div>
+        )}
+
+        {/* ================= TOOLBAR ================= */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2.5">
+          <input
+            type="checkbox"
+            className="h-4 w-4"
+            checked={
+              filteredThreads.length > 0 &&
+              selectedRows.length === filteredThreads.length
+            }
+            onChange={(e) =>
+              setSelectedRows(
+                e.target.checked ? filteredThreads.map((t) => t._id) : [],
+              )
+            }
           />
-        </div>
-      </div>
 
-      <div className="flex items-center gap-4 p-3 border-b bg-slate-50">
-        <input
-          type="checkbox"
-          checked={
-            filteredThreads.length > 0 &&
-            selectedRows.length === filteredThreads.length
-          }
-          onChange={(e) =>
-            setSelectedRows(
-              e.target.checked ? filteredThreads.map((t) => t._id) : [],
-            )
-          }
-        />
+          {viewMode === "inbox" ? (
+            <button
+              type="button"
+              onClick={handleBulkArchive}
+              disabled={selectedRows.length === 0}
+              className="flex items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:text-gray-300"
+            >
+              <Check className="h-4 w-4" />
+              Archive for me
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleBulkUnarchive}
+              disabled={selectedRows.length === 0}
+              className="flex items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:text-gray-300"
+            >
+              <Undo2 className="h-4 w-4" />
+              Restore to Inbox
+            </button>
+          )}
 
-        {viewMode === "inbox" ? (
-          <>
-            <ShadButton variant="outline" size="sm" onClick={handleBulkArchive}>
-              Archive Selected
-            </ShadButton>
-          </>
-        ) : (
-          <>
+          <button
+            type="button"
+            onClick={() => setSelectedRows(filteredThreads.map((t) => t._id))}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Select all {filteredThreads.length} notifications
+          </button>
+
+          <span className="text-sm text-gray-500">
+            {selectedRows.length} selected
+          </span>
+
+          <div className="ml-auto flex items-center gap-2">
+            <div className="relative w-56">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                className="h-9 pl-9"
+                placeholder={`Search ${viewMode === "inbox" ? "notifications" : "archived"}`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSortNewestFirst((v) => !v)}
+              className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-sm text-gray-600 transition-colors hover:bg-slate-100 hover:text-gray-900"
+              title="Change sort order"
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {sortNewestFirst ? "Newest first" : "Oldest first"}
+            </button>
+
             <ShadButton
               variant="outline"
               size="sm"
-              onClick={handleBulkUnarchive}
+              onClick={() => setFilterDrawerOpen(true)}
             >
-              Restore to Inbox
+              <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+              Filter
             </ShadButton>
-          </>
-        )}
+          </div>
+        </div>
 
-        <span className="text-sm text-muted-foreground">
-          {selectedRows.length} selected
-        </span>
-      </div>
+        {/* ================= LIST ================= */}
+        <div className="flex-1 overflow-auto">
+          {filteredThreads.length === 0 ? (
+            <div className="p-10 text-center text-sm text-gray-500">
+              {viewMode === "inbox"
+                ? "No notifications found"
+                : "No archived notifications"}
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {filteredThreads.map((thread) => (
+                <li key={thread._id} className="bg-white">
+                  <div className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 shrink-0"
+                      checked={selectedRows.includes(thread._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRows((p) => [...p, thread._id]);
+                        } else {
+                          setSelectedRows((p) =>
+                            p.filter((id) => id !== thread._id),
+                          );
+                        }
+                      }}
+                    />
 
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100 sticky top-0">
-            <tr>
-              <th className="p-3 text-left"></th>
-              <th className="p-3 text-left">Notification</th>
-              <th className="p-3 text-left">Date</th>
-              <th className="p-3 text-left">Attachment</th>
-              <th className="p-3 text-center">Status</th>
-              <th className="p-3 text-center">Action</th>
-            </tr>
-          </thead>
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-blue-600">
+                      <FileText className="h-4 w-4" />
+                    </span>
 
-          <tbody>
-            {filteredThreads.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="p-8 text-center text-gray-500">
-                  {viewMode === "inbox"
-                    ? "No notifications found"
-                    : "No archived notifications"}
-                </td>
-              </tr>
-            ) : (
-              
-              filteredThreads.map((thread) => (
-                <React.Fragment key={thread._id}>
-                  <tr
-                    className="border-b hover:bg-slate-50 cursor-pointer"
-                    onClick={() => toggleRow(thread._id)}
-                  >
-                    <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedRows.includes(thread._id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedRows((p) => [...p, thread._id]);
-                          } else {
-                            setSelectedRows((p) =>
-                              p.filter((id) => id !== thread._id),
-                            );
-                          }
-                        }}
-                      />
-                       <button
-                          onClick={() => toggleRow(thread._id)}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          {expandedRows.includes(thread._id) ? (
-                            <ChevronUp size={16} />
-                          ) : (
-                            <ChevronDown size={16} />
-                          )}
-                        </button>
-                    </td>
-
-                    <td className="p-3">
-                      <div className="font-medium">
+                    {/* Subject and preview. Clicking opens the thread detail,
+                        as the row did before. min-w-0 is what lets the text
+                        truncate instead of pushing the date and the actions
+                        off the right-hand edge. */}
+                    <button
+                      type="button"
+                      onClick={() => toggleRow(thread._id)}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <div className="truncate text-sm text-gray-900">
                         {renderLinkedSubject(thread.latest?.subject, navigate)}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {getPreview(thread.latest?.body || "").slice(0, 100)}
+                      <div className="truncate text-xs text-gray-500">
+                        {getPreview(thread.latest?.body || "").slice(0, 120)}
                       </div>
-                    </td>
+                    </button>
 
-                    <td className="p-3">
-                      {formatDate(thread.latest?.messageDate)}
-                    </td>
-
-                    <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                      {thread.latest?.attachments?.[0] ? (
-                        <button
-                          onClick={() =>
-                            openAttachment(thread.latest.attachments[0])
-                          }
-                          className="flex items-center gap-2 text-blue-600"
-                        >
-                          <Paperclip size={14} />
+                    {thread.latest?.attachments?.[0] && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openAttachment(thread.latest.attachments[0])
+                        }
+                        className="mt-0.5 flex max-w-[150px] shrink-0 items-center gap-1 text-xs text-blue-600 hover:underline"
+                        title={thread.latest.attachments[0].filename}
+                      >
+                        <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">
                           {thread.latest.attachments[0].filename}
-                        </button>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+                        </span>
+                      </button>
+                    )}
 
-                    <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                      {thread.latest?.isRead ? (
-                        <Check className="mx-auto text-green-600" size={16} />
+                    <div className="mt-0.5 shrink-0 whitespace-nowrap text-xs text-gray-500">
+                      {formatDate(thread.latest?.messageDate)}
+                    </div>
+
+                    <div className="mt-0.5 flex shrink-0 items-center gap-1.5">
+                      {!thread.latest?.isRead && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkAsRead(thread._id)}
+                          className="rounded p-1 text-gray-400 transition-colors hover:bg-slate-100 hover:text-gray-700"
+                          title="Mark as read"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </button>
+                      )}
+
+                      {viewMode === "inbox" ? (
+                        <button
+                          type="button"
+                          onClick={() => handleArchiveThread(thread._id)}
+                          className="rounded p-1 text-emerald-600 transition-colors hover:bg-emerald-50"
+                          title="Archive"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
                       ) : (
                         <button
-                          onClick={() => handleMarkAsRead(thread._id)}
-                          className="text-blue-600 text-xs"
+                          type="button"
+                          onClick={() => handleUnarchiveThread(thread._id)}
+                          className="rounded p-1 text-emerald-600 transition-colors hover:bg-emerald-50"
+                          title="Restore to inbox"
                         >
-                          Mark Read
+                          <Undo2 className="h-4 w-4" />
                         </button>
                       )}
-                    </td>
 
-                    <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const mongoId = extractMongoId(
+                            thread.latest?.subject,
+                          );
+                          if (!mongoId) {
+                            showToast({
+                              title: "Not Available",
+                              description:
+                                "No account link found for this notification",
+                              type: "warning",
+                              duration: 3000,
+                            });
+                            return;
+                          }
+                          navigate(buildAccountPath(mongoId));
+                        }}
+                        className="rounded p-1 text-blue-600 transition-colors hover:bg-blue-50"
+                        title="Open"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </button>
 
-
-                        {viewMode === "inbox" ? (
-                          <button
-                            onClick={() => handleArchiveThread(thread._id)}
-                            className="text-gray-600 hover:text-gray-900"
-                          >
-                            <Archive size={16} />
-                          </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleRow(thread._id)}
+                        className="rounded p-1 text-gray-400 transition-colors hover:bg-slate-100 hover:text-gray-700"
+                        title={
+                          expandedRows.includes(thread._id)
+                            ? "Collapse"
+                            : "Expand"
+                        }
+                      >
+                        {expandedRows.includes(thread._id) ? (
+                          <ChevronUp className="h-4 w-4" />
                         ) : (
-                          <button
-                            onClick={() => handleUnarchiveThread(thread._id)}
-                            className="text-green-600 hover:text-green-800"
-                          >
-                            <Undo2 size={16} />
-                          </button>
+                          <ChevronDown className="h-4 w-4" />
                         )}
-                      </div>
-                    </td>
-                  </tr>
+                      </button>
+                    </div>
+                  </div>
                   {expandedRows.includes(thread._id) && (
-                    <tr>
-                      <td colSpan={6} className="bg-gray-50 p-0">
                         <div className="border-t bg-white">
                           {thread.messages?.map((msg, index) => (
                             <div key={index} className="p-5">
@@ -1458,15 +1588,12 @@ const renderEmailThread = (messages) => {
                             </div>
                           ))}
                         </div>
-                      </td>
-                    </tr>
                   )}
-                </React.Fragment>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
       {selectedThread && (
         <div className="fixed inset-0 bg-black/40 z-50 flex justify-end">
@@ -1739,7 +1866,7 @@ const renderEmailThread = (messages) => {
     </div>
   </SheetContent>
 </Sheet>
-      
+      </div>
     </div>
   );
 }

@@ -475,6 +475,11 @@ const Dashboard = () => {
                         if (!isSmUp) setMobileOpen(false);
                       }
                     }}
+                    // Collapsed, only the icon shows and nothing identified
+                    // it on hover. Named only while collapsed - expanded, the
+                    // label is already beside the icon.
+                    title={!open ? item.label : undefined}
+                    aria-label={item.label}
                     className={`group relative flex w-full items-center gap-2.5 rounded-lg border-l-[3px] px-2.5 py-2.5 transition-all duration-150
                   ${
                     active
@@ -588,6 +593,11 @@ const Dashboard = () => {
                         if (!isSmUp) setMobileOpen(false);
                       }
                     }}
+                    // Collapsed, only the icon shows and nothing identified
+                    // it on hover. Named only while collapsed - expanded, the
+                    // label is already beside the icon.
+                    title={!open ? item.label : undefined}
+                    aria-label={item.label}
                     className={`group relative flex w-full items-center gap-2.5 rounded-lg border-l-[3px] px-2.5 py-2.5 transition-all duration-150
                   ${
                     active
