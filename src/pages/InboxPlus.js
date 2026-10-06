@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import Papa from "papaparse";
 import { useNavigate } from "react-router-dom";
 import {
   Archive,
@@ -79,6 +80,67 @@ const openNamedFileInViewer = (viewerWindow, blobUrl, filename) => {
         <iframe src="${blobUrl}" title="${escapeHtml(
           filename,
         )}" style="width:100%;height:100vh;border:none;"></iframe>
+      </body>
+    </html>
+  `);
+  viewerWindow.document.close();
+  return true;
+};
+
+// Renders delimited text as a table in the claimed tab. A browser will not
+// display a .csv inline - it downloads it - so previewing one means building
+// the view ourselves. papaparse is already a dependency and handles quoted
+// fields, embedded newlines and delimiter detection, which hand-splitting on
+// commas does not.
+const openDelimitedTextInViewer = (viewerWindow, text, filename) => {
+  if (!viewerWindow) return false;
+
+  const parsed = Papa.parse(text, {
+    skipEmptyLines: true,
+  });
+
+  const rows = Array.isArray(parsed?.data) ? parsed.data : [];
+  if (!rows.length) return false;
+
+  const [headerRow, ...bodyRows] = rows;
+
+  const headCells = headerRow
+    .map((cell) => `<th>${escapeHtml(String(cell ?? ""))}</th>`)
+    .join("");
+
+  const bodyHtml = bodyRows
+    .map(
+      (row) =>
+        `<tr>${row
+          .map((cell) => `<td>${escapeHtml(String(cell ?? ""))}</td>`)
+          .join("")}</tr>`,
+    )
+    .join("");
+
+  viewerWindow.document.write(`
+    <html>
+      <head>
+        <title>${escapeHtml(filename)}</title>
+        <meta charset="utf-8" />
+        <style>
+          body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif; background: #fff; color: #202124; }
+          header { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; font-size: 14px; font-weight: 600; position: sticky; top: 0; background: #fff; }
+          .meta { font-weight: 400; color: #5f6368; margin-left: 8px; }
+          .wrap { overflow: auto; }
+          table { border-collapse: collapse; font-size: 13px; width: max-content; min-width: 100%; }
+          th, td { border: 1px solid #e0e0e0; padding: 6px 10px; text-align: left; white-space: pre-wrap; vertical-align: top; }
+          th { background: #f1f3f4; position: sticky; top: 0; font-weight: 600; }
+          tbody tr:nth-child(even) { background: #fafafa; }
+        </style>
+      </head>
+      <body>
+        <header>${escapeHtml(filename)}<span class="meta">${bodyRows.length} row(s)</span></header>
+        <div class="wrap">
+          <table>
+            <thead><tr>${headCells}</tr></thead>
+            <tbody>${bodyHtml}</tbody>
+          </table>
+        </div>
       </body>
     </html>
   `);
@@ -815,6 +877,48 @@ export default function InboxPlus() {
         }
       }
 
+      // ============ HEIC IMAGES ============
+      // Only Safari can decode HEIC natively, so everywhere else the browser
+      // offered a download rather than showing the photo. heic2any decodes it
+      // to PNG in the browser; the result then goes through the ordinary
+      // image viewer below.
+      else if (
+        mimeType === "image/heic" ||
+        mimeType === "image/heif" ||
+        ["heic", "heif"].includes(fileExtension)
+      ) {
+        try {
+          const heic2any = (await import("heic2any")).default;
+          const converted = await heic2any({ blob, toType: "image/png" });
+          const pngBlob = Array.isArray(converted) ? converted[0] : converted;
+          const pngUrl = URL.createObjectURL(pngBlob);
+
+          if (!openNamedFileInViewer(viewerWindow, pngUrl, filename)) {
+            downloadBlobUrl(url, filename);
+            showToast({
+              title: "Opened as a download",
+              description:
+                "Allow pop-ups for this site to preview documents in a tab instead.",
+              type: "info",
+              duration: 5000,
+            });
+          }
+        } catch (heicError) {
+          // A corrupt or unusual HEIC should still reach the user as a file
+          // rather than as nothing at all.
+          console.error("HEIC conversion failed:", heicError);
+          closeViewer();
+          downloadBlobUrl(url, filename);
+          showToast({
+            title: "Preview unavailable",
+            description:
+              "This HEIC image could not be converted, so it was downloaded instead.",
+            type: "warning",
+            duration: 4000,
+          });
+        }
+      }
+
       // ============ IMAGE FILES ============
       else if (
         mimeType?.startsWith("image/") ||
@@ -839,6 +943,32 @@ export default function InboxPlus() {
             type: "info",
             duration: 5000,
           });
+        }
+      }
+
+      // ============ CSV / TSV FILES ============
+      // Delimited text used to fall into the spreadsheet branch below and
+      // download. A browser will not render a .csv inline, so previewing one
+      // means building the table ourselves - which is what the viewer helper
+      // does. Binary spreadsheets (.xls/.xlsx) still download: they are not
+      // text and would need a full sheet renderer.
+      else if (["csv", "tsv"].includes(fileExtension)) {
+        try {
+          const text = await blob.text();
+          if (!openDelimitedTextInViewer(viewerWindow, text, filename)) {
+            downloadBlobUrl(url, filename);
+            showToast({
+              title: "Opened as a download",
+              description:
+                "The file could not be previewed, so it was downloaded instead.",
+              type: "info",
+              duration: 4000,
+            });
+          }
+        } catch (previewError) {
+          console.error("CSV preview failed:", previewError);
+          closeViewer();
+          downloadBlobUrl(url, filename);
         }
       }
 
