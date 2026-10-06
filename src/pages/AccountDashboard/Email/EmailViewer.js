@@ -1123,7 +1123,7 @@ const GMAIL = {
   blueSelectedHover: "#C2DBFF",
   star: "#F4B400",
   text: "#202124",
-  textSecondary: "#5F6368",
+  textSecondary: "#3C4043",
   border: "#E0E0E0",
   hoverGrey: "#F1F3F4",
   unreadBg: "#FFFFFF",
@@ -1659,20 +1659,20 @@ showToast({
         <div className="px-3 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-2 mb-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5F6368] pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#3C4043] pointer-events-none" />
 
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search mail"
-                className="w-full h-10 pl-10 pr-3 text-[14px] rounded-full bg-[#EAF1FB] focus:bg-white focus:shadow-[0_1px_3px_rgba(0,0,0,0.2)] outline-none border-none placeholder:text-[#5F6368] transition-shadow"
+                className="w-full h-10 pl-10 pr-3 text-[14px] rounded-full bg-[#EAF1FB] focus:bg-white focus:shadow-[0_1px_3px_rgba(0,0,0,0.2)] outline-none border-none placeholder:text-[#3C4043] transition-shadow"
               />
             </div>
 
             <button
               onClick={() => fetchEmailCommunications()}
               title="Refresh"
-              className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-[#5F6368] hover:bg-[#F1F3F4] transition-colors"
+              className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-[#3C4043] hover:bg-[#F1F3F4] transition-colors"
             >
               <RotateCw
                 className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
@@ -1700,13 +1700,13 @@ showToast({
               className={`relative px-4 py-3 text-[13px] font-medium tracking-wide transition-colors ${
                 threadTab === i
                   ? "text-[#D93025]"
-                  : "text-[#5F6368] hover:text-[#202124]"
+                  : "text-[#3C4043] hover:text-[#202124]"
               }`}
             >
               {label.toUpperCase()}
 
               {i === 1 && unreadCount > 0 && (
-                <span className="ml-1.5 text-[11px] font-semibold text-[#5F6368]">
+                <span className="ml-1.5 text-[11px] font-semibold text-[#3C4043]">
                   {unreadCount}
                 </span>
               )}
@@ -1727,7 +1727,7 @@ showToast({
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Mail className="h-10 w-10 text-[#DADCE0]" strokeWidth={1.5} />
 
-              <p className="text-[13px] text-[#5F6368]">
+              <p className="text-[13px] text-[#3C4043]">
                 No conversations found
               </p>
             </div>
@@ -1801,7 +1801,7 @@ showToast({
                         {latest?.subject || "(no subject)"}
                       </span>
 
-                      <span className="text-[#5F6368] font-normal">
+                      <span className="text-[#3C4043] font-normal">
                         {" "}
                         - {getPreview(latest?.body || "", 60)}
                       </span>
@@ -1816,14 +1816,14 @@ showToast({
                       }`}
                     >
                       {hasAttachment && (
-                        <Paperclip className="h-3.5 w-3.5 text-[#5F6368]" />
+                        <Paperclip className="h-3.5 w-3.5 text-[#3C4043]" />
                       )}
 
                       <span
                         className={`text-[12px] tabular-nums ${
                           isUnread
                             ? "font-bold text-[#202124]"
-                            : "text-[#5F6368]"
+                            : "text-[#3C4043]"
                         }`}
                       >
                         {getRelativeTime(latest?.createdAt || latest?.date)}
@@ -1848,7 +1848,7 @@ showToast({
               <button
                 onClick={() => setSelectedThreadId(null)}
                 title="Back to inbox"
-                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#5F6368]"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -1857,14 +1857,14 @@ showToast({
 
               <button
                 title="Archive"
-                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#5F6368]"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
               >
                 <Archive className="h-4.5 w-4.5" />
               </button>
 
               <button
                 title="Delete"
-                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#5F6368]"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
               >
                 <Trash2 className="h-4.5 w-4.5" />
               </button>
@@ -1873,14 +1873,17 @@ showToast({
 
               <button
                 title="More"
-                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#5F6368]"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
               >
                 <MoreVertical className="h-4.5 w-4.5" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              <div className="max-w-[820px] mx-auto px-6 py-5">
+              {/* Was max-w-[820px] mx-auto, which left a wide empty gutter on the
+                  right of any normal monitor. Wider, and no longer centred,
+                  so the content uses the space it is given. */}
+              <div className="max-w-[1100px] px-6 py-5">
                 <h2 className="text-[22px] font-normal text-[#202124] leading-snug mb-4 pr-4">
                   {selectedThread.latest?.subject || "(no subject)"}
                 </h2>
@@ -1927,20 +1930,20 @@ showToast({
                               </span>
 
                               {!isExpanded && (
-                                <span className="text-[12.5px] text-[#5F6368] truncate">
+                                <span className="text-[12.5px] text-[#3C4043] truncate">
                                   {getPreview(email.body || "", 90)}
                                 </span>
                               )}
 
                               {isExpanded && (
-                                <span className="text-[12px] text-[#5F6368]">
+                                <span className="text-[12px] text-[#3C4043]">
                                   {"<" + (email.from?.match(/<(.+)>/)?.[1] || email.from) + ">"}
                                 </span>
                               )}
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-[12px] text-[#5F6368] tabular-nums">
+                              <span className="text-[12px] text-[#3C4043] tabular-nums">
                                 {email.createdAt
                                   ? new Date(email.createdAt).toLocaleString([], {
                                       month: "short",
@@ -1952,15 +1955,15 @@ showToast({
                               </span>
 
                               {isExpanded ? (
-                                <ChevronUp className="h-4 w-4 text-[#5F6368]" />
+                                <ChevronUp className="h-4 w-4 text-[#3C4043]" />
                               ) : (
-                                <ChevronDown className="h-4 w-4 text-[#5F6368]" />
+                                <ChevronDown className="h-4 w-4 text-[#3C4043]" />
                               )}
                             </div>
                           </div>
 
                           {isExpanded && (
-                            <span className="text-[12px] text-[#5F6368]">
+                            <span className="text-[12px] text-[#3C4043]">
                               to{" "}
                               {Array.isArray(email.to) ? email.to.join(", ") : email.to}
                             </span>
@@ -1986,7 +1989,7 @@ showToast({
                                     onClick={() => openAttachment(att)}
                                     className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E0E0E0] bg-white hover:shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-shadow"
                                   >
-                                    <Paperclip className="h-3.5 w-3.5 text-[#5F6368] shrink-0" />
+                                    <Paperclip className="h-3.5 w-3.5 text-[#3C4043] shrink-0" />
 
                                     <span className="text-[12px] font-medium text-[#202124] truncate max-w-[160px]">
                                       {att.filename}
@@ -2041,7 +2044,7 @@ showToast({
                           {/* REPLY COMPOSER */}
                           {replyingToMessageId === msgKey && (
                             <div className="mt-4 rounded-2xl border border-[#E0E0E0] shadow-[0_1px_3px_rgba(0,0,0,0.15)] overflow-hidden">
-                              <div className="px-4 pt-3 pb-1 text-[12px] text-[#5F6368]">
+                              <div className="px-4 pt-3 pb-1 text-[12px] text-[#3C4043]">
                                 {replyMode === "forward" ? "To" : getName(email.from)}
                               </div>
 
@@ -2074,7 +2077,7 @@ showToast({
 
                                   <button
                                     title="Attach files"
-                                    className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#5F6368]"
+                                    className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
                                   >
                                     <Paperclip className="h-4 w-4" />
                                   </button>
@@ -2085,7 +2088,7 @@ showToast({
                                     setReplyingToMessageId(null);
                                     setReplyText("");
                                   }}
-                                  className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#5F6368]"
+                                  className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -2104,7 +2107,7 @@ showToast({
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
             <Mail className="h-12 w-12 text-[#DADCE0]" strokeWidth={1.5} />
 
-            <p className="text-[14px] text-[#5F6368]">
+            <p className="text-[14px] text-[#3C4043]">
               Select a conversation to read
             </p>
           </div>

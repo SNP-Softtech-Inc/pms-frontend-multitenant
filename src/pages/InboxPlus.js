@@ -19,6 +19,7 @@ import {
   AtSign,
   Settings2,
   MailOpen,
+  Copy,
   MessageSquare,
   Receipt,
   ListTodo,
@@ -1721,6 +1722,49 @@ const renderEmailThread = (messages) => {
 >
   <ExternalLink size={15} />
   Go to...
+</button>
+
+{/* Same destination, but in its own window, so the record can be worked
+    on alongside the inbox - or alongside another copy of itself. Opening
+    it more than once simply gives another window. */}
+<button
+  onClick={() => {
+    const mongoId = extractMongoId(thread.latest?.subject);
+
+    if (!mongoId) {
+      showToast({
+        title: "Not Available",
+        description: "No account link found for this notification",
+        type: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const win = window.open(buildAccountPath(mongoId), "_blank");
+    if (win) {
+      // Severed directly rather than via the "noopener" feature, which
+      // makes window.open return null even on success and would cost us
+      // the blocked-popup check below.
+      try {
+        win.opener = null;
+      } catch {
+        // Cross-origin; nothing to do.
+      }
+    } else {
+      showToast({
+        title: "Pop-up blocked",
+        description:
+          "Allow pop-ups for this site to open it in a separate window.",
+        type: "warning",
+        duration: 4000,
+      });
+    }
+  }}
+  className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+>
+  <Copy size={15} />
+  Open in new window
 </button>
                               </div>
                             </div>

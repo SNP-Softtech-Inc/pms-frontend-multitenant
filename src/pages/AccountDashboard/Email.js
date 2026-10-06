@@ -25,20 +25,25 @@ const Email = () => {
 
   return (
     <div>
-      {/* ✅ Tabs */}
-      <div className="mt-3 overflow-x-auto">
-        <div className="flex gap-2 border-b pb-2">
+      {/* ✅ Tabs
+          The active tab used bg-card, which is all but the same colour as the
+          surface behind it, so neither Inbox nor Sent read as selected. It
+          carries a filled pill now. The separate divider below is gone too -
+          the strip already has a bottom border, so there were two rules a few
+          pixels apart. */}
+      <div className="overflow-x-auto border-b">
+        <div className="flex gap-1 pb-2">
           {tabs.map((tab, index) => (
             <NavLink
               key={tab.label}
               to={tab.path}
               end={index === 0} // optional: makes first tab exact match
               className={({ isActive }) =>
-                `no-underline px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                `no-underline px-4 py-1.5 rounded-lg text-sm transition-all duration-150 ${
                   isActive ||
                   (currentTab === -1 && index === 0) // fallback like MUI default
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-card/60"
+                    ? "bg-primary/10 font-semibold text-primary ring-1 ring-primary/20"
+                    : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`
               }
             >
@@ -48,11 +53,8 @@ const Email = () => {
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="my-4 border-t" />
-
       {/* Content */}
-      <div className="mt-2">
+      <div className="mt-3">
         <Outlet />
       </div>
     </div>
