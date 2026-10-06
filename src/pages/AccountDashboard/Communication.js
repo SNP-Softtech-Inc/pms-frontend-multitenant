@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useToastContext } from "../../context/ToastContext";
 import { chatAPI, accountsAPI } from "../../services/api";
@@ -160,14 +160,53 @@ const [isChatLoading, setIsChatLoading] = useState(false);
     setIsChatLoading(false);
   }
   };
-  const getsChatDetails = async () => {
+  // ChatDetails scrolls to the bottom whenever chat.description changes
+  // identity, so a poll that set state unconditionally would drag the admin
+  // back down every 15 seconds while they read history. Only swap the chat
+  // in when its contents actually differ.
+  const chatSignatureRef = useRef("");
+
+  const getsChatDetails = async ({ silent = false } = {}) => {
     try {
       const res = await chatAPI.getChatById(chatId, "admin");
-      setSelectedChat(res.data.chat);
+      const nextChat = res.data.chat;
+
+      if (silent) {
+        const signature = JSON.stringify(nextChat?.description || []);
+        if (signature === chatSignatureRef.current) return;
+        chatSignatureRef.current = signature;
+      } else {
+        chatSignatureRef.current = JSON.stringify(nextChat?.description || []);
+      }
+
+      setSelectedChat(nextChat);
     } catch (error) {
-      console.error("Error fetching chat details:", error);
+      if (!silent) console.error("Error fetching chat details:", error);
     }
   };
+
+  // An open chat was only ever fetched when it was opened, so a message the
+  // client edited (or sent) afterwards kept showing its original wording
+  // here until the admin clicked away and back. The client portal polls for
+  // the same reason - read receipts there, edits here.
+  useEffect(() => {
+    if (!chatId) return undefined;
+
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") {
+        getsChatDetails({ silent: true });
+      }
+    };
+
+    const poll = setInterval(refreshIfVisible, 15000);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+
+    return () => {
+      clearInterval(poll);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
 
   // ================= BULK ACTIONS =================
   const handleCheckboxChange = (id) => {

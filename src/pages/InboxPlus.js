@@ -18,6 +18,7 @@ import {
   ArrowUpDown,
   AtSign,
   Settings2,
+  MailOpen,
   MessageSquare,
   Receipt,
   ListTodo,
@@ -340,6 +341,17 @@ export default function InboxPlus() {
 
   // Update the filteredThreads useMemo to include filters
   // Badge on "All notifications" in the left nav.
+  // Number of category filters actually applied. "all" is the absence of a
+  // filter, so it is not counted - the button previously gave no indication
+  // at all of how many were active.
+  const activeFilterCount = useMemo(
+    () =>
+      Object.keys(activeFilters).filter(
+        (key) => key !== "all" && activeFilters[key],
+      ).length,
+    [activeFilters],
+  );
+
   const unreadCount = useMemo(
     () => notifications.filter((t) => !t.latest?.isRead).length,
     [notifications],
@@ -565,30 +577,53 @@ export default function InboxPlus() {
     }
 
     try {
-      const threadsToArchive = notifications.filter((t) =>
-        selectedRows.includes(t._id),
+      // Promise.all rejects on the first failure, so one bad id reported the
+      // whole batch as failed and moved nothing - even the threads that had
+      // archived fine. allSettled lets each one stand or fall on its own and
+      // the list reflect what actually happened.
+      const results = await Promise.allSettled(
+        selectedRows.map((id) => authAPI.archiveThread(id)),
       );
 
-      // Archive all selected threads
-      await Promise.all(selectedRows.map((id) => authAPI.archiveThread(id)));
+      const archivedIds = selectedRows.filter(
+        (_, i) => results[i].status === "fulfilled",
+      );
+      const failedIds = selectedRows.filter(
+        (_, i) => results[i].status === "rejected",
+      );
 
-      // Update state
+      const threadsToArchive = notifications.filter((t) =>
+        archivedIds.includes(t._id),
+      );
+
       setNotifications((prev) =>
-        prev.filter((t) => !selectedRows.includes(t._id)),
+        prev.filter((t) => !archivedIds.includes(t._id)),
       );
       setArchivedNotifications((prev) => [
         ...threadsToArchive.map((t) => ({ ...t, isArchived: true })),
         ...prev,
       ]);
 
-      setSelectedRows([]);
+      // Keep whatever failed selected so it can be retried.
+      setSelectedRows(failedIds);
 
-      showToast({
-        title: "Success",
-        description: `${selectedRows.length} thread(s) archived successfully`,
-        type: "success",
-        duration: 3000,
-      });
+      if (archivedIds.length > 0) {
+        showToast({
+          title: "Archived",
+          description: `${archivedIds.length} thread(s) archived`,
+          type: "success",
+          duration: 3000,
+        });
+      }
+
+      if (failedIds.length > 0) {
+        showToast({
+          title: "Some could not be archived",
+          description: `${failedIds.length} thread(s) failed and are still selected`,
+          type: archivedIds.length > 0 ? "warning" : "error",
+          duration: 4000,
+        });
+      }
     } catch (e) {
       console.error(e);
       showToast({
@@ -1195,50 +1230,52 @@ const renderEmailThread = (messages) => {
   });
 };
   return (
-    <div className="h-full flex bg-white">
-      {/* ================= LEFT NAV ================= */}
-      <aside className="hidden w-[248px] shrink-0 flex-col border-r bg-white px-4 py-5 md:flex">
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight text-gray-900">
+    <div className="h-full flex flex-col bg-white">
+      {/* ================= TOP NAV =================
+          Was a 248px left column. Moved to a single row across the top so the
+          notification list gets the full width - the column was costing more
+          horizontal space than its four links needed. */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-4 py-2.5">
+        <h1 className="text-xl font-semibold tracking-tight text-gray-900">
           Inbox+
         </h1>
 
-        <p className="mb-2 px-2 text-xs font-medium text-gray-500">Shared</p>
+        <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+          Shared
+        </span>
 
-        <nav className="flex flex-col gap-0.5">
+        <nav className="flex flex-wrap items-center gap-1">
           <button
             type="button"
             onClick={() => {
               setViewMode("inbox");
               setSelectedRows([]);
             }}
-            className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
               viewMode === "inbox"
                 ? "bg-blue-50 font-medium text-blue-700"
                 : "text-gray-700 hover:bg-slate-100"
             }`}
           >
             <Mail className="h-4 w-4 shrink-0" />
-            <span className="flex-1 whitespace-nowrap text-left">
-              All notifications
-            </span>
+            All notifications
             {unreadCount > 0 && (
-              <span className="shrink-0 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+              <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </button>
 
-          {/* Mentions sits under All notifications in the reference. There is
-              no mention data in this app yet, so it is shown disabled rather
+          {/* No mention data in the app yet, so this is shown disabled rather
               than as a link that goes nowhere. */}
           <button
             type="button"
             disabled
             title="Mentions are not available yet"
-            className="flex cursor-not-allowed items-center gap-2 rounded-md px-2 py-1.5 pl-6 text-sm text-gray-400"
+            className="flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-gray-400"
           >
             <AtSign className="h-4 w-4 shrink-0" />
-            <span className="flex-1 whitespace-nowrap text-left">Mentions</span>
+            Mentions
           </button>
 
           <button
@@ -1247,16 +1284,16 @@ const renderEmailThread = (messages) => {
               setViewMode("archived");
               setSelectedRows([]);
             }}
-            className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
               viewMode === "archived"
                 ? "bg-blue-50 font-medium text-blue-700"
                 : "text-gray-700 hover:bg-slate-100"
             }`}
           >
             <Archive className="h-4 w-4 shrink-0" />
-            <span className="flex-1 whitespace-nowrap text-left">Archived</span>
+            Archived
             {archivedNotifications.length > 0 && (
-              <span className="shrink-0 text-[11px] text-gray-400">
+              <span className="text-[11px] text-gray-400">
                 {archivedNotifications.length}
               </span>
             )}
@@ -1265,18 +1302,14 @@ const renderEmailThread = (messages) => {
           <button
             type="button"
             onClick={() => setFilterDrawerOpen(true)}
-            className="mt-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-blue-600 transition-colors hover:bg-blue-50"
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-blue-600 transition-colors hover:bg-blue-50"
           >
             <Settings2 className="h-4 w-4 shrink-0" />
-            <span className="flex-1 whitespace-nowrap text-left">
-              Manage notifications
-            </span>
+            Manage notifications
           </button>
         </nav>
-      </aside>
+      </div>
 
-      {/* ================= MAIN ================= */}
-      <div className="flex min-w-0 flex-1 flex-col">
         {/* Loading indicator */}
         {loading && (
           <div className="flex items-center justify-center p-2 bg-gray-50 border-b">
@@ -1363,6 +1396,11 @@ const renderEmailThread = (messages) => {
             >
               <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
               Filter
+              {activeFilterCount > 0 && (
+                <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                  {activeFilterCount}
+                </span>
+              )}
             </ShadButton>
           </div>
         </div>
@@ -1378,52 +1416,76 @@ const renderEmailThread = (messages) => {
           ) : (
             <ul className="divide-y divide-gray-100">
               {filteredThreads.map((thread) => (
-                <li key={thread._id} className="bg-white">
-                  <div className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 shrink-0"
-                      checked={selectedRows.includes(thread._id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedRows((p) => [...p, thread._id]);
-                        } else {
-                          setSelectedRows((p) =>
-                            p.filter((id) => id !== thread._id),
-                          );
-                        }
-                      }}
-                    />
-
+                <li
+                  key={thread._id}
+                  className="group bg-white transition-colors hover:bg-slate-50"
+                >
+                  {/* Clicking anywhere on the row expands it, so the separate
+                      chevron is gone. The interactive controls below stop
+                      propagation so they do not expand the row on their way. */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleRow(thread._id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleRow(thread._id);
+                      }
+                    }}
+                    className="flex cursor-pointer items-center gap-4 px-5 py-4"
+                  >
+                    {/* ICON - becomes the checkbox on hover, as in the
+                        reference. A selected row keeps the checkbox visible
+                        so the selection is still obvious once the pointer
+                        moves away. */}
                     {(() => {
                       const { Icon, className } = getNotificationIcon(
                         thread.latest?.subject,
                       );
+                      const isSelected = selectedRows.includes(thread._id);
                       return (
                         <span
-                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center ${className}`}
+                          className="relative flex h-8 w-8 shrink-0 items-center justify-center"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon
+                            className={`h-[22px] w-[22px] transition-opacity ${className} ${
+                              isSelected ? "opacity-0" : "group-hover:opacity-0"
+                            }`}
+                          />
+                          <input
+                            type="checkbox"
+                            aria-label="Select notification"
+                            className={`absolute h-4 w-4 cursor-pointer transition-opacity ${
+                              isSelected
+                                ? "opacity-100"
+                                : "opacity-0 group-hover:opacity-100"
+                            }`}
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedRows((prev) => [...prev, thread._id]);
+                              } else {
+                                setSelectedRows((prev) =>
+                                  prev.filter((id) => id !== thread._id),
+                                );
+                              }
+                            }}
+                          />
                         </span>
                       );
                     })()}
 
-                    {/* Subject and preview. Clicking opens the thread detail,
-                        as the row did before. min-w-0 is what lets the text
-                        truncate instead of pushing the date and the actions
-                        off the right-hand edge. */}
-                    <button
-                      type="button"
-                      onClick={() => toggleRow(thread._id)}
-                      className="min-w-0 flex-1 text-left"
-                    >
+                    {/* Separator between the symbol and the subject. */}
+                    <span className="h-9 w-px shrink-0 bg-gray-200" />
+
+                    {/* NOTIFICATION - min-w-0 is what lets this truncate
+                        instead of pushing the columns off the right edge. */}
+                    <div className="min-w-0 flex-1">
                       <div className="truncate text-sm text-gray-900">
                         {renderLinkedSubject(thread.latest?.subject, navigate)}
                       </div>
-                      {/* The slice is a hard cut, so it needs its own
-                          ellipsis - CSS truncate only adds one when the text
-                          overflows its box, which it no longer does once it
-                          has been cut to length. */}
                       <div className="truncate text-xs text-gray-500">
                         {(() => {
                           const preview = getPreview(thread.latest?.body || "");
@@ -1432,66 +1494,100 @@ const renderEmailThread = (messages) => {
                             : preview;
                         })()}
                       </div>
-                    </button>
+                    </div>
 
-                    {thread.latest?.attachments?.[0] && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openAttachment(thread.latest.attachments[0])
-                        }
-                        className="mt-0.5 flex max-w-[150px] shrink-0 items-center gap-1 text-xs text-blue-600 hover:underline"
-                        title={thread.latest.attachments[0].filename}
-                      >
-                        <Paperclip className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">
-                          {thread.latest.attachments[0].filename}
-                        </span>
-                      </button>
-                    )}
-
-                    <div className="mt-0.5 shrink-0 whitespace-nowrap text-xs text-gray-500">
+                    {/* DATE */}
+                    <div className="w-[170px] shrink-0 whitespace-nowrap text-right text-xs text-gray-500">
                       {formatDate(thread.latest?.messageDate)}
                     </div>
 
-                    <div className="mt-0.5 flex shrink-0 items-center gap-1.5">
-                      {!thread.latest?.isRead && (
+                    {/* ATTACHMENT */}
+                    <div className="w-[150px] shrink-0 text-right">
+                      {thread.latest?.attachments?.[0] ? (
                         <button
                           type="button"
-                          onClick={() => handleMarkAsRead(thread._id)}
-                          className="rounded p-1 text-gray-400 transition-colors hover:bg-slate-100 hover:text-gray-700"
-                          title="Mark as read"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAttachment(thread.latest.attachments[0]);
+                          }}
+                          className="inline-flex max-w-full items-center gap-1 text-xs text-blue-600 hover:underline"
+                          title={thread.latest.attachments[0].filename}
                         >
-                          <Mail className="h-4 w-4" />
+                          <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">
+                            {thread.latest.attachments[0].filename}
+                          </span>
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-300">&mdash;</span>
+                      )}
+                    </div>
+
+                    {/* MARK AS READ */}
+                    <div className="w-9 shrink-0 text-center">
+                      {thread.latest?.isRead ? (
+                        <span
+                          title="Already read"
+                          className="inline-flex h-8 w-8 items-center justify-center text-gray-300"
+                        >
+                          <MailOpen className="h-[18px] w-[18px]" />
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsRead(thread._id);
+                          }}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-slate-200 hover:text-gray-800"
+                          title="Mark as read"
+                          aria-label="Mark as read"
+                        >
+                          <MailOpen className="h-[18px] w-[18px]" />
                         </button>
                       )}
+                    </div>
 
+                    {/* ARCHIVE - a bare tick used to sit here, which said
+                        nothing about what it would do. */}
+                    <div className="w-9 shrink-0 text-center">
                       {viewMode === "inbox" ? (
                         <button
                           type="button"
-                          onClick={() => handleArchiveThread(thread._id)}
-                          className="rounded p-1 text-emerald-600 transition-colors hover:bg-emerald-50"
-                          title="Archive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchiveThread(thread._id);
+                          }}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-slate-200 hover:text-gray-800"
+                          title="Archive - move out of Inbox"
+                          aria-label="Archive notification"
                         >
-                          <Check className="h-4 w-4" />
+                          <Archive className="h-[18px] w-[18px]" />
                         </button>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => handleUnarchiveThread(thread._id)}
-                          className="rounded p-1 text-emerald-600 transition-colors hover:bg-emerald-50"
-                          title="Restore to inbox"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUnarchiveThread(thread._id);
+                          }}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-600 transition-colors hover:bg-emerald-50"
+                          title="Restore to Inbox"
+                          aria-label="Restore to Inbox"
                         >
-                          <Undo2 className="h-4 w-4" />
+                          <Undo2 className="h-[18px] w-[18px]" />
                         </button>
                       )}
+                    </div>
 
+                    {/* OPEN - kept, but placed after Archive so the requested
+                        column order holds and the shortcut is not lost. */}
+                    <div className="w-9 shrink-0 text-center">
                       <button
                         type="button"
-                        onClick={() => {
-                          const mongoId = extractMongoId(
-                            thread.latest?.subject,
-                          );
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mongoId = extractMongoId(thread.latest?.subject);
                           if (!mongoId) {
                             showToast({
                               title: "Not Available",
@@ -1504,30 +1600,15 @@ const renderEmailThread = (messages) => {
                           }
                           navigate(buildAccountPath(mongoId));
                         }}
-                        className="rounded p-1 text-blue-600 transition-colors hover:bg-blue-50"
-                        title="Open"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-600 transition-colors hover:bg-blue-50"
+                        title="Open the related account"
+                        aria-label="Open the related account"
                       >
-                        <ExternalLink className="h-4 w-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleRow(thread._id)}
-                        className="rounded p-1 text-gray-400 transition-colors hover:bg-slate-100 hover:text-gray-700"
-                        title={
-                          expandedRows.includes(thread._id)
-                            ? "Collapse"
-                            : "Expand"
-                        }
-                      >
-                        {expandedRows.includes(thread._id) ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        <ExternalLink className="h-[18px] w-[18px]" />
                       </button>
                     </div>
                   </div>
+
                   {expandedRows.includes(thread._id) && (
                         <div className="border-t bg-white">
                           {thread.messages?.map((msg, index) => (
@@ -1915,7 +1996,6 @@ const renderEmailThread = (messages) => {
     </div>
   </SheetContent>
 </Sheet>
-      </div>
     </div>
   );
 }
