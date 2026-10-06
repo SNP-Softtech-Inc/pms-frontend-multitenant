@@ -194,16 +194,28 @@ const ChatDetails = ({
     }
   };
 
+  // Matches the client portal. Was 24 hours here, which is long enough that
+  // an edit stops being a correction and becomes a rewrite of the record -
+  // and it meant the two sides of the same conversation had different rules.
+  const EDIT_WINDOW_MS = 5 * 60 * 1000;
+
   const canEditMessage = (messageTime) => {
     if (!messageTime) return false;
-    const messageTimestamp = new Date(messageTime).getTime();
-    const currentTime = new Date().getTime();
-   // const tenMinutes = 10 * 60 * 1000;
-   // return currentTime - messageTimestamp <= tenMinutes;
 
-   const oneDay = 24 * 60 * 60 * 1000;
-return currentTime - messageTimestamp <= oneDay;
+    const messageTimestamp = new Date(messageTime).getTime();
+    if (Number.isNaN(messageTimestamp)) return false;
+
+    return Date.now() - messageTimestamp <= EDIT_WINDOW_MS;
   };
+
+  // Repaint periodically so the window visibly lapses. canEditMessage is read
+  // during render, so without this the Edit action would sit there looking
+  // available until something else happened to repaint the thread.
+  const [, setEditClockTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setEditClockTick((n) => n + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
   const updateChatDescription = async (message = "", isHTML = false) => {
     const contentToSend = message.trim() || editorContent.trim();
     console.log("editor content", contentToSend);
@@ -457,7 +469,7 @@ return currentTime - messageTimestamp <= oneDay;
     console.log("Attempting to edit message:", message);
     if (!canEditMessage(message.time)) {
       showToast({
-        title: "Cannot edit message after 24 hours",
+        title: "Messages can only be edited within 5 minutes of sending",
         type: "error",
       });
       return;
