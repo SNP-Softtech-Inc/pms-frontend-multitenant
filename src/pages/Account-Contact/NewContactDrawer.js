@@ -791,55 +791,14 @@ const [loading, setLoading] = useState(false);
             </div>
           ))}
 
-          {showAddFieldForm ? (
-            <div className="space-y-2 rounded-xl border border-dashed border-border/60 p-3">
-              <Input
-                autoFocus
-                value={newFieldLabel}
-                placeholder="Field name, e.g. TP_Social"
-                onChange={(e) => setNewFieldLabel(e.target.value)}
-                className="h-10 rounded-lg border-border/60 bg-background/80"
-              />
-              <label className="flex items-center gap-2 text-xs text-foreground">
-                <input
-                  type="checkbox"
-                  checked={newFieldRequired}
-                  onChange={(e) => setNewFieldRequired(e.target.checked)}
-                />
-                Required
-              </label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleAddCustomField}
-                  disabled={savingCustomField || !newFieldLabel.trim()}
-                >
-                  Add
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setShowAddFieldForm(false);
-                    setNewFieldLabel("");
-                    setNewFieldRequired(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowAddFieldForm(true)}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              + Add custom field
-            </button>
-          )}
+          {/* The "+ Add custom field" control and its inline form were here.
+              Defining new fields is not part of the contact workflow, so it
+              is gone from both the create and the edit view - this drawer
+              serves both, which is why it previously appeared in each. The
+              values of fields already defined still render above and remain
+              editable; only the ability to define a NEW one from here is
+              removed. handleAddCustomField and its state are left in place so
+              this is a one-block restore if it is ever wanted back. */}
         </div>
 
         {/* Phone Numbers */}

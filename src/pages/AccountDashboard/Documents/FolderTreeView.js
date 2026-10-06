@@ -2178,6 +2178,7 @@ import {
   Globe,
 } from "lucide-react";
 import DocumentViewer from "./DocumentViewer";
+import { ActionInProgressDialog } from "./drawers/useActionGuard";
 // import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 // import { Badge } from "../../../components/ui/badge";
 export const FolderTreeView = ({ accountId, templateAction = null }) => {
@@ -2223,6 +2224,12 @@ const [submitters, setSubmitters] = useState([]);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   const [emails, setEmails] = useState([]);
   const [sending, setSending] = useState(false);
+  // Clicking outside these two dialogs dismissed them outright. On the
+  // approval dialog that meant losing a request mid-send; on the signature
+  // builder it meant discarding every field placed on the document, with
+  // nothing asked and nothing said.
+  const [confirmLeaveApproval, setConfirmLeaveApproval] = useState(false);
+  const [confirmLeaveSignature, setConfirmLeaveSignature] = useState(false);
   const [error, setError] = useState("");
 
   const SIGN_STATUSES = [
@@ -5376,7 +5383,30 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
         </Dialog>
 
         {/* APPROVAL */}
-        <Dialog open={openApprovalDialog} onOpenChange={handleCloseDialog}>
+        <ActionInProgressDialog
+          open={confirmLeaveApproval}
+          title="Approval request still sending"
+          description="This request has not finished sending. Continue, or terminate and close?"
+          onResume={() => setConfirmLeaveApproval(false)}
+          onTerminate={() => {
+            setConfirmLeaveApproval(false);
+            handleCloseDialog();
+          }}
+        />
+
+        <Dialog
+          open={openApprovalDialog}
+          onOpenChange={(next) => {
+            // handleCloseDialog takes no argument and always closes, so it
+            // must only be reached on a genuine dismissal.
+            if (next) return;
+            if (sending) {
+              setConfirmLeaveApproval(true);
+              return;
+            }
+            handleCloseDialog();
+          }}
+        >
           <DialogContent
             className="sm:max-w-lg"
             style={{ background: "hsl(var(--card))" }}
@@ -5431,7 +5461,32 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
         </Dialog>
 
         {/* SIGNATURE */}
-        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <ActionInProgressDialog
+          open={confirmLeaveSignature}
+          title="Close the signature request?"
+          description="Fields placed on this document have not been sent yet and will be lost."
+          continueLabel="Keep editing"
+          terminateLabel="Discard and close"
+          onResume={() => setConfirmLeaveSignature(false)}
+          onTerminate={() => {
+            setConfirmLeaveSignature(false);
+            setShowBuilderFor(null);
+            setOpenDialog(false);
+          }}
+        />
+
+        <Dialog
+          open={openDialog}
+          onOpenChange={(next) => {
+            // The builder holds unsent work from the moment it opens, so a
+            // stray click outside should never discard it silently.
+            if (!next) {
+              setConfirmLeaveSignature(true);
+              return;
+            }
+            setOpenDialog(next);
+          }}
+        >
           <DialogContent
             className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col"
             style={{ background: "hsl(var(--card))" }}

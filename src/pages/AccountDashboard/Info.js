@@ -698,8 +698,15 @@ const { data: allContacts = [], refetch: refetchContacts } = useQuery({
   enabled: addContactDrawerOpen,
 });
 const availableContacts = useMemo(() => {
+  // A contacts entry can carry a null `contact` - the referenced document
+  // may have been deleted, or the populate may not have resolved. Reading
+  // c.contact._id then throws, React unmounts, and the Info tab renders as a
+  // blank white screen with no way back. Filtered rather than optional-chained
+  // so the id list cannot end up holding undefined either.
   const currentContactIds =
-    account?.contacts?.map((c) => c.contact._id) || [];
+    account?.contacts
+      ?.filter((c) => c?.contact?._id)
+      .map((c) => c.contact._id) || [];
 
   return allContacts.filter(
     (contact) => !currentContactIds.includes(contact._id)
@@ -1099,8 +1106,10 @@ const handleContactUpdated = async () => {
           {/* Contact rows */}
 
           <div className="space-y-2">
-            {account.contacts?.length > 0 ? (
-              account.contacts.map((c) => (
+            {account.contacts?.filter((c) => c?.contact)?.length > 0 ? (
+              account.contacts
+                .filter((c) => c?.contact)
+                .map((c) => (
                 <div
                   key={c.contact._id}
                   className="
@@ -1160,7 +1169,7 @@ const handleContactUpdated = async () => {
                           handleOpenContactEditDrawer(c);
                         }}
                       >
-                        {c.contact.contactName}
+                        {c.contact?.contactName || "Unnamed contact"}
                       </span>
 
                       <span
@@ -1174,13 +1183,13 @@ const handleContactUpdated = async () => {
                             "calc(0.76rem * var(--font-scale, 100) / 100)",
                         }}
                       >
-                        {c.contact.email || "—"}
+                        {c.contact?.email || "—"}
                       </span>
                     </div>
 
                     {/* Actions */}
                     <div className="flex flex-col items-end gap-2">
-                      {c.canLogin && c.contact.isActivated === false && (
+                      {c.canLogin && c.contact?.isActivated === false && (
                         <Badge
                           className="
         bg-amber-100

@@ -369,6 +369,10 @@
 // ============================
 
 import React, { useState, useEffect } from "react";
+import {
+  useActionGuard,
+  ActionInProgressDialog,
+} from "./useActionGuard";
 import { 
   Folder, 
   FolderOpen, 
@@ -398,6 +402,11 @@ const MoveDrawer = ({
   const [sourcePaths, setSourcePaths] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // A bulk move can take a while; dismissing the drawer part way through left
+  // the user with no idea whether it had been cancelled or was still running.
+  const { confirmOpen, requestClose, resumeAction, terminateAction } =
+    useActionGuard(loading, onClose);
 const {showToast} = useToastContext();
   useEffect(() => {
     if (isOpen) {
@@ -506,9 +515,18 @@ const {showToast} = useToastContext();
 
   return (
     <>
+      <ActionInProgressDialog
+        open={confirmOpen}
+        title="Move still in progress"
+        description="These items have not finished moving. Continue, or terminate and close?"
+        onResume={resumeAction}
+        onTerminate={terminateAction}
+      />
+
       {/* Backdrop */}
       <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+        {/* Dismissing mid-move now asks first - see useActionGuard. */}
+        <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={requestClose} />
         
         {/* Drawer panel */}
         <div className="absolute right-0 top-0 h-full w-full sm:w-[480px] bg-background shadow-xl flex flex-col">
