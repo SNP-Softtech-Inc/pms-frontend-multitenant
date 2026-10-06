@@ -1039,7 +1039,11 @@ export default function InboxPlus() {
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12;
     hours = hours ? hours : 12; // the hour '0' should be '12'
-    const time = `${hours}:${minutes} ${ampm}`;
+    // Padded so a single-digit hour does not make the string a character
+    // shorter than the rest: "1:25 PM" against "12:50 PM" was enough to
+    // shift the whole date in the column. Every value is now the same
+    // length, matching the day, which was already padded.
+    const time = `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
 
     return `${month}-${day}-${year}, ${time}`;
   };
@@ -1497,7 +1501,11 @@ const renderEmailThread = (messages) => {
                     </div>
 
                     {/* DATE */}
-                    <div className="w-[170px] shrink-0 whitespace-nowrap text-right text-xs text-gray-500">
+                    {/* tabular-nums keeps every digit the same width, so the
+                        column cannot shift with the value; left-aligned in a
+                        fixed cell means the date always starts at the same
+                        x down the whole list. */}
+                    <div className="w-[170px] shrink-0 whitespace-nowrap text-left text-xs tabular-nums text-gray-500">
                       {formatDate(thread.latest?.messageDate)}
                     </div>
 
