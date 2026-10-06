@@ -3350,15 +3350,37 @@ const [auditLoading, setAuditLoading] = useState(false);
                         <span className="font-medium">
                           {signer.name || signer.email || "Unknown signer"}
                         </span>
-                        <span
-                          className={`rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${
-                            signer.signed
-                              ? "bg-emerald-500 text-white"
-                              : "bg-amber-500 text-white"
-                          }`}
-                        >
-                          {signer.signed ? "Signed" : "Pending Signature"}
-                        </span>
+                        {/* Three states, not two. With Preserve Order on,
+                            a later signer has not been invited yet - DocuSeal
+                            leaves sent_at null until the one before them
+                            finishes. Showing that as "Pending Signature" made
+                            a correct sequential send look like a failed
+                            email, which is what prompted PMS-13. */}
+                        {(() => {
+                          const invited = signer.sentAt != null;
+                          const label = signer.signed
+                            ? "Signed"
+                            : invited
+                              ? "Pending Signature"
+                              : "Awaiting turn";
+                          const tone = signer.signed
+                            ? "bg-emerald-500 text-white"
+                            : invited
+                              ? "bg-amber-500 text-white"
+                              : "bg-slate-400 text-white";
+                          return (
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${tone}`}
+                              title={
+                                signer.signed || invited
+                                  ? undefined
+                                  : "Not invited yet - the signing request goes out once the signer before them has signed"
+                              }
+                            >
+                              {label}
+                            </span>
+                          );
+                        })()}
                       </div>
                       {/* Only repeat the address when it is not already
                           standing in for the name above. */}
