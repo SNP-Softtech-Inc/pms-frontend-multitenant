@@ -39,6 +39,26 @@ const Signatures = () => {
   // "completed" and "pending" were matched here, so a partially signed
   // document ("in_progress") fell through to the neutral grey and read as
   // having no status at all.
+  // Who the request went to, and where each of them stands. The tab showed
+  // only a single overall status, so on a joint account there was no way to
+  // tell which recipient was still outstanding - the submitters were already
+  // being read here for the date columns, just never displayed.
+  const signerStatus = (submitter) => {
+    if (submitter?.completed_at || submitter?.status === "completed") {
+      return { label: "Signed", tone: "bg-emerald-50 text-emerald-700 border border-emerald-200" };
+    }
+    // DocuSeal leaves sent_at null until a signer's turn comes round under
+    // Preserve Order, which is not the same as having been asked and not
+    // replied.
+    if (!submitter?.sent_at) {
+      return { label: "Awaiting turn", tone: "bg-slate-100 text-slate-600 border border-slate-200" };
+    }
+    if (submitter?.declined_at || submitter?.status === "declined") {
+      return { label: "Declined", tone: "bg-red-50 text-red-700 border border-red-200" };
+    }
+    return { label: "Pending Signature", tone: "bg-amber-50 text-amber-700 border border-amber-200" };
+  };
+
   const statusStyles = (status) => {
     const s = (status || "").toLowerCase();
     if (s === "completed" || s === "signed" || s === "signaturecompleted")
@@ -162,6 +182,7 @@ const Signatures = () => {
               <TableRow className="border-b border-border bg-muted/40 hover:bg-muted/40">
                 {[
                   "Document Name",
+                  "Signers",
                   "Status",
                   "Date Uploaded",
                   "Date Requested",
@@ -231,6 +252,47 @@ const Signatures = () => {
                         </button>
                       ) : (
                         signautrelist.filename || "—"
+                      )}
+                    </TableCell>
+
+                    {/* Signers */}
+                    <TableCell className="px-4 py-3 align-top">
+                      {signautrelist.submitters?.length ? (
+                        <div className="flex flex-col gap-1.5">
+                          {signautrelist.submitters.map((submitter, i) => {
+                            const { label, tone } = signerStatus(submitter);
+                            return (
+                              <div
+                                key={submitter?.email || i}
+                                className="flex flex-col gap-0.5"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[13px] font-medium text-foreground">
+                                    {submitter?.name ||
+                                      submitter?.email ||
+                                      "Unnamed signer"}
+                                  </span>
+                                  <span
+                                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${tone}`}
+                                  >
+                                    {label}
+                                  </span>
+                                </div>
+                                {/* Only repeat the address when it is not
+                                    already standing in for the name above. */}
+                                {submitter?.email && submitter?.name && (
+                                  <span className="text-[11px] text-muted-foreground">
+                                    {submitter.email}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-[13px] text-muted-foreground">
+                          —
+                        </span>
                       )}
                     </TableCell>
 
@@ -314,9 +376,9 @@ const Signatures = () => {
                 ))
               ) : (
                 <TableRow>
-                  {/* colSpan must cover all five columns, otherwise the empty
+                  {/* colSpan must cover all six columns, otherwise the empty
                       state is centred over only part of the table. */}
-                  <TableCell colSpan={5} className="px-4 py-14 text-center">
+                  <TableCell colSpan={6} className="px-4 py-14 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div
                         className="
