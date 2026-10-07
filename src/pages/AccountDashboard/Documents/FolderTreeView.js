@@ -5427,18 +5427,28 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
 
         <Dialog
           open={openApprovalDialog}
+          // Same reasoning as the signature dialog below: refusing to close
+          // from here leaves the shell up with its content already torn down
+          // by Radix. handleCloseDialog takes no argument and always closes,
+          // so it is only reached on a genuine dismissal.
           onOpenChange={(next) => {
-            // handleCloseDialog takes no argument and always closes, so it
-            // must only be reached on a genuine dismissal.
             if (next) return;
-            if (sending) {
-              setConfirmLeaveApproval(true);
-              return;
-            }
             handleCloseDialog();
           }}
         >
           <DialogContent
+            // The preventable dismissals are guarded here instead, so a stray
+            // click or Escape mid-send asks rather than discarding.
+            onInteractOutside={(event) => {
+              if (!sending) return;
+              event.preventDefault();
+              setConfirmLeaveApproval(true);
+            }}
+            onEscapeKeyDown={(event) => {
+              if (!sending) return;
+              event.preventDefault();
+              setConfirmLeaveApproval(true);
+            }}
             className="sm:max-w-lg"
             style={{ background: "hsl(var(--card))" }}
           >
@@ -5508,17 +5518,29 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
 
         <Dialog
           open={openDialog}
+          // Holding `open` true while Radix was already closing is what broke
+          // the X: DialogContent renders its own Radix Close, which tears the
+          // content down before onOpenChange runs. Refusing to close then left
+          // the shell on screen with the builder iframe destroyed - blank, and
+          // dead to further clicks. onOpenChange now always reflects reality.
           onOpenChange={(next) => {
-            // The builder holds unsent work from the moment it opens, so a
-            // stray click outside should never discard it silently.
-            if (!next) {
-              setConfirmLeaveSignature(true);
-              return;
-            }
             setOpenDialog(next);
+            if (!next) setShowBuilderFor(null);
           }}
         >
           <DialogContent
+            // The accidental dismissals are caught here instead. Unlike the X,
+            // these are preventable before Radix changes state, so the builder
+            // is never torn down and nothing is lost. The X stays a deliberate
+            // close and acts immediately.
+            onInteractOutside={(event) => {
+              event.preventDefault();
+              setConfirmLeaveSignature(true);
+            }}
+            onEscapeKeyDown={(event) => {
+              event.preventDefault();
+              setConfirmLeaveSignature(true);
+            }}
             className="max-w-6xl w-[90vw] max-h-[90vh] p-0 flex flex-col"
             style={{ background: "hsl(var(--card))" }}
           >
