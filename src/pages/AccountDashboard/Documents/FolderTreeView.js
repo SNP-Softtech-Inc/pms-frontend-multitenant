@@ -2073,7 +2073,7 @@
 // };
 
 // FolderTreeView.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import customCss from "./docuseal-dark-theme.css";
 import { DocusealBuilder } from "@docuseal/react";
 import {
@@ -2203,6 +2203,37 @@ export const FolderTreeView = ({ accountId, templateAction = null }) => {
   const [token, setToken] = useState("");
 
 const [submitters, setSubmitters] = useState([]);
+
+// DocuSeal draws a placed field with the FIELD's own name, not the party's
+// role - which is why setting the role to "Name (email)" did not put the
+// signer on the box. Predefining a Signature and a Date field per signer,
+// named for them, is what makes the assignment visible once the field is
+// dropped on the page. Additive: without onlyDefinedFields the admin can
+// still drag any other field type.
+const builderFields = useMemo(
+  () =>
+    (submitters || []).flatMap((signer, index) => {
+      const who = signer?.name || `Signer ${index + 1}`;
+      const label = signer?.email ? `${who} (${signer.email})` : who;
+      const role = signer?.role || label;
+
+      return [
+        {
+          name: `Signature - ${label}`,
+          title: label,
+          type: "signature",
+          role,
+        },
+        {
+          name: `Date - ${label}`,
+          title: label,
+          type: "date",
+          role,
+        },
+      ];
+    }),
+  [submitters],
+);
   const [showBuilderFor, setShowBuilderFor] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
@@ -5505,6 +5536,13 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 <DocusealBuilder
                   token={token}
                   submitters={submitters}
+                  // One Signature and one Date per signer, each carrying that
+                  // signer's name and email, so the field says who it belongs
+                  // to once it is on the document.
+                  fields={builderFields}
+                  // Draws the field's name on the box itself rather than
+                  // leaving it blank until clicked.
+                  withFieldPlaceholder
                   // Signature ID prints a block beside the signature - "ID:
                   // <uuid>", "Digitally signed by <name>", the signer's email
                   // and the timestamp. It was switched on to give signatures
