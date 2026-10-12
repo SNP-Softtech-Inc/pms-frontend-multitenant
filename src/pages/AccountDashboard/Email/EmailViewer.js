@@ -1649,8 +1649,10 @@ showToast({
     });
 
   return (
+    // Framed like the Communication tab rather than sitting flush against the
+    // page: a rounded, bordered surface with the two panes inside it.
     <div
-      className="flex h-full overflow-hidden bg-white"
+      className="flex h-full overflow-hidden rounded-xl border border-border bg-white shadow-sm"
       style={{ fontFamily: FONT_STACK, color: GMAIL.text }}
     >
       {/* LEFT PANEL — Gmail thread list */}

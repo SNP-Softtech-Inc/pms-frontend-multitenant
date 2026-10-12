@@ -3508,6 +3508,26 @@ const [auditLoading, setAuditLoading] = useState(false);
     return { fileCount, folderCount };
   };
 
+  // How many items beneath this one are still unviewed. findNewSystemTag
+  // below stops at the first match, which is all a yes/no badge needed - but
+  // it cannot say whether a folder holds one new document or twenty.
+  const countNewItems = (item) => {
+    let count = 0;
+
+    const hasNewTag = item?.meta?.tags?.some(
+      (tag) => tag.isSystemTag && tag.tagName === "New",
+    );
+    if (hasNewTag) count += 1;
+
+    if (item?.children?.length) {
+      for (const child of item.children) {
+        count += countNewItems(child);
+      }
+    }
+
+    return count;
+  };
+
   const findNewSystemTag = (item) => {
     const newTag = item.meta?.tags?.find(
       (tag) => tag.isSystemTag && tag.tagName === "New",
@@ -3738,6 +3758,8 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
         : false;
 
       const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
+      // Only meaningful for folders; a file either carries the tag or not.
+      const newItemCount = isFolder ? countNewItems(item) : 0;
 
       const handleSafeFileClick = () => {
         // if (meta.readOnly) {
@@ -3894,7 +3916,9 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                                 backgroundColor: inheritedNewTag.tagColour,
                               }}
                             >
-                              {inheritedNewTag.tagName}
+                              {newItemCount > 1
+                                ? `${newItemCount} New`
+                                : inheritedNewTag.tagName}
                             </Badge>
                           )}
                         </div>
@@ -5512,6 +5536,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
           onTerminate={() => {
             setConfirmLeaveSignature(false);
             setShowBuilderFor(null);
+            setToken(null);
             setOpenDialog(false);
           }}
         />
@@ -5525,7 +5550,17 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
           // dead to further clicks. onOpenChange now always reflects reality.
           onOpenChange={(next) => {
             setOpenDialog(next);
-            if (!next) setShowBuilderFor(null);
+            if (!next) {
+              // Everything the embed depends on is cleared, not just the
+              // document. The token in particular survived a close, so the
+              // next open handed DocuSeal a changed token on the SAME mounted
+              // component - which it does not reinitialise from, leaving a
+              // blank builder inside an open dialog. A stale confirm flag
+              // would likewise re-show its overlay over a fresh dialog.
+              setShowBuilderFor(null);
+              setToken(null);
+              setConfirmLeaveSignature(false);
+            }
           }}
         >
           <DialogContent
@@ -5556,6 +5591,11 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             <div className="flex-1 overflow-auto p-6 pt-2">
               {token && showBuilderFor && (
                 <DocusealBuilder
+                  // A new signing session is a new embed. Without a key React
+                  // reuses the instance and only swaps the token prop, which
+                  // DocuSeal does not pick up - the second document opened
+                  // would render blank.
+                  key={token}
                   token={token}
                   submitters={submitters}
                   // One Signature and one Date per signer, each carrying that
@@ -5584,7 +5624,10 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   // builder stayed open on the "SENT" state. onSend is the
                   // documented callback for "document sent to recipients".
                   onSend={() => {
+                    // Same clean slate as a close - a sent session's token
+                    // must not be left behind for the next document.
                     setShowBuilderFor(null);
+                    setToken(null);
                     setOpenDialog(false);
                   }}
                 />

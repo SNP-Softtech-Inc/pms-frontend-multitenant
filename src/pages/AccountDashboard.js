@@ -197,7 +197,7 @@ import {
 } from "react-router-dom";
 import Cookies from "js-cookie";
 import { ArrowLeft, Building2, ExternalLink } from "lucide-react";
-import { accountsAPI } from "../services/api";
+import { accountsAPI, chatAPI } from "../services/api";
 
 const AccountsDash = () => {
   const { accountId } = useParams();
@@ -258,6 +258,43 @@ const AccountsDash = () => {
       document.documentElement.style.removeProperty("--acct-header-h");
     };
   }, []);
+
+  // Unread conversations for this account, shown against the Communication
+  // tab so new client messages are visible without opening it. Best-effort:
+  // a badge is not worth failing the page over, so an error just leaves it
+  // off. Refreshed on a poll and when the tab regains focus.
+  const [unreadChats, setUnreadChats] = useState(0);
+
+  useEffect(() => {
+    if (!accountId) return undefined;
+
+    let cancelled = false;
+
+    const loadUnread = async () => {
+      try {
+        const res = await chatAPI.getUnreadByAccount(accountId);
+        if (cancelled) return;
+        setUnreadChats(res?.data?.chats?.length || 0);
+      } catch {
+        if (!cancelled) setUnreadChats(0);
+      }
+    };
+
+    loadUnread();
+
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") loadUnread();
+    };
+
+    const poll = setInterval(refreshIfVisible, 30000);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(poll);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+    };
+  }, [accountId]);
 
   const navItems = [
     { label: "Overview", to: `/clients/accounts/accountsdash/overview/${accountId}` },
@@ -321,6 +358,11 @@ const AccountsDash = () => {
                 }
               >
                 {item.label}
+                {item.label === "Communication" && unreadChats > 0 && (
+                  <span className="ml-1.5 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                    {unreadChats > 99 ? "99+" : unreadChats}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
