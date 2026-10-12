@@ -1994,4 +1994,11 @@ export const accountNoteAPI = {
   // Get Notes By Account Id
   getNotesByAccountId: (accountId) =>
     accNoteApi.get(`/account/notes/account/${accountId}`),
+
+  // Append one entry to a reviewer note's log. The only write a reviewer note
+  // accepts - there is no counterpart that edits or removes an entry. The
+  // author and timestamp are stamped server-side from the session, so only
+  // the text is sent.
+  appendReviewerLog: (id, text) =>
+    accNoteApi.post(`/account/notes/${id}/logs`, { text }),
 };

@@ -616,6 +616,13 @@ const NoteApp = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
+  // Appending to a reviewer note's log. Only one composer is open at a time -
+  // the id of the note it belongs to - so the + on another note closes it
+  // rather than leaving half-typed entries scattered down the page.
+  const [logComposerNoteId, setLogComposerNoteId] = useState(null);
+  const [logText, setLogText] = useState("");
+  const [isAppendingLog, setIsAppendingLog] = useState(false);
+
   // ---------------- FETCH NOTES ----------------
   const handleFetchNotesByAccId = async (id) => {
     try {
@@ -633,6 +640,30 @@ const NoteApp = () => {
         pinned: note.pinned || false,
         // Older notes predate the field and are standard by default.
         noteType: note.noteType || "standard",
+        // A reviewer note is a heading with an append-only log under it.
+        // Reviewer notes written before the log existed have none, so their
+        // body stands in as the first entry - read at display time, nothing
+        // stored is rewritten.
+        logs:
+          note.logs?.length > 0
+            ? note.logs.map((log) => ({
+                id: log._id,
+                text: log.text,
+                createdBy: log.createdBy,
+                createdByEmail: log.createdByEmail || "",
+                time: new Date(log.createdAt).toLocaleString(),
+              }))
+            : note.noteType === "reviewer"
+              ? [
+                  {
+                    id: `${note._id}-legacy`,
+                    text: note.noteData,
+                    createdBy: note.createdBy,
+                    createdByEmail: "",
+                    time: new Date(note.createdAt).toLocaleString(),
+                  },
+                ]
+              : [],
       }));
 
       formatted.sort((a, b) => {
@@ -820,6 +851,60 @@ const NoteApp = () => {
     }
   };
 
+  // ---------------- APPEND REVIEWER LOG ----------------
+  const handleOpenLogComposer = (noteId) => {
+    if (isAppendingLog) return;
+
+    setLogComposerNoteId(noteId);
+    setLogText("");
+  };
+
+  const handleCloseLogComposer = () => {
+    if (isAppendingLog) return;
+
+    setLogComposerNoteId(null);
+    setLogText("");
+  };
+
+  // Adding an entry is irreversible, so it is confirmed the same way creating
+  // a reviewer note is.
+  const handleAppendLog = (noteId) => {
+    if (!logText.trim() || isAppendingLog) return;
+
+    confirm({
+      title: "Add log entry?",
+      description:
+        "This entry becomes part of a permanent record. Once added it cannot be edited or removed - you can only add further entries.",
+      onConfirm: async () => {
+        try {
+          setIsAppendingLog(true);
+
+          await accountNoteAPI.appendReviewerLog(noteId, logText.trim());
+
+          showToast({
+            title: "Log added",
+            type: "success",
+          });
+
+          setLogComposerNoteId(null);
+          setLogText("");
+
+          await handleFetchNotesByAccId(accountId);
+        } catch (err) {
+          console.error("Append log error:", err);
+
+          showToast({
+            title:
+              err?.response?.data?.error || "Failed to add log",
+            type: "error",
+          });
+        } finally {
+          setIsAppendingLog(false);
+        }
+      },
+    });
+  };
+
   // ---------------- PIN ----------------
   const handleTogglePin = async (note) => {
     try {
@@ -942,10 +1027,11 @@ const NoteApp = () => {
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
           <span>
-            Reviewer notes are a permanent record. Once saved they cannot be
-            edited or deleted - you can only add further notes. They can be
-            archived to move them out of the active list; archiving does not
-            change or remove the entry.
+            A reviewer note is a heading - "June Tax return" - with a log
+            underneath it. Use + to add an entry; each one is stamped with who
+            wrote it and when, and becomes a permanent record that cannot be
+            edited or removed. Archiving files a note out of the active list
+            without changing anything it holds.
           </span>
         </div>
       )}
@@ -1044,7 +1130,7 @@ const NoteApp = () => {
                   {drawerMode === "edit"
                     ? "Update the title and description for this note."
                     : isReviewerTab
-                      ? "This will be saved as a permanent record - it cannot be edited or deleted afterwards."
+                      ? "The title names the work; the entry below opens its log. Both are a permanent record - further entries can be added with +, but nothing can be edited or removed."
                       : "Add a title and description for this note."}
                 </p>
               </div>
@@ -1081,7 +1167,11 @@ const NoteApp = () => {
                     <Label>Title</Label>
 
                     <Input
-                      placeholder="Enter note title..."
+                      placeholder={
+                        isReviewerTab
+                          ? 'Name the work, e.g. "June Tax return"...'
+                          : "Enter note title..."
+                      }
                       value={noteTitle}
                       onChange={(e) => setNoteTitle(e.target.value)}
                       disabled={isSaving}
@@ -1107,7 +1197,11 @@ const NoteApp = () => {
                   "
                 >
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label>
+                      {isReviewerTab && drawerMode === "create"
+                        ? "First log entry"
+                        : "Description"}
+                    </Label>
 
                     <TextEditor
                       value={noteText}
@@ -1205,16 +1299,121 @@ const NoteApp = () => {
 
               {/* BODY */}
               <div className="mt-4">
-                <h3 className="text-lg font-semibold">
-                  {note.title}
-                </h3>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-lg font-semibold">
+                    {note.title}
+                  </h3>
 
-                <div
-                  className="prose prose-sm max-w-none mt-3 text-foreground/80"
-                  dangerouslySetInnerHTML={{
-                    __html: note.text || "No description",
-                  }}
-                />
+                  {/* Appending is the only change a reviewer note accepts, so
+                      + sits on the heading rather than among the actions. */}
+                  {note.noteType === "reviewer" && view === "active" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      title="Add a log entry"
+                      disabled={isAppendingLog}
+                      onClick={() =>
+                        logComposerNoteId === note.id
+                          ? handleCloseLogComposer()
+                          : handleOpenLogComposer(note.id)
+                      }
+                      className="shrink-0 rounded-xl"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {note.noteType === "reviewer" ? (
+                  <>
+                    {/* The log. Oldest first, so it reads as a sequence of
+                        events rather than newest-first like the note list. */}
+                    <ol className="mt-4 space-y-3 border-l border-border pl-4">
+                      {note.logs.map((log, index) => (
+                        <li key={log.id} className="relative">
+                          <span className="absolute -left-[21px] top-2 h-2 w-2 rounded-full bg-border" />
+
+                          <div className="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
+                            <span className="font-medium text-foreground/70">
+                              Log {index + 1}
+                            </span>
+
+                            <span>
+                              {log.createdByEmail
+                                ? `${log.createdBy} (${log.createdByEmail})`
+                                : log.createdBy}
+                            </span>
+
+                            <span className="text-muted-foreground/70">
+                              {log.time}
+                            </span>
+                          </div>
+
+                          <div
+                            className="prose prose-sm max-w-none mt-1 text-foreground/80"
+                            dangerouslySetInnerHTML={{
+                              __html: log.text || "No description",
+                            }}
+                          />
+                        </li>
+                      ))}
+                    </ol>
+
+                    {logComposerNoteId === note.id && (
+                      <div className="mt-4 rounded-xl border border-border bg-muted/20 p-4">
+                        <Label className="text-xs">New log entry</Label>
+
+                        <div className="mt-2">
+                          <TextEditor
+                            value={logText}
+                            onChange={setLogText}
+                            disabled={isAppendingLog}
+                          />
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Added as you, with the current time. Permanent once
+                          saved.
+                        </p>
+
+                        <div className="mt-3 flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl"
+                            onClick={handleCloseLogComposer}
+                            disabled={isAppendingLog}
+                          >
+                            Cancel
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            className="rounded-xl min-w-[110px]"
+                            onClick={() => handleAppendLog(note.id)}
+                            disabled={!logText.trim() || isAppendingLog}
+                          >
+                            {isAppendingLog ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Adding...
+                              </>
+                            ) : (
+                              "Add log"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div
+                    className="prose prose-sm max-w-none mt-3 text-foreground/80"
+                    dangerouslySetInnerHTML={{
+                      __html: note.text || "No description",
+                    }}
+                  />
+                )}
               </div>
 
               {/* FOOTER */}
