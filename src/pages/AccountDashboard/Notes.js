@@ -1262,6 +1262,28 @@ const NoteApp = () => {
           NOTES LIST
       ========================================================= */}
       <div className="space-y-5">
+        {/* An empty tab with no explanation reads as a broken page - say what
+            belongs here and how to start one. */}
+        {!isFetching && filtered.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-10 text-center">
+            <p className="text-sm font-medium text-foreground/80">
+              {view === "archived"
+                ? `No archived ${isReviewerTab ? "reviewer notes" : "notes"} yet.`
+                : isReviewerTab
+                  ? "No reviewer notes yet."
+                  : "No notes yet."}
+            </p>
+
+            {view === "active" && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isReviewerTab
+                  ? 'Use New Note to name a piece of work - "June Tax return" - then add entries to its log with +.'
+                  : "Use New Note to add one."}
+              </p>
+            )}
+          </div>
+        )}
+
         {filtered.map((note) => (
           <Card
             key={note.id}
