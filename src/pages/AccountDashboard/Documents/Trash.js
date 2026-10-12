@@ -700,7 +700,10 @@ console.log("Account ID in Trash component:", accountId);
         // const res = await accountDocsAPI.listTrashedItems();
            const res = await accountDocsAPI.listTrashedItems(accountId);
         if (res.status === 200) {
-          setFolderTree(res.data.contents?.Admin || []);
+          setFolderTree([
+            ...(res.data.contents?.Admin || []),
+            ...(res.data.contents?.Unknown || []),
+          ]);
         } else {
           setError("Failed to fetch folder tree");
         }

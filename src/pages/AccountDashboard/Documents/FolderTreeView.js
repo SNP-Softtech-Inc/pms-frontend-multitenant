@@ -2515,7 +2515,8 @@ const builderFields = useMemo(
         } catch (err) {
           console.error("Error trashing item:", err);
           showToast({
-            title: "Error moving item to trash",
+            title:
+              err?.response?.data?.message || "Error moving item to trash",
             type: "error",
           });
         }
