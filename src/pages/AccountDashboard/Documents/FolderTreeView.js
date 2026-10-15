@@ -88,12 +88,6 @@
 //   const [selectedItem, setSelectedItem] = useState("");
 //   const [token, setToken] = useState("");
 //   const [showBuilderFor, setShowBuilderFor] = useState(null);
-
-  // The builder saves its work as a DocuSeal template and hands the template
-  // back on load and on every save. We need its id to create the submission
-  // ourselves - see handleSendForSignature.
-  const [builderTemplateId, setBuilderTemplateId] = useState(null);
-  const [isSendingSignature, setIsSendingSignature] = useState(false);
 //   const [openDialog, setOpenDialog] = useState(false);
 //   const [selectedItems, setSelectedItems] = useState(new Set());
 //   const [selectAll, setSelectAll] = useState(false);
@@ -2242,6 +2236,12 @@ const builderFields = useMemo(
   [submitters],
 );
   const [showBuilderFor, setShowBuilderFor] = useState(null);
+
+  // The builder saves its work as a DocuSeal template and hands the template
+  // back on load and on every save. We need its id to create the submission
+  // ourselves - see handleSendForSignature.
+  const [builderTemplateId, setBuilderTemplateId] = useState(null);
+  const [isSendingSignature, setIsSendingSignature] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
