@@ -415,9 +415,19 @@ export default function InboxPlus() {
     [activeFilters],
   );
 
+  // Unread drives the badge; the total is shown next to it rather than
+  // instead of it, so "3 new of 452" is readable at a glance. Both are
+  // derived from the same list, so they cannot drift apart.
   const unreadCount = useMemo(
     () => notifications.filter((t) => !t.latest?.isRead).length,
     [notifications],
+  );
+
+  const totalCount = notifications.length;
+
+  const archivedUnreadCount = useMemo(
+    () => archivedNotifications.filter((t) => !t.latest?.isRead).length,
+    [archivedNotifications],
   );
 
   const filteredThreads = useMemo(() => {
@@ -497,6 +507,45 @@ export default function InboxPlus() {
     }
   };
 
+  const markThreadRead = async (threadId, { silent = false } = {}) => {
+    // Flip it locally first so the New tag and the badge react immediately -
+    // the request only persists what the user can already see.
+    setNotifications((prev) =>
+      prev.map((t) =>
+        t._id === threadId
+          ? { ...t, latest: { ...t.latest, isRead: true } }
+          : t,
+      ),
+    );
+
+    setArchivedNotifications((prev) =>
+      prev.map((t) =>
+        t._id === threadId
+          ? { ...t, latest: { ...t.latest, isRead: true } }
+          : t,
+      ),
+    );
+
+    try {
+      await authAPI.markThreadAsRead(threadId);
+    } catch (e) {
+      console.error("Mark as read failed:", e);
+
+      // Put it back - showing it as read when the server disagrees is how
+      // the count and the tag stopped matching reality in the first place.
+      await fetchData(true);
+
+      if (!silent) {
+        showToast({
+          title: "Error",
+          description: "Failed to mark thread as read",
+          type: "error",
+          duration: 4000,
+        });
+      }
+    }
+  };
+
   const handleMarkAsRead = async (threadId) => {
     const toastId = showToast({
       title: "Processing...",
@@ -506,30 +555,7 @@ export default function InboxPlus() {
     });
 
     try {
-      await authAPI.markThreadAsRead(threadId);
-
-      // Update in both states if needed
-      setNotifications((prev) =>
-        prev.map((t) =>
-          t._id === threadId
-            ? {
-                ...t,
-                latest: { ...t.latest, isRead: true },
-              }
-            : t,
-        ),
-      );
-
-      setArchivedNotifications((prev) =>
-        prev.map((t) =>
-          t._id === threadId
-            ? {
-                ...t,
-                latest: { ...t.latest, isRead: true },
-              }
-            : t,
-        ),
-      );
+      await markThreadRead(threadId, { silent: true });
 
       showToast({
         id: toastId,
@@ -1212,11 +1238,26 @@ export default function InboxPlus() {
   const [expandedRows, setExpandedRows] = useState([]);
 
   const toggleRow = (threadId) => {
+    const wasExpanded = expandedRows.includes(threadId);
+
     setExpandedRows((prev) =>
-      prev.includes(threadId)
+      wasExpanded
         ? prev.filter((id) => id !== threadId)
         : [...prev, threadId],
     );
+
+    // Opening it counts as reading it. Collapsing does not re-mark anything,
+    // and a thread already read is left alone so the server is not called on
+    // every expand.
+    if (!wasExpanded) {
+      const thread =
+        notifications.find((t) => t._id === threadId) ||
+        archivedNotifications.find((t) => t._id === threadId);
+
+      if (thread && !thread.latest?.isRead) {
+        markThreadRead(threadId, { silent: true });
+      }
+    }
   };
   // Add this helper function at the top of your component
 const parseEmailBody = (body) => {
@@ -1395,8 +1436,19 @@ const renderEmailThread = (messages) => {
             <Mail className="h-4 w-4 shrink-0" />
             All notifications
             {unreadCount > 0 && (
-              <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+              <span
+                title={`${unreadCount} new`}
+                className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
+              >
                 {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+            {totalCount > 0 && (
+              <span
+                title={`${totalCount} notifications in total`}
+                className="text-[11px] font-normal text-gray-400"
+              >
+                {totalCount}
               </span>
             )}
           </button>
@@ -1427,8 +1479,22 @@ const renderEmailThread = (messages) => {
           >
             <Archive className="h-4 w-4 shrink-0" />
             Archived
+            {/* Same split as All notifications: anything unread in here still
+                carries a New tag, so the tab says so rather than only giving
+                the total. */}
+            {archivedUnreadCount > 0 && (
+              <span
+                title={`${archivedUnreadCount} new`}
+                className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
+              >
+                {archivedUnreadCount > 99 ? "99+" : archivedUnreadCount}
+              </span>
+            )}
             {archivedNotifications.length > 0 && (
-              <span className="text-[11px] text-gray-400">
+              <span
+                title={`${archivedNotifications.length} archived in total`}
+                className="text-[11px] text-gray-400"
+              >
                 {archivedNotifications.length}
               </span>
             )}
@@ -1618,8 +1684,28 @@ const renderEmailThread = (messages) => {
                     {/* NOTIFICATION - min-w-0 is what lets this truncate
                         instead of pushing the columns off the right edge. */}
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm text-gray-900">
-                        {renderLinkedSubject(thread.latest?.subject, navigate)}
+                      {/* The subject and the New tag share a row, with the
+                          subject truncating so a long one cannot push the tag
+                          off the edge. An unread thread also reads bolder,
+                          which is the usual mail convention and does not rely
+                          on spotting a small green tag. */}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`min-w-0 truncate text-sm text-gray-900 ${
+                            thread.latest?.isRead ? "" : "font-semibold"
+                          }`}
+                        >
+                          {renderLinkedSubject(thread.latest?.subject, navigate)}
+                        </div>
+
+                        {!thread.latest?.isRead && (
+                          <span
+                            title="Not opened yet"
+                            className="shrink-0 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white"
+                          >
+                            New
+                          </span>
+                        )}
                       </div>
                       <div className="truncate text-xs text-gray-500">
                         {(() => {
