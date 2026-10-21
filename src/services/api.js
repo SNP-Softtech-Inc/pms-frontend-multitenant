@@ -472,11 +472,13 @@ getMailAccounts: (token) =>
 getMailProviders: (token) =>
   authUserApi.get(`/api/emailsync/mailaccounts/providers?token=${token}`),
 
-// Guess the IMAP host from the address, so people are not asked for a server
-// name they do not know.
-suggestImapHost: (email, token) =>
+// Find the mailbox's server from its address: known providers, the SRV
+// record, the MX record, then naming conventions - each actually connected to
+// before being offered. Replaces a one-line guess of imap.<domain>, which was
+// wrong for every Plesk and cPanel domain.
+discoverImapHost: (email, token) =>
   authUserApi.get(
-    `/api/emailsync/imap/suggest?email=${encodeURIComponent(email)}&token=${token}`,
+    `/api/emailsync/imap/discover?email=${encodeURIComponent(email)}&token=${token}`,
   ),
 
 // Verified server-side by actually opening INBOX before anything is stored.

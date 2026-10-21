@@ -1081,6 +1081,12 @@ const MyAccount = () => {
   });
   const [connectingImap, setConnectingImap] = useState(false);
 
+  // Server details are discovered, not typed. These hold the outcome: what
+  // was found, or why nothing was, plus whether the manual fields have been
+  // opened as a fallback.
+  const [imapDiscovery, setImapDiscovery] = useState(null);
+  const [showImapAdvanced, setShowImapAdvanced] = useState(false);
+
   const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
   const USER_URL = process.env.REACT_APP_AUTH_USER;
@@ -1790,39 +1796,65 @@ const formatTimePeriod = (seconds) => {
     window.location.href = `${USER_URL}/api/emailsync/microsoft?token=${token}`;
   };
 
-  // Fill in the server details from the address where we know them, so the
-  // common providers need nothing but an email and a password.
-  const handleImapEmailChange = async (email) => {
+  const handleImapEmailChange = (email) => {
     setImapForm((prev) => ({ ...prev, email, username: prev.username || email }));
 
-    if (!email.includes("@")) return;
+    // A changed address invalidates whatever was discovered for the old one.
+    if (imapDiscovery) setImapDiscovery(null);
+  };
+
+  // Find the server once the address is complete.
+  //
+  // On blur rather than on change: discovery opens real TLS connections to
+  // several candidate hosts, which is far too slow to run per keystroke. The
+  // first version guessed a hostname from a string and was wrong for every
+  // Plesk and cPanel domain, which is how someone ended up reading
+  // "getaddrinfo ENOTFOUND".
+  const handleImapEmailBlur = async () => {
+    const { email } = imapForm;
+
+    if (!email.includes("@") || imapDiscovery) return;
 
     try {
-      const token = getAccessToken();
-      const res = await authAPI.suggestImapHost(email, token);
-      const suggestion = res?.data?.suggestion;
+      setImapDiscovery({ searching: true });
 
-      if (suggestion) {
+      const token = getAccessToken();
+      const res = await authAPI.discoverImapHost(email, token);
+      const data = res?.data || {};
+
+      setImapDiscovery(data);
+
+      if (data.found) {
         setImapForm((prev) => ({
           ...prev,
-          host: suggestion.host,
-          port: suggestion.port || 993,
+          host: data.settings.host,
+          port: data.settings.port || 993,
         }));
+      } else {
+        // Nothing was reachable, so the manual fields open with the
+        // explanation above them rather than leaving a dead end.
+        setShowImapAdvanced(true);
       }
-    } catch {
-      // A failed suggestion is not an error - the host can be typed in.
+    } catch (err) {
+      setImapDiscovery({
+        found: false,
+        message: "Could not look up this mail server.",
+      });
+      setShowImapAdvanced(true);
     }
   };
 
   const handleConnectImap = async () => {
     if (connectingImap) return;
 
-    const { email, host, password } = imapForm;
+    const { email, password } = imapForm;
 
-    if (!email || !host || !password) {
+    // The server is no longer required from the user - the backend discovers
+    // it when none is supplied.
+    if (!email || !password) {
       showToast({
         title: "Missing details",
-        description: "Email, server and password are all required.",
+        description: "Enter your email address and password.",
         type: "error",
       });
       return;
@@ -1846,19 +1878,31 @@ const formatTimePeriod = (seconds) => {
 
       setShowImapForm(false);
       setImapForm({ email: "", host: "", port: 993, username: "", password: "" });
+      setImapDiscovery(null);
+      setShowImapAdvanced(false);
 
       await loadMailboxes();
     } catch (err) {
       console.error("IMAP connect failed:", err);
 
+      const data = err?.response?.data || {};
+
       showToast({
         title: "Could not connect",
-        // The server passes through what the mail server said - a bad
-        // password reads differently from a wrong host or a blocked port.
+        // The server explains in plain terms - a certificate issued for
+        // another name, a closed port, an address with no mail server - and
+        // the hint says what to do about it.
         description:
-          err?.response?.data?.message || "Check the server details and try again.",
+          [data.message, data.hint].filter(Boolean).join(" ") ||
+          "Check the details and try again.",
         type: "error",
       });
+
+      // Let the details be corrected by hand rather than leaving a dead end.
+      if (data.message) {
+        setImapDiscovery(data);
+        setShowImapAdvanced(true);
+      }
     } finally {
       setConnectingImap(false);
     }
@@ -2348,36 +2392,21 @@ console.log("getasscestoken",token)
 
               {showImapForm && mailProviders.imap?.available && (
                 <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                  {/* Email and password only. The server name, port and TLS
+                      settings are worked out from the address - asking for
+                      them was the whole reason connecting a mailbox needed a
+                      support conversation. */}
                   <Input
                     placeholder="you@example.com"
                     value={imapForm.email}
                     onChange={(e) => handleImapEmailChange(e.target.value)}
+                    onBlur={handleImapEmailBlur}
                     disabled={connectingImap}
                   />
 
-                  <div className="flex gap-3">
-                    <Input
-                      placeholder="imap.example.com"
-                      value={imapForm.host}
-                      onChange={(e) =>
-                        setImapForm((p) => ({ ...p, host: e.target.value }))
-                      }
-                      disabled={connectingImap}
-                    />
-                    <Input
-                      className="w-24"
-                      placeholder="993"
-                      value={imapForm.port}
-                      onChange={(e) =>
-                        setImapForm((p) => ({ ...p, port: Number(e.target.value) || 993 }))
-                      }
-                      disabled={connectingImap}
-                    />
-                  </div>
-
                   <Input
                     type="password"
-                    placeholder="Password or app password"
+                    placeholder="Password"
                     value={imapForm.password}
                     onChange={(e) =>
                       setImapForm((p) => ({ ...p, password: e.target.value }))
@@ -2385,11 +2414,71 @@ console.log("getasscestoken",token)
                     disabled={connectingImap}
                   />
 
+                  {/* What discovery found, or why it found nothing. */}
+                  {imapDiscovery?.searching && (
+                    <p className="text-xs text-muted-foreground">
+                      Looking up your mail server...
+                    </p>
+                  )}
+
+                  {imapDiscovery?.found && (
+                    <p className="text-xs text-emerald-600">
+                      Found your mail server ({imapDiscovery.settings?.host}).
+                    </p>
+                  )}
+
+                  {imapDiscovery && !imapDiscovery.found && !imapDiscovery.searching && (
+                    <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
+                      <p className="text-xs text-amber-900">
+                        {imapDiscovery.message}
+                      </p>
+                      {imapDiscovery.hint && (
+                        <p className="mt-1 text-xs text-amber-800">
+                          {imapDiscovery.hint}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <p className="text-xs text-muted-foreground">
-                    Most providers need an app password rather than your normal
+                    Some providers need an app password rather than your normal
                     one. It is encrypted before being stored and is never shown
                     again.
                   </p>
+
+                  {/* The manual fields stay available, because discovery
+                      cannot succeed against a server that is firewalled or
+                      presents a certificate for another name. They open on
+                      their own when that happens. */}
+                  <button
+                    type="button"
+                    onClick={() => setShowImapAdvanced((v) => !v)}
+                    className="text-xs text-muted-foreground underline"
+                  >
+                    {showImapAdvanced ? "Hide server settings" : "Enter server settings manually"}
+                  </button>
+
+                  {showImapAdvanced && (
+                    <div className="flex gap-3">
+                      <Input
+                        placeholder="mail.example.com"
+                        value={imapForm.host}
+                        onChange={(e) =>
+                          setImapForm((p) => ({ ...p, host: e.target.value }))
+                        }
+                        disabled={connectingImap}
+                      />
+                      <Input
+                        className="w-24"
+                        placeholder="993"
+                        value={imapForm.port}
+                        onChange={(e) =>
+                          setImapForm((p) => ({ ...p, port: Number(e.target.value) || 993 }))
+                        }
+                        disabled={connectingImap}
+                      />
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-2">
                     <Button
