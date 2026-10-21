@@ -18,31 +18,51 @@ const NewTaggedDocuments = ({ accountId, setDocumentsCount, }) => {
 
   const [documents, setDocuments] = useState([]);
 
-  const fetchDocuments = async () => {
-    try {
-      const res = await accountDocsAPI.getNewTaggedDocs({
-        params: {
-          accountId,
-        },
-      });
+//   const fetchDocuments = async () => {
+//     try {
+//       const res = await accountDocsAPI.getNewTaggedDocs({
+//         params: {
+//           accountId,
+//         },
+//       });
 
-      console.log("API Response:", res.data);
+//       console.log("API Response:", res.data);
 
-      setDocuments(res.data.documents || []);
+//       setDocuments(res.data.documents || []);
 
-       const docs = res.data.documents || [];
+//        const docs = res.data.documents || [];
 
+//     setDocuments(docs);
+// console.log("docs lenght", docs.length)
+//     // send count to parent
+//     setDocumentsCount?.(docs.length);
+
+//     } catch (error) {
+//       console.error("Error fetching documents:", error);
+//    setDocumentsCount?.(0);
+//     }
+//   };
+const fetchDocuments = async () => {
+  try {
+    const res = await accountDocsAPI.getNewTaggedDocs({
+      params: { accountId },
+    });
+
+    const docs = res.data.documents || [];
     setDocuments(docs);
-console.log("docs lenght", docs.length)
-    // send count to parent
     setDocumentsCount?.(docs.length);
 
-    } catch (error) {
-      console.error("Error fetching documents:", error);
-   setDocumentsCount?.(0);
-    }
-  };
-
+    // Keep the AccountsDash badge in sync
+    window.dispatchEvent(
+      new CustomEvent("new-docs-changed", {
+        detail: { accountId, count: docs.length },
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+    setDocumentsCount?.(0);
+  }
+};
   useEffect(() => {
     if (accountId) {
       fetchDocuments();

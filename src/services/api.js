@@ -1632,7 +1632,9 @@ markThreadAsUnread: (chatId) =>
   sendSecureMessage: (data) =>
     chatApi.post("/chatsend/securemessagechatsend", data),
 
-
+// in your chatAPI file
+getAdminUnreadCount: (params) =>
+  chatApi.get("/chats/admin/unread-count", { params }),
 
 };
 

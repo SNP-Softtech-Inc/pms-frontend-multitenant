@@ -59,19 +59,30 @@ const Signatures = () => {
     return { label: "Pending Signature", tone: "bg-amber-50 text-amber-700 border border-amber-200" };
   };
 
-  const statusStyles = (status) => {
-    const s = (status || "").toLowerCase();
-    if (s === "completed" || s === "signed" || s === "signaturecompleted")
-      return "bg-emerald-50 text-emerald-700 border border-emerald-200";
-    if (s === "rejected" || s === "declined" || s === "cancelled")
-      return "bg-red-50 text-red-700 border border-red-200";
-    if (s === "in_progress" || s === "partiallysigned")
-      return "bg-sky-50 text-sky-700 border border-sky-200";
-    if (s === "pending" || s === "sent" || s === "opened" || s === "pendingsignature")
-      return "bg-amber-50 text-amber-700 border border-amber-200";
-    return "bg-gray-100 text-gray-600 border border-gray-200";
-  };
-
+  // const statusStyles = (status) => {
+  //   const s = (status || "").toLowerCase();
+  //   if (s === "completed" || s === "signed" || s === "signaturecompleted")
+  //     return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+  //   if (s === "rejected" || s === "declined" || s === "cancelled")
+  //     return "bg-red-50 text-red-700 border border-red-200";
+  //   if (s === "in_progress" || s === "partiallysigned")
+  //     return "bg-sky-50 text-sky-700 border border-sky-200";
+  //   if (s === "pending" || s === "sent" || s === "opened" || s === "pendingsignature")
+  //     return "bg-amber-50 text-amber-700 border border-amber-200";
+  //   return "bg-gray-100 text-gray-600 border border-gray-200";
+  // };
+const statusStyles = (status) => {
+  switch (status) {
+    case "completed":
+      return "bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-600";
+    case "in_progress":
+      return "bg-sky-600 hover:bg-sky-700 text-white border border-sky-700";
+    case "pending":
+      return "bg-amber-500 hover:bg-amber-600 text-white border border-amber-600";
+    default:
+      return "bg-slate-500 hover:bg-slate-600 text-white border border-slate-600";
+  }
+};
   // The raw value was printed straight into the cell, so the column read
   // "pending" and "in_progress" rather than naming the state.
   const statusLabel = (status) => {
@@ -223,7 +234,7 @@ const Signatures = () => {
                     "
                   >
                     {/* File Name */}
-                    <TableCell
+                    {/* <TableCell
                       className="px-4 py-3 font-medium text-foreground"
                       style={{
                         fontFamily: "var(--font-family)",
@@ -231,10 +242,7 @@ const Signatures = () => {
                           "calc(0.88rem * parseFloat(var(--font-scale)) / 100)",
                       }}
                     >
-                      {/* The name itself opens the document, so the signed
-                          result can be checked without hunting for an icon.
-                          Opened straight from the click with no await first,
-                          so the browser does not block the tab. */}
+                      
                       {signautrelist.fileUrl ? (
                         <button
                           type="button"
@@ -253,8 +261,33 @@ const Signatures = () => {
                       ) : (
                         signautrelist.filename || "—"
                       )}
-                    </TableCell>
-
+                    </TableCell> */}
+<TableCell
+  className="px-4 py-3 font-medium text-foreground"
+  style={{
+    fontFamily: "var(--font-family)",
+    fontSize: "calc(0.88rem * parseFloat(var(--font-scale)) / 100)",
+  }}
+>
+  {/* The name itself opens the document, so the signed
+      result can be checked without hunting for an icon.
+      Opened straight from the click with no await first,
+      so the browser does not block the tab. */}
+  {signautrelist.fileUrl ? (
+    <button
+      type="button"
+      onClick={() =>
+        window.open(signautrelist.fileUrl, "_blank", "noopener,noreferrer")
+      }
+      title="Open document in a new tab"
+      className="text-left text-primary "
+    >
+      {signautrelist.filename || "—"}
+    </button>
+  ) : (
+    signautrelist.filename || "—"
+  )}
+</TableCell>
                     {/* Signers */}
                     <TableCell className="px-4 py-3 align-top">
                       {signautrelist.submitters?.length ? (
@@ -272,11 +305,11 @@ const Signatures = () => {
                                       submitter?.email ||
                                       "Unnamed signer"}
                                   </span>
-                                  <span
+                                  {/* <span
                                     className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${tone}`}
                                   >
                                     {label}
-                                  </span>
+                                  </span> */}
                                 </div>
                                 {/* Only repeat the address when it is not
                                     already standing in for the name above. */}
@@ -298,7 +331,7 @@ const Signatures = () => {
 
                     {/* Status */}
                     <TableCell className="px-4 py-3">
-                      <span
+                      {/* <span
                         className={`
                           inline-flex items-center
                           rounded-full
@@ -310,10 +343,30 @@ const Signatures = () => {
                         `}
                         style={{
                           fontFamily: "var(--font-family)",
+                          color: "var(--text-foreground)",
+                          fontSize:
+                            "calc(0.78rem * parseFloat(var(--font-scale)) / 100)",
                         }}
                       >
                         {statusLabel(signautrelist.status)}
-                      </span>
+                      </span> */}
+                      <span
+  className={`
+    inline-flex items-center
+    rounded-full
+    px-2.5 py-1
+    text-[11px]
+    font-semibold
+    transition-colors
+    ${statusStyles(signautrelist.status)}
+  `}
+  style={{
+    fontFamily: "var(--font-family)",
+    fontSize: "calc(0.78rem * var(--font-scale) / 100)",
+  }}
+>
+  {statusLabel(signautrelist.status)}
+</span>
                     </TableCell>
 
                     {/* Date Uploaded */}
