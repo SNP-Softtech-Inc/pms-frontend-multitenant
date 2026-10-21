@@ -1001,6 +1001,14 @@ import { useToastContext } from "../../context/ToastContext";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  TAB_LIST_CLASS,
+  TAB_TRIGGER_CLASS,
+} from "../../components/SettingsTabs";
 import { authAPI } from "../../services/api";
 
 // SHADCN UI
@@ -1054,7 +1062,7 @@ const MyAccount = () => {
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
   const USER_URL = process.env.REACT_APP_AUTH_USER;
 
-  const { user,  logout } = useAuth();
+  const { user, logout, loadUser } = useAuth();
 const { showToast } = useToastContext();
   console.log("users deatils", user);
 const expiresAt = user?.expiresAt;
@@ -1484,7 +1492,7 @@ const formatTimePeriod = (seconds) => {
       setShowSaveButtons(false);
 
       if (response.data.user) {
-        updateUserData(response.data.user);
+        await loadUser();
       }
 
       if (response.data.token) {
@@ -1666,7 +1674,7 @@ const formatTimePeriod = (seconds) => {
       }
 
       if (res.data?.user) {
-        updateUserData(res.data.user);
+        await loadUser();
       }
 
       return res.data;
@@ -1731,7 +1739,7 @@ console.log("getasscestoken",token)
   };
 
   return (
-    <div className="w-full p-6 space-y-6">
+    <div className="mx-auto w-full max-w-4xl">
       {sessionExpiryAlert && (
         <Alert className="border-yellow-300 bg-yellow-50">
           <AlertDescription>
@@ -1741,27 +1749,35 @@ console.log("getasscestoken",token)
         </Alert>
       )}
 
-      {/* HEADER */}
+      {/* HEADER - left aligned and sized to match Firm Settings, which
+          the centred text-3xl heading did not. */}
+      <h1 className="text-xl font-semibold text-foreground mb-5">
+        Account Settings
+      </h1>
 
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">
-          Account Settings
-        </h1>
+      <Tabs defaultValue="profile" className="w-full">
+        {/* Tab Bar */}
+        <TabsList className={TAB_LIST_CLASS}>
+          <TabsTrigger value="profile" className={TAB_TRIGGER_CLASS}>
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="security" className={TAB_TRIGGER_CLASS}>
+            Security
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className={TAB_TRIGGER_CLASS}>
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="emailsync" className={TAB_TRIGGER_CLASS}>
+            Email Sync
+          </TabsTrigger>
+        </TabsList>
 
-        <p className="text-muted-foreground">
-          Manage your personal information, password,
-          and preferences
-        </p>
-      </div>
-
-      {/* TOP GRID */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="profile" className="space-y-6">
         {/* PERSONAL DETAILS */}
 
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Personal Details</CardTitle>
+        <Card className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-3.5 space-y-0">
+            <CardTitle className="text-sm font-semibold text-foreground">Personal Details</CardTitle>
 
             <Button
               size="icon"
@@ -1891,12 +1907,13 @@ console.log("getasscestoken",token)
             )}
           </CardContent>
         </Card>
+        </TabsContent>
 
-        {/* LOGIN DETAILS */}
+        <TabsContent value="security" className="space-y-6">
 
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Login Details</CardTitle>
+        <Card className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-3.5 space-y-0">
+            <CardTitle className="text-sm font-semibold text-foreground">Login Details</CardTitle>
 
             <Button
               size="icon"
@@ -1965,16 +1982,14 @@ console.log("getasscestoken",token)
             )}
           </CardContent>
         </Card>
-      </div>
+        </TabsContent>
 
-      {/* BOTTOM GRID */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="notifications" className="space-y-6">
         {/* NOTIFICATIONS */}
 
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>
+        <Card className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-3.5 space-y-0">
+            <CardTitle className="text-sm font-semibold text-foreground">
               Notification Preferences
             </CardTitle>
 
@@ -2038,12 +2053,13 @@ console.log("getasscestoken",token)
             </Table>
           </CardContent>
         </Card>
+        </TabsContent>
 
-        {/* EMAIL SYNC */}
+        <TabsContent value="emailsync" className="space-y-6">
 
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Email Sync</CardTitle>
+        <Card className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-3.5 space-y-0">
+            <CardTitle className="text-sm font-semibold text-foreground">Email Sync</CardTitle>
 
             <HelpCircle className="w-5 h-5 text-blue-500" />
           </CardHeader>
@@ -2078,7 +2094,8 @@ console.log("getasscestoken",token)
             </div>
           </CardContent>
         </Card>
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {/* PASSWORD DIALOG */}
 

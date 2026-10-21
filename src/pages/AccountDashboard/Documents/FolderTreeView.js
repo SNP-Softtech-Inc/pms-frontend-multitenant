@@ -2176,6 +2176,7 @@ import {
   Settings,
   Monitor,
   Globe,
+  Loader2,
 } from "lucide-react";
 import DocumentViewer from "./DocumentViewer";
 import { ActionInProgressDialog } from "./drawers/useActionGuard";
@@ -2265,6 +2266,12 @@ const builderFields = useMemo(
   [submitters],
 );
   const [showBuilderFor, setShowBuilderFor] = useState(null);
+
+  // The builder saves its work as a DocuSeal template and hands the template
+  // back on load and on every save. We need its id to create the submission
+  // ourselves - see handleSendForSignature.
+  const [builderTemplateId, setBuilderTemplateId] = useState(null);
+  const [isSendingSignature, setIsSendingSignature] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
@@ -3051,6 +3058,58 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
     // toast.error("Failed to open file. Please try again.");
   }
 };
+
+  // Send the built document out for signature.
+  //
+  // DocuSeal's own Send button creates the submission with whatever the
+  // "Preserve order" checkbox in its dialog happens to be set to, and that
+  // default - preserved - only emails the second signer once the first has
+  // signed. Ordering can only be set when the submission is created, and the
+  // builder exposes no way to set it, so the Send button is hidden and the
+  // submission is created through our backend with order "random" instead.
+  const handleSendForSignature = async () => {
+    if (!builderTemplateId || isSendingSignature) return;
+
+    if (!submitters?.length) {
+      showToast({
+        title: "No recipients found for this account",
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      setIsSendingSignature(true);
+
+      await esignAPI.sendSubmission({
+        templateId: builderTemplateId,
+        submitters,
+      });
+
+      showToast({
+        title: `Sent to ${submitters.length} recipient(s)`,
+        type: "success",
+      });
+
+      setShowBuilderFor(null);
+      setToken(null);
+      setBuilderTemplateId(null);
+      setOpenDialog(false);
+
+      fetchFolderTree();
+    } catch (err) {
+      console.error("Send for signature error:", err);
+
+      showToast({
+        title:
+          err?.response?.data?.error || "Failed to send for signature",
+        type: "error",
+      });
+    } finally {
+      setIsSendingSignature(false);
+    }
+  };
+
   // Toggle sign status
   
   const toggleSignStatus = async (item) => {
@@ -5588,6 +5647,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
             setConfirmLeaveSignature(false);
             setShowBuilderFor(null);
             setToken(null);
+            setBuilderTemplateId(null);
             setOpenDialog(false);
           }}
         />
@@ -5610,6 +5670,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
               // would likewise re-show its overlay over a fresh dialog.
               setShowBuilderFor(null);
               setToken(null);
+              setBuilderTemplateId(null);
               setConfirmLeaveSignature(false);
             }
           }}
@@ -5659,7 +5720,21 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   withSignatureId={false}
                   dateFormats={['MM/DD/YYYY']}
                   customCss={customCss}
-                  
+
+                  // DocuSeal's own Send and Recipients buttons are hidden.
+                  // They create the submission inside DocuSeal, where the
+                  // signing order comes from a "Preserve order" checkbox that
+                  // defaults to sequential - the second signer is not emailed
+                  // until the first has signed. We send it ourselves instead
+                  // so every recipient is invited at once.
+                  withSendButton={false}
+                  withRecipientsButton={false}
+                  // The builder hands back the template it is editing, on
+                  // first load and after every save. That id is what the
+                  // submission is created from.
+                  onLoad={(data) => setBuilderTemplateId(data?.id ?? null)}
+                  onSave={(data) => setBuilderTemplateId(data?.id ?? null)}
+
                   // @docuseal/react v1 has no onComplete prop - it was being
                   // ignored, so the dialog never closed after sending and the
                   // builder stayed open on the "SENT" state. onSend is the
@@ -5669,11 +5744,39 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                     // must not be left behind for the next document.
                     setShowBuilderFor(null);
                     setToken(null);
+                    setBuilderTemplateId(null);
                     setOpenDialog(false);
                   }}
                 />
               )}
             </div>
+
+            {/* Our Send replaces the builder's. Placed outside the scrolling
+                area so it stays reachable however long the document is. */}
+            {token && showBuilderFor && (
+              <div className="flex items-center justify-between gap-4 border-t px-6 py-4">
+                <p className="text-xs text-muted-foreground">
+                  {submitters?.length
+                    ? `${submitters.length} recipient(s) will be emailed at the same time.`
+                    : "No recipients found for this account."}
+                </p>
+
+                <Button
+                  onClick={handleSendForSignature}
+                  disabled={!builderTemplateId || isSendingSignature}
+                  className="min-w-[160px] rounded-xl"
+                >
+                  {isSendingSignature ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send for signature"
+                  )}
+                </Button>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 

@@ -1162,6 +1162,14 @@ export const esignAPI = {
       params,
     }),
 
+  // Send a built template for signature. This replaces the builder's own Send
+  // button: DocuSeal defaults a submission to order "preserved", where the
+  // second signer is only emailed once the first has signed, and the builder
+  // gives no way to change it. The server creates the submission with
+  // order "random" so everyone is invited at once.
+  sendSubmission: (data) =>
+    signatureApi.post("/api/send-submission", data),
+
   // DocuSeal embedded token
   getDocusealToken: (templateId) =>
     signatureApi.get("/api/docuseal-token", {
