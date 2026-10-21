@@ -2211,6 +2211,44 @@ const [submitters, setSubmitters] = useState([]);
 // named for them, is what makes the assignment visible once the field is
 // dropped on the page. Additive: without onlyDefinedFields the admin can
 // still drag any other field type.
+// const builderFields = useMemo(
+//   () =>
+//     (submitters || []).flatMap((signer, index) => {
+//       const who = signer?.name || `Signer ${index + 1}`;
+//       const label = signer?.email ? `${who} (${signer.email})` : who;
+//       const role = signer?.role || label;
+
+//       return [
+//         {
+//           name: `Signature - ${label}`,
+//           title: label,
+//           type: "signature",
+//           role,
+//         },
+//         {
+//           name: `Date - ${label}`,
+//           title: label,
+//           type: "date",
+//           role,
+//         },
+//       ];
+//     }),
+//   [submitters],
+// );
+const FIELD_TYPES = [
+  { type: "text",      label: "Text" },
+  { type: "signature", label: "Signature" },
+  { type: "initials",  label: "Initials" },
+  { type: "date",      label: "Date" },
+  { type: "number",    label: "Number" },
+  { type: "image",     label: "Image" },
+  { type: "checkbox",  label: "Checkbox" },
+  { type: "file",      label: "File" },
+  { type: "phone",     label: "Phone" },
+  // add more from the supported list: select, radio, multiple, cells,
+  // stamp, payment, verification, kba, strikethrough
+];
+
 const builderFields = useMemo(
   () =>
     (submitters || []).flatMap((signer, index) => {
@@ -2218,20 +2256,12 @@ const builderFields = useMemo(
       const label = signer?.email ? `${who} (${signer.email})` : who;
       const role = signer?.role || label;
 
-      return [
-        {
-          name: `Signature - ${label}`,
-          title: label,
-          type: "signature",
-          role,
-        },
-        {
-          name: `Date - ${label}`,
-          title: label,
-          type: "date",
-          role,
-        },
-      ];
+      return FIELD_TYPES.map(({ type, label: typeLabel }) => ({
+        name: `${typeLabel} - ${label}`,
+        title: label,
+        type,
+        role,
+      }));
     }),
   [submitters],
 );
@@ -2319,7 +2349,24 @@ const builderFields = useMemo(
       console.error("Error fetching account details:", err);
     }
   };
+// Keep the AccountsDash "Documents" badge in sync
+const broadcastNewDocsCount = async () => {
+  try {
+    const res = await accountDocsAPI.getNewTaggedDocs({
+      params: { accountId },
+    });
 
+    const count = res?.data?.documents?.length || 0;
+
+    window.dispatchEvent(
+      new CustomEvent("new-docs-changed", {
+        detail: { accountId, count },
+      })
+    );
+  } catch (err) {
+    console.error("Error refreshing new docs count:", err);
+  }
+};
   // Fetch folder tree - Using accountDocsAPI
   const fetchFolderTree = async () => {
     try {
@@ -2330,6 +2377,9 @@ const builderFields = useMemo(
       console.error(err);
       console.log("error list", err);
       setError("Error fetching folder tree");
+    }
+    finally {
+      broadcastNewDocsCount();
     }
   };
 
@@ -5660,27 +5710,17 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   key={token}
                   token={token}
                   submitters={submitters}
-                  // One Signature and one Date per signer, each carrying that
-                  // signer's name and email, so the field says who it belongs
-                  // to once it is on the document.
-                  fields={builderFields}
-                  // Draws the field's name on the box itself rather than
-                  // leaving it blank until clicked.
-                  withFieldPlaceholder
-                  // Signature ID prints a block beside the signature - "ID:
-                  // <uuid>", "Digitally signed by <name>", the signer's email
-                  // and the timestamp. It was switched on to give signatures
-                  // attribution on the document, but it reads as clutter next
-                  // to the signature, so it is off again to match the
-                  // TaxDome layout: the signature, and a Date field placed
-                  // beside it in the template.
-                  //
-                  // The identity is not lost - it stays in DocuSeal's audit
-                  // trail and certificate, which is where the evidential
-                  // record belongs.
+                 
+                  // fields={builderFields}
+                   fields={builderFields}
+                  //  fields={builderFields}
+  withFieldPlaceholder={true}
+  withCustomFieldsTab={true}
+  onlyDefinedFields={false}
                   withSignatureId={false}
                   dateFormats={['MM/DD/YYYY']}
                   customCss={customCss}
+
                   // DocuSeal's own Send and Recipients buttons are hidden.
                   // They create the submission inside DocuSeal, where the
                   // signing order comes from a "Preserve order" checkbox that
@@ -5694,6 +5734,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   // submission is created from.
                   onLoad={(data) => setBuilderTemplateId(data?.id ?? null)}
                   onSave={(data) => setBuilderTemplateId(data?.id ?? null)}
+
                   // @docuseal/react v1 has no onComplete prop - it was being
                   // ignored, so the dialog never closed after sending and the
                   // builder stayed open on the "SENT" state. onSend is the

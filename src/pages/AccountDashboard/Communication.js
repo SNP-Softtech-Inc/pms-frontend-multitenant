@@ -61,29 +61,76 @@ const [isChatLoading, setIsChatLoading] = useState(false);
       fetchAccountDetails(accountId);
     }
   }, [accountId]);
+// ================= CHAT LIST =================
+// Lets a background poll skip setState when nothing changed, so the list
+// doesn't flicker or re-sort every 15 seconds.
+const chatListSignatureRef = useRef("");
+// Lets us ignore a response that arrives after a newer request was started
+// (e.g. the admin switched Active/Archived mid-poll).
+const chatListRequestRef = useRef(0);
 
-  // ================= CHAT LIST =================
-  const accountwiseChatlist = async (accId, active) => {
-    try {
-      const res = await chatAPI.getChatsByAccountAndStatus(
-        accId,
-        active,
-        "admin",
-      );
-      const chats = res.data.chataccountwise || [];
-      setChatList(chats);
-      setFilteredChatList(chats);
+  // const accountwiseChatlist = async (accId, active) => {
+  //   try {
+  //     const res = await chatAPI.getChatsByAccountAndStatus(
+  //       accId,
+  //       active,
+  //       "admin",
+  //     );
+  //     const chats = res.data.chataccountwise || [];
+  //     setChatList(chats);
+  //     setFilteredChatList(chats);
 
-      console.log("Fetched chat list:", chats);
-    } catch (error) {
-      console.error("Error fetching chat list:", error);
+  //     console.log("Fetched chat list:", chats);
+  //   } catch (error) {
+  //     console.error("Error fetching chat list:", error);
+  //   }
+  // };
+const accountwiseChatlist = async (accId, active, { silent = false } = {}) => {
+  const requestId = ++chatListRequestRef.current;
+
+  try {
+    const res = await chatAPI.getChatsByAccountAndStatus(accId, active, "admin");
+
+    // A newer request has started since this one, so drop this response
+    if (requestId !== chatListRequestRef.current) return;
+
+    const chats = res.data.chataccountwise || [];
+    const signature = JSON.stringify(chats);
+
+    if (silent && signature === chatListSignatureRef.current) return;
+    chatListSignatureRef.current = signature;
+
+    setChatList(chats);
+    // No need to call setFilteredChatList here. The search effect already
+    // updates it from chatList, and it keeps the admin's search filter applied.
+  } catch (error) {
+    if (!silent) console.error("Error fetching chat list:", error);
+  }
+};
+  // useEffect(() => {
+  //   accountwiseChatlist(accountId, isActiveTrue);
+  // }, [accountId, isActiveTrue]);
+useEffect(() => {
+  if (!accountId) return undefined;
+
+  // Initial load (also runs when switching Active/Archived)
+  accountwiseChatlist(accountId, isActiveTrue);
+
+  const refreshIfVisible = () => {
+    if (document.visibilityState === "visible") {
+      accountwiseChatlist(accountId, isActiveTrue, { silent: true });
     }
   };
 
-  useEffect(() => {
-    accountwiseChatlist(accountId, isActiveTrue);
-  }, [accountId, isActiveTrue]);
+  const poll = setInterval(refreshIfVisible, 15000);
+  document.addEventListener("visibilitychange", refreshIfVisible);
 
+  return () => {
+    clearInterval(poll);
+    document.removeEventListener("visibilitychange", refreshIfVisible);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [accountId, isActiveTrue]);
   // Filter chats based on search
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -141,25 +188,60 @@ const [isChatLoading, setIsChatLoading] = useState(false);
   };
 
   // ================= CHAT ACTIONS =================
+const handleShowChat = async (chatId) => {
+  setIsChatLoading(true);
 
-  const handleShowChat = async (chatId) => {
-     setIsChatLoading(true);
-    try {
-      await chatAPI.markAllAsRead(chatId, accountId, "client");
+  try {
+    await chatAPI.markAllAsRead(chatId, accountId, "client");
 
-      setChatId(chatId);
+    setChatId(chatId);
 
-      const res = await chatAPI.getChatById(chatId, "admin");
-      setSelectedChat(res.data.chat);
+    const res = await chatAPI.getChatById(chatId, "admin");
+    setSelectedChat(res.data.chat);
 
-      await accountwiseChatlist(accountId, isActiveTrue);
-    } catch (error) {
-      console.error("Mark read error:", error);
-    }
-    finally {
+    // Refresh the chat list after marking messages as read
+    await accountwiseChatlist(accountId, isActiveTrue);
+
+    // Get the latest unread conversation count
+    const unreadRes = await chatAPI.getAdminUnreadCount({
+      accountid: accountId,
+    });
+
+    const unreadChats = unreadRes?.data?.perChat?.length || 0;
+
+    // Notify AccountsDash to update the Communication badge
+    window.dispatchEvent(
+      new CustomEvent("admin-unread-changed", {
+        detail: {
+          accountId,
+          unreadChats,
+        },
+      })
+    );
+  } catch (error) {
+    console.error("Mark read error:", error);
+  } finally {
     setIsChatLoading(false);
   }
-  };
+};
+  // const handleShowChat = async (chatId) => {
+  //    setIsChatLoading(true);
+  //   try {
+  //     await chatAPI.markAllAsRead(chatId, accountId, "client");
+
+  //     setChatId(chatId);
+
+  //     const res = await chatAPI.getChatById(chatId, "admin");
+  //     setSelectedChat(res.data.chat);
+
+  //     await accountwiseChatlist(accountId, isActiveTrue);
+  //   } catch (error) {
+  //     console.error("Mark read error:", error);
+  //   }
+  //   finally {
+  //   setIsChatLoading(false);
+  // }
+  // };
   // ChatDetails scrolls to the bottom whenever chat.description changes
   // identity, so a poll that set state unconditionally would drag the admin
   // back down every 15 seconds while they read history. Only swap the chat

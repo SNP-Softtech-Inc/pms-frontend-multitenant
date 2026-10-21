@@ -221,14 +221,25 @@ const Approvals = () => {
     });
   };
 
-  const statusStyles = (status) => {
-    const s = (status || "").toLowerCase();
-    if (s === "approved") return "bg-green-50 text-green-700 border border-green-200";
-    if (s === "rejected") return "bg-red-50 text-red-700 border border-red-200";
-    if (s === "pending") return "bg-yellow-50 text-yellow-700 border border-yellow-200";
-    return "bg-gray-100 text-gray-600 border border-gray-200";
-  };
-
+  // const statusStyles = (status) => {
+  //   const s = (status || "").toLowerCase();
+  //   if (s === "approved") return "bg-green-50 text-green-700 border border-green-200";
+  //   if (s === "rejected") return "bg-red-50 text-red-700 border border-red-200";
+  //   if (s === "pending") return "bg-yellow-50 text-yellow-700 border border-yellow-200";
+  //   return "bg-gray-100 text-gray-600 border border-gray-200";
+  // };
+const statusStyles = (status) => {
+  const s = (status || "").toLowerCase();
+  if (s === "approved" || s === "completed")
+    return "bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-600";
+  if (s === "in_progress")
+    return "bg-sky-600 hover:bg-sky-700 text-white border border-sky-700";
+  if (s === "pending")
+    return "bg-amber-500 hover:bg-amber-600 text-white border border-amber-600";
+  if (s === "rejected")
+    return "bg-red-500 hover:bg-red-600 text-white border border-red-600";
+  return "bg-slate-500 hover:bg-slate-600 text-white border border-slate-600";
+};
   return (
   <div className="p-4 md:p-6 bg-background min-h-full">
     {/* Header */}
@@ -346,7 +357,8 @@ const Approvals = () => {
                           )
                         }
                         title="Open document in a new tab"
-                        className="text-left underline-offset-2 hover:underline hover:text-primary"
+                          className="text-left text-primary "
+                        // className="text-left underline-offset-2 hover:underline hover:text-primary"
                       >
                         {approval.filename || "—"}
                       </button>
