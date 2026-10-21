@@ -1055,6 +1055,45 @@ import {
   // getAccessToken,
   clearAccessToken,
 } from "../../services/tokenService";
+// Providers worth naming in the UI.
+//
+// All of them connect over IMAP and all of them have their host discovered
+// from the address, so this is presentation only: a Yahoo user does not think
+// of themselves as "Other", and will conclude Yahoo is unsupported if that is
+// the only button on offer.
+//
+// `appPassword` is where the provider issues one. Each of these blocks a
+// plain password over IMAP when 2FA is on, and each hides the setting
+// somewhere different, so the instruction is worth carrying.
+const IMAP_PROVIDERS = [
+  {
+    id: "yahoo",
+    label: "Yahoo",
+    appPassword: "Yahoo requires an app password: Account Security → Generate app password.",
+  },
+  {
+    id: "icloud",
+    label: "iCloud",
+    appPassword: "iCloud requires an app password: Apple ID → Sign-In and Security → App-Specific Passwords.",
+  },
+  {
+    id: "zoho",
+    label: "Zoho",
+    appPassword: "Zoho may require an app password if two-factor authentication is on.",
+  },
+  {
+    id: "aol",
+    label: "AOL",
+    appPassword: "AOL requires an app password: Account Security → Generate app password.",
+  },
+  {
+    id: "other",
+    label: "Other",
+    appPassword: null,
+  },
+];
+
+
 const MyAccount = () => {
   const navigate = useNavigate();
 
@@ -1086,6 +1125,10 @@ const MyAccount = () => {
   // opened as a fallback.
   const [imapDiscovery, setImapDiscovery] = useState(null);
   const [showImapAdvanced, setShowImapAdvanced] = useState(false);
+
+  // Which named provider the user chose. Affects the guidance shown, not the
+  // connection - the server is discovered from the address either way.
+  const [imapProvider, setImapProvider] = useState(null);
 
   const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
@@ -1880,6 +1923,7 @@ const formatTimePeriod = (seconds) => {
       setImapForm({ email: "", host: "", port: 993, username: "", password: "" });
       setImapDiscovery(null);
       setShowImapAdvanced(false);
+      setImapProvider(null);
 
       await loadMailboxes();
     } catch (err) {
@@ -2376,18 +2420,27 @@ console.log("getasscestoken",token)
                   Connect Outlook
                 </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={() => setShowImapForm((v) => !v)}
-                  disabled={!mailProviders.imap?.available}
-                  title={
-                    mailProviders.imap?.available
-                      ? "Connect any other mailbox over IMAP"
-                      : "Not configured on this server yet"
-                  }
-                >
-                  Other (IMAP)
-                </Button>
+                {/* Named rather than a single "Other (IMAP)". These all
+                    take the same path - the difference is that someone with a
+                    Yahoo address can see that Yahoo works. */}
+                {IMAP_PROVIDERS.map((provider) => (
+                  <Button
+                    key={provider.id}
+                    variant="outline"
+                    onClick={() => {
+                      setImapProvider(provider);
+                      setShowImapForm(true);
+                    }}
+                    disabled={!mailProviders.imap?.available}
+                    title={
+                      mailProviders.imap?.available
+                        ? `Connect a ${provider.label} mailbox`
+                        : "Not configured on this server yet"
+                    }
+                  >
+                    {provider.label}
+                  </Button>
+                ))}
               </div>
 
               {showImapForm && mailProviders.imap?.available && (
@@ -2441,8 +2494,9 @@ console.log("getasscestoken",token)
                   )}
 
                   <p className="text-xs text-muted-foreground">
-                    Some providers need an app password rather than your normal
-                    one. It is encrypted before being stored and is never shown
+                    {imapProvider?.appPassword ||
+                      "Some providers need an app password rather than your normal one."}{" "}
+                    It is encrypted before being stored and is never shown
                     again.
                   </p>
 
