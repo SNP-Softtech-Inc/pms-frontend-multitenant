@@ -1058,6 +1058,29 @@ import {
 const MyAccount = () => {
   const navigate = useNavigate();
 
+  // Connected mailboxes, across every provider. Until now this page could
+  // connect Gmail but never showed what was connected - there was no way to
+  // see a mailbox, or to tell a working connection from a broken one.
+  const [mailAccounts, setMailAccounts] = useState([]);
+  const [mailProviders, setMailProviders] = useState({
+    google: { available: true },
+    microsoft: { available: false },
+    imap: { available: false },
+  });
+  const [loadingMailboxes, setLoadingMailboxes] = useState(false);
+
+  // The IMAP form is hidden until asked for - it needs a host, username and
+  // password, which is far more than the one-click OAuth providers.
+  const [showImapForm, setShowImapForm] = useState(false);
+  const [imapForm, setImapForm] = useState({
+    email: "",
+    host: "",
+    port: 993,
+    username: "",
+    password: "",
+  });
+  const [connectingImap, setConnectingImap] = useState(false);
+
   const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
   const USER_URL = process.env.REACT_APP_AUTH_USER;
@@ -1712,6 +1735,152 @@ const formatTimePeriod = (seconds) => {
     }
   };
 
+  // ---------------- CONNECTED MAILBOXES ----------------
+  const loadMailboxes = async () => {
+    const token = getAccessToken();
+
+    if (!token) return;
+
+    try {
+      setLoadingMailboxes(true);
+
+      // Both are best-effort: a mailbox list is not worth failing the whole
+      // Account Settings page over, so a failure leaves the section empty
+      // rather than breaking the tab.
+      const [accountsRes, providersRes] = await Promise.allSettled([
+        authAPI.getMailAccounts(token),
+        authAPI.getMailProviders(token),
+      ]);
+
+      if (accountsRes.status === "fulfilled") {
+        setMailAccounts(accountsRes.value?.data?.accounts || []);
+      }
+
+      if (providersRes.status === "fulfilled") {
+        setMailProviders(
+          providersRes.value?.data?.providers || mailProviders,
+        );
+      }
+    } catch (err) {
+      console.error("Load mailboxes failed:", err);
+    } finally {
+      setLoadingMailboxes(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMailboxes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Microsoft is a full-page redirect, like Gmail - the browser leaves the
+  // app and returns to this page once consent is given.
+  const handleConnectMicrosoft = () => {
+    const token = getAccessToken();
+
+    if (!token) {
+      showToast({
+        title: "Login token missing",
+        description: "Please login again to connect a mailbox.",
+        type: "error",
+      });
+      return;
+    }
+
+    window.location.href = `${USER_URL}/api/emailsync/microsoft?token=${token}`;
+  };
+
+  // Fill in the server details from the address where we know them, so the
+  // common providers need nothing but an email and a password.
+  const handleImapEmailChange = async (email) => {
+    setImapForm((prev) => ({ ...prev, email, username: prev.username || email }));
+
+    if (!email.includes("@")) return;
+
+    try {
+      const token = getAccessToken();
+      const res = await authAPI.suggestImapHost(email, token);
+      const suggestion = res?.data?.suggestion;
+
+      if (suggestion) {
+        setImapForm((prev) => ({
+          ...prev,
+          host: suggestion.host,
+          port: suggestion.port || 993,
+        }));
+      }
+    } catch {
+      // A failed suggestion is not an error - the host can be typed in.
+    }
+  };
+
+  const handleConnectImap = async () => {
+    if (connectingImap) return;
+
+    const { email, host, password } = imapForm;
+
+    if (!email || !host || !password) {
+      showToast({
+        title: "Missing details",
+        description: "Email, server and password are all required.",
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      setConnectingImap(true);
+
+      const token = getAccessToken();
+
+      // The server verifies by actually opening the mailbox before storing
+      // anything, so a wrong password fails here rather than silently
+      // becoming a mailbox that never syncs.
+      await authAPI.connectImapMailbox(imapForm, token);
+
+      showToast({
+        title: "Mailbox connected",
+        description: `${email} is now syncing.`,
+        type: "success",
+      });
+
+      setShowImapForm(false);
+      setImapForm({ email: "", host: "", port: 993, username: "", password: "" });
+
+      await loadMailboxes();
+    } catch (err) {
+      console.error("IMAP connect failed:", err);
+
+      showToast({
+        title: "Could not connect",
+        // The server passes through what the mail server said - a bad
+        // password reads differently from a wrong host or a blocked port.
+        description:
+          err?.response?.data?.message || "Check the server details and try again.",
+        type: "error",
+      });
+    } finally {
+      setConnectingImap(false);
+    }
+  };
+
+  const handleDisconnectImap = async (email) => {
+    try {
+      const token = getAccessToken();
+      await authAPI.disconnectImapMailbox(email, token);
+
+      showToast({
+        title: "Mailbox disconnected",
+        type: "success",
+      });
+
+      await loadMailboxes();
+    } catch (err) {
+      console.error("IMAP disconnect failed:", err);
+      showToast({ title: "Could not disconnect", type: "error" });
+    }
+  };
+
   const handleConnectGmail = async () => {
     try {
       // const token = localStorage.getItem("token");
@@ -2066,31 +2235,182 @@ console.log("getasscestoken",token)
 
           <CardContent className="space-y-5">
             <p className="text-sm text-muted-foreground">
-              Sync your existing email with TaxDome —
-              all your client messages in one place.
+              Connect a mailbox to bring client messages into the inbox.
+              Gmail, Outlook and Microsoft 365 connect in one step; anything
+              else connects over IMAP.
             </p>
 
-            <div className="space-y-4">
-              <Input
-                placeholder="Email for sync"
-                value={emailsync}
-                onChange={(e) =>
-                  setEmailSync(e.target.value)
-                }
-              />
+            {/* CONNECTED MAILBOXES - this page could connect Gmail but never
+                showed what was connected, so there was no way to tell a
+                working mailbox from a broken one. */}
+            <div className="space-y-2">
+              <Label className="text-xs">Connected mailboxes</Label>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* <Button onClick={handleEmailSync}>
-                  Sync your email
-                </Button> */}
+              {loadingMailboxes && mailAccounts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : mailAccounts.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No mailboxes connected yet.
+                  </p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-border rounded-lg border border-border">
+                  {mailAccounts.map((account) => (
+                    <li
+                      key={`${account.provider}-${account.email}`}
+                      className="flex items-center justify-between gap-3 px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium">
+                          {account.email}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {account.provider === "google"
+                            ? "Gmail"
+                            : account.provider === "microsoft"
+                              ? "Outlook / Microsoft 365"
+                              : account.host || "IMAP"}
+                          {account.lastSyncAt
+                            ? ` · last synced ${new Date(account.lastSyncAt).toLocaleString()}`
+                            : ""}
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            account.connected && !account.syncDisabled
+                              ? "bg-emerald-500 text-white"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {account.connected && !account.syncDisabled
+                            ? "Syncing"
+                            : "Paused"}
+                        </span>
+
+                        {/* Gmail predates this list and still lives in the
+                            older fields, so it has no disconnect here yet
+                            rather than a button that would not work. */}
+                        {account.provider === "imap" && account.connected && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDisconnectImap(account.email)}
+                          >
+                            Disconnect
+                          </Button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* ADD A MAILBOX */}
+            <div className="space-y-3 border-t border-border pt-4">
+              <Label className="text-xs">Add a mailbox</Label>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button onClick={handleConnectGmail}>Connect Gmail</Button>
+
+                {/* Disabled rather than hidden when the server cannot
+                    currently connect it - a button that answers 503 is worse
+                    than one that explains itself. */}
+                <Button
+                  variant="outline"
+                  onClick={handleConnectMicrosoft}
+                  disabled={!mailProviders.microsoft?.available}
+                  title={
+                    mailProviders.microsoft?.available
+                      ? "Connect an Outlook or Microsoft 365 mailbox"
+                      : "Not configured on this server yet"
+                  }
+                >
+                  Connect Outlook
+                </Button>
 
                 <Button
-                  // variant="outline"
-                  onClick={handleConnectGmail}
+                  variant="outline"
+                  onClick={() => setShowImapForm((v) => !v)}
+                  disabled={!mailProviders.imap?.available}
+                  title={
+                    mailProviders.imap?.available
+                      ? "Connect any other mailbox over IMAP"
+                      : "Not configured on this server yet"
+                  }
                 >
-                  Connect Gmail
+                  Other (IMAP)
                 </Button>
               </div>
+
+              {showImapForm && mailProviders.imap?.available && (
+                <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                  <Input
+                    placeholder="you@example.com"
+                    value={imapForm.email}
+                    onChange={(e) => handleImapEmailChange(e.target.value)}
+                    disabled={connectingImap}
+                  />
+
+                  <div className="flex gap-3">
+                    <Input
+                      placeholder="imap.example.com"
+                      value={imapForm.host}
+                      onChange={(e) =>
+                        setImapForm((p) => ({ ...p, host: e.target.value }))
+                      }
+                      disabled={connectingImap}
+                    />
+                    <Input
+                      className="w-24"
+                      placeholder="993"
+                      value={imapForm.port}
+                      onChange={(e) =>
+                        setImapForm((p) => ({ ...p, port: Number(e.target.value) || 993 }))
+                      }
+                      disabled={connectingImap}
+                    />
+                  </div>
+
+                  <Input
+                    type="password"
+                    placeholder="Password or app password"
+                    value={imapForm.password}
+                    onChange={(e) =>
+                      setImapForm((p) => ({ ...p, password: e.target.value }))
+                    }
+                    disabled={connectingImap}
+                  />
+
+                  <p className="text-xs text-muted-foreground">
+                    Most providers need an app password rather than your normal
+                    one. It is encrypted before being stored and is never shown
+                    again.
+                  </p>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowImapForm(false)}
+                      disabled={connectingImap}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleConnectImap}
+                      disabled={connectingImap}
+                      className="min-w-[110px]"
+                    >
+                      {connectingImap ? "Connecting..." : "Connect"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

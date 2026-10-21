@@ -452,6 +452,39 @@ getEmailNotifications: (archived = false) => {
   // Pass archived as query parameter
   return authUserApi.get(`/api/emailsync/notifications?archived=${archived}`);
 },
+
+// ---- Connected mailboxes (multi-provider) ----
+//
+// All under /api/emailsync because that prefix is already proxied on both
+// servers; the provider routes were moved there for the same reason, so none
+// of this needs a new nginx location block.
+//
+// The token goes in the query string rather than a header because the connect
+// flows for Google and Microsoft are full-page redirects, not XHR - the
+// browser leaves the app, so there is nowhere to attach a header.
+
+// Every connected mailbox, whatever the provider, in one list.
+getMailAccounts: (token) =>
+  authUserApi.get(`/api/emailsync/mailaccounts?token=${token}`),
+
+// Which providers this server can actually connect right now, so the UI can
+// disable a button rather than offer one that answers 503.
+getMailProviders: (token) =>
+  authUserApi.get(`/api/emailsync/mailaccounts/providers?token=${token}`),
+
+// Guess the IMAP host from the address, so people are not asked for a server
+// name they do not know.
+suggestImapHost: (email, token) =>
+  authUserApi.get(
+    `/api/emailsync/imap/suggest?email=${encodeURIComponent(email)}&token=${token}`,
+  ),
+
+// Verified server-side by actually opening INBOX before anything is stored.
+connectImapMailbox: (data, token) =>
+  authUserApi.post(`/api/emailsync/imap/connect?token=${token}`, data),
+
+disconnectImapMailbox: (email, token) =>
+  authUserApi.post(`/api/emailsync/imap/disconnect?token=${token}`, { email }),
 // Get communication emails
 getEmailCommunications: () =>
   authUserApi.get("/api/emailsync/communications"),
