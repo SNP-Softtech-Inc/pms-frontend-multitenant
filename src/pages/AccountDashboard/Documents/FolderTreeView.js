@@ -3002,15 +3002,38 @@ const handleBulkDownload = async () => {
 const handleFileClick = async (fullPath, fileName, meta = {}) => {
   try {
     console.log("File clicked:", fullPath, fileName, meta);
-    // Create VIEW audit
-    await accountDocsAPI.viewDocument({
-      filePath: fullPath,
-    });
+
+    // Recording the view and clearing the "New" tag are side effects of
+    // opening a document, not conditions for it. They used to be awaited
+    // ahead of the viewer, inside this same try - so a 500 from /view threw,
+    // execution jumped to the catch, and the document never opened at all.
+    // An audit record was stopping people reading their own files.
+    //
+    // Both now run in their own try, after which the viewer opens regardless.
+    // Same reasoning as the trash flow, where an audit failure left items
+    // untrashed while reporting an error.
+    try {
+      await accountDocsAPI.viewDocument({
+        filePath: fullPath,
+      });
+    } catch (auditErr) {
+      console.error(
+        "VIEW audit failed (document still opens):",
+        auditErr?.response?.status || auditErr.message,
+      );
+    }
 
     // Remove "New" tag if present
     if (meta.tags?.some((tag) => tag.isSystemTag && tag.tagName === "New")) {
-      await accountDocsAPI.removeNewTag({ filePath: fullPath });
-      await fetchFolderTree();
+      try {
+        await accountDocsAPI.removeNewTag({ filePath: fullPath });
+        await fetchFolderTree();
+      } catch (tagErr) {
+        console.error(
+          "Could not clear the New tag (document still opens):",
+          tagErr?.response?.status || tagErr.message,
+        );
+      }
     }
     
     const FILE_MANAGER_BASE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
@@ -3053,10 +3076,21 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       setCurrentFileIndex(fileIndex);
       setViewerOpen(true);
     } else {
-      // Fallback for files not in tree
-      setSelectedFileUrl(fileUrl);
-      setSelectedFileName(fileName);
-      setOpenFileViewer(true);
+      // Fallback for files not found in the tree.
+      //
+      // This used to open a dialog containing a bare <iframe src={fileUrl}>.
+      // A browser will not render most types inline - docx, xlsx, heic, msg,
+      // eml, rtf and zip all come back with a content type it downloads
+      // rather than displays - so the dialog opened empty and a download
+      // started on its own, which is not what clicking a document should do.
+      //
+      // Routed through DocumentViewer instead, which picks a renderer by
+      // type and, for anything it genuinely cannot preview, shows the file
+      // with explicit Download and Open-in-new-tab buttons. The download
+      // becomes a choice rather than a surprise.
+      setViewerFiles([{ name: fileName, path: fullPath, meta }]);
+      setCurrentFileIndex(0);
+      setViewerOpen(true);
     }
     
   } catch (error) {
