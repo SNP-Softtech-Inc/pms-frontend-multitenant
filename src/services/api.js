@@ -517,8 +517,16 @@ replyEmail: (data) =>
       `/api/emailsync/unarchive/${threadId}`
     ),
     // Get attachment data by attachment ID
+  //
+  // Encoded, because the id goes into the PATH. Gmail's attachment ids are
+  // opaque strings - usually base64url, which is path-safe, but anything
+  // carrying a +, / or = would otherwise be read as part of the route and
+  // 404 with no indication why. They are also several hundred characters
+  // long, so an id that breaks is not something anyone spots by eye.
   getAttachmentData: (attachmentId) =>
-    authUserApi.get(`/api/emailsync/attachment/${attachmentId}`),
+    authUserApi.get(
+      `/api/emailsync/attachment/${encodeURIComponent(attachmentId)}`,
+    ),
 
  
 
