@@ -2272,6 +2272,12 @@ const builderFields = useMemo(
   // ourselves - see handleSendForSignature.
   const [builderTemplateId, setBuilderTemplateId] = useState(null);
   const [isSendingSignature, setIsSendingSignature] = useState(false);
+
+  // Off by default, so an ordinary send emails everyone at once without
+  // anyone having to remember anything. Sequential is the deliberate
+  // exception - the reverse of DocuSeal's own dialog, where the sequential
+  // behaviour was the default and had to be unticked every time.
+  const [signInOrder, setSignInOrder] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
@@ -3084,6 +3090,7 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       await esignAPI.sendSubmission({
         templateId: builderTemplateId,
         submitters,
+        signInOrder,
       });
 
       showToast({
@@ -3094,6 +3101,7 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
       setShowBuilderFor(null);
       setToken(null);
       setBuilderTemplateId(null);
+      setSignInOrder(false);
       setOpenDialog(false);
 
       fetchFolderTree();
@@ -5755,11 +5763,28 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                 area so it stays reachable however long the document is. */}
             {token && showBuilderFor && (
               <div className="flex items-center justify-between gap-4 border-t px-6 py-4">
-                <p className="text-xs text-muted-foreground">
-                  {submitters?.length
-                    ? `${submitters.length} recipient(s) will be emailed at the same time.`
-                    : "No recipients found for this account."}
-                </p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">
+                    {!submitters?.length
+                      ? "No recipients found for this account."
+                      : signInOrder
+                        ? `${submitters.length} recipient(s) will be emailed one at a time, in order.`
+                        : `${submitters.length} recipient(s) will be emailed at the same time.`}
+                  </p>
+
+                  {submitters?.length > 1 && (
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={signInOrder}
+                        onChange={(e) => setSignInOrder(e.target.checked)}
+                        disabled={isSendingSignature}
+                        className="h-3.5 w-3.5 cursor-pointer"
+                      />
+                      Ask signers one at a time, in order
+                    </label>
+                  )}
+                </div>
 
                 <Button
                   onClick={handleSendForSignature}
