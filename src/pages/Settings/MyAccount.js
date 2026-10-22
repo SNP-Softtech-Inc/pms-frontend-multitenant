@@ -1904,9 +1904,12 @@ const formatTimePeriod = (seconds) => {
           host: data.settings.host,
           port: data.settings.port || 993,
         }));
-      } else {
+      } else if (!data.oauthProvider) {
         // Nothing was reachable, so the manual fields open with the
         // explanation above them rather than leaving a dead end.
+        //
+        // Not for a Workspace or 365 domain though: there is no IMAP host to
+        // type, and offering the fields would suggest otherwise.
         setShowImapAdvanced(true);
       }
     } catch (err) {
@@ -2562,7 +2565,49 @@ console.log("getasscestoken",token)
                     </p>
                   )}
 
-                  {imapDiscovery && !imapDiscovery.found && !imapDiscovery.searching && (
+                  {/* A domain run by Google Workspace or Microsoft 365 is
+                      not a failure - it is the wrong door. Those mailboxes
+                      connect by OAuth, so the right button is offered
+                      directly rather than leaving the user in a form that
+                      cannot work for them. */}
+                  {imapDiscovery?.oauthProvider && (
+                    <div className="rounded-md border border-blue-300 bg-blue-50 px-3 py-3">
+                      <p className="text-xs text-blue-900">
+                        {imapDiscovery.message} {imapDiscovery.hint}
+                      </p>
+
+                      <Button
+                        size="sm"
+                        className="mt-2 gap-2"
+                        onClick={
+                          imapDiscovery.oauthProvider === "google"
+                            ? handleConnectGmail
+                            : handleConnectMicrosoft
+                        }
+                        disabled={
+                          imapDiscovery.oauthProvider === "microsoft" &&
+                          !mailProviders.microsoft?.available
+                        }
+                      >
+                        {imapDiscovery.oauthProvider === "google" ? (
+                          <>
+                            <SiGmail className="h-4 w-4" />
+                            Connect Gmail instead
+                          </>
+                        ) : (
+                          <>
+                            <FaMicrosoft className="h-4 w-4" />
+                            Connect Outlook instead
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {imapDiscovery &&
+                    !imapDiscovery.found &&
+                    !imapDiscovery.searching &&
+                    !imapDiscovery.oauthProvider && (
                     <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
                       <p className="text-xs text-amber-900">
                         {imapDiscovery.message}
