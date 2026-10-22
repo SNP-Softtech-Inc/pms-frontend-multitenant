@@ -1009,6 +1009,8 @@ import {
   TAB_LIST_CLASS,
   TAB_TRIGGER_CLASS,
 } from "../../components/SettingsTabs";
+import { SiGmail, SiIcloud, SiZoho } from "react-icons/si";
+import { FaMicrosoft, FaYahoo, FaAt, FaEnvelope } from "react-icons/fa";
 import { authAPI } from "../../services/api";
 
 // SHADCN UI
@@ -1069,29 +1071,58 @@ const IMAP_PROVIDERS = [
   {
     id: "yahoo",
     label: "Yahoo",
+    Icon: FaYahoo,
+    color: "#6001D2",
     appPassword: "Yahoo requires an app password: Account Security → Generate app password.",
   },
   {
     id: "icloud",
     label: "iCloud",
+    Icon: SiIcloud,
+    color: "#3693F3",
     appPassword: "iCloud requires an app password: Apple ID → Sign-In and Security → App-Specific Passwords.",
   },
   {
     id: "zoho",
     label: "Zoho",
+    Icon: SiZoho,
+    color: "#E42527",
     appPassword: "Zoho may require an app password if two-factor authentication is on.",
   },
   {
     id: "aol",
     label: "AOL",
+    // Neither Simple Icons nor Font Awesome carries an AOL mark, so this is
+    // a generic @ rather than a brand that is not theirs.
+    Icon: FaAt,
+    color: "#1D7BD6",
     appPassword: "AOL requires an app password: Account Security → Generate app password.",
   },
   {
     id: "other",
     label: "Other",
+    Icon: FaEnvelope,
+    color: "#64748B",
     appPassword: null,
   },
 ];
+
+// The icon shown against a connected mailbox in the list. Keyed by the
+// provider the server reports, not by anything the user typed.
+const providerIcon = (provider, host) => {
+  if (provider === "google") return { Icon: SiGmail, color: "#EA4335" };
+  if (provider === "microsoft") return { Icon: FaMicrosoft, color: "#0078D4" };
+
+  // An IMAP mailbox is whatever its host says it is.
+  const match = IMAP_PROVIDERS.find(
+    (candidate) =>
+      candidate.id !== "other" && String(host || "").includes(candidate.id),
+  );
+
+  return match
+    ? { Icon: match.Icon, color: match.color }
+    : { Icon: FaEnvelope, color: "#64748B" };
+};
 
 
 const MyAccount = () => {
@@ -2349,7 +2380,21 @@ console.log("getasscestoken",token)
                       key={`${account.provider}-${account.email}`}
                       className="flex items-center justify-between gap-3 px-4 py-3"
                     >
-                      <div className="min-w-0">
+                      <div className="flex min-w-0 items-center gap-3">
+                        {(() => {
+                          const { Icon, color } = providerIcon(
+                            account.provider,
+                            account.host,
+                          );
+                          return (
+                            <Icon
+                              className="h-5 w-5 shrink-0"
+                              style={{ color }}
+                            />
+                          );
+                        })()}
+
+                        <div className="min-w-0">
                         <div className="truncate text-sm font-medium">
                           {account.email}
                         </div>
@@ -2362,6 +2407,7 @@ console.log("getasscestoken",token)
                           {account.lastSyncAt
                             ? ` · last synced ${new Date(account.lastSyncAt).toLocaleString()}`
                             : ""}
+                        </div>
                         </div>
                       </div>
 
@@ -2402,7 +2448,10 @@ console.log("getasscestoken",token)
               <Label className="text-xs">Add a mailbox</Label>
 
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button onClick={handleConnectGmail}>Connect Gmail</Button>
+                <Button onClick={handleConnectGmail} className="gap-2">
+                  <SiGmail className="h-4 w-4" />
+                  Connect Gmail
+                </Button>
 
                 {/* Disabled rather than hidden when the server cannot
                     currently connect it - a button that answers 503 is worse
@@ -2416,7 +2465,16 @@ console.log("getasscestoken",token)
                       ? "Connect an Outlook or Microsoft 365 mailbox"
                       : "Not configured on this server yet"
                   }
+                  className="gap-2"
                 >
+                  <FaMicrosoft
+                    className="h-4 w-4"
+                    style={{
+                      color: mailProviders.microsoft?.available
+                        ? "#0078D4"
+                        : undefined,
+                    }}
+                  />
                   Connect Outlook
                 </Button>
 
@@ -2437,7 +2495,19 @@ console.log("getasscestoken",token)
                         ? `Connect a ${provider.label} mailbox`
                         : "Not configured on this server yet"
                     }
+                    className="gap-2"
                   >
+                    {/* The mark greys out with the button rather than staying
+                        in brand colour on a disabled control, which would
+                        read as still clickable. */}
+                    <provider.Icon
+                      className="h-4 w-4"
+                      style={{
+                        color: mailProviders.imap?.available
+                          ? provider.color
+                          : undefined,
+                      }}
+                    />
                     {provider.label}
                   </Button>
                 ))}
@@ -2445,6 +2515,18 @@ console.log("getasscestoken",token)
 
               {showImapForm && mailProviders.imap?.available && (
                 <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                  {imapProvider && (
+                    <div className="flex items-center gap-2 pb-1">
+                      <imapProvider.Icon
+                        className="h-4 w-4"
+                        style={{ color: imapProvider.color }}
+                      />
+                      <span className="text-sm font-medium">
+                        Connect {imapProvider.label}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Email and password only. The server name, port and TLS
                       settings are worked out from the address - asking for
                       them was the whole reason connecting a mailbox needed a
