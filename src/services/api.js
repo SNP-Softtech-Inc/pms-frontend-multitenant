@@ -1202,8 +1202,13 @@ export const esignAPI = {
   // second signer is only emailed once the first has signed, and the builder
   // gives no way to change it. The server creates the submission with
   // order "random" so everyone is invited at once.
+  // /api/submissions is proxied by nginx and prefix-matches, so this is
+  // reachable without a server-side change. On its own path
+  // (/api/send-submission) it was not proxied at all - nginx answered with
+  // its default page and the request never reached the backend, so pressing
+  // Send appeared to do nothing.
   sendSubmission: (data) =>
-    signatureApi.post("/api/send-submission", data),
+    signatureApi.post("/api/submissions/send", data),
 
   // DocuSeal embedded token
   getDocusealToken: (templateId) =>
