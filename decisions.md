@@ -8,6 +8,67 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-10-24 · Test harness (staging only)
+
+### A static guard against module-scope hooks, and why not a render test
+
+The only test here was Create React App boilerplate asserting the app
+renders a "learn react" link. It does not, and has not for a long time —
+it had been failing silently because nobody ran it. Removed.
+
+**What replaced it: `src/__tests__/noModuleScopeHooks.test.js`.** It parses
+every source file with `@babel/parser` and fails any `use*` call that has
+no function parent.
+
+**Why this one test, before any other:** it encodes the v1.48.0 outage. A
+hook at module scope throws on *import*, so it does not break one screen —
+it kills every route, as a white page, in production, while the build still
+succeeds. Nothing in the normal pipeline catches it.
+
+**Why static rather than a render test:** no provider tree to construct, so
+it cannot go stale when the stack changes; it covers all 292 files rather
+than the few a render test would reach; and it runs in about 4 seconds
+warm. A render test would check one component and break for unrelated
+reasons.
+
+**It proves itself.** Five self-tests assert the detector flags a
+module-scope hook, flags the exact v1.48.0 shape, and does *not* flag hooks
+inside components, custom hooks or arrow components. A guard that cannot
+fail is worth nothing.
+
+### Render and component tests are currently blocked
+
+An import smoke test on `App.js` was attempted and abandoned. The chain:
+
+1. `react-router-dom@7.15.1` declares `main: ./dist/main.js`, **which does
+   not exist**. Only its `exports` map is correct, and CRA 5 ships jest 27,
+   which cannot read exports maps.
+2. Mapping that exposed `react-router/dom`, another exports subpath.
+3. Then jsdom under jest 27 has no `TextEncoder`, which react-router 7
+   needs at import.
+4. Then an untransformed ESM dependency — `Unexpected token 'export'` —
+   and the single test took **384 seconds**.
+
+**Decision: stop there.** Steps 1–3 are fixed and kept (`moduleNameMapper`
+in `package.json`, a `TextEncoder`/`TextDecoder` polyfill in
+`setupTests.js`) because they are correct and are prerequisites for any
+future component test. Step 4 needs `transformIgnorePatterns` work, or
+migrating off `react-scripts` to Vite — a real project, not a test fix.
+
+**What that means in practice:** unit tests of pure modules work today,
+component and render tests do not. Do not plan on a render test here until
+step 4 is resolved.
+
+### Mocking axios: CRA sets `resetMocks: true`
+
+It strips the implementation from every `jest.fn` before each test, so a
+mock built from `jest.fn()` loses its body and silently records nothing —
+the failure looks like wiring, not configuration, and took a diagnostic run
+to find. `src/services/api.test.js` uses plain functions and counts calls by
+hand for that reason.
+
+---
+
 ## v1.59.0 · `91be04a`
 
 ### Encode the attachment id before putting it in the URL
