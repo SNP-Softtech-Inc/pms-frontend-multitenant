@@ -1057,6 +1057,7 @@ import {
   // getAccessToken,
   clearAccessToken,
 } from "../../services/tokenService";
+import { nextImapFormForEmail } from "./imapFormState";
 // Providers worth naming in the UI.
 //
 // All of them connect over IMAP and all of them have their host discovered
@@ -1871,7 +1872,11 @@ const formatTimePeriod = (seconds) => {
   };
 
   const handleImapEmailChange = (email) => {
-    setImapForm((prev) => ({ ...prev, email, username: prev.username || email }));
+    // Do NOT derive the username here. This runs per keystroke, so
+    // `prev.username || email` locked the username to the first character
+    // typed and every IMAP login was attempted as user "v". The server
+    // defaults it (username || email) at the point of use instead.
+    setImapForm((prev) => nextImapFormForEmail(prev, email));
 
     // A changed address invalidates whatever was discovered for the old one.
     if (imapDiscovery) setImapDiscovery(null);
