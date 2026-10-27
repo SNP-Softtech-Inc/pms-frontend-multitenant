@@ -94,6 +94,24 @@ particular stays server-side in esignature-backend.
 
 ---
 
+## Connecting a mailbox (Settings → Email Sync)
+
+```
+"Add a mailbox" box: address → Continue
+  └─ authAPI.discoverImapHost(email)        GET /api/emailsync/imap/discover
+       └─ routeForDiscovery(answer, mailProviders)     connectRoute.js
+            ├─ oauthProvider "google"     → handleConnectGmail     (Google sign-in)
+            ├─ oauthProvider "microsoft"  → handleConnectMicrosoft (Microsoft sign-in)
+            ├─ provider not available     → notice under the box, no redirect
+            └─ anything else              → IMAP form, address + server filled in,
+                                            app-password note via imapProviderIdFor
+```
+
+The provider buttons are still there, behind "Choose your provider
+instead". The connected-mailbox list and the tab bar are unchanged.
+
+---
+
 ## Build
 
 ```bash

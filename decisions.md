@@ -8,6 +8,38 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-10-27 · v1.61.0 · staging only
+
+### One "Connect your email" box instead of a row of provider buttons
+
+**Decision:** the Email Sync tab's "Add a mailbox" leads with one address
+box. Continue asks signup-login's `/imap/discover` who runs the address, and
+`routeForDiscovery` (`src/pages/Settings/connectRoute.js`) sends it to Google
+sign-in, Microsoft sign-in, or the password form with the server filled in.
+The seven provider buttons stay, behind "Choose your provider instead".
+
+**Why:** the user compared this with TaxDome, where connecting a mailbox
+feels like typing an email and a password. For Gmail and Outlook that is
+the provider's own sign-in page (OAuth), which we already had - but people
+had to know to pick the right button, and a firm on Google Workspace or
+Microsoft 365 with its own domain had no way to tell which one was theirs.
+The server already knew; it now says so (signup-login v1.21.0).
+
+**When the right door is not open:** if the server cannot connect that
+provider yet (Microsoft before the Azure registration, IMAP without
+`MAIL_SECRET_KEY`), the box says so instead of redirecting to a 503.
+
+**If the lookup fails:** the password form opens with its manual server
+fields, which is what the old form did on the same failure.
+
+**Rejected:** detecting the provider in the browser. Workspace and 365
+domains can only be recognised from their MX records, which needs the server.
+
+**Not changed:** the tab bar, the connected-mailbox list, the IMAP form, and
+the Gmail/Microsoft redirects themselves.
+
+---
+
 ## 2026-10-24 · Test harness (staging only)
 
 ### A static guard against module-scope hooks, and why not a render test

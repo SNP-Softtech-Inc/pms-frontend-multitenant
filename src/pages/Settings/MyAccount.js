@@ -1058,6 +1058,7 @@ import {
   clearAccessToken,
 } from "../../services/tokenService";
 import { nextImapFormForEmail } from "./imapFormState";
+import { isCompleteAddress, routeForDiscovery, imapProviderIdFor } from "./connectRoute";
 // Providers worth naming in the UI.
 //
 // All of them connect over IMAP and all of them have their host discovered
@@ -1161,6 +1162,13 @@ const MyAccount = () => {
   // Which named provider the user chose. Affects the guidance shown, not the
   // connection - the server is discovered from the address either way.
   const [imapProvider, setImapProvider] = useState(null);
+
+  // "Connect your email": one address, and the server's answer decides where
+  // it goes. The provider buttons stay available behind a link.
+  const [connectEmail, setConnectEmail] = useState("");
+  const [routingConnect, setRoutingConnect] = useState(false);
+  const [connectNotice, setConnectNotice] = useState(null);
+  const [showProviderChoice, setShowProviderChoice] = useState(false);
 
   const AUTH_USER_URL = process.env.REACT_APP_AUTH_USER;
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
@@ -1963,6 +1971,7 @@ const formatTimePeriod = (seconds) => {
       setImapDiscovery(null);
       setShowImapAdvanced(false);
       setImapProvider(null);
+      setConnectEmail("");
 
       await loadMailboxes();
     } catch (err) {
@@ -2032,6 +2041,58 @@ console.log("getasscestoken",token)
         type: "error",
       });
     }
+  };
+
+  // Ask the server who runs this address, then go there: Google or Microsoft
+  // sign-in, or the password form with the server already filled in. The
+  // decision itself is in connectRoute.js, where it is tested.
+  const handleContinueConnect = async () => {
+    const address = connectEmail.trim();
+
+    if (routingConnect || !isCompleteAddress(address)) return;
+
+    setConnectNotice(null);
+    setRoutingConnect(true);
+
+    let discovery = null;
+
+    try {
+      const res = await authAPI.discoverImapHost(address, getAccessToken());
+      discovery = res?.data || null;
+    } catch (err) {
+      // The password form, with its manual fields open, is still a way on.
+      console.error("Mail server lookup failed:", err);
+      discovery = { found: false, message: "Could not look up this mail server." };
+    } finally {
+      setRoutingConnect(false);
+    }
+
+    const route = routeForDiscovery(discovery, mailProviders);
+
+    if (route.kind === "google") return handleConnectGmail();
+    if (route.kind === "microsoft") return handleConnectMicrosoft();
+
+    if (route.kind === "unavailable") {
+      setConnectNotice(route.message);
+      return;
+    }
+
+    const host = discovery?.settings?.host || "";
+    const providerId = imapProviderIdFor(address, host);
+
+    setImapProvider(IMAP_PROVIDERS.find((p) => p.id === providerId) || null);
+    setImapForm({
+      email: address,
+      host,
+      port: discovery?.settings?.port || 993,
+      username: "",
+      password: "",
+    });
+    // Set alongside the address, so the form's own on-blur lookup does not
+    // run the same discovery again.
+    setImapDiscovery(discovery);
+    setShowImapAdvanced(!discovery?.found);
+    setShowImapForm(true);
   };
 
   return (
@@ -2455,7 +2516,53 @@ console.log("getasscestoken",token)
             <div className="space-y-3 border-t border-border pt-4">
               <Label className="text-xs">Add a mailbox</Label>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
+              {/* One box for every provider. Gmail, Google Workspace,
+                  Outlook and Microsoft 365 go straight to their own sign-in
+                  page; anything else gets the password form. */}
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  type="email"
+                  placeholder="you@yourfirm.com"
+                  value={connectEmail}
+                  onChange={(e) => {
+                    setConnectEmail(e.target.value);
+                    if (connectNotice) setConnectNotice(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleContinueConnect();
+                  }}
+                  disabled={routingConnect}
+                />
+                <Button
+                  onClick={handleContinueConnect}
+                  disabled={routingConnect || !isCompleteAddress(connectEmail)}
+                  className="min-w-[110px]"
+                >
+                  {routingConnect ? "Checking..." : "Continue"}
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Gmail, Google Workspace, Outlook and Microsoft 365 sign in on
+                their own page. Any other mailbox asks for its password.
+              </p>
+
+              {connectNotice && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
+                  <p className="text-xs text-amber-900">{connectNotice}</p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowProviderChoice((v) => !v)}
+                className="text-xs text-muted-foreground underline"
+              >
+                {showProviderChoice ? "Hide providers" : "Choose your provider instead"}
+              </button>
+
+              {showProviderChoice && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Button onClick={handleConnectGmail} className="gap-2">
                   <SiGmail className="h-4 w-4" />
                   Connect Gmail
@@ -2520,6 +2627,7 @@ console.log("getasscestoken",token)
                   </Button>
                 ))}
               </div>
+              )}
 
               {showImapForm && mailProviders.imap?.available && (
                 <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
