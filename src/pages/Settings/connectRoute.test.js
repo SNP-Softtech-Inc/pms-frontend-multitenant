@@ -80,6 +80,33 @@ describe("routeForDiscovery", () => {
   });
 });
 
+describe("routeForDiscovery - Zoho", () => {
+  const WITH_ZOHO = { ...ALL, zoho: { available: true } };
+
+  it.each([
+    ["a personal Zoho address", "me@zohomail.in", "imap.zoho.in"],
+    ["a firm's own domain on Zoho", "partner@theirfirm.com", "imappro.zoho.in"],
+  ])("sends %s to Zoho sign-in when it is available", (_, email, host) => {
+    expect(routeForDiscovery({ found: true, settings: { host } }, WITH_ZOHO, email)).toEqual({ kind: "zoho" });
+  });
+
+  it("keeps the password form for Zoho while Zoho sign-in is not set up", () => {
+    expect(
+      routeForDiscovery({ found: true, settings: { host: "imap.zoho.in" } }, ALL, "me@zohomail.in"),
+    ).toEqual({ kind: "imap" });
+  });
+
+  it("does not send other mailboxes to Zoho", () => {
+    expect(
+      routeForDiscovery({ found: true, settings: { host: "imap.mail.yahoo.com" } }, WITH_ZOHO, "me@yahoo.com"),
+    ).toEqual({ kind: "imap" });
+  });
+
+  it("recognises Zoho from the address when the lookup failed", () => {
+    expect(routeForDiscovery(null, WITH_ZOHO, "me@zohomail.in")).toEqual({ kind: "zoho" });
+  });
+});
+
 describe("imapProviderIdFor - which app-password note to show", () => {
   it.each([
     ["me@yahoo.com", "imap.mail.yahoo.com", "yahoo"],

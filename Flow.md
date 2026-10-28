@@ -99,16 +99,21 @@ particular stays server-side in esignature-backend.
 ```
 "Add a mailbox" box: address → Continue
   └─ authAPI.discoverImapHost(email)        GET /api/emailsync/imap/discover
-       └─ routeForDiscovery(answer, mailProviders)     connectRoute.js
+       └─ routeForDiscovery(answer, mailProviders, address)   connectRoute.js
             ├─ oauthProvider "google"     → handleConnectGmail     (Google sign-in)
             ├─ oauthProvider "microsoft"  → handleConnectMicrosoft (Microsoft sign-in)
+            ├─ Zoho address or host, and
+            │  mailProviders.zoho.available → handleConnectZoho    (Zoho sign-in)
             ├─ provider not available     → notice under the box, no redirect
             └─ anything else              → IMAP form, address + server filled in,
                                             app-password note via imapProviderIdFor
 ```
 
 The provider buttons are still there, behind "Choose your provider
-instead". The connected-mailbox list and the tab bar are unchanged.
+instead". The Zoho button signs in with Zoho when the server reports it
+available, and opens the password form otherwise. A Zoho mailbox connected
+by sign-in shows "Zoho · signed in with Zoho" and has its own Disconnect
+(`authAPI.disconnectZohoMailbox`, `GET /api/emailsync/zoho/disconnect`).
 
 ---
 
