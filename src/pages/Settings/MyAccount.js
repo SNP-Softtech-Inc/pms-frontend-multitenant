@@ -1620,6 +1620,7 @@ const formatTimePeriod = (seconds) => {
   });
 }
     } catch (error) {
+      console.log("Error updating login details:", error);
       showToast({
         title: "Failed to update login details",
         description: error.response?.data?.message || "Failed to update login details",
