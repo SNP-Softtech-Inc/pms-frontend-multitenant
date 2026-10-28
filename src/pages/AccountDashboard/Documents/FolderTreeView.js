@@ -5716,7 +5716,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   //  fields={builderFields}
   withFieldPlaceholder={true}
   withCustomFieldsTab={true}
-  onlyDefinedFields={false}
+  // onlyDefinedFields={false}
                   withSignatureId={false}
                   dateFormats={['MM/DD/YYYY']}
                   customCss={customCss}
