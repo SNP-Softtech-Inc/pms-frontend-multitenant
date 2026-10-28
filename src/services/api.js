@@ -517,8 +517,16 @@ replyEmail: (data) =>
       `/api/emailsync/unarchive/${threadId}`
     ),
     // Get attachment data by attachment ID
+  //
+  // Encoded, because the id goes into the PATH. Gmail's attachment ids are
+  // opaque strings - usually base64url, which is path-safe, but anything
+  // carrying a +, / or = would otherwise be read as part of the route and
+  // 404 with no indication why. They are also several hundred characters
+  // long, so an id that breaks is not something anyone spots by eye.
   getAttachmentData: (attachmentId) =>
-    authUserApi.get(`/api/emailsync/attachment/${attachmentId}`),
+    authUserApi.get(
+      `/api/emailsync/attachment/${encodeURIComponent(attachmentId)}`,
+    ),
 
  
 
@@ -1202,8 +1210,13 @@ export const esignAPI = {
   // second signer is only emailed once the first has signed, and the builder
   // gives no way to change it. The server creates the submission with
   // order "random" so everyone is invited at once.
+  // /api/submissions is proxied by nginx and prefix-matches, so this is
+  // reachable without a server-side change. On its own path
+  // (/api/send-submission) it was not proxied at all - nginx answered with
+  // its default page and the request never reached the backend, so pressing
+  // Send appeared to do nothing.
   sendSubmission: (data) =>
-    signatureApi.post("/api/send-submission", data),
+    signatureApi.post("/api/submissions/send", data),
 
   // DocuSeal embedded token
   getDocusealToken: (templateId) =>
