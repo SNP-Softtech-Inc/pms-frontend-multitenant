@@ -487,6 +487,13 @@ connectImapMailbox: (data, token) =>
 
 disconnectImapMailbox: (email, token) =>
   authUserApi.post(`/api/emailsync/imap/disconnect?token=${token}`, { email }),
+
+// A Zoho mailbox connected by signing in with Zoho. Kept, marked
+// disconnected, its tokens dropped.
+disconnectZohoMailbox: (email, token) =>
+  authUserApi.get(
+    `/api/emailsync/zoho/disconnect?token=${token}&email=${encodeURIComponent(email)}`,
+  ),
 // Get communication emails
 getEmailCommunications: () =>
   authUserApi.get("/api/emailsync/communications"),

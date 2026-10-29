@@ -1138,6 +1138,7 @@ const MyAccount = () => {
     google: { available: true },
     microsoft: { available: false },
     imap: { available: false },
+    zoho: { available: false },
   });
   const [loadingMailboxes, setLoadingMailboxes] = useState(false);
 
@@ -1880,6 +1881,32 @@ const formatTimePeriod = (seconds) => {
     window.location.href = `${USER_URL}/api/emailsync/microsoft?token=${token}`;
   };
 
+  // Zoho sign-in, the same full-page redirect as Microsoft. Only offered
+  // where the server reports Zoho available; otherwise Zoho keeps the
+  // password form.
+  const handleConnectZoho = () => {
+    const token = getAccessToken();
+
+    if (!token) {
+      showToast({
+        title: "Login token missing",
+        description: "Please login again to connect a mailbox.",
+        type: "error",
+      });
+      return;
+    }
+
+    window.location.href = `${USER_URL}/api/emailsync/zoho?token=${token}`;
+  };
+
+  // A named provider button works if its mailbox can connect at all: by
+  // password (IMAP), or for Zoho by signing in.
+  const providerButtonEnabled = (provider) =>
+    Boolean(
+      mailProviders.imap?.available ||
+        (provider.id === "zoho" && mailProviders.zoho?.available),
+    );
+
   const handleImapEmailChange = (email) => {
     // Do NOT derive the username here. This runs per keystroke, so
     // `prev.username || email` locked the username to the first character
@@ -2001,6 +2028,23 @@ const formatTimePeriod = (seconds) => {
     }
   };
 
+  const handleDisconnectZoho = async (email) => {
+    try {
+      const token = getAccessToken();
+      await authAPI.disconnectZohoMailbox(email, token);
+
+      showToast({
+        title: "Mailbox disconnected",
+        type: "success",
+      });
+
+      await loadMailboxes();
+    } catch (err) {
+      console.error("Zoho disconnect failed:", err);
+      showToast({ title: "Could not disconnect", type: "error" });
+    }
+  };
+
   const handleDisconnectImap = async (email) => {
     try {
       const token = getAccessToken();
@@ -2068,10 +2112,11 @@ console.log("getasscestoken",token)
       setRoutingConnect(false);
     }
 
-    const route = routeForDiscovery(discovery, mailProviders);
+    const route = routeForDiscovery(discovery, mailProviders, address);
 
     if (route.kind === "google") return handleConnectGmail();
     if (route.kind === "microsoft") return handleConnectMicrosoft();
+    if (route.kind === "zoho") return handleConnectZoho();
 
     if (route.kind === "unavailable") {
       setConnectNotice(route.message);
@@ -2473,7 +2518,9 @@ console.log("getasscestoken",token)
                             ? "Gmail"
                             : account.provider === "microsoft"
                               ? "Outlook / Microsoft 365"
-                              : account.host || "IMAP"}
+                              : account.provider === "zoho"
+                                ? "Zoho · signed in with Zoho"
+                                : account.host || "IMAP"}
                           {account.lastSyncAt
                             ? ` · last synced ${new Date(account.lastSyncAt).toLocaleString()}`
                             : ""}
@@ -2502,6 +2549,15 @@ console.log("getasscestoken",token)
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDisconnectImap(account.email)}
+                          >
+                            Disconnect
+                          </Button>
+                        )}
+                        {account.provider === "zoho" && account.connected && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDisconnectZoho(account.email)}
                           >
                             Disconnect
                           </Button>
@@ -2602,12 +2658,18 @@ console.log("getasscestoken",token)
                     key={provider.id}
                     variant="outline"
                     onClick={() => {
+                      // Zoho signs in where the server supports it, with no
+                      // password; every other provider opens the form.
+                      if (provider.id === "zoho" && mailProviders.zoho?.available) {
+                        handleConnectZoho();
+                        return;
+                      }
                       setImapProvider(provider);
                       setShowImapForm(true);
                     }}
-                    disabled={!mailProviders.imap?.available}
+                    disabled={!providerButtonEnabled(provider)}
                     title={
-                      mailProviders.imap?.available
+                      providerButtonEnabled(provider)
                         ? `Connect a ${provider.label} mailbox`
                         : "Not configured on this server yet"
                     }
@@ -2619,7 +2681,7 @@ console.log("getasscestoken",token)
                     <provider.Icon
                       className="h-4 w-4"
                       style={{
-                        color: mailProviders.imap?.available
+                        color: providerButtonEnabled(provider)
                           ? provider.color
                           : undefined,
                       }}

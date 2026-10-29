@@ -8,6 +8,30 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-10-28 · v1.62.0 · staging only
+
+### Zoho mailboxes sign in with Zoho where the server supports it
+
+**Decision:** a Zoho address in the "Connect your email" box, or the Zoho
+provider button, goes to Zoho sign-in (signup-login v1.22.0) when
+`mailProviders.zoho.available` is true, and to the password form otherwise.
+A mailbox connected this way shows "Zoho · signed in with Zoho" and has its
+own Disconnect.
+
+**Why:** the user asked to remove app passwords provider by provider. Zoho
+with two-factor sign-in required one; signing in with Zoho does not.
+
+**Recognising Zoho:** by the address's domain or the discovered IMAP host
+(`imapProviderIdFor`), so a firm's own domain on Zoho - found through its MX
+record as imappro.zoho.* - signs in too, and a personal zohomail address is
+recognised even if the lookup fails.
+
+**Nothing changes where Zoho sign-in is not set up:** `zoho` is unavailable
+by default and in any environment without the ZOHO_* settings, so the box and
+the button behave exactly as in v1.61.0 - the password form.
+
+---
+
 ## 2026-10-27 · v1.61.0 · staging only
 
 ### One "Connect your email" box instead of a row of provider buttons

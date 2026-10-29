@@ -18,10 +18,24 @@ const UNAVAILABLE = {
 /**
  * @param discovery  the /imap/discover answer, or null if the lookup failed
  * @param providers  which providers this server can connect right now
- * @returns {{kind: "google"|"microsoft"|"imap"} | {kind: "unavailable", message: string}}
+ * @param address    the address typed, for recognising Zoho
+ * @returns {{kind: "google"|"microsoft"|"zoho"|"imap"} | {kind: "unavailable", message: string}}
  */
-export const routeForDiscovery = (discovery, providers) => {
+export const routeForDiscovery = (discovery, providers, address) => {
   const oauth = discovery?.oauthProvider;
+
+  // Zoho signs in where the server supports it, and otherwise keeps the
+  // password form it always had - so a server without Zoho sign-in set up
+  // behaves exactly as before.
+  if (
+    oauth !== "google" &&
+    oauth !== "microsoft" &&
+    providers?.zoho?.available &&
+    imapProviderIdFor(address, discovery?.settings?.host) === "zoho"
+  ) {
+    return { kind: "zoho" };
+  }
+
   const kind = oauth === "google" || oauth === "microsoft" ? oauth : "imap";
 
   // A redirect to a provider the server has not configured lands on a 503,
