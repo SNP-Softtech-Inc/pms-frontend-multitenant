@@ -8,6 +8,68 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-10-29 · v1.63.0 · staging only
+
+### Auto refresh on every data screen, through one shared hook
+
+The user: auto refresh "works for some screens and for some it doesn't" -
+fix it, in both the admin app and the client portal.
+
+**One shared mechanism.** `src/lib/autoRefresh.js` (`startAutoRefresh`,
+`keepIfSame`) and `src/hooks/useAutoRefresh.js`. Every 30 seconds while the
+tab is visible, and at once on return to the tab or window; nothing while
+hidden; never two requests at once; a failed refresh is logged and the next
+one still runs; nothing below 5 seconds is accepted. Before this, each screen
+that refreshed had its own copy of a setInterval block, with no overlap guard
+- and most screens had none, which is why it "worked on some screens".
+
+**Quiet, or not at all.** A screen's normal load usually shows a spinner,
+toasts on failure, or clears the list on error. Called every 30 seconds that
+would blink the page, stack error toasts, or - where the spinner replaces the
+page - unmount an open dialog. So each screen refreshes through a silent path:
+no spinner, no toast, a failure keeps what is shown.
+
+**`keepIfSame`.** A quiet refresh hands back the current object when the
+server's answer is identical, so React does not re-render. Without it the
+shared table jumps back to page 1 every 30 seconds, and chat views scroll to
+the bottom.
+
+**Paused while the user is working.** Each screen passes `enabled: false`
+while a form, drawer, dialog, signature, upload or save is open or running.
+
+**React Query screens** (accounts, contacts, jobs, tasks, invoices, account
+pipelines, payments) take `refetchInterval` instead - React Query already
+pauses in a hidden tab, refetches on focus and keeps unchanged data
+identical. The two drag-and-drop boards pause while a card is dragged or any
+change is saving (`useIsMutating`), so a refetch cannot pull a card back.
+
+**Not refreshed, on purpose:**
+- forms - organizer and proposal editors, new proposal, pipeline and
+  proposal templates, the import screens, firm settings, My Account
+- the account invoice queries (InvoiceList, and Payment's invoice query):
+  their queryFn PUTs an "Overdue" status, a write that must not run on a
+  timer. They still refresh on return to the tab, as before
+- the header badge polls and Communication's chat polls: they already
+  refreshed correctly and are left as they were
+
+**Changed polls:** Inbox+ polled every 20s even in a hidden tab and never on
+focus; it now uses the hook (still 20s). Internal communication had none; it
+now refreshes the list and the open chat every 15s, dropping an answer for a
+chat the user has since left.
+
+**Checked by:** a Babel script over every call - inside a component, a
+top-level statement, before any early return, and nothing read during render
+used before it is declared - proven on deliberately broken input; ESLint
+`no-undef` and `rules-of-hooks` on every changed file against the previous
+commit (three pre-existing undefined names, none new); the core's 14 unit
+tests; the full suite (363) and a production build.
+
+**Pre-existing, found on the way, not changed:** Payment.js calls an
+undefined `isInvoiceOverdue`; several `invalidateQueries([...])` calls use
+the v4 array form, which in v5 matches every query.
+
+---
+
 ## 2026-10-28 · v1.62.0 · staging only
 
 ### Zoho mailboxes sign in with Zoho where the server supports it

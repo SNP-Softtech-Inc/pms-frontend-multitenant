@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { chatAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 // Strips tags to plain text via the DOM parser (not a regex) so
 // HTML-entity-encoded content (e.g. "&nbsp;", "&lt;b&gt;") decodes
@@ -27,9 +29,9 @@ const ActiveChats = ({ accountId, setChatsCount }) => {
   const [chatList, setChatList] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const accountwiseChatlist = async (accId, active) => {
+  const accountwiseChatlist = async (accId, active, { silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const res = await chatAPI.getChatsByAccountAndStatus(
         accId,
@@ -39,15 +41,15 @@ const ActiveChats = ({ accountId, setChatsCount }) => {
 
       const chats = res.data.chataccountwise || [];
 
-      setChatList(chats);
+      setChatList(keepIfSame(chats));
 
       setChatsCount?.(chats.length);
     } catch (error) {
       console.error("Error fetching chat list:", error);
 
-      setChatsCount?.(0);
+      if (!silent) setChatsCount?.(0);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -56,6 +58,10 @@ const ActiveChats = ({ accountId, setChatsCount }) => {
       accountwiseChatlist(accountId, true);
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no spinner, unchanged data kept as it is, and a
+  // failed refresh leaves the widget and its count alone.
+  useAutoRefresh(() => accountwiseChatlist(accountId, true, { silent: true }), { enabled: Boolean(accountId) });
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-14 text-muted-foreground/60">

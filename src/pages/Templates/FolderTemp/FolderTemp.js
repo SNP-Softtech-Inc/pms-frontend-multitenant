@@ -299,6 +299,8 @@ import { Pencil, PenLine, Trash2, FolderOpen, Plus } from "lucide-react";
 import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import { folderManagementAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 
 const renameSchema = z.object({
   templatename: z.string().min(1, "Template name is required"),
@@ -321,24 +323,34 @@ const {showToast} = useToastContext();
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
+  // Outside the effect so auto refresh can call it too. silent: no skeleton,
+  // no error banner, and an unchanged list keeps its identity so the table
+  // stays on its page.
+  const fetchTemplates = async ({ silent = false } = {}) => {
+    if (!silent) {
       setLoading(true);
       setError("");
+    }
 
-      try {
-        const res = await folderManagementAPI.getFolderTemplates();
-        setTemplates(res.data.folderTemplates || []);
-      } catch (err) {
-        console.error("Error fetching templates:", err);
-        setError("Failed to fetch templates");
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const res = await folderManagementAPI.getFolderTemplates();
+      setTemplates(keepIfSame(res.data.folderTemplates || []));
+    } catch (err) {
+      console.error("Error fetching templates:", err);
+      if (!silent) setError("Failed to fetch templates");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTemplates();
   }, []);
+
+  // Paused while a template is being renamed or deleted.
+  useAutoRefresh(() => fetchTemplates({ silent: true }), {
+    enabled: !renameDialogOpen && !deleteDialogOpen,
+  });
 
   const handleCreateTemplate = () => {
     navigate("/firmtemp/templates/createfolder");

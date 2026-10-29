@@ -323,6 +323,8 @@ import { CiMenuKebab } from "react-icons/ci";
 import { useToastContext } from "../context/ToastContext";
 import { useConfirm } from "../components/ConfirmDialogContext";
 import { accountsAPI, proposalAPI } from "../services/api";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+import { keepIfSame } from "../lib/autoRefresh";
 import { DataTable } from "../components/data-table/data-table";
 import { DataTableToolbar } from "../components/data-table/toolbar";
 import {
@@ -384,6 +386,19 @@ const ProposalsEls = () => {
   useEffect(() => {
     fetchPrprosalsAllData();
   }, [filterStatus]);
+
+  // Auto refresh, quietly: no toast, and unchanged data kept as it is so the
+  // table keeps its page.
+  useAutoRefresh(async () => {
+    const accountsResponse = await accountsAPI.getAccountsList(filterStatus === "active");
+    const accountIds = (accountsResponse.data.accountlist || []).map((acc) => acc._id);
+    if (!accountIds.length) {
+      setProposalList(keepIfSame([]));
+      return;
+    }
+    const response = await proposalAPI.getAccountProposalsByAccountIds(accountIds);
+    setProposalList(keepIfSame(response.data.proposallist || []));
+  });
 
   // ================= HANDLERS =================
   const handleEdit = (_id, accountId) => {

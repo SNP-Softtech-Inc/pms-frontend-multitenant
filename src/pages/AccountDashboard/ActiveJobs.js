@@ -11,14 +11,16 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { jobAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 const ActiveJobs = ({ accountId, setJobsCount }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const res = await jobAPI.getJobsByAccount(
         accountId,
@@ -31,7 +33,7 @@ const ActiveJobs = ({ accountId, setJobsCount }) => {
        res.data.jobList ||
         [];
 
-      setJobs(activeJobs);
+      setJobs(keepIfSame(activeJobs));
 
       // send count to parent
       setJobsCount?.(activeJobs.length);
@@ -41,9 +43,9 @@ const ActiveJobs = ({ accountId, setJobsCount }) => {
         error
       );
 
-      setJobsCount?.(0);
+      if (!silent) setJobsCount?.(0);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -52,6 +54,10 @@ const ActiveJobs = ({ accountId, setJobsCount }) => {
       fetchJobs();
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no spinner, unchanged data kept as it is, and a
+  // failed refresh leaves the widget and its count alone.
+  useAutoRefresh(() => fetchJobs({ silent: true }), { enabled: Boolean(accountId) });
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-14 text-muted-foreground/60">

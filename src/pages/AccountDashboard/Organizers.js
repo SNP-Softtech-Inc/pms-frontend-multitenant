@@ -42,6 +42,8 @@ import html2canvas from "html2canvas";
 import OrganizerUpdate from "./Organizer/OrganizerUpdate";
 import OrganizerDialog from "./Organizer/OrganizerDialog";
 import { organizerAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 
 const Organizers = () => {
@@ -86,6 +88,17 @@ const {showToast} = useToastContext()
   useEffect(() => {
     fetchOrganizerTemplates();
   }, [isActiveTrue]);
+
+  // Auto refresh, quietly: no error toast, and unchanged data kept as it is -
+  // this table keys selection by row position and resets to page 1 on any new
+  // array. Paused while an organizer is being created, renamed or opened.
+  useAutoRefresh(
+    async () => {
+      const res = await organizerAPI.getActiveOrganizerByAccountId(accountId, isActiveTrue);
+      setOrganizerTemplatesData(keepIfSame(res.data.organizerAccountWise));
+    },
+    { enabled: Boolean(accountId) && !showForm && !renameDialogOpen && !openDialog },
+  );
 
   // ================= ACTIVE / ARCHIVE =================
   const handleActiveClick = () => {

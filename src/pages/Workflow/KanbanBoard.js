@@ -429,7 +429,8 @@
 
 import React, { useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useIsMutating, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../lib/autoRefresh";
 import { accountsAPI, jobAPI } from "../../services/api";
 import { useToastContext } from "../../context/ToastContext";
 import { 
@@ -484,7 +485,13 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
   };
 
   // ✅ Fetch Jobs (Logic remains identical)
+  // Auto refresh pauses mid-drag and while a move is saving, so a refetch
+  // cannot pull a card back from under the user.
+  const [dragging, setDragging] = useState(false);
+  const mutating = useIsMutating();
+
   const { data: jobs = [], isLoading } = useQuery({
+    refetchInterval: dragging || mutating > 0 ? false : AUTO_REFRESH_MS,
     queryKey: ["pipeline-jobs", isActive, pipeline._id],
     queryFn: async () => {
       const accRes = await accountsAPI.getAccountsList();
@@ -762,7 +769,13 @@ const KanbanBoard = ({ pipeline, onBack, isActive }) => {
       </DragDropContext> */}
 
 
-<DragDropContext onDragEnd={onDragEnd}>
+<DragDropContext
+  onDragStart={() => setDragging(true)}
+  onDragEnd={(result) => {
+    setDragging(false);
+    onDragEnd(result);
+  }}
+>
   <div className="flex gap-4 overflow-x-auto pb-4">
 
     {pipeline.stages.map((stage) => (

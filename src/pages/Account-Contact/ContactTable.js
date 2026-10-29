@@ -530,6 +530,7 @@ import { DataTableToolbar } from "../../components/data-table/toolbar";
 import TagMultiSelectDropDown from "../../components/TagsMultiSelectDropDown";
 import NewContactDrawer from "./NewContactDrawer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../lib/autoRefresh";
 import { contactsAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { cn } from "../../lib/utils";
@@ -588,6 +589,9 @@ const { showToast } = useToastContext();
     refetch,
   } = useQuery({
     queryKey: ["contacts"],
+    // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+    // return, and keeps unchanged data identical, so the table stays put.
+    refetchInterval: AUTO_REFRESH_MS,
     queryFn: async () => {
       const res = await contactsAPI.getContacts();
       return res.data;

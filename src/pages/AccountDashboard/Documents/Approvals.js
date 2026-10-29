@@ -147,6 +147,8 @@ import { Trash2 } from "lucide-react";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 // ✅ use centralized API
 import { accountDocsAPI } from "../../../services/api"; // adjust path
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 
 // shadcn/ui components (you'll need to install these)
 import {
@@ -189,6 +191,17 @@ const Approvals = () => {
 
     fetchApprovals();
   }, [accountId]);
+
+  // Auto refresh, quietly: no error toast every 30 seconds while the server
+  // is down, and unchanged data kept as it is. Paused while a delete is
+  // being confirmed.
+  useAutoRefresh(
+    async () => {
+      const res = await accountDocsAPI.getApprovalsByAccount(accountId);
+      setApprovals(keepIfSame(res?.data?.approvals || []));
+    },
+    { enabled: Boolean(accountId) && !deleteDialogOpen },
+  );
 
   // ✅ Delete approval
   const handleDelete = (id) => {

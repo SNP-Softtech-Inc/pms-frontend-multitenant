@@ -18,6 +18,7 @@ import {
 import { useToastContext } from "../../context/ToastContext";
 import Cookies from "js-cookie";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../lib/autoRefresh";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { accountsAPI, authAPI } from "../../services/api";
@@ -226,6 +227,9 @@ const [permissions, setPermissions] = useState(null);
   // });
 // Fetch accounts using React Query
 const { data: accountList = [], isLoading: loading } = useQuery({
+  // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+  // return, and keeps unchanged data identical, so the table stays put.
+  refetchInterval: AUTO_REFRESH_MS,
   queryKey: [
     "accounts",
     filterStatus,

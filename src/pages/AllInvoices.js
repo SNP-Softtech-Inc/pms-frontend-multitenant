@@ -5,6 +5,7 @@ import { invoiceAPI, accountsAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../components/ConfirmDialogContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../lib/autoRefresh";
 import { useToastContext } from "../context/ToastContext";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import CreateInvoiceDrawer from "./AccountDashboard/Invoices/CreateInvoiceDrawer";
@@ -44,6 +45,9 @@ const {showToast}= useToastContext()
   // ================= FETCH =================
   const { data: invoicesData = [], isLoading, isError } = useQuery({
     queryKey: ["invoices", filterStatus],
+    // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+    // return, and keeps unchanged data identical, so the table stays put.
+    refetchInterval: AUTO_REFRESH_MS,
     queryFn: async () => {
       const accountsRes = await accountsAPI.getAccountsList(
         filterStatus === "active"

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
 import {useToastContext} from "../../../context/ToastContext"
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 
 // Import components
@@ -509,20 +511,23 @@ const handleSwitchAddShortcut = (shortcut) => {
   }, [fetchCategories]);
 
   // ==================== INVOICE TEMPLATE HANDLERS ====================
-  const fetchInvoiceTemplates = useCallback(async () => {
-    setLoading(true);
+  // silent (auto refresh): no skeleton, no error toast, and an unchanged
+  // list keeps its identity so the table stays on its page.
+  const fetchInvoiceTemplates = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const response = await templateAPI.getAllInvoiceTemplates();
-      setInvoiceTemplates(response.data.invoiceTemplate || []);
+      setInvoiceTemplates(keepIfSame(response.data.invoiceTemplate || []));
     } catch (error) {
       console.error("Error fetching invoice templates:", error);
+      if (silent) return;
       showToast({
         title: "Failed to fetch invoice templates",
         type: "error",
         description: "An error occurred while fetching invoice templates"
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -669,6 +674,9 @@ const handleSwitchAddShortcut = (shortcut) => {
     fetchServiceData();
     fetchCategories();
   }, [fetchInvoiceTemplates, fetchServiceData, fetchCategories]);
+
+  // Paused while the form is open: the list is hidden behind it anyway.
+  useAutoRefresh(() => fetchInvoiceTemplates({ silent: true }), { enabled: !showForm });
 
   useEffect(() => {
     if (formData.templatename || description || formData.paymentMode || formData.emailToClient) {

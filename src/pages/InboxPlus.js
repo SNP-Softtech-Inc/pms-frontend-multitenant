@@ -43,6 +43,7 @@ import {
 } from "../components/ui/sheet";
 
 import { authAPI } from "../services/api";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 const extractMongoId = (subject = "") => {
   const match = subject.match(/#([a-f0-9]{24})\b/i);
@@ -256,14 +257,14 @@ export default function InboxPlus() {
 
   useEffect(() => {
     fetchData();
-
-    // The list previously only ever loaded once on mount - a new client
-    // message/notification wouldn't show up until the admin manually
-    // reloaded the page. Poll quietly in the background so new items
-    // appear on their own while this page is open.
-    const pollId = setInterval(() => fetchData(true), 20000);
-    return () => clearInterval(pollId);
   }, []);
+
+  // The list previously only ever loaded once on mount - a new client
+  // message/notification wouldn't show up until the admin manually
+  // reloaded the page. Poll quietly so new items appear on their own. The
+  // shared hook also stops in a hidden tab (this poll ran regardless),
+  // catches up on return, and never overlaps two requests.
+  useAutoRefresh(() => fetchData(true), { intervalMs: 20000 });
 
   const fetchData = async (silent = false) => {
     // Background polling refetches shouldn't flash the full-page loading

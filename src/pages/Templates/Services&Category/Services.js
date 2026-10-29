@@ -7,6 +7,8 @@ import { Switch } from "../../../components/ui/switch";
 import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 const Service = () => {
   const confirm = useConfirm();
@@ -35,11 +37,14 @@ const Service = () => {
   const [globalFilter, setGlobalFilter] = useState("");
 
   // ================= FETCH CATEGORY =================
-  const fetchCategories = async () => {
+  // silent (auto refresh): no toast on failure; an unchanged list keeps its
+  // identity.
+  const fetchCategories = async ({ silent = false } = {}) => {
     try {
       const res = await templateAPI.getAllCategories();
-      setCategoryData(res.data.category || []);
+      setCategoryData(keepIfSame(res.data.category || []));
     } catch (error) {
+      if (silent) return;
       showToast({
         title: "Failed to fetch categories",
         type: "error",
@@ -48,18 +53,21 @@ const Service = () => {
   };
 
   // ================= FETCH SERVICES =================
-  const fetchServices = async () => {
-    setLoading(true);
+  // silent (auto refresh): no skeleton, no toast on failure, and an
+  // unchanged list keeps its identity so the table stays on its page.
+  const fetchServices = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const res = await templateAPI.getAllServiceTemplates();
-      setServiceTemplates(res.data.serviceTemplate || []);
+      setServiceTemplates(keepIfSame(res.data.serviceTemplate || []));
     } catch (error) {
+      if (silent) return;
       showToast({
         title: "Failed to fetch services",
         type: "error",
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -335,6 +343,13 @@ const Service = () => {
     fetchCategories();
     fetchServices();
   }, []);
+
+  // Paused while either drawer is open: a service or category is being
+  // edited, and the service form picks from the category list.
+  useAutoRefresh(
+    () => Promise.all([fetchCategories({ silent: true }), fetchServices({ silent: true })]),
+    { enabled: !serviceDrawerOpen && !categoryDrawerOpen },
+  );
 
   const categoryOptions = categoryData.map((cat) => ({
     value: cat._id,

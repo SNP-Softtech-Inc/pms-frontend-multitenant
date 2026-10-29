@@ -575,6 +575,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { accountDocsAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import {useToastContext} from "../../../context/ToastContext";
 
 import {
@@ -1117,6 +1119,24 @@ const renderRows = (items, level = 0) =>
       </React.Fragment>
     );
   });
+
+// Auto refresh, inside the inner component (the outer one re-creates it).
+// Only the list is set, kept as it is when unchanged; paused while a delete
+// is being confirmed or run.
+useAutoRefresh(
+  async () => {
+    const res = await accountDocsAPI.listTrashedItems(accountId);
+    if (res.status === 200) {
+      setFolderTree(
+        keepIfSame([
+          ...(res.data.contents?.Admin || []),
+          ...(res.data.contents?.Unknown || []),
+        ]),
+      );
+    }
+  },
+  { enabled: Boolean(accountId) && !deleteDialogOpen && !bulkDeleting },
+);
 
 return (
   <div className="p-4 md:p-6 bg-background min-h-full">

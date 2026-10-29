@@ -427,6 +427,8 @@ import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import Editor from '../../../components/TextEditorShortCodes'; // Your existing Editor component
 import { templateAPI, authAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import ShortcodeTextField from '../../../components/ShortcodeTextField';
 import {useToastContext} from "../../../context/ToastContext";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
@@ -514,29 +516,37 @@ const ChatTemp = () => {
     fetchUsers();
   }, []);
 
-  // Fetch chat templates
-  const fetchChatTemplates = async () => {
-    setLoading(true);
-    const loaderDelay = new Promise((resolve) => setTimeout(resolve, 500));
+  // Fetch chat templates. silent (auto refresh): no skeleton, no minimum
+  // loader delay, no error toast, and an unchanged list keeps its identity
+  // so the table stays on its page.
+  const fetchChatTemplates = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    const loaderDelay = silent ? null : new Promise((resolve) => setTimeout(resolve, 500));
     try {
       const data = await templateAPI.getAllChatTemplates();
-      setChatTemplates(data.data.chatTemplate || []);
+      setChatTemplates(keepIfSame(data.data.chatTemplate || []));
     } catch (error) {
       console.error('Error fetching Chat templates:', error);
+      if (silent) return;
       showToast({
         title: "Failed to fetch templates",
         type: "error",
         description: "An error occurred while fetching chat templates",
       });
     } finally {
-      await loaderDelay;
-      setLoading(false);
+      if (!silent) {
+        await loaderDelay;
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchChatTemplates();
   }, []);
+
+  // Paused while the form is open: the list is hidden behind it anyway.
+  useAutoRefresh(() => fetchChatTemplates({ silent: true }), { enabled: !showForm });
 
   // Setup shortcodes
   useEffect(() => {

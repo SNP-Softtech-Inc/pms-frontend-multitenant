@@ -11,6 +11,8 @@ import {
 } from "../../components/ui/table";
 import { Card, CardContent } from "../../components/ui/card";
 import { accountDocsAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { PiFolderOpen } from "react-icons/pi";
 
 const NewTaggedDocuments = ({ accountId, setDocumentsCount, }) => {
@@ -49,7 +51,7 @@ const fetchDocuments = async () => {
     });
 
     const docs = res.data.documents || [];
-    setDocuments(docs);
+    setDocuments(keepIfSame(docs));
     setDocumentsCount?.(docs.length);
 
     // Keep the AccountsDash badge in sync
@@ -68,6 +70,9 @@ const fetchDocuments = async () => {
       fetchDocuments();
     }
   }, [accountId]);
+
+  // Auto refresh. No spinner here; unchanged data is kept as it is.
+  useAutoRefresh(fetchDocuments, { enabled: Boolean(accountId) });
 
   const EmptyState = ({
     label,

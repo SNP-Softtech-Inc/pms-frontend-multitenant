@@ -3,6 +3,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Button } from "../../../components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "../../../components/ui/table";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { useParams } from "react-router-dom";
 import { jobAPI } from "../../../services/api";
@@ -17,6 +18,9 @@ const {showToast} = useToastContext();
   // ✅ FETCH ARCHIVED
   const { data = [], isLoading } = useQuery({
     queryKey: ["jobs-by-account", accountId, false],
+    // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+    // return, and keeps unchanged data identical, so the table stays put.
+    refetchInterval: AUTO_REFRESH_MS,
     enabled: !!accountId,
     queryFn: async () => {
       const res = await jobAPI.getJobsByAccountIds(accountId, false);

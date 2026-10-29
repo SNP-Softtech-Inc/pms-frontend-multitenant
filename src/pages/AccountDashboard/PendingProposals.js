@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { proposalAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 const PendingProposals = ({
   accountId,
@@ -19,9 +21,9 @@ const PendingProposals = ({
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchProposalsAllData = async () => {
+  const fetchProposalsAllData = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const res =
         await proposalAPI.getPendingAccountProposalsByAccountId(
@@ -31,7 +33,7 @@ const PendingProposals = ({
       const proposalList =
         res.data.proposallist || [];
 
-      setProposals(proposalList);
+      setProposals(keepIfSame(proposalList));
 
       console.log(
         "pending proposals",
@@ -52,9 +54,9 @@ const PendingProposals = ({
         error
       );
 
-      setProposalsCount?.(0);
+      if (!silent) setProposalsCount?.(0);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -63,6 +65,10 @@ const PendingProposals = ({
       fetchProposalsAllData();
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no spinner, unchanged data kept as it is, and a
+  // failed refresh leaves the widget and its count alone.
+  useAutoRefresh(() => fetchProposalsAllData({ silent: true }), { enabled: Boolean(accountId) });
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-14 text-muted-foreground/60">

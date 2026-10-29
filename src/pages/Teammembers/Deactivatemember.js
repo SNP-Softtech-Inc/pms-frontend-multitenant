@@ -14,6 +14,8 @@ import {
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 
 import { authAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { useToastContext } from "../../context/ToastContext";
 import { Label } from "../../components/ui/label";
@@ -24,9 +26,12 @@ const DeactiveTeammembers = ({ refresh, onEdit }) => {
   const { showToast } = useToastContext();
     const [globalFilter, setGlobalFilter] = useState("");
   
-  const fetchTeamMembers = async () => {
+  // silent (auto refresh): "if (loading)" replaces the whole tab with a
+  // spinner, so it is never set; an unchanged list keeps its identity so the
+  // table stays on its page.
+  const fetchTeamMembers = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const res = await authAPI.getInactiveTeamMembers();
 console.log("API Response:", res.data);
@@ -39,18 +44,20 @@ console.log("API Response:", res.data);
         raw: m,
       }));
 
-      setRows(inactiveMembers);
+      setRows(keepIfSame(inactiveMembers));
       console.log("Inactive Team Members:", inactiveMembers);
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchTeamMembers();
   }, [refresh]);
+
+  useAutoRefresh(() => fetchTeamMembers({ silent: true }));
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure to delete?")) return;

@@ -384,6 +384,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../lib/autoRefresh";
 import { accountsAPI, jobAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { useToastContext } from "../../context/ToastContext";
@@ -432,6 +433,9 @@ const {showToast}= useToastContext()
   // =============================
   const { data = [], isLoading } = useQuery({
     queryKey: ["jobs-all", isActive],
+    // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+    // return, and keeps unchanged data identical, so the table stays put.
+    refetchInterval: AUTO_REFRESH_MS,
     queryFn: async () => {
       const accRes = await accountsAPI.getAccountsList();
       const accounts = accRes.data.accountlist || [];

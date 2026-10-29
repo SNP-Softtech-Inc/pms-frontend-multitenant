@@ -220,6 +220,8 @@ import { DataTable } from '../../../components/data-table/data-table';
 import { DataTableToolbar } from '../../../components/data-table/toolbar';
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { proposalAPI } from '../../../services/api';
+import { useAutoRefresh } from '../../../hooks/useAutoRefresh';
+import { keepIfSame } from '../../../lib/autoRefresh';
 
 const ProposalsTable = () => {
   const confirm = useConfirm();
@@ -230,20 +232,25 @@ const ProposalsTable = () => {
   const [globalFilter, setGlobalFilter] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await proposalAPI.getAllProposals();
-        setProposals(res.data?.proposallist || []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Outside the effect so auto refresh can call it too. silent: a failure
+  // keeps the list and sets no error; an unchanged list keeps its identity
+  // so the table stays on its page.
+  const fetchData = async ({ silent = false } = {}) => {
+    try {
+      const res = await proposalAPI.getAllProposals();
+      setProposals(keepIfSame(res.data?.proposallist || []));
+    } catch (err) {
+      if (!silent) setError(err.message);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
+
+  useAutoRefresh(() => fetchData({ silent: true }));
 
   const handleCreateNew = () => {
     navigate('/firmtemp/templates/proposals/proposal-form');

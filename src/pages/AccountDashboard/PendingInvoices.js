@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { invoiceAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 const PendingInvoices = ({
   accountId,
@@ -20,9 +22,9 @@ const PendingInvoices = ({
   const [billingInvoices, setBillingInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const response =
         await invoiceAPI.getPendingInvoicesByAccountId(
@@ -33,16 +35,16 @@ const PendingInvoices = ({
 
       const invoices = response.data?.invoice || [];
 
-      setBillingInvoices(invoices);
+      setBillingInvoices(keepIfSame(invoices));
 
       // send count to parent
       setInvoicesCount?.(invoices.length);
     } catch (error) {
       console.error("Error fetching invoices:", error);
 
-      setInvoicesCount?.(0);
+      if (!silent) setInvoicesCount?.(0);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -51,6 +53,10 @@ const PendingInvoices = ({
       fetchInvoices();
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no spinner, unchanged data kept as it is, and a
+  // failed refresh leaves the widget and its count alone.
+  useAutoRefresh(() => fetchInvoices({ silent: true }), { enabled: Boolean(accountId) });
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-14 text-muted-foreground/60">

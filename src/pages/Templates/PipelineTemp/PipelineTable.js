@@ -188,6 +188,8 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 
 const PipelineTable = () => {
   const navigate = useNavigate();
@@ -200,17 +202,21 @@ const {showToast} = useToastContext();
     fetchPipelineData();
   }, []);
 
-  const fetchPipelineData = async () => {
-    setLoading(true);
+  // silent (auto refresh): no skeleton, and an unchanged list keeps its
+  // identity so the table stays on its page.
+  const fetchPipelineData = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const { data } = await templateAPI.getAllPipelines();
-      setPipelineData(data.pipeline || data);
+      setPipelineData(keepIfSame(data.pipeline || data));
     } catch (error) {
       console.error("Error fetching pipeline data:", error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  useAutoRefresh(() => fetchPipelineData({ silent: true }));
 
   const handleEdit = (id) => {
     navigate(`/firmtemp/pipelines/pipelineform?edit=${id}`);

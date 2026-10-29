@@ -117,6 +117,24 @@ by sign-in shows "Zoho · signed in with Zoho" and has its own Disconnect
 
 ---
 
+## Auto refresh
+
+```
+screen ──► useAutoRefresh(quietLoad, { enabled: !formOpen })   src/hooks/useAutoRefresh.js
+             └─ startAutoRefresh                                 src/lib/autoRefresh.js
+                  every 30s while visible · at once on return/focus
+                  never overlapping · failure logged, next tick runs
+                  quietLoad → setRows(keepIfSame(next))   unchanged = same object
+React Query screens ──► useQuery({ ..., refetchInterval: AUTO_REFRESH_MS })
+```
+
+A new data screen should call `useAutoRefresh` with a silent loader - no
+spinner, no toast, `keepIfSame` on the list - and pause it while anything
+editable is open. Forms are not refreshed. See decisions.md v1.63.0 for the
+screens deliberately left out.
+
+---
+
 ## Build
 
 ```bash

@@ -4,6 +4,8 @@ import { useParams } from "react-router-dom";
 import { FileSignature } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 import { esignAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import {
   Table,
   TableBody,
@@ -35,6 +37,16 @@ const Signatures = () => {
       fetchSignatures();
     }
   }, [accountId]);
+
+  // Auto refresh: signing progress shows up as signers complete. Quiet, and
+  // unchanged data is kept as it is.
+  useAutoRefresh(
+    async () => {
+      const res = await esignAPI.getSignatureList(accountId);
+      setSignatureList(keepIfSame(res.data || []));
+    },
+    { enabled: Boolean(accountId) },
+  );
   // EsignRequest.status is one of pending / in_progress / completed. Only
   // "completed" and "pending" were matched here, so a partially signed
   // document ("in_progress") fell through to the neutral grey and read as

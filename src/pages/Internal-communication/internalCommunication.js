@@ -316,6 +316,8 @@ import ChatDetails from "./ChatDetails";
 import { useAuth } from "../../context/AuthContext";
 // ✅ API SERVICE
 import { internalChatAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 const InternalCommunication = () => {
   const { user } = useAuth();
@@ -384,6 +386,25 @@ const InternalCommunication = () => {
       console.error("Error fetching chat:", error);
     }
   };
+
+  // Auto refresh, every 15s like the other chats: the list, and the open
+  // conversation. Unchanged data is kept as it is - ChatDetails scrolls to the
+  // bottom whenever a conversation "changes" - and an answer for a chat the
+  // user has since left is dropped.
+  useAutoRefresh(
+    async () => {
+      const listRes = await internalChatAPI.getChatsByUserId(loginUserId);
+      setChatList(keepIfSame(Array.isArray(listRes.data.chats) ? listRes.data.chats : []));
+
+      if (!chatId) return;
+      const asked = chatId;
+      const chatRes = await internalChatAPI.getChatById(asked);
+      setSelectedChat((current) =>
+        current && current._id && current._id !== asked ? current : keepIfSame(chatRes.data.chat)(current),
+      );
+    },
+    { intervalMs: 15000, enabled: Boolean(loginUserId) },
+  );
 
   return (
     <div className="mt-4">

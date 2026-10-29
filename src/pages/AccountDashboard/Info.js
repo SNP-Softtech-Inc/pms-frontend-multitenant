@@ -662,6 +662,8 @@ import { Loader, X, Users } from "lucide-react";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { ShieldCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 // Login/Notify/Email Sync are disabled for now (feature on hold, not
 // removed) - flip this back to true to re-enable the controls.
@@ -735,6 +737,24 @@ const availableContacts = useMemo(() => {
   useEffect(() => {
     fetchAccountDetails();
   }, [accountId]);
+
+  // Auto refresh: contacts, activation status and tags stay current. Paused
+  // while a drawer or the login dialog is open; unchanged data is kept as it
+  // is, so nothing on the page re-renders for nothing.
+  useAutoRefresh(
+    async () => {
+      const res = await accountsAPI.getAccountById(accountId);
+      setAccount(keepIfSame(res.data));
+    },
+    {
+      enabled:
+        Boolean(accountId) &&
+        !dialogOpen &&
+        !drawerOpen &&
+        !addContactDrawerOpen &&
+        !contactEditDrawerOpen,
+    },
+  );
 
   // ================= FETCH AVAILABLE CONTACTS =================
   // const fetchAvailableContacts = async () => {

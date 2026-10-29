@@ -204,6 +204,8 @@ import { DataTable } from "../../components/data-table/data-table";
 import { DataTableToolbar } from "../../components/data-table/toolbar";
 import CreateGroupDrawer from "./CreateGroupDrawer";
 import { authAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 const ActiveGroups = ({ refresh, onEdit }) => {
   const confirm = useConfirm();
@@ -213,9 +215,12 @@ const ActiveGroups = ({ refresh, onEdit }) => {
   const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const fetchGroups = async () => {
+  // silent (auto refresh): "if (loading)" replaces the whole tab with a
+  // spinner, so it is never set; an unchanged list keeps its identity so the
+  // table stays on its page.
+  const fetchGroups = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await authAPI.getGroups();
       console.log("Groups:", res.data);
       const groups = res.data || [];
@@ -229,17 +234,20 @@ const ActiveGroups = ({ refresh, onEdit }) => {
         raw: g,
       }));
 
-      setRows(formatted);
+      setRows(keepIfSame(formatted));
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchGroups();
   }, [refresh]);
+
+  // Paused while a group is being edited here.
+  useAutoRefresh(() => fetchGroups({ silent: true }), { enabled: !groupDrawerOpen });
 
  
 

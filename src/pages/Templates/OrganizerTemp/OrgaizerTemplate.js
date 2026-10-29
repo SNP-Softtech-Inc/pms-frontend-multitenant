@@ -1888,6 +1888,8 @@ import {
 import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import { organizerAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import OrganizerSettingsDrawer from "./OrganizerSettingsDrawer";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
@@ -2467,14 +2469,18 @@ const {showToast} = useToastContext()
   const [organizerTemplatesData, setOrganizerTemplatesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrganizerTemplates = async () => {
-    setLoading(true);
-    const loaderDelay = new Promise((resolve) => setTimeout(resolve, 1000));
+  // silent (auto refresh): no skeleton, no minimum loader delay, and a
+  // failure keeps the list and shows no toast. An unchanged list keeps its
+  // identity so the table stays on its page.
+  const fetchOrganizerTemplates = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    const loaderDelay = silent ? null : new Promise((resolve) => setTimeout(resolve, 1000));
     try {
       const response = await organizerAPI.getOrganizerTemplates();
-      setOrganizerTemplatesData(response?.data?.OrganizerTemplates || []);
+      setOrganizerTemplatesData(keepIfSame(response?.data?.OrganizerTemplates || []));
     } catch (error) {
       console.error("Error fetching email templates:", error);
+      if (silent) return;
       showToast({
         title: "Error",
         description: "Failed to fetch organizer templates",
@@ -2482,8 +2488,10 @@ const {showToast} = useToastContext()
       });
       setOrganizerTemplatesData([]);
     } finally {
-      await loaderDelay;
-      setLoading(false);
+      if (!silent) {
+        await loaderDelay;
+        setLoading(false);
+      }
     }
   };
 
@@ -2532,6 +2540,9 @@ const {showToast} = useToastContext()
   useEffect(() => {
     fetchOrganizerTemplates();
   }, []);
+
+  // Paused while the template builder is open: the list is hidden behind it.
+  useAutoRefresh(() => fetchOrganizerTemplates({ silent: true }), { enabled: !showOrganizerTemplateForm });
 
   const [tempIdget, setTempIdGet] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);

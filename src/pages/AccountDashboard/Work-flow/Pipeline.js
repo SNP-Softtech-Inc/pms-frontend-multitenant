@@ -439,7 +439,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToastContext } from "../../../context/ToastContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useIsMutating, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../../lib/autoRefresh";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -493,7 +494,13 @@ const { user,  } = useAuth();
   };
 
   // ================= FETCH PIPELINES =================
+  // Auto refresh pauses mid-drag and while a move is saving, so a refetch
+  // cannot pull a card back from under the user.
+  const [dragging, setDragging] = useState(false);
+  const mutating = useIsMutating();
+
   const { data: pipelines = [], isLoading } = useQuery({
+    refetchInterval: dragging || mutating > 0 ? false : AUTO_REFRESH_MS,
     queryKey: ["pipeline-jobs", accountId, isActive],
     queryFn: async () => {
       const res = await jobAPI.pipelineJobsByAccount(accountId, isActive);
@@ -684,7 +691,13 @@ const { user,  } = useAuth();
   <div className="p-6 bg-background text-foreground">
 
     {/* BOARD */}
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext
+      onDragStart={() => setDragging(true)}
+      onDragEnd={(result) => {
+        setDragging(false);
+        onDragEnd(result);
+      }}
+    >
       <div className="flex flex-col gap-6">
 
         {pipelines.map((p) => {

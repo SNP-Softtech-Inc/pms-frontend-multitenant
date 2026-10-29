@@ -2158,6 +2158,8 @@ import {
   invoiceAPI,
   esignAPI,
 } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import axios from "axios";
 // Custom CSS
 import "./docuseal-dark-theme.css";
@@ -4294,6 +4296,46 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
       
     });
   };
+
+  // Auto refresh: documents a client uploads, signs or approves appear
+  // without a reload. Only the tree is set - quietly, kept as it is when
+  // unchanged, and a failure leaves it alone. Paused while anything is open,
+  // being sent or being placed, so nothing is pulled from under the user.
+  useAutoRefresh(
+    async () => {
+      const res = await accountDocsAPI.listFoldersAndFiles(accountId);
+      setFolderTree(keepIfSame(res?.data?.contents || []));
+    },
+    {
+      enabled:
+        Boolean(accountId) &&
+        !menuAnchorEl &&
+        !newFolderDrawerOpen &&
+        !folderUploaDrawerOpen &&
+        !renameDrawer &&
+        !fileUploadDrawerOpen &&
+        !moveDrawerOpen &&
+        !bulkMoveDrawerOpen &&
+        !openApprovalDialog &&
+        !showBuilderFor &&
+        !isSendingSignature &&
+        !openDialog &&
+        !bulkLockDialogOpen &&
+        !bulkOperationLoading &&
+        !openTemplateDialog &&
+        !openFileViewer &&
+        !openExcelDialog &&
+        !openWordDialog &&
+        !openTextDialog &&
+        !invoiceDialogOpen &&
+        !sending &&
+        !confirmLeaveApproval &&
+        !confirmLeaveSignature &&
+        !auditDialogOpen &&
+        !viewerOpen,
+    },
+  );
+
   return (
     <div style={{ background: "hsl(var(--background))" }}>
       <div className="mx-auto w-full max-w-[1700px] py-2">

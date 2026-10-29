@@ -523,6 +523,7 @@ import Priority from "../../components/Priority";
 import Status from "../../components/Status";
 import TasksDrawer from "./TasksDrawer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../lib/autoRefresh";
 
 // ✅ Status Config
 const TASK_STATUS = [
@@ -604,6 +605,9 @@ const PendingTasks = () => {
 
   const { data: tasks = [], isLoading: loading } = useQuery({
     queryKey: ["pendingTasks"],
+    // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+    // return, and keeps unchanged data identical, so the table stays put.
+    refetchInterval: AUTO_REFRESH_MS,
     queryFn: async () => {
       const res = await accountTasksAPI.getPendingTasks();
       return res.data.list || [];

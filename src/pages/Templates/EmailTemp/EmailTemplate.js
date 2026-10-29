@@ -925,6 +925,8 @@ import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { templateAPI, authAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 
 // Icons
 import { RiDeleteBin6Line, RiEdit2Line } from "react-icons/ri";
@@ -994,27 +996,33 @@ const EmailTemp = () => {
     fetchUsers();
   }, []);
 
-  // Fetch Email Templates
-  const fetchEmailTemplates = async () => {
-    setLoading(true);
+  // Fetch Email Templates. silent (auto refresh): no skeleton, no error
+  // toast, and an unchanged list keeps its identity so the table stays on
+  // its page.
+  const fetchEmailTemplates = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const res = await templateAPI.getEmailTemplates();
-      setEmailTemplates(res.data.emailTemplate || []);
+      setEmailTemplates(keepIfSame(res.data.emailTemplate || []));
     } catch (err) {
       console.error("Error fetching email templates:", err);
+      if (silent) return;
       showToast({
         title: "Failed to fetch email templates",
         type: "error",
         description: err.message || "An error occurred while fetching email templates"
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchEmailTemplates();
   }, []);
+
+  // Paused while the form is open: the list is hidden behind it anyway.
+  useAutoRefresh(() => fetchEmailTemplates({ silent: true }), { enabled: !showForm });
 
   // Shortcodes based on mode
   useEffect(() => {

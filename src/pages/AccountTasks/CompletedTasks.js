@@ -12,6 +12,8 @@ import {
 import { DataTable } from "../../components/data-table/data-table";
 import { DataTableToolbar } from "../../components/data-table/toolbar";
 import { accountTasksAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { useToastContext } from "../../context/ToastContext"; // ✅ adjust path
 
@@ -89,6 +91,13 @@ const { showToast } = useToastContext(); // ✅ get showToast from context
   useEffect(() => {
     fetchCompletedTasks();
   }, []);
+
+  // Auto refresh, quietly: no toast, unchanged data kept so the table keeps
+  // its page.
+  useAutoRefresh(async () => {
+    const res = await accountTasksAPI.getCompletedTasks();
+    setTasks(keepIfSame(res.data.list || []));
+  });
   const columns = useMemo(
     () => [
       {

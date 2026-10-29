@@ -159,6 +159,8 @@ import {
 
 import { useParams } from "react-router-dom";
 import { accountTasksAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import {useToastContext} from "../../../context/ToastContext";
 
@@ -281,6 +283,16 @@ const Pendingtasks = () => {
       fetchTasks();
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no error toast, unchanged data kept as it is so
+  // the table keeps its page. Paused while a task is being edited.
+  useAutoRefresh(
+    async () => {
+      const res = await accountTasksAPI.getPendingTasksByAccount(accountId);
+      setTasks(keepIfSame(res.data.list || []));
+    },
+    { enabled: Boolean(accountId) && !editOpen },
+  );
 
   // ✅ Edit Task
   const handleEdit = async (taskId) => {

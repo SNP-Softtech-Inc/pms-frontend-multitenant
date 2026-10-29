@@ -23,6 +23,8 @@ import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import ShortcodeTextField from "../../../components/ShortcodeTextField";
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import Priority from "../../../components/Priority";
 import EditorShortcodes from "../../../components/TextEditorShortCodes";
 import MultiSelectDropdown from "../../../components/MultiSelectDropdown";
@@ -226,13 +228,15 @@ const JobTemp = ({ charLimit = 4000 }) => {
     setAnchorElDescription(null);
   };
 
-  // Fetch client facing jobs
-  const fetchClientFacingJobsData = async () => {
+  // Fetch client facing jobs. silent (auto refresh): no error toast, and an
+  // unchanged list keeps its identity.
+  const fetchClientFacingJobsData = async ({ silent = false } = {}) => {
     try {
       const response = await templateAPI.getAllJobStatus();
-      setClientFacingJobs(response.data.clientFacingJobStatues || []);
+      setClientFacingJobs(keepIfSame(response.data.clientFacingJobStatues || []));
     } catch (error) {
       console.error("Error fetching client facing jobs:", error);
+      if (silent) return;
       showToast({
         title: "Error",
         description: "Failed to fetch client facing jobs",
@@ -241,21 +245,23 @@ const JobTemp = ({ charLimit = 4000 }) => {
     }
   };
 
-  // Fetch job templates
-  const fetchJobTemplatesData = async () => {
-    setLoading(true);
+  // Fetch job templates. silent (auto refresh): no skeleton, no error toast,
+  // and an unchanged list keeps its identity so the table stays on its page.
+  const fetchJobTemplatesData = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const response = await templateAPI.getAllJobTemplates();
-      setJobTemplates(response.data.JobTemplates || []);
+      setJobTemplates(keepIfSame(response.data.JobTemplates || []));
     } catch (error) {
       console.error("Error fetching job templates:", error);
+      if (silent) return;
       showToast({
         title: "Error",
         description: "Failed to fetch job templates",
         type: "error",
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -342,6 +348,13 @@ const JobTemp = ({ charLimit = 4000 }) => {
     fetchClientFacingJobsData();
     fetchJobTemplatesData();
   }, []);
+
+  // Paused while the form is open: the list is hidden behind it, and the
+  // form's status options come from the client facing list.
+  useAutoRefresh(
+    () => Promise.all([fetchClientFacingJobsData({ silent: true }), fetchJobTemplatesData({ silent: true })]),
+    { enabled: !showForm },
+  );
 
   // Submit handlers
   const submitJob = async (values, exitAfterSave) => {

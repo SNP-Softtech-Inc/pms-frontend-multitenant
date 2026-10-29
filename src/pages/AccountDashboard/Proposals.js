@@ -335,6 +335,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {useToastContext} from "../../context/ToastContext"; // ✅ adjust path
 import { proposalAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import ProposalPreviewDialog from "./Proposals/ProposalDialog";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { DataTable } from "../../components/data-table/data-table";
@@ -390,6 +392,16 @@ const AccountProposalTable = () => {
 
     fetchData();
   }, [accountId]);
+
+  // Auto refresh, quietly: unchanged data kept as it is, so the table keeps
+  // its page; a failure leaves the list alone. Paused while a proposal is open.
+  useAutoRefresh(
+    async () => {
+      const res = await proposalAPI.getAccountProposalsByAccountIds([accountId]);
+      setProposals(keepIfSame(res.data.proposallist || []));
+    },
+    { enabled: Boolean(accountId) && !openDialog },
+  );
 
   // ================= PAGINATION =================
   const paginatedProposals = proposals.slice(

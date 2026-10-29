@@ -399,6 +399,8 @@ import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 import { cn } from "../../../lib/utils";
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../components/ui/command";
@@ -444,26 +446,32 @@ const Clientfacing = () => {
     "#cdc6a5", "#fed6b1", "#e5dfdf", "#ffeaa7"
   ];
   // ================= FETCH DATA =================
-  const loadJobStatus = async () => {
+  // silent (auto refresh): no skeleton, no error toast, and an unchanged
+  // list keeps its identity so the table stays on its page.
+  const loadJobStatus = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await templateAPI.getAllJobStatus();
-      setClientFacingJobs(res.data.clientFacingJobStatues || []);
+      setClientFacingJobs(keepIfSame(res.data.clientFacingJobStatues || []));
     } catch (error) {
       console.error(error);
+      if (silent) return;
       showToast({
         title: "Failed to load job statuses",
         type: "error",
         description: error.message || "An error occurred while loading job statuses"
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadJobStatus();
   }, []);
+
+  // Paused while the drawer is open: a status is being created or edited.
+  useAutoRefresh(() => loadJobStatus({ silent: true }), { enabled: !isDrawerOpen });
 
   // ================= RESET FORM =================
   const resetForm = () => {

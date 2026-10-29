@@ -15,6 +15,8 @@ import { DataTable } from "../../../components/data-table/data-table";
 import { DataTableToolbar } from "../../../components/data-table/toolbar";
 
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 
 const Tags = () => {
@@ -46,12 +48,16 @@ const Tags = () => {
     "#cdc6a5", "#fed6b1", "#e5dfdf", "#ffeaa7"
   ];
   // ================= FETCH =================
-  const fetchData = async () => {
-    setLoading(true);
+  // silent (auto refresh): `loading` is shared with create and update, so a
+  // quiet refresh never touches it; a failure keeps the list without a toast,
+  // and an unchanged list keeps its identity so the table stays on its page.
+  const fetchData = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const res = await templateAPI.getAccountCountOfTag();
-      setTags(res.data.tagCounts || []);
+      setTags(keepIfSame(res.data.tagCounts || []));
     } catch {
+      if (silent) return;
       showToast({
         title: "Error",
         description: "Failed to fetch tags",
@@ -59,13 +65,16 @@ const Tags = () => {
       });
       setTags([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Paused while the drawer is open: a tag is being created or edited.
+  useAutoRefresh(() => fetchData({ silent: true }), { enabled: !isDrawerOpen });
 
   // ================= RESET =================
   const resetForm = () => {

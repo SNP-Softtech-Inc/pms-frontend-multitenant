@@ -31,6 +31,8 @@ import Priority from "../../../components/Priority";
 import Status from "../../../components/Status";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import { templateAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { RiDeleteBin6Line, RiEdit2Line } from "react-icons/ri";
 import { PiDotsThreeOutlineVerticalThin } from "react-icons/pi";
 
@@ -101,26 +103,32 @@ const Tasks = () => {
     },
   });
 
-  // Fetch Task Templates
-  const fetchTaskData = async () => {
+  // Fetch Task Templates. silent (auto refresh): no skeleton, no error
+  // toast, and an unchanged list keeps its identity so the table stays on
+  // its page.
+  const fetchTaskData = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await templateAPI.getAllTaskTemplates();
-      setTaskTemplates(res.data.TaskTemplates || []);
+      setTaskTemplates(keepIfSame(res.data.TaskTemplates || []));
     } catch (err) {
+      if (silent) return;
       showToast({
         title: "Failed to fetch templates",
         description: err?.response?.data?.message || "An error occurred while fetching task templates",
         type: "error",
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchTaskData();
   }, []);
+
+  // Paused while the form is open: the list is hidden behind it anyway.
+  useAutoRefresh(() => fetchTaskData({ silent: true }), { enabled: !showForm });
 
   // Handle Editor Change
   const handleEditorChange = (content) => {

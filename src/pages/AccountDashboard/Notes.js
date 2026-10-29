@@ -582,6 +582,8 @@ import {
 } from "lucide-react";
 
 import { accountNoteAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import TextEditor from "../../components/textEditor/TextEditior";
@@ -624,9 +626,11 @@ const NoteApp = () => {
   const [isAppendingLog, setIsAppendingLog] = useState(false);
 
   // ---------------- FETCH NOTES ----------------
-  const handleFetchNotesByAccId = async (id) => {
+  // silent (auto refresh): isFetching untouched, and unchanged notes kept as
+  // they are.
+  const handleFetchNotesByAccId = async (id, { silent = false } = {}) => {
     try {
-      setIsFetching(true);
+      if (!silent) setIsFetching(true);
 
       const res = await accountNoteAPI.getNotesByAccountId(id);
 
@@ -673,11 +677,11 @@ const NoteApp = () => {
         return new Date(b.time) - new Date(a.time);
       });
 
-      setNotes(formatted);
+      setNotes(silent ? keepIfSame(formatted) : formatted);
     } catch (err) {
       console.error("Fetch notes error:", err);
     } finally {
-      setIsFetching(false);
+      if (!silent) setIsFetching(false);
     }
   };
 
@@ -686,6 +690,11 @@ const NoteApp = () => {
       handleFetchNotesByAccId(accountId);
     }
   }, [accountId]);
+
+  // Paused while a note is being written or saved.
+  useAutoRefresh(() => handleFetchNotesByAccId(accountId, { silent: true }), {
+    enabled: Boolean(accountId) && !openDrawer && !isSaving,
+  });
 
   // ---------------- OPEN CREATE DRAWER ----------------
   const handleOpenCreateDrawer = () => {

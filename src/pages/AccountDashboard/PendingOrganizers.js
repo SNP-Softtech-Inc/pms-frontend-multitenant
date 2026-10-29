@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { organizerAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 
 const PendingOrganizers = ({
   accountId,
@@ -19,9 +21,9 @@ const PendingOrganizers = ({
   const [organizers, setOrganizers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchOrganizers = async () => {
+  const fetchOrganizers = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const res =
         await organizerAPI.getPendingOrganizersByAccountId(
@@ -33,7 +35,7 @@ const PendingOrganizers = ({
       const pendingOrganizers =
         res.data?.pendingOrganizers || [];
 
-      setOrganizers(pendingOrganizers);
+      setOrganizers(keepIfSame(pendingOrganizers));
 
       // send count to parent
       setOrganizersCount?.(
@@ -45,9 +47,9 @@ const PendingOrganizers = ({
         error
       );
 
-      setOrganizersCount?.(0);
+      if (!silent) setOrganizersCount?.(0);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -56,6 +58,10 @@ const PendingOrganizers = ({
       fetchOrganizers();
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no spinner, unchanged data kept as it is, and a
+  // failed refresh leaves the widget and its count alone.
+  useAutoRefresh(() => fetchOrganizers({ silent: true }), { enabled: Boolean(accountId) });
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-14 text-muted-foreground/60">

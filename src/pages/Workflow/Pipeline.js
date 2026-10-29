@@ -121,6 +121,8 @@ import {
 } from "lucide-react";
 import {useToastContext} from "../../context/ToastContext"
 import { templateAPI } from "../../services/api";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../lib/autoRefresh";
 import { useAuth } from "../../context/AuthContext";
 import KanbanBoard from "./KanbanBoard";
 import { DataTable } from "../../components/data-table/data-table";
@@ -166,6 +168,16 @@ const {showToast}=useToastContext()
       setLoading(false);
     }
   };
+
+  // Auto refresh of the list, quietly - fetchPipelines' spinner replaces the
+  // page. Paused while a pipeline's board is open: the board refreshes itself.
+  useAutoRefresh(
+    async () => {
+      const response = await templateAPI.getPipelinesByUser(user.id);
+      setPipelines(keepIfSame(response.data.pipeline || []));
+    },
+    { enabled: !authLoading && Boolean(user?.id) && !selectedPipeline },
+  );
 
   const handlePipelineClick = async (pipelineId) => {
     try {

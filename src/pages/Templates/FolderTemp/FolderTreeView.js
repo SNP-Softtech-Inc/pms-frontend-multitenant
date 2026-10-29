@@ -704,6 +704,8 @@ import {
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
 import { docAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useToastContext } from '../../../context/ToastContext';
 
 const FolderTreeView = () => {
@@ -727,16 +729,29 @@ const FolderTreeView = () => {
     fetchFolderTree(templateId);
   }, [templateId]);
 
-  // API call to fetch folder tree for a given template ID
-  const fetchFolderTree = async (templateId) => {
+  // API call to fetch folder tree for a given template ID. silent (auto
+  // refresh): a failure keeps the tree and sets no error, and an unchanged
+  // tree keeps its identity.
+  const fetchFolderTree = async (templateId, { silent = false } = {}) => {
     try {
       const res = await docAPI.listFoldersAndFiles(templateId);
-      setFolderTree(res.data.contents || []);
+      setFolderTree(keepIfSame(res.data.contents || []));
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch folder tree");
+      if (!silent) setError("Failed to fetch folder tree");
     }
   };
+
+  // Paused while any drawer is open: a folder or file is being changed.
+  useAutoRefresh(() => fetchFolderTree(templateId, { silent: true }), {
+    enabled:
+      Boolean(templateId) &&
+      !newFolderDrawerOpen &&
+      !folderUploadDrawerOpen &&
+      !renameDrawerOpen &&
+      !fileUploadDrawerOpen &&
+      !moveDrawerOpen,
+  });
 
   const toggleFolder = (path, isReadOnly) => {
     if (isReadOnly) return;

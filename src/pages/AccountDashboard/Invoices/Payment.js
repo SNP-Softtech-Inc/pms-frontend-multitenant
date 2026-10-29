@@ -6,6 +6,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useQuery,useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../../lib/autoRefresh";
 import { accountsAPI, invoiceAPI } from "../../../services/api";
 import { CardContent } from "../../../components/ui/card";
 import { Trash2 } from "lucide-react";
@@ -62,6 +63,9 @@ const { showToast } = useToastContext();
     refetch: refetchPayments,
   } = useQuery({
     queryKey: ["account-payments", accountId],
+    // Auto refresh: React Query pauses it while the tab is hidden, refetches on
+    // return, and keeps unchanged data identical, so the table stays put.
+    refetchInterval: AUTO_REFRESH_MS,
 
     queryFn: async () => {
       const res =

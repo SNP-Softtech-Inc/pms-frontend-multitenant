@@ -168,6 +168,8 @@ import {
 import { useParams } from "react-router-dom";
 
 import { accountTasksAPI } from "../../../services/api";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
+import { keepIfSame } from "../../../lib/autoRefresh";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
 import {useToastContext} from "../../../context/ToastContext";
 
@@ -255,6 +257,16 @@ const Completedtasks = () => {
       fetchTasks();
     }
   }, [accountId]);
+
+  // Auto refresh, quietly: no error toast, unchanged data kept as it is so
+  // the table keeps its page.
+  useAutoRefresh(
+    async () => {
+      const res = await accountTasksAPI.getCompletedTasksByAccount(accountId);
+      setTasks(keepIfSame(res.data.list || []));
+    },
+    { enabled: Boolean(accountId) },
+  );
 
   // ✅ Delete Task
   const handleDelete = (taskId) => {
