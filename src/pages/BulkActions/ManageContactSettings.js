@@ -217,6 +217,8 @@ import { cn } from "../../lib/utils";
 
 const ManageContactSettings = forwardRef(
   ({ selectedAccounts, accountList, onClose, fetchData }, ref) => {
+    console.log("ManageContactSettings rendered with selectedAccounts:", selectedAccounts);
+    console.log("ManageContactSettings rendered with accountList:", accountList);
     const [settings, setSettings] = useState({
       login: "Do nothing",
       notify: "Do nothing",
@@ -238,7 +240,7 @@ const ManageContactSettings = forwardRef(
 
       selectedAccounts.forEach((accountId) => {
         const account = accountList.find((a) => a._id === accountId);
-
+console.log(`Processing accountId: ${accountId}, found account:`, account);
         if (account?.contacts?.length) {
           account.contacts.forEach((contact) => {
             const contactId = contact.contact?._id || contact.contact;

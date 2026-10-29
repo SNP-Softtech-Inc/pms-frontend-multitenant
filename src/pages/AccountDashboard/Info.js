@@ -959,6 +959,25 @@ const handleContactUpdated = async () => {
 
   setContactEditDrawerOpen(false);
 };
+
+const ACTIVATION_BADGES = {
+  pending: {
+    label: "Pending Activation",
+    className: "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100",
+  },
+  activated: {
+    label: "Active",
+    className: "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+  },
+  expired: {
+    label: "Link Expired",
+    className: "bg-red-100 text-red-700 border-red-200 hover:bg-red-100",
+  },
+  not_sent: {
+    label: "Not Activated",
+    className: "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-100",
+  },
+};
   const toggleCls =
     "w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600";
   const cancelBtnCls =
@@ -1189,7 +1208,7 @@ const handleContactUpdated = async () => {
 
                     {/* Actions */}
                     <div className="flex flex-col items-end gap-2">
-                      {c.canLogin && c.contact?.isActivated === false && (
+                      {/* {c.canLogin && c.contact?.isActivated === false && (
                         <Badge
                           className="
         bg-amber-100
@@ -1202,7 +1221,18 @@ const handleContactUpdated = async () => {
                         >
                           Pending Activation
                         </Badge>
-                      )}
+                      )} */}
+  {c.canLogin && (() => {
+  const badge =
+    ACTIVATION_BADGES[c.activationStatus] ||
+    (c.isActivated ? ACTIVATION_BADGES.activated : ACTIVATION_BADGES.pending);
+
+  return (
+    <Badge className={`border text-[10px] font-medium ${badge.className}`}>
+      {badge.label}
+    </Badge>
+  );
+})()}
                       <div className="flex items-center gap-4 sm:gap-5">
                         {/* Login */}
                         <div className="flex flex-col items-center gap-1">
