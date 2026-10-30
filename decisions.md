@@ -8,6 +8,33 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-10-30 · v1.64.0 · staging only
+
+### The activation badge reads the contact, not the account entry
+
+Reported: "Pending Activation" on contacts already using the client portal.
+The badge added in `e7b0645` read `activationStatus` / `isActivated` from
+the account's contact entry - fields only a per-account activation backend
+would send, and that backend was never merged (account-contact `1d7682f`,
+reverted). Both were always undefined, so every login-enabled contact fell
+through to "Pending". On staging 26 of 32 such contacts were activated.
+
+Now `activationStatusOf(c.contact)` (`src/pages/AccountDashboard/
+activationStatus.js`) decides it from the contact record, where
+account-contact keeps the truth: activated → Active; otherwise the link's
+`activationTokenExpires` gives Pending or Link Expired; no link → Not
+Activated. Janavi's four badge styles are kept.
+
+Paired with account-contact v1.12.0, which stops Login off/on and Resend
+de-activating a client (the other half of the report) and keeps
+`activationTokenExpires` in account details while dropping the password
+hash and tokens.
+
+If per-account activation is merged later, this one function is where the
+badge changes.
+
+---
+
 ## 2026-10-29 · v1.63.0 · staging only
 
 ### Auto refresh on every data screen, through one shared hook

@@ -664,6 +664,7 @@ import { ShieldCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAutoRefresh } from "../../hooks/useAutoRefresh";
 import { keepIfSame } from "../../lib/autoRefresh";
+import { activationStatusOf } from "./activationStatus";
 
 // Login/Notify/Email Sync are disabled for now (feature on hold, not
 // removed) - flip this back to true to re-enable the controls.
@@ -1243,9 +1244,7 @@ const ACTIVATION_BADGES = {
                         </Badge>
                       )} */}
   {c.canLogin && (() => {
-  const badge =
-    ACTIVATION_BADGES[c.activationStatus] ||
-    (c.isActivated ? ACTIVATION_BADGES.activated : ACTIVATION_BADGES.pending);
+  const badge = ACTIVATION_BADGES[activationStatusOf(c.contact)];
 
   return (
     <Badge className={`border text-[10px] font-medium ${badge.className}`}>
