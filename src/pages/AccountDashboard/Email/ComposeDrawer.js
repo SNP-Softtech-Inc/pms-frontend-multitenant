@@ -22,6 +22,7 @@ import { cn } from "../../../lib/utils";
 import { useToastContext } from "../../../context/ToastContext";
 // ✅ IMPORT APIs
 import { accountsAPI, templateAPI } from "../../../services/api"; // adjust path
+import { composeOutcome } from "./composeOutcome";
 
 const ComposeEmailDrawer = ({ open, onClose }) => {
   const { accountId } = useParams();
@@ -149,17 +150,24 @@ console.log("ndsbfbchj email",res)
     try {
       setSending(true);
 
-      await accountsAPI.sendComposeEmail({
+      const res = await accountsAPI.sendComposeEmail({
         clientEmail: selectedContacts,
         accountId,
         emailsubject: subject,
         emailbody: body,
       });
-showToast({ title: "Email Sent", 
-      type: "success", });
-      reset();
-      onClose();
-      
+
+      // The server answers 200 even when emails were refused (e.g. no
+      // mailbox connected), so read what it says rather than assume success.
+      const outcome = composeOutcome(res?.data);
+      showToast({ title: outcome.title, description: outcome.description, type: outcome.type });
+
+      // Nothing went: keep the draft so it is not lost.
+      if (outcome.close) {
+        reset();
+        onClose();
+      }
+
     } catch (err) {
       console.error("Send failed", err);
       console.log("Error response:", err.response);

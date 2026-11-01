@@ -8,6 +8,31 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-01 · v1.65.0 · staging only
+
+### The Compose drawer reports what actually happened
+
+It showed "Email Sent" whenever the request returned, whatever the server
+said. Since account-contact v1.13.0, Compose sends from the firm's own
+mailbox, so a firm with none connected has every email refused - and staff
+were still told it was sent. (Before, it went out from a hard-coded
+personal Gmail, which is why this never surfaced.)
+
+`composeOutcome` (`src/pages/AccountDashboard/Email/composeOutcome.js`)
+reads `{ emailsSent, failed, failures }` (failures since account-contact
+v1.13.1):
+
+- all sent → "Email Sent", drawer closes, as before
+- none sent → "Email not sent" with the reason (e.g. "No mailbox is
+  connected that can send. An admin can connect one in Account Settings
+  under Email Sync."), and the drawer **stays open** so the draft is not
+  lost
+- some sent → "Sent to N of M", naming who was missed and why
+- an older server without `failures`: names the failed addresses; an
+  unreadable answer is never reported as success
+
+---
+
 ## 2026-10-30 · v1.64.0 · staging only
 
 ### The activation badge reads the contact, not the account entry
