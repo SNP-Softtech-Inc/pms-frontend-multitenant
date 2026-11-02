@@ -8,6 +8,32 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-02 · v1.66.0 · staging only
+
+### Say where the browser is going before leaving for a sign-in page
+
+The user: when connecting a mailbox redirects to the provider, show a
+message or page saying so. Connect with Google, Microsoft or Zoho used to
+set `window.location.href` at once - the app vanished into another site
+with no word.
+
+Now `ProviderRedirectNotice` (Settings) covers the page with "Taking you to
+Microsoft to sign in", says the user signs in on the provider's own page so
+ClientGage never sees the password, and that they come back here once the
+mailbox is connected. It goes on by itself after 1.5 s
+(`REDIRECT_DELAY_MS`); **Continue now** goes at once, **Cancel** stays.
+
+- Same URLs as before, opened with `location.assign` - nothing about the
+  sign-in itself changed, nor the server side.
+- Coming back with the browser's Back button can restore the page from
+  the cache with the notice still up; `pageshow` (persisted) clears it.
+- Wording and timing live in `providerRedirect.js`, tested (render tests
+  are blocked here); it goes at most once however it is triggered.
+- The address-box route ("Connect your email" → Google/Microsoft/Zoho) calls
+  the same three handlers, so it gets the notice too.
+
+---
+
 ## 2026-11-01 · v1.65.0 · staging only
 
 ### The Compose drawer reports what actually happened

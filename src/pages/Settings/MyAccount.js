@@ -1058,6 +1058,7 @@ import {
   clearAccessToken,
 } from "../../services/tokenService";
 import { nextImapFormForEmail } from "./imapFormState";
+import ProviderRedirectNotice from "./ProviderRedirectNotice";
 import { isCompleteAddress, routeForDiscovery, imapProviderIdFor } from "./connectRoute";
 // Providers worth naming in the UI.
 //
@@ -1134,6 +1135,9 @@ const MyAccount = () => {
   // connect Gmail but never showed what was connected - there was no way to
   // see a mailbox, or to tell a working connection from a broken one.
   const [mailAccounts, setMailAccounts] = useState([]);
+  // { provider, url } while the "Taking you to ... to sign in" notice is up.
+  const [providerRedirect, setProviderRedirect] = useState(null);
+  const [cancelProviderRedirect] = useState(() => () => setProviderRedirect(null));
   const [mailProviders, setMailProviders] = useState({
     google: { available: true },
     microsoft: { available: false },
@@ -1878,7 +1882,11 @@ const formatTimePeriod = (seconds) => {
       return;
     }
 
-    window.location.href = `${USER_URL}/api/emailsync/microsoft?token=${token}`;
+    // Say where the browser is going before it goes (ProviderRedirectNotice).
+    setProviderRedirect({
+      provider: "microsoft",
+      url: `${USER_URL}/api/emailsync/microsoft?token=${token}`,
+    });
   };
 
   // Zoho sign-in, the same full-page redirect as Microsoft. Only offered
@@ -1896,7 +1904,10 @@ const formatTimePeriod = (seconds) => {
       return;
     }
 
-    window.location.href = `${USER_URL}/api/emailsync/zoho?token=${token}`;
+    setProviderRedirect({
+      provider: "zoho",
+      url: `${USER_URL}/api/emailsync/zoho?token=${token}`,
+    });
   };
 
   // A named provider button works if its mailbox can connect at all: by
@@ -2077,7 +2088,10 @@ console.log("getasscestoken",token)
         return;
       }
 
-      window.location.href = `${USER_URL}/api/googleauth/google?token=${token}`;
+      setProviderRedirect({
+        provider: "google",
+        url: `${USER_URL}/api/googleauth/google?token=${token}`,
+      });
     } catch (error) {
       console.error(error);
       showToast({
@@ -2143,6 +2157,7 @@ console.log("getasscestoken",token)
 
   return (
     <div className="mx-auto w-full max-w-4xl">
+      <ProviderRedirectNotice redirect={providerRedirect} onCancel={cancelProviderRedirect} />
       {sessionExpiryAlert && (
         <Alert className="border-yellow-300 bg-yellow-50">
           <AlertDescription>
