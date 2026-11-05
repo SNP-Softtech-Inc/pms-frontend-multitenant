@@ -117,6 +117,30 @@ by sign-in shows "Zoho · signed in with Zoho" and has its own Disconnect
 
 ---
 
+## Migration import (Import → Upload folder to account)
+
+```
+AccountTable.js  Select ZIP → Upload
+  └─ readZipEntries(file)                      readZip.js (zip.js, no workers)
+       entries read lazily from the File - the ZIP is never sent whole
+  └─ runImport({ entries, accountId, api })    zipImport.js
+       ├─ buildPlan: drop __MACOSX / OS clutter, report duplicates and
+       │             password-protected entries
+       ├─ importPrepare (5,000 files per call)   POST /accounts/docs/import/prepare
+       │    new → queue · exists → skipped · conflict/tooLarge/invalid → reported
+       ├─ 4 at a time: entry.read() → importFile POST /accounts/docs/import/file
+       │    network / 408 / 429 / 5xx → retry 1s, 3s, 9s
+       │    409 / 413 / 403 / 400 → reported · 507 / 401 → stop everything
+       └─ nothing missing → importFinish        POST /accounts/docs/import/finish
+                                                (removes "Incomplete Data")
+  progress dialog: files, bytes, Cancel · summary: uploaded, skipped, problems
+```
+
+Running the same ZIP again resumes: what is already there is skipped. The
+server side is folder-management v1.9.0 (its Flow.md).
+
+---
+
 ## Auto refresh
 
 ```

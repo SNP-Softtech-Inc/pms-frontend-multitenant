@@ -1410,6 +1410,23 @@ export const accountDocsAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
 
+  // Migration import, one file per request (folder-management v1.9.0):
+  // the browser reads the ZIP and sends its files - see Import/zipImport.js.
+  importPrepare: (data) =>
+    folderManagementApi.post("/accounts/docs/import/prepare", data),
+
+  importFile: (accountId, path, blob) => {
+    const formData = new FormData();
+    formData.append("file", blob, path.split("/").pop());
+    return folderManagementApi.post("/accounts/docs/import/file", formData, {
+      params: { accountId, path },
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  importFinish: (accountId) =>
+    folderManagementApi.post("/accounts/docs/import/finish", { accountId }),
+
   // Delete entire account folder
   deleteAccountFolder: (data) =>
     folderManagementApi.delete("/accounts/docs/delete-account-folder", {

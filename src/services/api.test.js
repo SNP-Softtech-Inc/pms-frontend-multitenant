@@ -19,8 +19,8 @@ const mockRecorded = [];
 const mockStats = { createCalls: 0 };
 
 jest.mock("axios", () => {
-  const record = (method) => (url, arg) => {
-    mockRecorded.push({ method, url, arg });
+  const record = (method) => (url, arg, config) => {
+    mockRecorded.push({ method, url, arg, config });
     return Promise.resolve({ data: {} });
   };
 
@@ -123,5 +123,33 @@ describe("the API module", () => {
     ]) {
       expect(typeof group).toBe("object");
     }
+  });
+});
+
+describe("accountDocsAPI - migration import (v1.67.0)", () => {
+  const last = () => mockRecorded[mockRecorded.length - 1];
+
+  it("asks what is already there", async () => {
+    const body = { accountId: "a1", files: [{ path: "2023/a.pdf", size: 3 }], folders: ["2023"] };
+    await accountDocsAPI.importPrepare(body);
+    expect(last()).toMatchObject({ method: "post", url: "/accounts/docs/import/prepare", arg: body });
+  });
+
+  it("sends one file, with the account and the path in the query - not the body", async () => {
+    // The server checks both before reading a byte of the file, which it can
+    // only do if they arrive ahead of it.
+    await accountDocsAPI.importFile("a1", "2023/Taxes/W-2.pdf", new Blob(["x"]));
+
+    const { url, arg, config } = last();
+    expect(url).toBe("/accounts/docs/import/file");
+    expect(config.params).toEqual({ accountId: "a1", path: "2023/Taxes/W-2.pdf" });
+    expect(arg).toBeInstanceOf(FormData);
+    expect([...arg.keys()]).toEqual(["file"]);
+    expect(arg.get("file").name).toBe("W-2.pdf");
+  });
+
+  it("marks the account complete", async () => {
+    await accountDocsAPI.importFinish("a1");
+    expect(last()).toMatchObject({ url: "/accounts/docs/import/finish", arg: { accountId: "a1" } });
   });
 });

@@ -8,6 +8,70 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-05 · v1.67.0 · staging only
+
+### The migration import reads the ZIP in the browser and sends its files one by one
+
+**Why:** Import → "Upload folder to account" sent each ZIP whole to
+folder-management.
+- nginx refuses anything over 200 MB, so large clients could not be
+  migrated.
+- The service held the ZIP in memory, so one big upload could stop document
+  handling for every firm.
+- A network drop meant starting again.
+- After any error the page said only "Upload failed".
+
+**What:** `AccountTable.js` now reads the ZIP with zip.js (`readZip.js`) and
+hands its entries to `runImport` (`zipImport.js`). That module asks
+folder-management which files are already there, uploads the rest four at a
+time, and then marks the account complete. The new routes are folder-management
+v1.9.0; there is no nginx change.
+
+**Decisions:**
+- **zip.js 2.7.57, not JSZip** (which the folder upload drawer already
+  uses). JSZip loads the whole ZIP into memory first. zip.js reads the ZIP's
+  directory and then each entry through Blob slices, so a multi-GB ZIP is
+  fine. It is pinned exactly, released January 2025, and has no
+  dependencies. Web workers are off (`configure({ useWebWorkers: false })`)
+  because their script would need serving separately under Create React
+  App. Decompression uses the browser's own `DecompressionStream`.
+- **Resume by re-running.** Files already in the account with the same size
+  are skipped, so after a drop, a Cancel or a closed tab, the same ZIP is
+  simply uploaded again. Nothing is stored in the browser.
+- **Retries:** a network error or `408/429/5xx` is retried after 1 s, 3 s
+  and 9 s. A refusal (`409` conflict, `413` too large, `403` read-only,
+  `400` invalid) is reported, not retried. `507` (server nearly out of disk)
+  and `401` (signed out) stop the whole import with a plain message.
+- **The account is marked complete** (its "Incomplete Data" tag removed)
+  only when every file arrived and nothing was reported. Anything less
+  leaves the tag, so the account still shows as unfinished.
+- **What is skipped:** `__MACOSX/`, `.DS_Store`, `Thumbs.db` and
+  `desktop.ini`. These are OS clutter; the old route skipped only
+  `__MACOSX`. A path that appears twice in a ZIP is imported once and
+  reported. Password-protected entries are reported, not sent.
+- **No size check on the ZIP itself.** Only a file inside it over the
+  server's limit (190 MB) is reported.
+- **Leaving the page asks first** (`beforeunload`) while an import runs,
+  because closing the tab stops it.
+- `accountDocsAPI.uploadAccountFolderZip` and its route are kept but no
+  longer used by this page.
+
+**Tests first:**
+- `src/pages/Import/zipImport.test.js` (30 tests) uses a fake API and
+  covers resume, retries, give-up, refusals, the disk and sign-out stops,
+  Cancel, damaged entries, the concurrency cap, chunked prepare (5,000 per
+  request), progress totals, an empty ZIP and finish failing.
+- `api.test.js` checks the three calls: account and path go in the query,
+  so the server can check them before reading the file. Its axios mock now
+  also records the request options.
+- Mutation checks: never retrying, finishing despite problems, re-sending
+  existing files, no concurrency cap, low disk not stopping, `__MACOSX` kept,
+  Cancel ignored, conflicts uploaded anyway, and an empty ZIP marked complete
+  were each caught.
+- Suite: 424/424. The build includes zip.js.
+
+---
+
 ## 2026-11-02 · v1.66.0 · staging only
 
 ### Say where the browser is going before leaving for a sign-in page
