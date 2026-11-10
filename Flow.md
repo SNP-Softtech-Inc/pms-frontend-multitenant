@@ -169,7 +169,9 @@ AccountDashboard/Info.js
     name                      contact.contactName       click → edit drawer
     email                     contact.email
     phone                     contactPhonesText(contact) contactPhones.js
-                              phoneNumbers as stored, comma separated,
+                              each number via formatPhone (libphonenumber-js):
+                              "919175981613" → "+91 91759 81613";
+                              unrecognised → shown as stored; comma separated,
                               blanks dropped; none → "No phone number"
     activation badge          activationStatusOf(contact) activationStatus.js
 ```

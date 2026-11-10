@@ -8,6 +8,35 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-10 · v1.69.0 · staging only
+
+### Account page phone numbers in international format
+
+Reported on v1.68.0: "919175981613" is hard to read; it should be properly
+formatted, with a space between the country code and the number. It now
+shows as "+91 91759 81613" (`formatPhone`, `contactPhones.js`). Display
+only - nothing stored changes. This reverses v1.68.0's "shown as stored".
+
+- **`libphonenumber-js` 1.13.15, pinned exactly.** It knows each country's
+  code and grouping. The contact form's react-phone-input-2 has the same
+  data, but bundled inside its code and not exported. Hand-written rules
+  would mis-split codes of 1 to 3 digits. MIT, no dependencies, released
+  October 2026. Default metadata (~80 kB).
+- **Unrecognised numbers are left exactly as stored.** A number is
+  formatted only if, read with a "+" in front, it is a valid number. A
+  10-digit US number imported without its country code ("2025550143")
+  would otherwise read as Egypt "+20 2 5550143" - a wrong number shown
+  confidently - so it stays as typed. Free text such as "ext. 42" is left
+  alone too.
+- **The Contacts list is unchanged** and still shows the raw digits; it
+  was not part of the request. Using `formatPhone` there would make them
+  match.
+
+Tests: `contactPhones.test.js` now 11. Mutation checks - no validity check,
+no spacing, no "+" added, blanks kept - each fail a test.
+
+---
+
 ## 2026-11-09 · v1.68.0 · staging only
 
 ### The account page's contacts show their phone number
