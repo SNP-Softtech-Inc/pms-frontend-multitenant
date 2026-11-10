@@ -8,6 +8,35 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-09 · v1.68.0 · staging only
+
+### The account page's contacts show their phone number
+
+Asked for: the account's contact information in the admin portal should
+show the registered phone number with the contact's name and email. It now
+appears as a third line under the email on the account page's Contacts
+card.
+
+- **Frontend only.** The account details already return each contact's
+  `phoneNumbers` - the populate leaves out only the password and live
+  tokens - so no backend change was needed.
+- **Shown as stored, comma separated** (`contactPhonesText`,
+  `src/pages/AccountDashboard/contactPhones.js`), the same as the Contacts
+  list. The contact form saves digits with the country code and no "+".
+  Formatting them here alone would make one number look different on two
+  screens, and adding a "+" would be wrong for imported numbers saved
+  without a country code.
+- **Blank entries dropped.** Imports with an empty "Phone" column store
+  `[""]`; on staging 40 of the 44 stored entries are blank. With no
+  number the line reads "No phone number", so every card has the same
+  three lines.
+- The "add existing contact" pickers on the same page are unchanged.
+
+Tests first: `contactPhones.test.js` (7). Mutation checks - blanks kept,
+no trim, a single string ignored - each fail a test.
+
+---
+
 ## 2026-11-05 · v1.67.0 · staging only
 
 ### The migration import reads the ZIP in the browser and sends its files one by one

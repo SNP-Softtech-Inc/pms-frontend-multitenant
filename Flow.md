@@ -159,6 +159,23 @@ screens deliberately left out.
 
 ---
 
+## Account page: the Contacts card
+
+```
+AccountDashboard/Info.js
+  └─ account details (account-contact GET /api/clientaccounts/:id)
+       contacts[].contact populated - everything but password and live tokens
+  per contact:
+    name                      contact.contactName       click → edit drawer
+    email                     contact.email
+    phone                     contactPhonesText(contact) contactPhones.js
+                              phoneNumbers as stored, comma separated,
+                              blanks dropped; none → "No phone number"
+    activation badge          activationStatusOf(contact) activationStatus.js
+```
+
+---
+
 ## Build
 
 ```bash

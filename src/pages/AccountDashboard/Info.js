@@ -665,6 +665,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAutoRefresh } from "../../hooks/useAutoRefresh";
 import { keepIfSame } from "../../lib/autoRefresh";
 import { activationStatusOf } from "./activationStatus";
+import { contactPhonesText } from "./contactPhones";
 
 // Login/Notify/Email Sync are disabled for now (feature on hold, not
 // removed) - flip this back to true to re-enable the controls.
@@ -1224,6 +1225,22 @@ const ACTIVATION_BADGES = {
                         }}
                       >
                         {c.contact?.email || "—"}
+                      </span>
+
+                      {/* Phone number(s), as on the Contacts list */}
+                      <span
+                        className="
+                mt-0.5 block truncate
+                text-muted-foreground
+              "
+                        title={contactPhonesText(c.contact) || undefined}
+                        style={{
+                          fontFamily: "var(--font-family)",
+                          fontSize:
+                            "calc(0.76rem * var(--font-scale, 100) / 100)",
+                        }}
+                      >
+                        {contactPhonesText(c.contact) || "No phone number"}
                       </span>
                     </div>
 
