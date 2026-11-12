@@ -2149,6 +2149,7 @@ import FileUploadDrawer from "./drawers/FileUploadDrawer";
 import CreateFolderDrawer from "./drawers/CreteFolderDrawer";
 import FolderUploadDrawer from "./drawers/FolderUploadDrawer";
 import { sendResultToast } from "./sendResult";
+import { signerFields, DATE_FORMAT } from "./signerFields";
 import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
 
@@ -2238,36 +2239,8 @@ const [submitters, setSubmitters] = useState([]);
 //     }),
 //   [submitters],
 // );
-const FIELD_TYPES = [
-  { type: "text",      label: "Text" },
-  { type: "signature", label: "Signature" },
-  { type: "initials",  label: "Initials" },
-  { type: "date",      label: "Date" },
-  { type: "number",    label: "Number" },
-  { type: "image",     label: "Image" },
-  { type: "checkbox",  label: "Checkbox" },
-  { type: "file",      label: "File" },
-  { type: "phone",     label: "Phone" },
-  // add more from the supported list: select, radio, multiple, cells,
-  // stamp, payment, verification, kba, strikethrough
-];
-
-const builderFields = useMemo(
-  () =>
-    (submitters || []).flatMap((signer, index) => {
-      const who = signer?.name || `Signer ${index + 1}`;
-      const label = signer?.email ? `${who} (${signer.email})` : who;
-      const role = signer?.role || label;
-
-      return FIELD_TYPES.map(({ type, label: typeLabel }) => ({
-        name: `${typeLabel} - ${label}`,
-        title: label,
-        type,
-        role,
-      }));
-    }),
-  [submitters],
-);
+// One set of fields per recipient, Date signed included - signerFields.js.
+const builderFields = useMemo(() => signerFields(submitters), [submitters]);
   const [showBuilderFor, setShowBuilderFor] = useState(null);
 
   // The builder saves its work as a DocuSeal template and hands the template
@@ -5805,7 +5778,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
   withCustomFieldsTab={true}
   // onlyDefinedFields={false}
                   withSignatureId={false}
-                  dateFormats={['MM/DD/YYYY']}
+                  dateFormats={[DATE_FORMAT]}
                   customCss={customCss}
 
                   // DocuSeal's own Send and Recipients buttons are hidden.

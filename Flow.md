@@ -197,6 +197,10 @@ FolderTreeView.js  sign → esignAPI.generateToken   GET /api/generate-token
          "Sent to N recipient(s)" + "Not sent to … - no field was placed for them."
 ```
 
+The builder's field list comes from `signerFields(submitters)`
+(`Documents/signerFields.js`): one set per recipient, including "Date signed"
+(`datenow`). Both date fields print `DATE_FORMAT`, MM/DD/YYYY.
+
 ---
 
 ## Build

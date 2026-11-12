@@ -8,6 +8,50 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-12 · v1.72.0 · staging only
+
+### A "Date signed" field that always prints MM/DD/YYYY
+
+Asked for: DocuSeal dates should read mm/dd/yy, not dd/mm/yy.
+
+**What was actually happening.** The signed document was already
+MM/DD/YYYY: every date field placed on staging over the past week stored
+`preferences.format: "MM/DD/YYYY"` (read-only check through DocuSeal's
+API), because the builder offers only that format (`dateFormats`). The
+day-first date is the date picker in DocuSeal's signing form. That form uses
+the browser's own `<input type="date">` (DocuSeal's date_step.vue), which
+always shows the date in the order of the signer's computer region: day
+first on an Indian-region computer, month first on a US one. Neither this
+app nor DocuSeal can change that.
+
+**Decision (the user's choice of four):** add DocuSeal's "Date signed"
+field (`datenow`) to each recipient's field list, next to Date. It fills
+itself with the day the person signs, in MM/DD/YYYY, and shows no picker,
+so every signer sees month first. The pickable Date field stays, for dates
+the signer must choose.
+
+- The per-recipient field list moved, unchanged, from `FolderTreeView.js`
+  into `Documents/signerFields.js` so it can be tested. Its one addition is
+  "Date signed". Both date fields now state `format: "MM/DD/YYYY"`
+  themselves (`DATE_FORMAT`); the builder's `dateFormats` uses the same
+  constant. The value is unchanged.
+- DocuSeal hides `datenow` from its own field grid but accepts it as a
+  predefined field, which is how this list is offered.
+- Already-sent documents are not touched.
+
+**Rejected:**
+- Replacing Date with Date signed: signers could no longer enter a date of
+  their choosing.
+- A text box that only accepts MM/DD/YYYY: no calendar, and the value is
+  stored as text.
+- Leaving it: PDFs and US clients were already fine, but staff testing on
+  Indian-region computers kept seeing day first.
+
+Tests: `signerFields.test.js` (the old fields unchanged, Date signed added,
+both date fields MM/DD/YYYY).
+
+---
+
 ## 2026-11-12 · v1.71.0 · staging only
 
 ### The documents tree refreshes every 5 seconds
