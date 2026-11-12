@@ -189,6 +189,8 @@ AccountDashboard/Info.js
 ```
 FolderTreeView.js  sign → esignAPI.generateToken   GET /api/generate-token
                    builder opens with every activated contact as a recipient
+                   none activated → 400 → showToast(signStartErrorToast(err))
+                                          Documents/signStartError.js
   Send → handleSendForSignature
     └─ esignAPI.sendSubmission({ templateId, submitters, signInOrder })
          POST /api/submissions/send   (esignature-backend routes/sendSubmission.js)

@@ -8,6 +8,44 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-12 · v1.73.0 · staging only
+
+### Send for Sign says why it cannot open
+
+**Reported:** on the vardhankulkarni account, Send for Sign did nothing.
+The browser console showed a 400 from `GET /api/generate-token`.
+
+**Cause:** not a fault in the signing changes. Before the builder opens,
+the server lists who can sign: the account's activated contacts with an
+email. That account's only contact, created on 23 Sep, has never been
+activated, so the server answered 400 "No activated contacts found for this
+account" (read-only check of the staging log and database).
+`toggleSignStatus` only wrote errors to the console, so the click looked
+dead.
+
+**Decision:** show the reason as a toast (`Documents/signStartError.js`).
+- No activated contact: "No one on this account can sign yet", with
+  "Activate at least one contact on this account, then send for signature
+  again."
+- Any other reason from the server is shown as given, under "Could not open
+  the signature screen". With no reason (network down, an HTML page),
+  "Please try again."
+
+The no-contact case is recognised by its message, not by the 400 alone: the
+server also uses 400 for a missing file URL. If the wording ever changes,
+the admin still sees the server's message, under the general title.
+
+**Rejected:**
+- Hiding Send for Sign on accounts without an activated contact. That costs
+  a request per menu open, and the admin would not learn why it is missing.
+- Changing the backend. Its message was already clear; only the screen
+  dropped it.
+
+Tests: `signStartError.test.js` covers the three cases, odd error shapes
+and the wiring in `FolderTreeView.js`. Mutation-checked.
+
+---
+
 ## 2026-11-12 · v1.72.0 · staging only
 
 ### A "Date signed" field that always prints MM/DD/YYYY

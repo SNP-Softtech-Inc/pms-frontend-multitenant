@@ -2149,6 +2149,7 @@ import FileUploadDrawer from "./drawers/FileUploadDrawer";
 import CreateFolderDrawer from "./drawers/CreteFolderDrawer";
 import FolderUploadDrawer from "./drawers/FolderUploadDrawer";
 import { sendResultToast } from "./sendResult";
+import { signStartErrorToast } from "./signStartError";
 import { signerFields, DATE_FORMAT } from "./signerFields";
 import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
@@ -3151,6 +3152,7 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
     setOpenDialog(true);
   } catch (err) {
     console.error(err);
+    showToast(signStartErrorToast(err));
   }
 };
   // const toggleSignStatus = async (item) => {
