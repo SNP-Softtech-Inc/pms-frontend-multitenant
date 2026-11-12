@@ -8,6 +8,31 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-12 · v1.70.0 · staging only
+
+### Send for signature reports who was actually sent to
+
+Reported: with two recipients, placing a signature field for the first only
+still emailed both. The fix is on the server (esignature-backend v1.10.0):
+only recipients with a field on the page are invited, and the rest come
+back as `skipped`.
+
+- **The success message now counts from the server's answer.** It used to
+  say "Sent to 2 recipient(s)" from the builder's list, which is everyone
+  on the account. Now it says, for example, "Sent to 1 recipient(s)" with
+  "Not sent to Nithish TEst - no field was placed for them."
+  (`sendResultToast`, `Documents/sendResult.js`).
+- **If nobody has a field**, the server refuses and its message is shown
+  as an error by the existing handler. Nothing is sent.
+- **Unchanged:** the "sign in order" checkbox and what it sends
+  (`signInOrder`), the builder, and its recipient list.
+- An older server answer without `skipped` still gives the old message,
+  so the two deploys can land in either order.
+
+Tests: `sendResult.test.js`.
+
+---
+
 ## 2026-11-10 · v1.69.0 · staging only
 
 ### Account page phone numbers in international format

@@ -178,6 +178,21 @@ AccountDashboard/Info.js
 
 ---
 
+## Documents: Send for signature
+
+```
+FolderTreeView.js  sign → esignAPI.generateToken   GET /api/generate-token
+                   builder opens with every activated contact as a recipient
+  Send → handleSendForSignature
+    └─ esignAPI.sendSubmission({ templateId, submitters, signInOrder })
+         POST /api/submissions/send   (esignature-backend routes/sendSubmission.js)
+         server invites only recipients with a field placed; rest → skipped
+    └─ showToast(sendResultToast(data, submitters.length))   Documents/sendResult.js
+         "Sent to N recipient(s)" + "Not sent to … - no field was placed for them."
+```
+
+---
+
 ## Build
 
 ```bash

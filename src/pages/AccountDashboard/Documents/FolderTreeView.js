@@ -2148,6 +2148,7 @@ import { Separator } from "../../../components/ui/separator";
 import FileUploadDrawer from "./drawers/FileUploadDrawer";
 import CreateFolderDrawer from "./drawers/CreteFolderDrawer";
 import FolderUploadDrawer from "./drawers/FolderUploadDrawer";
+import { sendResultToast } from "./sendResult";
 import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
 
@@ -3123,16 +3124,15 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
     try {
       setIsSendingSignature(true);
 
-      await esignAPI.sendSubmission({
+      // Only recipients with a field are sent to; the answer says who was
+      // left out (esignature-backend v1.10.0).
+      const { data } = await esignAPI.sendSubmission({
         templateId: builderTemplateId,
         submitters,
         signInOrder,
       });
 
-      showToast({
-        title: `Sent to ${submitters.length} recipient(s)`,
-        type: "success",
-      });
+      showToast(sendResultToast(data, submitters.length));
 
       setShowBuilderFor(null);
       setToken(null);
