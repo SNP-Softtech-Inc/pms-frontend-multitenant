@@ -147,6 +147,7 @@ server side is folder-management v1.9.0 (its Flow.md).
 screen ──► useAutoRefresh(quietLoad, { enabled: !formOpen })   src/hooks/useAutoRefresh.js
              └─ startAutoRefresh                                 src/lib/autoRefresh.js
                   every 30s while visible · at once on return/focus
+                  documents tree: every 5s (QUICK_INTERVAL_MS)
                   never overlapping · failure logged, next tick runs
                   quietLoad → setRows(keepIfSame(next))   unchanged = same object
 React Query screens ──► useQuery({ ..., refetchInterval: AUTO_REFRESH_MS })
@@ -156,6 +157,11 @@ A new data screen should call `useAutoRefresh` with a silent loader - no
 spinner, no toast, `keepIfSame` on the list - and pause it while anything
 editable is open. Forms are not refreshed. See decisions.md v1.63.0 for the
 screens deliberately left out.
+
+`QUICK_INTERVAL_MS` (5s, the minimum) is for screens where someone else's
+change should appear at once - only the documents tree uses it. Each tick
+there is a full folder walk on folder-management; see decisions.md v1.71.0
+before adding more.
 
 ---
 

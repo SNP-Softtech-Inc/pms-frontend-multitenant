@@ -3,7 +3,7 @@
 //
 // Tested as a plain function with a fake document and window, because render
 // tests are blocked in this repo (see decisions.md, 2026-10-24).
-import { startAutoRefresh } from "./autoRefresh";
+import { startAutoRefresh, QUICK_INTERVAL_MS } from "./autoRefresh";
 
 // A minimal document/window pair: visibility is settable, events dispatch.
 const fakeEnv = () => {
@@ -181,6 +181,23 @@ describe("startAutoRefresh", () => {
     await flush();
 
     expect(refresh.calls).toHaveLength(1);
+  });
+
+  it("runs the documents trees' quick interval - every 5 seconds", async () => {
+    expect(QUICK_INTERVAL_MS).toBe(5000);
+    const env = fakeEnv();
+    const refresh = counter();
+    startAutoRefresh(refresh, { intervalMs: QUICK_INTERVAL_MS, doc: env.doc, win: env.win });
+
+    jest.advanceTimersByTime(4999);
+    await flush();
+    expect(refresh.calls).toHaveLength(0);
+    jest.advanceTimersByTime(1);
+    await flush();
+    expect(refresh.calls).toHaveLength(1);
+    jest.advanceTimersByTime(5000);
+    await flush();
+    expect(refresh.calls).toHaveLength(2);
   });
 
   it("refuses an interval under 5 seconds - it would hammer the servers", () => {

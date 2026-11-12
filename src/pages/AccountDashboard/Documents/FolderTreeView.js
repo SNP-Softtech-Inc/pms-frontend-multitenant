@@ -2160,7 +2160,7 @@ import {
   esignAPI,
 } from "../../../services/api";
 import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
-import { keepIfSame } from "../../../lib/autoRefresh";
+import { keepIfSame, QUICK_INTERVAL_MS } from "../../../lib/autoRefresh";
 import axios from "axios";
 // Custom CSS
 import "./docuseal-dark-theme.css";
@@ -4307,6 +4307,9 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
       setFolderTree(keepIfSame(res?.data?.contents || []));
     },
     {
+      // Every 5 seconds rather than 30: an upload by the client should show
+      // up here almost at once. An unchanged tree does not re-render.
+      intervalMs: QUICK_INTERVAL_MS,
       enabled:
         Boolean(accountId) &&
         !menuAnchorEl &&

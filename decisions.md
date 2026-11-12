@@ -8,6 +8,52 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-12 · v1.71.0 · staging only
+
+### The documents tree refreshes every 5 seconds
+
+Asked for: when a document is uploaded, the other side should see it very
+quickly. The tree already refreshed itself (v1.63.0), but every 30 seconds,
+so a client's upload could take half a minute to appear. On staging today
+the 30-second ticks were visible in the server log, so the mechanism worked;
+it was the wait that read as "no auto refresh".
+
+- **`QUICK_INTERVAL_MS` = 5 seconds**, added to `lib/autoRefresh.js` for
+  screens where someone else's change should show up almost at once. Only
+  the documents tree uses it (`FolderTreeView.js`). 5 seconds is the
+  shortest interval the shared rules allow.
+- **Everything else about refreshing is unchanged.** It runs only while the
+  tab is visible, at once on return to the tab, never two requests at once,
+  and it pauses while a menu, drawer, viewer, dialog or the signature
+  builder is open. An unchanged tree is not re-rendered (`keepIfSame`), so
+  a tick that finds nothing new does nothing visible.
+- **What it costs the server.** Measured on staging, read-only:
+  `GET /accounts/docs/files/list` walks the account's folder from disk
+  synchronously, about 80 ms for the largest account (2,403 files, 550 kB,
+  710 ms cold) and much less for a typical one. So a poll on a very large
+  account blocks folder-management for ~80 ms, now up to 12 times a minute
+  per open documents tab. Fine at the firm's size; if many staff keep huge
+  accounts open, the server should send a cheap "changed since" answer
+  first or push changes instead (below).
+- The client portal's tree does the same (client v1.17.0), so the firm's
+  uploads reach the client just as quickly.
+
+**Rejected:**
+- Below 5 seconds. Each tick is a full folder walk on the server, and 5 seconds
+  already feels immediate next to the instant refresh on returning to the tab.
+- Pushing changes (WebSocket or server-sent events) from folder-management.
+  That would be near-instant, but it needs a new endpoint, a new nginx
+  location on both servers, and a production nginx change. Worth it only if
+  polling cost becomes a problem.
+- Speeding up every screen. Most screens change only when the same person
+  acts, and they already reload after their own actions.
+
+Tests: `lib/autoRefresh.test.js` (the 5-second tick), and
+`Documents/documentsRefresh.test.js` (the tree uses it and still keeps an
+unchanged tree).
+
+---
+
 ## 2026-11-12 · v1.70.0 · staging only
 
 ### Send for signature reports who was actually sent to

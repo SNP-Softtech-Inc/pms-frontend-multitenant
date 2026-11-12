@@ -17,6 +17,13 @@
 
 export const DEFAULT_INTERVAL_MS = 30000;
 
+// For screens where someone else's change should show up almost at once: the
+// documents trees, where a client's upload is watched for by the firm and the
+// other way round. The minimum allowed. The rules below still hold - visible
+// tabs only, never overlapping - and a screen should pass an unchanged answer
+// through keepIfSame so a tick that finds nothing new does not re-render.
+export const QUICK_INTERVAL_MS = 5000;
+
 /**
  * A state updater for quiet refreshes: setRows(keepIfSame(next)).
  *
