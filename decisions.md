@@ -8,6 +8,43 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-12 · v1.74.0 · staging only
+
+### The signature builder offers only fields named for a signer
+
+**Asked for:** each signature field on the page should show whose it is -
+the signer's name and email on the box.
+
+**What was happening.** Each signer already had their own fields in the
+builder ("Signature - Name (email)", from `signerFields`), and a field
+dragged from that list shows its name on the box (`withFieldPlaceholder`).
+But the generic Default grid was also offered, and a field dragged from it
+is named "Signature Field 1", with no signer on it.
+
+**Decision (the user's choice):** `onlyDefinedFields={true}` and
+`withCustomFieldsTab={false}`, so the only fields on offer are each
+signer's own. Every field type stays available per signer: Text, Signature,
+Initials, Date, Date signed, Number, Image, Checkbox, File and Phone.
+
+The box shows the field's name as one line, "Signature - Name (email)".
+DocuSeal draws that name itself; its layout on the box is not ours to set.
+
+**Also found, not changed:**
+- The "Send for signature" refusal behind the builder ("No recipient has a
+  field...") was a fault in esignature-backend v1.10.0, fixed in v1.11.0. A
+  contact name stored with two spaces did not match the role DocuSeal saved
+  with one.
+- **"Sign yourself" stays (the user's choice).** It creates a real request
+  addressed to the logged-in admin, so the document shows "Waiting for
+  Signature" until the admin signs it, even though no client was emailed.
+
+**Rejected:** keeping the generic grid alongside. Admins would keep placing
+unnamed fields.
+
+Tests: `builderOptions.test.js` checks the builder's props in the source.
+
+---
+
 ## 2026-11-12 · v1.73.0 · staging only
 
 ### Send for Sign says why it cannot open

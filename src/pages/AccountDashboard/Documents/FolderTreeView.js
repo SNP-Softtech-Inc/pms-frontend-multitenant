@@ -5772,13 +5772,14 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                   key={token}
                   token={token}
                   submitters={submitters}
-                 
-                  // fields={builderFields}
-                   fields={builderFields}
-                  //  fields={builderFields}
-  withFieldPlaceholder={true}
-  withCustomFieldsTab={true}
-  // onlyDefinedFields={false}
+                  // Only the fields named for a signer ("Signature - Name
+                  // (email)"), and the name is drawn on the box, so every
+                  // field on the page shows whose it is. The generic grid
+                  // made "Signature Field 1", with no signer on it (v1.74.0).
+                  fields={builderFields}
+                  onlyDefinedFields={true}
+                  withCustomFieldsTab={false}
+                  withFieldPlaceholder={true}
                   withSignatureId={false}
                   dateFormats={[DATE_FORMAT]}
                   customCss={customCss}

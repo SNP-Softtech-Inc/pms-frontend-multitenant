@@ -202,6 +202,8 @@ FolderTreeView.js  sign → esignAPI.generateToken   GET /api/generate-token
 The builder's field list comes from `signerFields(submitters)`
 (`Documents/signerFields.js`): one set per recipient, including "Date signed"
 (`datenow`). Both date fields print `DATE_FORMAT`, MM/DD/YYYY.
+Only these signer-named fields are offered (`onlyDefinedFields`), so every
+field on the page shows whose it is.
 
 ---
 
