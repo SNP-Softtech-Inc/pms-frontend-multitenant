@@ -1110,6 +1110,7 @@ import {
   RotateCw,
 } from "lucide-react";
 import { useToastContext } from "../../../context/ToastContext";
+import { ownAddresses, isOurs, messagesForTab } from "./emailTabs";
 // ─────────────────────────────────────────────────────────────
 // Gmail's own palette. Kept as constants instead of scattering
 // hex codes through the markup, since these values are load-bearing
@@ -1231,6 +1232,11 @@ const {showToast} = useToastContext();
   const [contactMap, setContactMap] = useState({});
 
   const [supportEmail, setSupportEmail] = useState("");
+  // The firm's side of each conversation: every mailbox the user is
+  // connected to, as the server reports it (v1.77.0). Was supportEmail, the
+  // Gmail address alone, so a Zoho, IMAP or Outlook mailbox showed nothing.
+  const [mailboxes, setMailboxes] = useState([]);
+  const [userLoaded, setUserLoaded] = useState(false);
 
   const [hoveredThreadId, setHoveredThreadId] = useState(null);
   const [selectedRowIds, setSelectedRowIds] = useState(new Set());
@@ -1242,17 +1248,19 @@ const {showToast} = useToastContext();
     fetchLoggedInUser();
   }, [loginUserId]);
 
+  // Waits for the user, not for a Gmail address: a user connected only
+  // through Zoho, IMAP or Outlook has none, and the tab never loaded.
   useEffect(() => {
-    if (supportEmail) {
+    if (userLoaded) {
       fetchEmailCommunications();
     }
-  }, [type, supportEmail]);
+  }, [type, userLoaded, supportEmail]);
 
   // ✅ FETCH LOGGED IN USER EMAIL
   const fetchLoggedInUser = async () => {
-    try {
-      if (!loginUserId) return;
+    if (!loginUserId) return;
 
+    try {
       const res = await authAPI.getSingleUser(loginUserId);
 
       const gmailEmail =
@@ -1263,6 +1271,8 @@ const {showToast} = useToastContext();
       setSupportEmail(gmailEmail);
     } catch (error) {
       console.error("Error fetching user", error);
+    } finally {
+      setUserLoaded(true);
     }
   };
 
@@ -1316,49 +1326,16 @@ const {showToast} = useToastContext();
         emailsRes?.data?.data ||
         [];
 
-      const filteredThreads = allThreads
-        .map((thread) => {
-          // Only keep messages that match the direction for this tab
-          const matchingMessages = thread.messages.filter((msg) => {
-            // Internal team-member activation emails aren't client
-            // correspondence - exclude them outright rather than letting
-            // them leak in via a coincidental contact-email substring match.
-            if (/has invited you to join PMS/i.test(msg.subject || "")) {
-              return false;
-            }
+      // Every mailbox the user is connected to (signup-login v1.26.1); the
+      // Gmail address if the server sends no list.
+      const ours = ownAddresses(emailsRes?.data?.mailboxes, supportEmail);
+      setMailboxes(ours);
 
-            const from = msg.from?.toLowerCase() || "";
-            const toList = Array.isArray(msg.to)
-              ? msg.to.map((t) => t.toLowerCase())
-              : [(msg.to || "").toLowerCase()];
-
-            const involvesContact = syncedEmails.some((email) => {
-              const emailLower = email.toLowerCase();
-              return from.includes(emailLower) || toList.some((t) => t.includes(emailLower));
-            });
-
-            const involvesSupport =
-              from.includes(supportEmail.toLowerCase()) ||
-              toList.some((t) => t.includes(supportEmail.toLowerCase()));
-
-            if (!involvesContact || !involvesSupport) return false;
-
-            if (type === "inbox") {
-              // contact -> support (from is a contact email)
-              return syncedEmails.some((email) => from.includes(email.toLowerCase()));
-            }
-
-            if (type === "sent") {
-              // support -> contact (from is support)
-              return from.includes(supportEmail.toLowerCase());
-            }
-
-            return false;
-          });
-
-          return { ...thread, messages: matchingMessages };
-        })
-        .filter((thread) => thread.messages.length > 0);
+      const filteredThreads = messagesForTab(allThreads, {
+        type,
+        contactEmails: syncedEmails,
+        mailboxes: ours,
+      });
 
       setThreads(filteredThreads);
     } catch (error) {
@@ -1401,30 +1378,16 @@ const {showToast} = useToastContext();
         ? msg.to
         : [msg.to || ""];
 
-      if (
-        from.includes(
-          supportEmail.toLowerCase()
-        )
-      ) {
+      if (isOurs(from, mailboxes)) {
         toList.forEach((email) => {
           const clean = normalize(email);
 
-          if (
-            clean &&
-            !clean.includes(
-              supportEmail.toLowerCase()
-            )
-          ) {
+          if (clean && !isOurs(clean, mailboxes)) {
             recipients.add(clean);
           }
         });
       } else {
-        if (
-          from &&
-          !from.includes(
-            supportEmail.toLowerCase()
-          )
-        ) {
+        if (from && !isOurs(from, mailboxes)) {
           recipients.add(from);
         }
       }

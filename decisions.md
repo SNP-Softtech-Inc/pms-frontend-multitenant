@@ -8,6 +8,39 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-13 · v1.77.0 · staging only
+
+### The Email tab counts every connected mailbox as the firm's side
+
+**Reported:** emails composed from the PMS reached the client but were not
+in the account's Sent tab, and the client's reply was not in Inbox.
+
+**Cause:** in signup-login, not here. Its `/communications` looked synced
+rows up by the caller's login address, while rows are stored under the
+mailbox address. The tester was a team member connected to the firm's
+shared mailbox, so the server returned nothing. Fixed in signup-login
+v1.26.0 / v1.26.1, which also returns the caller's connected mailboxes as
+`mailboxes`.
+
+**Decision (this app):** the tab treats every mailbox in that list as the
+firm's side, instead of the user's Gmail address alone
+(`Email/emailTabs.js`, moved out of `EmailViewer.js` unchanged otherwise).
+- A user connected only through Zoho, IMAP or Outlook has no Gmail
+  address, so the tab never even loaded for them. It now loads once the
+  user is known.
+- With no list (an older server), the Gmail address is used as before.
+- The list holds connected mailboxes only, never the login address. On
+  staging the tester's login is also a client contact's address; counting it
+  would have filed that client's replies under Sent.
+
+**Not changed:** the tab still downloads the whole mailbox each time it
+opens (about 21.7 MB for this firm on staging) and filters it here.
+
+Tests: `Email/emailTabs.test.js` (the rules, plus the wiring in
+`EmailViewer.js`, checked in the source). Mutation-checked.
+
+---
+
 ## 2026-11-13 · v1.76.0 · staging only
 
 ### The browser tab shows the SNP mark and "SNP Taxes & Financials PMS"

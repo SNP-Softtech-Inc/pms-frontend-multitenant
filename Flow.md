@@ -188,6 +188,23 @@ AccountDashboard/Info.js
 
 ---
 
+## Account page: Email tab (Inbox / Sent)
+
+```
+Email/EmailViewer.js (type "inbox" | "sent")
+  └─ authAPI.getSingleUser            gmailEmail (fallback only)
+  └─ accountsAPI.getAccountContacts   contacts with Sync on
+  └─ authAPI.getEmailCommunications   GET /api/emailsync/communications
+       signup-login: rows of every mailbox the user is connected to
+       → { threads, mailboxes }
+  └─ messagesForTab(threads, { type, contactEmails, mailboxes })
+                                      Email/emailTabs.js
+       Inbox = a contact writing to one of mailboxes
+       Sent  = one of mailboxes writing to a contact
+```
+
+---
+
 ## Documents: Send for signature
 
 ```
