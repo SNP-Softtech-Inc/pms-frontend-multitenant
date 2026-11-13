@@ -1,5 +1,5 @@
 // Which synced messages the account's Inbox and Sent tabs show.
-import { ownAddresses, isOurs, messagesForTab } from "./emailTabs";
+import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally } from "./emailTabs";
 
 const FIRM = "silpa@firm.test";
 const CLIENT = "client@gmail.test";
@@ -85,6 +85,37 @@ describe("messagesForTab", () => {
   });
 });
 
+describe("reading a thread", () => {
+  const unread = { _id: "a", latest: { isRead: false }, messages: [{ isRead: false }, { isRead: true }] };
+  const read = { _id: "b", latest: { isRead: true }, messages: [{ isRead: true }] };
+
+  it("counts a thread as unread by its latest message, as the Unread tab does", () => {
+    expect(isUnread(unread)).toBe(true);
+    expect(isUnread(read)).toBe(false);
+    expect(isUnread({ _id: "c" })).toBe(true);
+  });
+
+  it("marks one thread read on screen, without fetching the mailbox again", () => {
+    const next = markReadLocally([unread, read], "a");
+
+    expect(next[0].latest.isRead).toBe(true);
+    expect(next[0].messages.every((m) => m.isRead)).toBe(true);
+    expect(next[1]).toBe(read);
+  });
+
+  it("does not change the threads it was given", () => {
+    markReadLocally([unread], "a");
+
+    expect(unread.latest.isRead).toBe(false);
+    expect(unread.messages[0].isRead).toBe(false);
+  });
+
+  it("leaves everything as is for an unknown thread", () => {
+    const threads = [unread, read];
+    expect(markReadLocally(threads, "zzz")).toEqual(threads);
+  });
+});
+
 // Render tests are blocked in this repo (decisions.md, 2026-10-24), so the
 // screen's wiring is checked in the source; commented-out lines are ignored.
 describe("EmailViewer wiring", () => {
@@ -105,6 +136,20 @@ describe("EmailViewer wiring", () => {
   it("takes the firm's side from the server's mailbox list and filters with it", () => {
     expect(src).toMatch(/const ours = ownAddresses\(emailsRes\?\.data\?\.mailboxes, supportEmail\);/);
     expect(src).toMatch(/messagesForTab\(allThreads, \{\s*type,\s*contactEmails: syncedEmails,\s*mailboxes: ours,\s*\}\)/);
+  });
+
+  it("opens a thread quietly: no 'Mark as read' toast", () => {
+    expect(src).not.toMatch(/title:\s*"Mark as read"/);
+  });
+
+  it("marks only an unread thread read, on screen, without re-fetching the mailbox", () => {
+    expect(src).toContain("if (isUnread(thread)) markThreadAsRead(thread._id);");
+    const start = src.indexOf("const markThreadAsRead = async");
+    const body = src.slice(start, src.indexOf("};", start));
+    expect(body).toContain("setThreads((prev) => markReadLocally(prev, threadId));");
+    expect(body).toContain("await authAPI.markThreadAsRead(threadId);");
+    expect(body).not.toContain("fetchEmailCommunications()");
+    expect(body).not.toContain("showToast");
   });
 
   it("no longer compares against the Gmail address alone", () => {

@@ -201,6 +201,8 @@ Email/EmailViewer.js (type "inbox" | "sent")
                                       Email/emailTabs.js
        Inbox = a contact writing to one of mailboxes
        Sent  = one of mailboxes writing to a contact
+  opening an unread thread → markReadLocally (on screen at once) +
+       PUT /mark-read/:threadId; no toast, no re-fetch
 ```
 
 ---

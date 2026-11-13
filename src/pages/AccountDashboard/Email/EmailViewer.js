@@ -1110,7 +1110,7 @@ import {
   RotateCw,
 } from "lucide-react";
 import { useToastContext } from "../../../context/ToastContext";
-import { ownAddresses, isOurs, messagesForTab } from "./emailTabs";
+import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally } from "./emailTabs";
 // ─────────────────────────────────────────────────────────────
 // Gmail's own palette. Kept as constants instead of scattering
 // hex codes through the markup, since these values are load-bearing
@@ -1533,16 +1533,16 @@ showToast({
   };
 
   // ✅ MARK READ
+  // Quiet and immediate (v1.78.0): the thread shows as read straight away,
+  // with no toast and no re-fetch of the whole mailbox. Opening an email is
+  // not an action that needs confirming. If the server call fails, the next
+  // refresh shows the thread as it really is.
   const markThreadAsRead = async (
     threadId
   ) => {
+    setThreads((prev) => markReadLocally(prev, threadId));
     try {
       await authAPI.markThreadAsRead(threadId);
- showToast({
-  title:"Mark as read",
-  type:"success"
- })
-      fetchEmailCommunications();
     } catch (err) {
       console.error(
         "Mark read failed",
@@ -1733,7 +1733,7 @@ showToast({
                       )
                     );
                     setReplyingToMessageId(null);
-                    markThreadAsRead(thread._id);
+                    if (isUnread(thread)) markThreadAsRead(thread._id);
                   }}
                   style={{
                     backgroundColor: rowBg,

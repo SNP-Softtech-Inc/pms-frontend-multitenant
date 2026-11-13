@@ -51,3 +51,21 @@ export const messagesForTab = (threads, { type, contactEmails, mailboxes }) => {
     })
     .filter((thread) => thread.messages.length > 0);
 };
+
+// A thread is unread when its latest message is - the same test the Unread
+// tab and the unread count use.
+export const isUnread = (thread) => !thread?.latest?.isRead;
+
+// The threads with one marked read, for the screen to show at once after a
+// click (v1.78.0). Was a full re-fetch of the mailbox, plus a "Mark as read"
+// toast, on every click. Returns new objects; the input is not changed.
+export const markReadLocally = (threads, threadId) =>
+  (threads || []).map((thread) =>
+    thread._id !== threadId
+      ? thread
+      : {
+          ...thread,
+          latest: thread.latest ? { ...thread.latest, isRead: true } : thread.latest,
+          messages: (thread.messages || []).map((m) => ({ ...m, isRead: true })),
+        },
+  );

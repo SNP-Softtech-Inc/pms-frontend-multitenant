@@ -8,6 +8,30 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-13 · v1.78.0 · staging only
+
+### Opening an email is quiet: no "Mark as read" toast, no re-fetch
+
+**Asked for:** no "Mark as read" notification on every click; it made the
+Email tab feel poor.
+
+**What a click did:** it showed the toast, called the mark-read endpoint and
+then fetched the whole mailbox again (about 21 MB for the largest firm on
+staging), on every click, including threads that were already read.
+
+**Decision:**
+- No toast. Opening an email is not an action that needs confirming. Other
+  messages ("Reply sent" and the like) are kept.
+- Only an unread thread is marked read (`isUnread`, the same test as the
+  Unread tab and count).
+- The thread shows as read at once (`markReadLocally`), with no re-fetch.
+  If the server call fails, it is logged and the next refresh shows the
+  thread as it really is.
+
+Tests: `Email/emailTabs.test.js`. Mutation-checked.
+
+---
+
 ## 2026-11-13 · v1.77.0 · staging only
 
 ### The Email tab counts every connected mailbox as the firm's side
