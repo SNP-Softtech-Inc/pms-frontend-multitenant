@@ -8,6 +8,39 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-12 · v1.75.0 · staging only
+
+### The signer's name and email are readable inside a placed field
+
+**Asked for:** the name and email on a placed field should be inside the
+box, in a font people can see.
+
+**What was happening.** DocuSeal already writes the field's title, the
+signer's "Name (email)", inside the box (`withFieldPlaceholder`). It draws
+it as a placeholder in light grey at 30% opacity (DocuSeal's area.vue:
+`before:text-base-content/30`), so it could not be read, least of all on a
+dark page. The name that could be read was on the dark bar above the box,
+which DocuSeal shows only on hover.
+
+**Decision:** one rule in `docuseal-dark-theme.css` draws that placeholder
+dark (#111827), bold, at 12px, and wraps a long email inside the box. The box
+keeps DocuSeal's light tint per signer, so dark text reads on it whatever
+the page underneath.
+
+- The stylesheet reaches the builder as part of the app's global CSS: the
+  builder is not in a shadow DOM, and the `customCss` prop receives no
+  string from a CSS import. Its existing rules are already live this way
+  (checked in the staging CSS).
+- Display only. Field names, titles and what is sent are unchanged.
+
+**Tradeoff accepted:** on a very small box, 12px text can run past the
+box's edge instead of shrinking. Before this change it shrank until it
+could not be read.
+
+Tests: `builderOptions.test.js` checks the rule in the stylesheet.
+
+---
+
 ## 2026-11-12 · v1.74.0 · staging only
 
 ### The signature builder offers only fields named for a signer

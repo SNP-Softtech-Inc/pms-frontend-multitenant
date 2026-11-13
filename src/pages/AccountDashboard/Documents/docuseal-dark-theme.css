@@ -562,3 +562,17 @@
 .recipients-modal-pagination-page:hover {
   background-color: #495565;
 }
+
+/* SIGNER ON A PLACED FIELD (v1.75.0) */
+/*
+  DocuSeal writes a placed field's title - the signer's "Name (email)" -
+  inside the box as a placeholder, light grey at 30% opacity: unreadable,
+  above all on a dark page. Dark and bold here, on the box's light tint.
+*/
+.field-area span[placeholder]:empty::before {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere;
+}

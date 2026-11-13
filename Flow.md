@@ -204,6 +204,8 @@ The builder's field list comes from `signerFields(submitters)`
 (`datenow`). Both date fields print `DATE_FORMAT`, MM/DD/YYYY.
 Only these signer-named fields are offered (`onlyDefinedFields`), so every
 field on the page shows whose it is.
+The name inside a placed box is DocuSeal's placeholder, drawn readable by
+`docuseal-dark-theme.css` (global CSS; the builder has no shadow DOM).
 
 ---
 

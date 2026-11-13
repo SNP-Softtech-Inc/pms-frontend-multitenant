@@ -35,3 +35,22 @@ describe("signature builder fields", () => {
     expect(props).not.toMatch(/withSignYourselfButton=\{false\}/);
   });
 });
+
+// DocuSeal writes a placed field's title - the signer's "Name (email)" -
+// inside the box as a placeholder, in light grey at 30% opacity. The builder
+// stylesheet makes it dark and bold so it can be read on any page.
+describe("signer name on a placed field", () => {
+  const css = fs.readFileSync(path.join(__dirname, "docuseal-dark-theme.css"), "utf8");
+  const rule = css.match(/\.field-area span\[placeholder\]:empty::before\s*\{([^}]*)\}/);
+
+  it("is dark, bold and a readable size", () => {
+    expect(rule).not.toBeNull();
+    expect(rule[1]).toMatch(/color:\s*#111827 !important;/);
+    expect(rule[1]).toMatch(/font-weight:\s*600 !important;/);
+    expect(rule[1]).toMatch(/font-size:\s*12px !important;/);
+  });
+
+  it("wraps a long email inside the box rather than running out of it", () => {
+    expect(rule[1]).toMatch(/overflow-wrap:\s*anywhere;/);
+  });
+});
