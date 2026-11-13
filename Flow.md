@@ -15,6 +15,10 @@ Package name is `new-pms-frontend`; it is served under `/admin`
 
 **`src/index.js`** → `src/App.js`.
 
+The page shell is `public/index.html`: tab title "SNP Taxes & Financials
+PMS" and `favicon.ico`, the SNP mark (same in both apps; `manifest.json`
+names the installed app the same way).
+
 The provider stack in `index.js`, outermost first. Order matters: anything
 inside can consume what wraps it.
 

@@ -8,6 +8,39 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-13 · v1.76.0 · staging only
+
+### The browser tab shows the SNP mark and "SNP Taxes & Financials PMS"
+
+**Asked for:** replace Create React App's favicon with the SNP Taxes &
+Financials logo, and the tab title with "SNP Taxes & Financials PMS", the
+same on the Admin, Team Member and Client portals.
+
+**Decision:**
+- Title, description and installed-app name are "SNP Taxes & Financials
+  PMS" (short name "SNP PMS"). The title was "React App".
+- `favicon.ico` (16, 32, 48 and 64 px), `logo192.png` and `logo512.png`
+  are the SNP "S" mark on a transparent square. The full logo, with its
+  lettering, is unreadable at 16 px.
+- Admins and team members use this app, and clients use the client portal; the same files went into both (`pms-client-multitenant` v1.18.0).
+- The mark was cut from the admin app's `src/Images/logoAdmin.png`
+  (730 × 341), the largest copy of the logo in either repo. The mark is 172
+  × 249 px there, so `logo512.png` (used only when the app is installed on
+  a phone or desktop) is enlarged about 2× and slightly soft. The tab icon is
+  sharp.
+
+**Rejected:** `src/Images/Logo.svg` in the admin app. It is not the SNP mark
+but a generic two-shape placeholder.
+
+**Note:** browsers cache favicons hard. After the deploy, a hard refresh
+(Ctrl+Shift+R) may not be enough; reopening the tab or clearing the site's
+cached images is.
+
+Tests: `src/brandAssets.test.js` checks the title, icon links, manifest
+names, icon sizes, and that none of Create React App's icons is left.
+
+---
+
 ## 2026-11-12 · v1.75.0 · staging only
 
 ### The signer's name and email are readable inside a placed field
