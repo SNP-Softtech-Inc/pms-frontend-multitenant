@@ -71,6 +71,25 @@ const lastUrl = () => {
   return mockRecorded[mockRecorded.length - 1].url;
 };
 
+describe("authAPI.getEmailCommunications - one account (v1.81.0)", () => {
+  // The server sends only this account's emails when told which account;
+  // without it, every account's - 40 MB on staging.
+  const last = () => mockRecorded[mockRecorded.length - 1];
+
+  it("asks for the account's emails", async () => {
+    await authAPI.getEmailCommunications("64f1a2b3c4d5e6f708192a3b");
+    expect(last().method).toBe("get");
+    expect(last().url).toBe("/api/emailsync/communications");
+    expect(last().arg).toEqual({ params: { accountId: "64f1a2b3c4d5e6f708192a3b" } });
+  });
+
+  it("sends no account when it has none (axios drops an undefined param)", async () => {
+    await authAPI.getEmailCommunications();
+    expect(last().url).toBe("/api/emailsync/communications");
+    expect(last().arg.params.accountId).toBeUndefined();
+  });
+});
+
 describe("authAPI.getAttachmentData - URL encoding", () => {
   // v1.59.0. Gmail attachment ids are base64url and several hundred
   // characters long. One carrying a character with meaning in a URL path was

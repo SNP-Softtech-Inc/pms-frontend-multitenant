@@ -494,9 +494,12 @@ disconnectZohoMailbox: (email, token) =>
   authUserApi.get(
     `/api/emailsync/zoho/disconnect?token=${token}&email=${encodeURIComponent(email)}`,
   ),
-// Get communication emails
-getEmailCommunications: () =>
-  authUserApi.get("/api/emailsync/communications"),
+// Get communication emails - one account's (v1.81.0). With the account the
+// server sends only that account's emails, about 0.1-0.8 MB; without it,
+// every account's, which was 40 MB on staging. axios leaves an undefined
+// accountId out of the URL.
+getEmailCommunications: (accountId) =>
+  authUserApi.get("/api/emailsync/communications", { params: { accountId } }),
 
   // Mark thread as read
   markThreadAsRead: (

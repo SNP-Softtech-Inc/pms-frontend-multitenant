@@ -1110,7 +1110,7 @@ import {
   RotateCw,
 } from "lucide-react";
 import { useToastContext } from "../../../context/ToastContext";
-import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally } from "./emailTabs";
+import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally, withLatestBody } from "./emailTabs";
 import { replyRequest, replyFailureMessage, REPLY_ACTIONS_AVAILABLE } from "./reply";
 // ─────────────────────────────────────────────────────────────
 // Gmail's own palette. Kept as constants instead of scattering
@@ -1256,7 +1256,7 @@ const {showToast} = useToastContext();
     if (userLoaded) {
       fetchEmailCommunications();
     }
-  }, [type, userLoaded, supportEmail]);
+  }, [type, userLoaded, supportEmail, accountId]);
 
   // ✅ FETCH LOGGED IN USER EMAIL
   const fetchLoggedInUser = async () => {
@@ -1280,6 +1280,10 @@ const {showToast} = useToastContext();
 
   // ✅ FETCH EMAIL COMMUNICATIONS
   const fetchEmailCommunications = async () => {
+    // No account yet: nothing to ask for (v1.81.0). Asking without one would
+    // fetch every account's emails, and the contacts call cannot succeed.
+    if (!accountId) return;
+
     try {
       setRefreshing(true);
 
@@ -1319,14 +1323,18 @@ const {showToast} = useToastContext();
         return;
       }
 
-      // ✅ NEW API
+      // This account's emails only (v1.81.0; signup-login v1.33.0). Was
+      // every account's - 40 MB on staging - filtered down here.
       const emailsRes =
-        await authAPI.getEmailCommunications();
+        await authAPI.getEmailCommunications(accountId);
 
-      const allThreads =
+      // `latest` comes as a summary; its body (preview, search) is the same
+      // email's in `messages`.
+      const allThreads = withLatestBody(
         emailsRes?.data?.threads ||
         emailsRes?.data?.data ||
-        [];
+        []
+      );
 
       // Every mailbox the user is connected to (signup-login v1.26.1); the
       // Gmail address if the server sends no list.

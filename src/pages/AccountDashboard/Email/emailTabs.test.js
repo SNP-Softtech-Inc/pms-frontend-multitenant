@@ -1,5 +1,5 @@
 // Which synced messages the account's Inbox and Sent tabs show.
-import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally } from "./emailTabs";
+import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally, withLatestBody } from "./emailTabs";
 
 const FIRM = "silpa@firm.test";
 const CLIENT = "client@gmail.test";
@@ -116,6 +116,61 @@ describe("reading a thread", () => {
   });
 });
 
+describe("withLatestBody (v1.81.0)", () => {
+  // signup-login v1.33.0 sends `latest` as a summary; the body for the row's
+  // preview and search comes from the same email in `messages`.
+  const full = (id, body, extra = {}) => ({ _id: id, subject: `S ${id}`, body, from: CLIENT, to: [FIRM], isRead: false, ...extra });
+  const summary = (id) => ({ _id: id, subject: `S ${id}`, isRead: false, messageDate: "2026-11-16T10:00:00Z" });
+
+  it("fills the summary's body from the same email in messages", () => {
+    const threads = [{ _id: "t1", latest: summary("e2"), messages: [full("e2", "<p>newest</p>"), full("e1", "<p>older</p>")] }];
+    const [t] = withLatestBody(threads);
+    expect(t.latest).toEqual({ ...summary("e2"), body: "<p>newest</p>" });
+    expect(t.messages).toBe(threads[0].messages);
+  });
+
+  it("gives the same row text as a full latest did", () => {
+    const e = full("e1", "<p>Hello <b>there</b></p>");
+    const before = { _id: "t1", latest: e, messages: [e] };
+    const after = withLatestBody([{ _id: "t1", latest: summary("e1"), messages: [e] }])[0];
+    ["subject", "body", "isRead"].forEach((k) => expect(after.latest[k]).toBe(before.latest[k]));
+  });
+
+  it("works before messagesForTab drops the newest email from the tab's list", () => {
+    const invite = full("e2", "<p>invite</p>", { subject: "Ann has invited you to join PMS", from: FIRM, to: [CLIENT] });
+    const reply = full("e1", "<p>reply</p>");
+    const loaded = withLatestBody([{ _id: "t1", latest: { ...summary("e2"), subject: invite.subject }, messages: [invite, reply] }]);
+    const [t] = messagesForTab(loaded, { type: "inbox", contactEmails: [CLIENT], mailboxes: [FIRM] });
+    expect(t.messages.map((m) => m._id)).toEqual(["e1"]);
+    expect(t.latest.body).toBe("<p>invite</p>"); // the row still previews the newest email, as before
+  });
+
+  it("leaves a full latest from an older server alone", () => {
+    const e = full("e1", "<p>x</p>");
+    const threads = [{ _id: "t1", latest: e, messages: [e] }];
+    expect(withLatestBody(threads)[0]).toBe(threads[0]);
+  });
+
+  it("keeps an empty body empty, not missing", () => {
+    expect(withLatestBody([{ _id: "t", latest: summary("e1"), messages: [full("e1", "")] }])[0].latest.body).toBe("");
+  });
+
+  it("copes with no match, no latest and no threads", () => {
+    const lone = { _id: "t", latest: summary("gone"), messages: [full("e1", "x")] };
+    expect(withLatestBody([lone])[0]).toBe(lone);
+    const bare = { _id: "t", messages: [] };
+    expect(withLatestBody([bare])[0]).toBe(bare);
+    expect(withLatestBody(undefined)).toEqual([]);
+  });
+
+  it("keeps unread and search working on the filled row", () => {
+    const [t] = withLatestBody([{ _id: "t1", latest: summary("e1"), messages: [full("e1", "<p>quarterly estimate</p>")] }]);
+    expect(isUnread(t)).toBe(true);
+    expect([t.latest.subject, t.latest.body].join(" ").toLowerCase()).toContain("quarterly");
+    expect(isUnread(markReadLocally([t], "t1")[0])).toBe(false);
+  });
+});
+
 // Render tests are blocked in this repo (decisions.md, 2026-10-24), so the
 // screen's wiring is checked in the source; commented-out lines are ignored.
 describe("EmailViewer wiring", () => {
@@ -150,6 +205,22 @@ describe("EmailViewer wiring", () => {
     expect(body).toContain("await authAPI.markThreadAsRead(threadId);");
     expect(body).not.toContain("fetchEmailCommunications()");
     expect(body).not.toContain("showToast");
+  });
+
+  it("asks for this account's emails, and not at all without an account (v1.81.0)", () => {
+    expect(src).toContain("await authAPI.getEmailCommunications(accountId);");
+    expect(src).not.toContain("await authAPI.getEmailCommunications();");
+    const start = src.indexOf("const fetchEmailCommunications = async");
+    expect(src.indexOf("if (!accountId) return;", start)).toBeGreaterThan(start);
+    expect(src.indexOf("if (!accountId) return;", start)).toBeLessThan(src.indexOf("getAccountContacts", start));
+    expect(src).toMatch(/\}, \[type, userLoaded, supportEmail, accountId\]\);/);
+  });
+
+  it("fills latest's body before filtering, and still searches it (v1.81.0)", () => {
+    expect(src).toMatch(/const allThreads = withLatestBody\(\s*emailsRes\?\.data\?\.threads/);
+    expect(src.indexOf("withLatestBody(")).toBeLessThan(src.indexOf("messagesForTab(allThreads"));
+    expect(src).toMatch(/t\.latest\?\.subject,\s*t\.latest\?\.body,/);
+    expect(src).toContain('getPreview(latest?.body || "", 60)');
   });
 
   it("no longer compares against the Gmail address alone", () => {

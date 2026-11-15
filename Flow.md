@@ -194,9 +194,14 @@ AccountDashboard/Info.js
 Email/EmailViewer.js (type "inbox" | "sent")
   └─ authAPI.getSingleUser            gmailEmail (fallback only)
   └─ accountsAPI.getAccountContacts   contacts with Sync on
-  └─ authAPI.getEmailCommunications   GET /api/emailsync/communications
-       signup-login: rows of every mailbox the user is connected to
+  └─ no accountId in the URL → no request (v1.81.0)
+  └─ authAPI.getEmailCommunications(accountId)
+       GET /api/emailsync/communications?accountId=
+       signup-login v1.33.0: this account's emails, of every mailbox the
+       user is connected to; no notifications, no attachment bytes;
+       latest = summary (no body)
        → { threads, mailboxes }
+  └─ withLatestBody(threads)          latest.body ← same email in messages
   └─ messagesForTab(threads, { type, contactEmails, mailboxes })
                                       Email/emailTabs.js
        Inbox = a contact writing to one of mailboxes

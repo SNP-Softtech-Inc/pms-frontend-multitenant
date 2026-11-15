@@ -8,6 +8,43 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-16 · v1.81.0 · staging only
+
+### The Email tab asks for its own account's emails only
+
+**Found** (Issue #7). Each time the tab opened, and again on every Inbox ↔
+Sent switch, it fetched every email of the user's mailboxes, firm-wide, then
+kept one account's here: 44 MB raw / 26.8 MB gzipped on staging. Most of it
+was notification emails and stored attachment bytes the tab never shows,
+and each thread's newest email sent twice.
+
+**Decision** (with signup-login v1.33.0):
+- `getEmailCommunications(accountId)` sends `?accountId=`. The server
+  returns only that account's emails, with no notifications and no
+  attachment bytes. On staging the largest account is 555 KB raw / 83 KB
+  gzipped.
+- With no account in the URL, no request is made: asking without one would
+  fetch every account's emails, and the contacts call cannot succeed. The
+  load also re-runs when the account changes.
+- The server now sends `latest` as a summary with no body.
+  `withLatestBody` (`Email/emailTabs.js`) takes the body from the same
+  email in `messages`, before `messagesForTab` runs, so the row's preview
+  and search read `latest.body` exactly as before. A full `latest` from an
+  older server is left alone.
+- `messagesForTab` is unchanged and still filters; the server's scope is a
+  second layer, not a replacement.
+
+**Not changed:** the attachment button still opens only from `att.data`,
+which the list no longer carries. It never worked for the emails the tab
+shows: none of the 108 on staging had stored bytes. Recorded as a follow-up
+(signup-login Known issues). No pagination; the busiest account has 128
+threads.
+
+Tests: `Email/emailTabs.test.js` and `services/api.test.js`.
+Mutation-checked.
+
+---
+
 ## 2026-11-15 · v1.80.0 · staging only
 
 ### Reply works: the screen sends only which email and the text

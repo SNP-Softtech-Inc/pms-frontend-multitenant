@@ -52,6 +52,20 @@ export const messagesForTab = (threads, { type, contactEmails, mailboxes }) => {
     .filter((thread) => thread.messages.length > 0);
 };
 
+// Each thread's newest email with its body, for the row's preview and search
+// (v1.81.0). signup-login v1.33.0 sends `latest` as a summary - subject,
+// read state, dates, no body - since the full email is already in
+// `messages`; this takes the body from there. Run before messagesForTab,
+// which can leave the newest email out of the tab's list while the row still
+// shows it. A server that sends the full `latest` is left as it is.
+export const withLatestBody = (threads) =>
+  (threads || []).map((thread) => {
+    const latest = thread?.latest;
+    if (!latest || latest.body !== undefined) return thread;
+    const full = (thread.messages || []).find((m) => String(m._id) === String(latest._id));
+    return full ? { ...thread, latest: { ...latest, body: full.body } } : thread;
+  });
+
 // A thread is unread when its latest message is - the same test the Unread
 // tab and the unread count use.
 export const isUnread = (thread) => !thread?.latest?.isRead;
