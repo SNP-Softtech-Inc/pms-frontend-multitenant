@@ -8,6 +8,41 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-15 · v1.80.0 · staging only
+
+### Reply works: the screen sends only which email and the text
+
+**Found** in a read-only review of the email system (2026-11-14). The Email
+tab's Reply posted `{ to: lastEmail.from, subject, message, threadId }` to
+`POST /api/emailsync/reply`, which existed in no service, on staging or
+production. Every reply failed with a 404 that only reached the browser
+console, and the composer had already closed, so the text was lost too. On
+the Sent tab, `lastEmail.from` was the firm itself, so a reply would have
+gone to the firm's own mailbox.
+
+**Decision** (with signup-login v1.29.0 and mail-service v0.15.0):
+- The screen sends `{ messageId, body }` (`Email/reply.js`, `replyRequest`).
+  signup-login works out the recipient (the email's client), the subject,
+  the mailbox and the threading from the stored email. The browser never
+  chooses who a reply goes to.
+- The composer stays open with the text until the server accepts the reply.
+  A failure shows the server's reason (`replyFailureMessage`). Send is
+  disabled while a reply is on its way.
+- No re-fetch after sending: the sent copy reaches the thread with the next
+  sync (about 2 minutes). The toast says so.
+- Reply all, Forward and the paperclip are disabled
+  (`REPLY_ACTIONS_AVAILABLE`). None of them works on the server yet: Reply
+  all and Forward went through the same call as Reply, and the paperclip
+  did nothing.
+
+**Not changed:** `api.js` `replyEmail` keeps its address; only what is
+posted changed.
+
+Tests: `Email/reply.test.js` (request, failure text, and the screen's wiring
+in the source; render tests are blocked in this repo). Mutation-checked.
+
+---
+
 ## 2026-11-13 · v1.78.0 · staging only
 
 ### Opening an email is quiet: no "Mark as read" toast, no re-fetch

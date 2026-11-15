@@ -1111,6 +1111,7 @@ import {
 } from "lucide-react";
 import { useToastContext } from "../../../context/ToastContext";
 import { ownAddresses, isOurs, messagesForTab, isUnread, markReadLocally } from "./emailTabs";
+import { replyRequest, replyFailureMessage, REPLY_ACTIONS_AVAILABLE } from "./reply";
 // ─────────────────────────────────────────────────────────────
 // Gmail's own palette. Kept as constants instead of scattering
 // hex codes through the markup, since these values are load-bearing
@@ -1206,6 +1207,7 @@ const {showToast} = useToastContext();
   const [replyingToMessageId, setReplyingToMessageId] =
     useState(null);
   const [replyMode, setReplyMode] = useState("reply"); // reply | replyAll | forward
+  const [sendingReply, setSendingReply] = useState(false);
 
   // Set of message keys currently expanded. Gmail opens a thread with
   // every message stacked and expanded, not just the latest one.
@@ -1492,43 +1494,35 @@ const {showToast} = useToastContext();
     }
   };
 
-  // ✅ SEND REPLY
-  const sendReply = async () => {
+  // SEND REPLY (v1.80.0)
+  //
+  // Sends only which email and the text; signup-login works out the client,
+  // the subject, the mailbox and the threading. Was { to: lastEmail.from,
+  // subject, message } to a route that did not exist: every reply failed
+  // with only a console line, and on the Sent tab "to" was the firm itself.
+  // The composer now stays open, with the text, until the reply is accepted.
+  // No re-fetch: the sent copy arrives with the next sync.
+  const sendReply = async (email) => {
+    if (sendingReply) return;
+
+    const request = replyRequest(email, replyText);
+    if (!request) return;
+
+    setSendingReply(true);
     try {
-      const thread = threads.find(
-        (t) => t._id === selectedThreadId
-      );
-
-      if (!thread) return;
-
-      const lastEmail =
-        thread.messages[
-          thread.messages.length - 1
-        ];
-
-      // ✅ Reply to the sender of the last email
-      const replyTo = lastEmail.from;
-
-      await authAPI.replyEmail({
-        to: replyTo,
-        subject: `Re: ${
-          lastEmail.subject || "No Subject"
-        }`,
-        message: replyText,
-        threadId: thread._id,
-      });
+      await authAPI.replyEmail(request);
 
       setReplyText("");
-showToast({
-  title:"Reply sent",
-  type:"success"
-})
-      fetchEmailCommunications();
+      setReplyingToMessageId(null);
+      showToast({
+        title: "Reply sent",
+        description: "It will appear in Sent after the next sync.",
+        type: "success",
+      });
     } catch (error) {
-      console.error(
-        "Reply send error",
-        error
-      );
+      showToast({ title: replyFailureMessage(error), type: "error" });
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -1980,25 +1974,31 @@ showToast({
                                 Reply
                               </button>
 
+                              {/* Reply all and Forward: not built on the
+                                  server yet, so switched off (v1.80.0). */}
                               <button
+                                disabled={!REPLY_ACTIONS_AVAILABLE.replyAll}
+                                title="Not available yet"
                                 onClick={() => {
                                   setReplyMode("replyAll");
                                   setReplyingToMessageId(msgKey);
                                   setReplyText("");
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-[#E0E0E0] text-[13px] font-medium text-[#202124] hover:bg-[#F1F3F4] transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-[#E0E0E0] text-[13px] font-medium text-[#202124] hover:bg-[#F1F3F4] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                               >
                                 <ReplyAll className="h-4 w-4" />
                                 Reply all
                               </button>
 
                               <button
+                                disabled={!REPLY_ACTIONS_AVAILABLE.forward}
+                                title="Not available yet"
                                 onClick={() => {
                                   setReplyMode("forward");
                                   setReplyingToMessageId(msgKey);
                                   setReplyText("");
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-[#E0E0E0] text-[13px] font-medium text-[#202124] hover:bg-[#F1F3F4] transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-[#E0E0E0] text-[13px] font-medium text-[#202124] hover:bg-[#F1F3F4] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                               >
                                 <Forward className="h-4 w-4" />
                                 Forward
@@ -2029,20 +2029,20 @@ showToast({
                               <div className="flex items-center justify-between px-3 py-2.5">
                                 <div className="flex items-center gap-2">
                                   <button
-                                    onClick={() => {
-                                      sendReply();
-                                      setReplyingToMessageId(null);
-                                    }}
-                                    className="flex items-center gap-2 h-9 px-5 rounded-full text-white text-[13.5px] font-medium transition-colors"
+                                    onClick={() => sendReply(email)}
+                                    disabled={sendingReply || !replyText.trim()}
+                                    className="flex items-center gap-2 h-9 px-5 rounded-full text-white text-[13.5px] font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                     style={{ backgroundColor: GMAIL.blue }}
                                   >
-                                    Send
+                                    {sendingReply ? "Sending…" : "Send"}
                                     <SendIcon className="h-3.5 w-3.5" />
                                   </button>
 
+                                  {/* Attachments: not built on the server yet (v1.80.0). */}
                                   <button
-                                    title="Attach files"
-                                    className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043]"
+                                    disabled={!REPLY_ACTIONS_AVAILABLE.attachments}
+                                    title="Attachments are not available yet"
+                                    className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F1F3F4] text-[#3C4043] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     <Paperclip className="h-4 w-4" />
                                   </button>

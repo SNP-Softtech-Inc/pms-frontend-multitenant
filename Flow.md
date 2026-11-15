@@ -203,6 +203,11 @@ Email/EmailViewer.js (type "inbox" | "sent")
        Sent  = one of mailboxes writing to a contact
   opening an unread thread → markReadLocally (on screen at once) +
        PUT /mark-read/:threadId; no toast, no re-fetch
+  Reply (last message) → replyRequest(email, text)      Email/reply.js
+       POST /api/emailsync/reply { messageId, body }    signup-login
+       recipient, subject, mailbox, threading: decided by the server
+       composer stays open until 202; a failure shows the server's reason
+       Reply all, Forward, attachments: disabled (REPLY_ACTIONS_AVAILABLE)
 ```
 
 ---
