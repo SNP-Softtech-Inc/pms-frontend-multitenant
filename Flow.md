@@ -277,6 +277,21 @@ field on the page shows whose it is.
 The name inside a placed box is DocuSeal's placeholder, drawn readable by
 `docuseal-dark-theme.css` (global CSS; the builder has no shadow DOM).
 
+### Cancel Signature Request (v1.83.0)
+
+```
+FolderTreeView.js  ⋮ on a "pendingSignature" file → cancelSignature(item)
+  └─ cancelRequest(item)                       Documents/cancelSignature.js
+       { id: meta.esignRequestId, body: { folder: meta.folder, name: item.name } }
+       item.name, the file's real name: a "X(2).pdf" keeps meta.name "X.pdf"
+  └─ esignAPI.cancelSignature(id, body)
+       DELETE /signature/cancel/:id   (esignature-backend routes/cancelSignature.js)
+       server finds the file from the request, archives the DocuSeal
+       submission, keeps the record as "cancelled"
+  └─ showToast(cancelResultToast(err, data))   success, or the server's reason
+  └─ fetchFolderTree()                         either way, so the status is current
+```
+
 ---
 
 ## Build

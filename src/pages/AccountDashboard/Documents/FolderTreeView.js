@@ -2150,6 +2150,7 @@ import CreateFolderDrawer from "./drawers/CreteFolderDrawer";
 import FolderUploadDrawer from "./drawers/FolderUploadDrawer";
 import { sendResultToast } from "./sendResult";
 import { signStartErrorToast } from "./signStartError";
+import { cancelRequest, cancelResultToast } from "./cancelSignature";
 import { signerFields, DATE_FORMAT } from "./signerFields";
 import RenameDrawer from "./drawers/RenameDrawer";
 import MoveDrawer from "./drawers/MoveDrawer";
@@ -3175,18 +3176,23 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
   //   }
   // };
 
+  // v1.83.0: sends the file's real name (cancelSignature.js) and shows the
+  // server's reason in a toast instead of a bare browser alert.
   const cancelSignature = async (item) => {
-    try {
-      await esignAPI.cancelSignature(item.meta.esignRequestId, {
-        folder: item.meta.folder,
-        name: item.meta.name,
-      });
+    const req = cancelRequest(item);
+    if (!req) {
+      showToast(cancelResultToast({ response: { data: { error: "This document has no signature request to cancel." } } }));
+      return;
+    }
 
-      alert("Signature request cancelled.");
-      fetchFolderTree();
+    try {
+      const res = await esignAPI.cancelSignature(req.id, req.body);
+      showToast(cancelResultToast(null, res?.data));
     } catch (err) {
       console.error(err);
-      alert("Failed to cancel signature");
+      showToast(cancelResultToast(err));
+    } finally {
+      fetchFolderTree();
     }
   };
   // Toggle approval status

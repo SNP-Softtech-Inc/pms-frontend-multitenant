@@ -8,6 +8,31 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-17 · v1.83.0 · staging only
+
+### Cancel Signature Request sends the file's real name and shows why it failed
+
+**Reported:** cancelling a pending e-file signature request showed "Failed to
+cancel signature" and the request stayed active.
+
+**Found:** the screen sent `item.meta.name`. For a file uploaded under a taken
+name (`1000109575(2).pdf`), that is the original `1000109575.pdf`, so the
+server cleared the wrong file. The fix is mainly server-side (esignature-backend
+v1.12.0: find the file from the request, archive the DocuSeal submission, keep
+the record as cancelled).
+
+**Decision:**
+- Send `item.name`, the file's real name (`cancelRequest`,
+  `Documents/cancelSignature.js`). The server only uses it as a fallback,
+  and only clears a meta that points at this request.
+- The result is a toast, not a browser `alert`. On failure it shows the
+  server's reason: already signed, the signing service could not be reached,
+  and so on. The tree is re-read either way, so the status shown is current.
+
+6 unit tests; mutation check (sending the meta name again) fails a test.
+
+---
+
 ## 2026-11-17 · v1.82.0 · staging only
 
 ### Reviewer notes: author in bold, and Copy log copies the whole log
