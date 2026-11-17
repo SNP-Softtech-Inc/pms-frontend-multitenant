@@ -227,6 +227,34 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Sign-in session: countdown, warning, renew, expiry (v1.84.0)
+
+```
+login / refresh-token / renew-session  (signup-login v1.35.0)
+  → session { startedAt, expiresAt, durationMs }   ends with the refresh cookie
+AuthContext.js
+  session = parseSession(...)                     lib/sessionTime.js
+    set on login, on every refresh (page load + every 5 min), on renew;
+    cleared on logout or when refresh says the session is over
+  renewSession()   POST /api/auth/renew-session (cookie) → new token + session
+  at session.expiresAt: refreshToken() once (another tab may have renewed)
+    → still valid: new session, timer re-armed
+    → over: toast "Session expired" + navigate /login
+  renders <SessionExpiryWarning />                components/SessionExpiryWarning.jsx
+    open when shouldWarn(): ≤ 10 min left (≤ half for sign-ins < 20 min)
+    "Your session will expire in N minutes ..."  live
+    Renew session → renewSession()   Dismiss → hidden for this session
+
+My Account → Security (pages/Settings/MyAccount.js)
+  Stay signed in for   sessionRemainingText(session, now), ticks every second
+                       "7 hours 30 minutes remaining of 8 hours" | "Expired"
+  Login Details → Save → PasswordConfirmDialog    components/PasswordConfirmDialog.jsx
+       → authAPI.updateLoginDetails({ ..., currentPassword })
+       401 "Invalid password" → stays open, "That password is not correct"
+```
+
+---
+
 ## Account page: Reviewer notes (Notes tab → Reviewer Notes)
 
 ```

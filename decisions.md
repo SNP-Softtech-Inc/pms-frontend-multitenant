@@ -8,6 +8,52 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-17 · v1.84.0 · staging only
+
+### Security: password dialog in the app, live session countdown, expiry warning
+
+**Reported** (My Account → Account Settings → Security, admin and team
+member):
+1. Saving Login Details asked for the password in a browser popup.
+2. "Stay signed in for" showed "Expired" right after an 8-hour sign-in.
+3. Nothing warned before the session ran out.
+
+**Decision:**
+- **Password dialog.** `window.prompt` is replaced by
+  `PasswordConfirmDialog`, which uses the app's own dialog, a masked field,
+  `autocomplete="current-password"`, and Cancel/Confirm. The browser box was
+  headed with the site's address, showed the password in plain text, and
+  could not be styled. The server still checks the password. A wrong one
+  (401 "Invalid password") keeps the dialog open with the reason. The axios
+  interceptor retries a 401 once after a refresh and then passes it through,
+  so a mistyped password does not sign anyone out.
+- **Countdown.** The end comes from signup-login v1.35.0's `session`, kept in
+  AuthContext. AuthContext re-reads it on every page load, so it survives
+  navigation and reloads. The field ticks every second: "8 hours remaining
+  of 8 hours", then "7 hours 30 minutes remaining of 8 hours". Rounding is
+  up, so a just-started session reads its full length. Before the session is
+  known it shows nothing, not a false "Expired".
+- **Warning.** `SessionExpiryWarning` is mounted once in AuthProvider. It
+  opens 10 minutes before the end, or halfway through for the 1- and
+  5-minute test choices, so it does not open on arrival. It offers Renew
+  session (a fresh session of the same length, server-checked) or Dismiss
+  (for that session).
+- **Expiry.** At the end, AuthContext checks once with the server, because
+  another tab may have renewed. If the session is over, it signs out and says
+  "Session expired", instead of failing on the next click.
+
+**Rejected — counting down from the access token.** It lasts 15 minutes (or
+longer, see signup-login v1.35.0), not the session. The refresh cookie is what
+ends a session.
+
+**Rejected — localStorage for the end time.** It would go stale after a renew
+in another tab. Asking the server on each load is exact.
+
+Tests: `lib/sessionTime` 15, `PasswordConfirmDialog` 8,
+`SessionExpiryWarning` 7.
+
+---
+
 ## 2026-11-17 · v1.83.0 · staging only
 
 ### Cancel Signature Request sends the file's real name and shows why it failed

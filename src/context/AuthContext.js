@@ -268,6 +268,8 @@ import { clearAccessToken,
   setAccessToken as saveAccessToken,
 } from "../services/tokenService";
 import axios from "axios";
+import { parseSession } from "../lib/sessionTime";
+import SessionExpiryWarning from "../components/SessionExpiryWarning";
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
@@ -288,6 +290,12 @@ const sessionExpiredRef = useRef(false);
   const [isAuthenticated, setIsAuthenticated] =
     useState(false);
 const manualLogoutRef = useRef(false);
+
+  // When this sign-in ends: { expiresAt, durationMs } (v1.84.0). The refresh
+  // cookie that really ends it is httpOnly, so signup-login v1.35.0 sends this
+  // on login, refresh and renew. Re-read on every page load (loadUser calls
+  // refresh), so it survives navigation and reloads.
+  const [session, setSession] = useState(null);
   //------------------------------------------
   // LOGIN
   //------------------------------------------
@@ -302,9 +310,10 @@ const login = async (email, password, expiryTime, userId) => {
   });
 
   const { accessToken, user, roleData } = response.data;
-  
+
 saveAccessToken(accessToken);
 setAccessToken(accessToken);
+  setSession(parseSession(response.data.session));
   // Save user
   setUser(user);
 console.log("logged user in context",user)
@@ -335,6 +344,7 @@ const logout = async () => {
   setUser(null);
   setRoleData(null);
   setIsAuthenticated(false);
+  setSession(null);
 
   localStorage.removeItem(RECENT_SEARCHES_KEY);
 
@@ -364,6 +374,8 @@ const refreshToken = useCallback(async () => {
 
     saveAccessToken(token);
     setAccessToken(token);
+    // Same end as at sign-in - or a later one if another tab renewed it.
+    if (data.session) setSession(parseSession(data.session));
 
     sessionExpiredRef.current = false;
 
@@ -391,6 +403,7 @@ const refreshToken = useCallback(async () => {
     setUser(null);
     setRoleData(null);
     setIsAuthenticated(false);
+    setSession(null);
 
     // showToast({
     //   title: "Session Expired",
@@ -466,6 +479,54 @@ useEffect(() => {
 //   return () => clearInterval(interval);
 // }, [isAuthenticated]);
   //------------------------------------------
+  // SESSION: RENEW AND EXPIRY (v1.84.0)
+  //------------------------------------------
+
+  // "Renew session" in the expiry warning. Only a session that is still valid
+  // can be renewed; a refusal is thrown to the caller, which says why.
+  const renewSession = useCallback(async () => {
+    const { data } = await axios.post(
+      `${AUTH_USER_URL}/api/auth/renew-session`,
+      {},
+      { withCredentials: true }
+    );
+
+    if (data.accessToken) {
+      saveAccessToken(data.accessToken);
+      setAccessToken(data.accessToken);
+    }
+    setSession(parseSession(data.session));
+    sessionExpiredRef.current = false;
+
+    return data;
+  }, [AUTH_USER_URL]);
+
+  // At the end of the session: check once with the server (another tab may
+  // have renewed it - the refresh then brings the later end and this re-arms),
+  // otherwise sign out and say so rather than failing on the next click.
+  useEffect(() => {
+    if (!isAuthenticated || !session) return undefined;
+
+    const delay = Math.max(1000, session.expiresAt - Date.now());
+
+    const timer = setTimeout(async () => {
+      const token = await refreshToken();
+      if (token) return;
+
+      if (sessionExpiredRef.current && !manualLogoutRef.current) {
+        showToast({
+          title: "Session expired",
+          description: "Your session has ended. Please sign in again.",
+          type: "warning",
+        });
+        navigate("/login", { replace: true });
+      }
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, session, refreshToken, navigate, showToast]);
+
+  //------------------------------------------
   // APP START
   //------------------------------------------
 
@@ -507,10 +568,13 @@ const value = {
   refreshToken,
   loadUser,
   setAccessToken,
+  session,
+  renewSession,
 };
   return (
     <AuthContext.Provider value={value}>
       {children}
+      <SessionExpiryWarning />
     </AuthContext.Provider>
   );
 };

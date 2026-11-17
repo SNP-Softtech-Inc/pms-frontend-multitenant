@@ -1060,6 +1060,8 @@ import {
 import { nextImapFormForEmail } from "./imapFormState";
 import ProviderRedirectNotice from "./ProviderRedirectNotice";
 import { isCompleteAddress, routeForDiscovery, imapProviderIdFor } from "./connectRoute";
+import { sessionRemainingText } from "../../lib/sessionTime";
+import PasswordConfirmDialog from "../../components/PasswordConfirmDialog";
 // Providers worth naming in the UI.
 //
 // All of them connect over IMAP and all of them have their host discovered
@@ -1179,11 +1181,9 @@ const MyAccount = () => {
   const EMAIL_SYNC = process.env.REACT_APP_EMAIL_SYNC;
   const USER_URL = process.env.REACT_APP_AUTH_USER;
 
-  const { user, logout, loadUser } = useAuth();
+  const { user, logout, loadUser, session } = useAuth();
 const { showToast } = useToastContext();
   console.log("users deatils", user);
-const expiresAt = user?.expiresAt;
-console.log("shdgjhsdcsd",expiresAt)
   // ================= STATES =================
 
   const [isEditable, setIsEditable] = useState(false);
@@ -1195,7 +1195,16 @@ console.log("shdgjhsdcsd",expiresAt)
   const [phonenumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [signedtime, setSignedTime] = useState(0);
+  // "Stay signed in for" (v1.84.0): ticks every second against the session
+  // end AuthContext holds. user.expiresAt never existed, so this always
+  // showed "Expired".
+  const [now, setNow] = useState(() => Date.now());
+
+  // Login Details save: the password is asked for in PasswordConfirmDialog,
+  // not window.prompt (v1.84.0).
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [loginPasswordError, setLoginPasswordError] = useState("");
+  const [savingLogin, setSavingLogin] = useState(false);
 
   const [currentImage, setCurrentImage] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -1258,36 +1267,13 @@ console.log("shdgjhsdcsd",expiresAt)
 
   // ================= SESSION TRACKER =================
 useEffect(() => {
-  if (!expiresAt) return;
+  if (!session) return undefined;
 
-  const updateSignedTime = () => {
-    const remainingSeconds = Math.max(
-      0,
-      Math.floor((expiresAt - Date.now()) / 1000)
-    );
-
-    setSignedTime(remainingSeconds);
-  };
-
-  updateSignedTime();
-
-  const interval = setInterval(updateSignedTime, 1000);
+  setNow(Date.now());
+  const interval = setInterval(() => setNow(Date.now()), 1000);
 
   return () => clearInterval(interval);
-}, [expiresAt]);
-
-const formatTimePeriod = (seconds) => {
-  if (seconds <= 0) return "Expired";
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-
-  if (hours > 0) {
-    return `${hours} hr ${minutes} min`;
-  }
-
-  return `${minutes} min`;
-};
+}, [session]);
 
   // ================= FETCH USER =================
 
@@ -1575,26 +1561,27 @@ const formatTimePeriod = (seconds) => {
       return;
     }
 
+    // v1.84.0: the password is asked for in the PMS dialog below, not in the
+    // browser's window.prompt (headed with the site's address, unmasked).
+    setLoginPasswordError("");
+    setPasswordDialogOpen(true);
+  };
+
+  // The password from PasswordConfirmDialog. The server checks it; a wrong
+  // one keeps the dialog open with the reason, anything else closes it.
+  const handleConfirmLoginChanges = async (password) => {
+    setSavingLogin(true);
+    setLoginPasswordError("");
+
     try {
-      const password = window.prompt(
-        "Please enter your password to confirm changes:"
-      );
-
-      if (!password) {
-        showToast({
-          title: "Password is required",
-          description: "Password is required to save changes",
-          type: "info",
-        });
-        return;
-      }
-
       const response = await authAPI.updateLoginDetails({
         userId: user.id,
         email: tempEmail,
         username: tempUsername,
         currentPassword: password,
       });
+
+      setPasswordDialogOpen(false);
 
      showToast({
   title: "Login details updated",
@@ -1625,11 +1612,21 @@ const formatTimePeriod = (seconds) => {
 }
     } catch (error) {
       console.log("Error updating login details:", error);
+
+      const message = error.response?.data?.message || "";
+      if (error.response?.status === 401 && /invalid password/i.test(message)) {
+        setLoginPasswordError("That password is not correct. Please try again.");
+        return;
+      }
+
+      setPasswordDialogOpen(false);
       showToast({
         title: "Failed to update login details",
-        description: error.response?.data?.message || "Failed to update login details",
+        description: message || "Failed to update login details",
         type: "error",
       });
+    } finally {
+      setSavingLogin(false);
     }
   };
 
@@ -2378,7 +2375,7 @@ console.log("getasscestoken",token)
 
               <Input
                 disabled
-                value={formatTimePeriod(signedtime)}
+                value={sessionRemainingText(session, now)}
               />
             </div>
 
@@ -2398,6 +2395,19 @@ console.log("getasscestoken",token)
                 </Button>
               </div>
             )}
+
+            <PasswordConfirmDialog
+              open={passwordDialogOpen}
+              description="Enter your current password to save the new login details."
+              confirmLabel="Save changes"
+              error={loginPasswordError}
+              submitting={savingLogin}
+              onConfirm={handleConfirmLoginChanges}
+              onCancel={() => {
+                setPasswordDialogOpen(false);
+                setLoginPasswordError("");
+              }}
+            />
           </CardContent>
         </Card>
         </TabsContent>
