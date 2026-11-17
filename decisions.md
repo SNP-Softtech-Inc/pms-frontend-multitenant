@@ -8,6 +8,38 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-17 · v1.82.0 · staging only
+
+### Reviewer notes: author in bold, and Copy log copies the whole log
+
+**Asked** (reviewer, on the v1.45.0 log): bold the name of whoever adds to
+the log, and add one button that copies the entire log.
+
+**Decision:**
+- Each entry's author name is bold (`LogAuthor`, `reviewerLog.js`). The
+  email after it stays normal weight, so the name is what the eye finds.
+  An entry with no recorded author reads "Unknown" rather than nothing.
+- **Copy log** sits on the note's heading, next to +. It copies the
+  heading and every entry, oldest first and numbered as on screen, as
+  **plain text**: `Log n - name (email) - time`, then the entry's text.
+  Plain text, not HTML, because the log is pasted into emails, tickets and
+  documents, where editor markup would arrive as clutter or tags.
+- The entry HTML is read through `DOMParser`, which builds an inert
+  document, so nothing in an entry runs or loads while it is copied.
+- Copy is read-only, so archived reviewer notes have it too; + stays
+  active-only.
+- If the clipboard API is missing or refused (insecure page, permission),
+  a hidden text box is copied instead; if that fails too, the toast says
+  so rather than claiming success.
+
+**Rejected — copying the rendered HTML.** It keeps bold and lists in rich
+editors but pastes as raw tags in plain-text fields, such as ticket comments.
+
+Frontend only; nothing stored changes. 17 unit tests; mutation checks (name
+not bold, blank lines kept, no text-box fallback) each fail a test.
+
+---
+
 ## 2026-11-16 · v1.81.0 · staging only
 
 ### The Email tab asks for its own account's emails only

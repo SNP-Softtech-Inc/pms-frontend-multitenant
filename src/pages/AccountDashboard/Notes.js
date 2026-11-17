@@ -579,6 +579,8 @@ import {
   Loader2,
   Lock,
   AlertTriangle,
+  Copy,
+  Check,
 } from "lucide-react";
 
 import { accountNoteAPI } from "../../services/api";
@@ -587,6 +589,7 @@ import { keepIfSame } from "../../lib/autoRefresh";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import TextEditor from "../../components/textEditor/TextEditior";
+import { LogAuthor, reviewerLogText, copyText } from "./reviewerLog";
 
 const NoteApp = () => {
   const { accountId } = useParams();
@@ -624,6 +627,10 @@ const NoteApp = () => {
   const [logComposerNoteId, setLogComposerNoteId] = useState(null);
   const [logText, setLogText] = useState("");
   const [isAppendingLog, setIsAppendingLog] = useState(false);
+
+  // The reviewer note whose log was just copied - its Copy button shows a
+  // tick for a moment.
+  const [copiedNoteId, setCopiedNoteId] = useState(null);
 
   // ---------------- FETCH NOTES ----------------
   // silent (auto refresh): isFetching untouched, and unchanged notes kept as
@@ -873,6 +880,26 @@ const NoteApp = () => {
 
     setLogComposerNoteId(null);
     setLogText("");
+  };
+
+  // Copy log: the heading and every entry, as plain text (reviewerLog.js).
+  // Read-only, so it is offered on archived reviewer notes too.
+  const handleCopyLog = async (note) => {
+    const copied = await copyText(reviewerLogText(note));
+
+    showToast(
+      copied
+        ? { title: "Log copied", type: "success" }
+        : { title: "Could not copy the log", type: "error" }
+    );
+
+    if (copied) {
+      setCopiedNoteId(note.id);
+      setTimeout(
+        () => setCopiedNoteId((id) => (id === note.id ? null : id)),
+        2000
+      );
+    }
   };
 
   // Adding an entry is irreversible, so it is confirmed the same way creating
@@ -1335,23 +1362,44 @@ const NoteApp = () => {
                     {note.title}
                   </h3>
 
-                  {/* Appending is the only change a reviewer note accepts, so
-                      + sits on the heading rather than among the actions. */}
-                  {note.noteType === "reviewer" && view === "active" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      title="Add a log entry"
-                      disabled={isAppendingLog}
-                      onClick={() =>
-                        logComposerNoteId === note.id
-                          ? handleCloseLogComposer()
-                          : handleOpenLogComposer(note.id)
-                      }
-                      className="shrink-0 rounded-xl"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                  {note.noteType === "reviewer" && (
+                    <div className="flex shrink-0 items-center gap-2">
+                      {/* Copy log reads only, so archived notes have it too. */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        title="Copy the whole log"
+                        onClick={() => handleCopyLog(note)}
+                        className="rounded-xl"
+                      >
+                        {copiedNoteId === note.id ? (
+                          <Check className="mr-1.5 h-4 w-4" />
+                        ) : (
+                          <Copy className="mr-1.5 h-4 w-4" />
+                        )}
+                        Copy log
+                      </Button>
+
+                      {/* Appending is the only change a reviewer note accepts,
+                          so + sits on the heading rather than among the
+                          actions. */}
+                      {view === "active" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Add a log entry"
+                          disabled={isAppendingLog}
+                          onClick={() =>
+                            logComposerNoteId === note.id
+                              ? handleCloseLogComposer()
+                              : handleOpenLogComposer(note.id)
+                          }
+                          className="rounded-xl"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -1369,11 +1417,10 @@ const NoteApp = () => {
                               Log {index + 1}
                             </span>
 
-                            <span>
-                              {log.createdByEmail
-                                ? `${log.createdBy} (${log.createdByEmail})`
-                                : log.createdBy}
-                            </span>
+                            <LogAuthor
+                              name={log.createdBy}
+                              email={log.createdByEmail}
+                            />
 
                             <span className="text-muted-foreground/70">
                               {log.time}

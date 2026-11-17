@@ -227,6 +227,33 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Account page: Reviewer notes (Notes tab → Reviewer Notes)
+
+```
+AccountDashboard/Notes.js
+  └─ accountNoteAPI.getNotesByAccountId(accountId)   account-note-backend
+       note.logs[] (oldest first); a reviewer note from before the log
+       existed has none → its body is shown as Log 1 (display only)
+  per reviewer note:
+    heading                   note.title
+      Copy log  (active and archived)  → handleCopyLog(note)
+          reviewerLogText(note)        reviewerLog.js
+            "<title>" / blank / "Log n - <name> (<email>) - <time>" / text
+            entry HTML → plain text via htmlToText (inert DOMParser:
+            paragraphs and <br> → lines, lists → "- " / "1. ")
+          copyText(text)               clipboard API, else hidden <textarea>
+          toast "Log copied" / "Could not copy the log"; button ticks 2 s
+      +  (active only)        → composer → confirm →
+                                accountNoteAPI.appendReviewerLog(id, text)
+                                author and time stamped by the server
+    per entry: "Log n"  <LogAuthor> name in bold, (email) normal  time
+```
+
+No edit or delete control on a reviewer note or its entries (see
+decisions.md, v1.45.0).
+
+---
+
 ## Documents: Send for signature
 
 ```
