@@ -8,6 +8,57 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-18 · v1.87.0 · staging only
+
+### Creating an account with contacts: names with brackets, checks first, no orphans, one save at a time
+
+**Reported:**
+- Names with `()` or `[]` showed "Regular expression is invalid: unmatched
+  closing parenthesis".
+- Errors and duplicate warnings appeared behind the side panel.
+- A failed account still created its contact, with no word about it.
+- Duplicate contacts were only warned about after they were made.
+- Clicking Submit again created the contacts again.
+
+**Decision:**
+- **Brackets.** The regex fault is fixed server-side (account-contact
+  v1.15.0). Here, `friendlyError` (`Account-Contact/accountCreation.js`)
+  turns anything technical into plain words: a regex message, E11000, a
+  Mongoose ValidationError, a network failure or a timeout.
+- **Check first.** Before any contact is created, the form asks the server
+  whether the account name is free (`checkAccountName`). A taken name stops
+  the save there, with the where-is-it message, back on step 1. It then asks
+  which new contacts look like duplicates (`checkDuplicateContacts`) and shows
+  "Possible duplicate contact(s)", listing each with Create anyway / Cancel.
+  Cancel creates nothing.
+- **No orphans, said plainly.** If the account still fails after contacts
+  were made, the message reads "Contact created, but the account was not:
+  <reason>. Fix it and save again - the contact will not be created a second
+  time." It stays up for 12 s. Contacts made by a failed attempt are
+  remembered by email and linked, not re-created, on the next save.
+- **One save at a time.** A ref guard, not state: a second click can land
+  before the disabled button re-renders.
+- **Messages in front of the panel.** The Toaster is portaled onto `<body>`
+  beside the drawers, so its own z-index decides. `showToast` accepts an
+  optional `duration`.
+- **Confirm dialog.** It now takes optional `onCancel`, `confirmText` and
+  `cancelText`, and keeps line breaks. Existing callers are unchanged.
+
+**Rejected — creating the account first, then the contacts.** The account
+must be created with its contacts and their login flags. Checking the name and
+the duplicates up front removes the common failures without reordering a flow
+that other screens rely on.
+
+**Rejected — deleting the contacts when the account fails.** That is
+destructive, and a contact may already have been sent an activation email.
+Saying so and reusing them is safer.
+
+Tests: `accountCreation` 11; `AccountContactForm` 6 (through the real form
+with the API faked). Mutation checks (no double-click guard, created contacts
+forgotten, no duplicate question, no name pre-check) each fail a test.
+
+---
+
 ## 2026-11-18 · v1.86.0 · staging only
 
 ### Team member Access Rights: readable names, clear on/off

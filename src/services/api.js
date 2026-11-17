@@ -819,6 +819,11 @@ export const accountsAPI = {
   // ================= CREATE =================
   createAccount: (data) => accountcontactApi.post("/api/clientaccounts/", data),
 
+  // v1.87.0: is this name free in the firm? Asked before anything is created
+  // (account-contact v1.15.0). { available } or { available: false, error, ... }.
+  checkAccountName: (accountName) =>
+    accountcontactApi.get("/api/clientaccounts/name-check", { params: { accountName } }),
+
   createAccountFromCSV: (data) =>
     accountcontactApi.post("/api/clientaccounts/csv-import", data),
 
@@ -954,6 +959,11 @@ getAccountsByTeamMember: (active) =>
 export const contactsAPI = {
   // ================= CREATE =================
   createContact: (data) => accountcontactApi.post("/api/contacts/", data),
+
+  // v1.87.0: which contacts about to be created already exist. Read-only.
+  // { duplicates: [{ index, contactName, email, reasons }] }
+  checkDuplicateContacts: (contacts) =>
+    accountcontactApi.post("/api/contacts/duplicate-check", { contacts }),
 
   createBulkContacts: (data) =>
     accountcontactApi.post("/api/contacts/bulk-save", data),

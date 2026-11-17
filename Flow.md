@@ -227,6 +227,29 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Creating an account with contacts (v1.87.0)
+
+```
+AccountContactForm.handleSubmit  (Account-Contact/)
+  submittingRef set → a second click returns at once
+  required fields; same email twice in the form → stop
+  accountsAPI.checkAccountName(name)        GET /api/clientaccounts/name-check
+    available:false → inline error + toast, step 1, nothing created
+  new contacts not created by an earlier attempt (createdContactsRef, by email)
+    contactsAPI.checkDuplicateContacts      POST /api/contacts/duplicate-check
+      duplicates → confirm(duplicatePrompt)   Create anyway | Cancel (nothing created)
+  create each new contact (or reuse the one an earlier attempt made)
+    failure → "Could not create the contact" | "Contacts created, but ..."
+  accountsAPI.createAccount({ ..., contacts })
+    failure → friendlyError(err); 409 also inline on the name field;
+              contacts exist → partialFailureMessage (12 s); kept for retry
+  success → link contacts, folder template, toast, reset, close
+accountCreation.js: friendlyError, duplicatePrompt, partialFailureMessage, contactKey
+Toaster: portaled to <body> (index.js), above drawers
+```
+
+---
+
 ## Team member Access Rights (v1.86.0)
 
 ```

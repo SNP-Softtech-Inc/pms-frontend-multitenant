@@ -2,6 +2,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { createPortal } from "react-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
@@ -39,13 +40,19 @@ root.render(
              <ConfirmProvider>
             <App />
             {/* <ToastContainer position="top-right" autoClose={3000} /> */}
-             <Toaster
+             {/* v1.87.0: on <body>, beside the drawers and dialogs (which are
+                 portaled there too), so its own z-index decides and a
+                 message is never hidden behind a side panel. */}
+             {createPortal(
+               <Toaster
                     position="top-right"
                     richColors
                     closeButton
                     duration={3000}
                     theme="light"
-                  />
+                  />,
+               document.body
+             )}
             </ConfirmProvider>
            
           </AuthProvider>

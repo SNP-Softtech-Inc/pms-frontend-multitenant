@@ -21,22 +21,35 @@ export const ConfirmProvider = ({ children }) => {
   const [open, setOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState({});
 
-  const confirm = ({ title, description, onConfirm }) => {
-    setDialogConfig({ title, description, onConfirm });
+  // v1.87.0: optional onCancel (called when the dialog closes any way but
+  // Confirm) and button labels, so a caller can wait for a yes/no answer.
+  // Existing callers pass only title/description/onConfirm, unchanged.
+  const confirm = ({ title, description, onConfirm, onCancel, confirmText, cancelText }) => {
+    setDialogConfig({ title, description, onConfirm, onCancel, confirmText, cancelText });
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const closeWithoutConfirming = () => {
+    if (open) dialogConfig.onCancel?.();
+    setOpen(false);
+  };
+
+  const handleClose = () => closeWithoutConfirming();
 
   const handleConfirm = () => {
-    dialogConfig.onConfirm?.();
+    const { onConfirm } = dialogConfig;
+    setDialogConfig((c) => ({ ...c, onCancel: undefined }));
     setOpen(false);
+    onConfirm?.();
   };
 return (
   <ConfirmContext.Provider value={confirm}>
     {children}
 
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : closeWithoutConfirming())}
+    >
       <AlertDialogContent
         className="
           max-w-md
@@ -95,6 +108,7 @@ return (
               className="
                 text-muted-foreground
                 leading-relaxed
+                whitespace-pre-line
               "
               style={{
                 fontSize:
@@ -141,7 +155,7 @@ return (
       "calc(0.86rem * var(--font-scale, 100) / 100)",
   }}
 >
-  Cancel
+  {dialogConfig.cancelText || "Cancel"}
 </AlertDialogCancel>
 
           <AlertDialogAction
@@ -159,7 +173,7 @@ return (
                 "calc(0.86rem * var(--font-scale, 100) / 100)",
             }}
           >
-            Confirm
+            {dialogConfig.confirmText || "Confirm"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

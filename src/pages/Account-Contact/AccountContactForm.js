@@ -1,4 +1,4 @@
-import React, { useState,  } from "react";
+import React, { useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { resetForm } from "../../redux/accountContactSlice";
 import { clearNewDraft } from "../../redux/accountContactDraft";
@@ -11,6 +11,8 @@ import ContactForm from "./ContactForm";
 import { useToastContext } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext"; // adjust path
 import { accountsAPI, contactsAPI,docAPI } from "../../services/api";
+import { useConfirm } from "../../components/ConfirmDialogContext";
+import { friendlyError, duplicatePrompt, partialFailureMessage, contactKey } from "./accountCreation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   SheetHeader,
@@ -30,6 +32,7 @@ export default function AccountContactForm({
   const [activeStep, setActiveStep] = useState(0);
   const queryClient = useQueryClient();
   const {showToast} = useToastContext();
+  const confirm = useConfirm();
   const [accountNameError, setAccountNameError] = useState(""); // New state for account name error
   const { accountData, contacts, selectedContacts } = useSelector(
     (state) => state.accountContact,
@@ -56,8 +59,23 @@ const assignfoldertemp = async (accountId, foldertempId) => {
   }
 };
   
+  // v1.87.0: one save at a time. A ref, not state - a second click can land
+  // before React re-renders the disabled button, and each click used to
+  // create every new contact again.
+  const submittingRef = useRef(false);
+  // Contacts already created by an earlier attempt that then failed, by
+  // email, so saving again links them instead of creating them twice.
+  const createdContactsRef = useRef(new Map());
+
+  // confirm() as a yes/no question.
+  const ask = (prompt) =>
+    new Promise((resolve) =>
+      confirm({ ...prompt, onConfirm: () => resolve(true), onCancel: () => resolve(false) })
+    );
+
   const handleSubmit = async (event, personalMessage = "") => {
   if (event) event.preventDefault();
+  if (submittingRef.current) return;
 
   if (!accountData.accountName?.trim()) {
     showToast({
@@ -80,8 +98,14 @@ const assignfoldertemp = async (accountId, foldertempId) => {
     return;
   }
 
+  submittingRef.current = true;
+  setIsSubmitting(true);
+
+  // Contacts created during this attempt, for the success message.
+  const createdNow = [];
+
   try {
-    // ===== DUPLICATE EMAIL CHECK =====
+    // ===== DUPLICATE EMAIL CHECK (within this form) =====
     const allEmails = [
       ...contacts.map((c) => c.email?.toLowerCase().trim()),
       ...selectedContacts.map((c) => c.email?.toLowerCase().trim()),
@@ -99,23 +123,46 @@ const assignfoldertemp = async (accountId, foldertempId) => {
       return;
     }
 
-    // ===== CHECK ACCOUNT NAME =====
+    // ===== CHECK ACCOUNT NAME - before anything is created =====
+    // (account-contact v1.15.0). A taken name used to be found only when the
+    // account was created, after its contacts already had been.
     if (!isEditing) {
       try {
-        const res = await accountsAPI.checkAccountName(
+        const { data } = await accountsAPI.checkAccountName(
           accountData.accountName.trim(),
         );
 
-        if (res.data.exists) {
-          showToast({
-            title: "Account name already exists",
-            type: "error",
-          });
+        if (data && data.available === false) {
+          const msg = data.error || "Account name already exists";
+          setAccountNameError(msg);
+          showToast({ title: "Account name already exists", description: msg, type: "error" });
           setActiveStep(0);
           return;
         }
       } catch (err) {
-        console.warn("Check name failed, skipping...");
+        // The server checks again when the account is created.
+        console.warn("Account name check failed; the server will check on create.");
+      }
+    }
+
+    // ===== CONTACTS TO CREATE (not already created by an earlier attempt) =====
+    const toCreate = contacts.filter(
+      (c) => c.email && !createdContactsRef.current.has(contactKey(c)),
+    );
+
+    // ===== POSSIBLE DUPLICATES - ask before creating =====
+    if (toCreate.length > 0) {
+      try {
+        const { data } = await contactsAPI.checkDuplicateContacts(
+          toCreate.map((c) => ({ contactName: c.contactName, email: c.email })),
+        );
+        if (data?.duplicates?.length) {
+          const goAhead = await ask(duplicatePrompt(data.duplicates));
+          if (!goAhead) return;
+        }
+      } catch (err) {
+        // createContact still warns about duplicates after the fact.
+        console.warn("Duplicate check failed; continuing.");
       }
     }
 
@@ -124,6 +171,18 @@ const assignfoldertemp = async (accountId, foldertempId) => {
 
     for (let contact of contacts) {
       if (contact.email) {
+        const key = contactKey(contact);
+        const earlier = createdContactsRef.current.get(key);
+        if (earlier) {
+          createdContacts.push({
+            ...earlier,
+            login: contact.login,
+            notify: contact.notify,
+            emailSync: contact.emailSync,
+          });
+          continue;
+        }
+
         const payload = {
           ...contact,
           tags: contact.tags?.map((t) => t.value) || [],
@@ -139,12 +198,16 @@ const assignfoldertemp = async (accountId, foldertempId) => {
         try {
           const { data } = await contactsAPI.createContact(payload);
 
-          // Duplicate name/email is a warning, not a block - the contact is
-          // created either way, but say so instead of silently accepting a
-          // duplicate (or silently renaming it to "Name (2)").
-          (data?.warnings || []).forEach((message) => {
-            showToast({ title: message, type: "warning" });
-          });
+          // The person already chose to go ahead with any duplicate, so
+          // only a renamed contact is still worth a word.
+          (data?.warnings || [])
+            .filter((m) => /saved as/.test(m))
+            .forEach((message) => {
+              showToast({ title: message, type: "warning" });
+            });
+
+          createdContactsRef.current.set(key, data);
+          createdNow.push(data.contactName || contact.contactName);
 
           // preserve frontend flags
           createdContacts.push({
@@ -154,17 +217,14 @@ const assignfoldertemp = async (accountId, foldertempId) => {
             emailSync: contact.emailSync,
           });
         } catch (err) {
-          if (err.response?.status === 409) {
-            showToast({
-              title:
-                err.response?.data?.error ||
-                `Email ${contact.email} already exists`,
-              type: "error",
-            });
-            return;
+          const reason = friendlyError(err, `Could not create the contact ${contact.contactName || contact.email}.`);
+          if (createdContactsRef.current.size > 0) {
+            const names = Array.from(createdContactsRef.current.values()).map((c) => c.contactName);
+            showToast({ ...partialFailureMessage(names, reason), type: "error", duration: 12000 });
+          } else {
+            showToast({ title: "Could not create the contact", description: reason, type: "error" });
           }
-
-          throw err;
+          return;
         }
       }
     }
@@ -219,38 +279,34 @@ const assignfoldertemp = async (accountId, foldertempId) => {
     // ===== CREATE / UPDATE ACCOUNT =====
     let finalAccountId;
 
-    // if (isEditing && accountId) {
-    //   await accountsAPI.updateAccount(
-    //     accountId,
-    //     accountPayload,
-    //   );
+    if (isEditing && accountId) {
+      await accountsAPI.updateAccount(accountId, accountPayload);
+      finalAccountId = accountId;
+    } else {
+      try {
+        const { data } = await accountsAPI.createAccount(accountPayload);
+        finalAccountId = data._id;
+      } catch (err) {
+        const reason = friendlyError(err, "The account could not be saved.");
+        if (err?.response?.status === 409) {
+          setAccountNameError(reason); // inline, on the name field
+          setActiveStep(0);
+        }
 
-    //   finalAccountId = accountId;
-    // } else {
-    //   const { data } =
-    //     await accountsAPI.createAccount(accountPayload);
-
-    //   finalAccountId = data._id;
-    // }
-if (isEditing && accountId) {
-  await accountsAPI.updateAccount(accountId, accountPayload);
-  finalAccountId = accountId;
-} else {
-  try {
-    const { data } = await accountsAPI.createAccount(accountPayload);
-    finalAccountId = data._id;
-  } catch (err) {
-    if (err?.response?.status === 409) {
-      const msg = err.response.data?.error || "Account name is taken";
-      console.log("Account name conflict:", msg);
-      setAccountNameError(msg);                   // inline error, always visible
-      showToast({ title: msg, type: "error" });   // keep the toast too, for when it's fixed
-      setActiveStep(0);                           // go back to the step with the name field
-      return;
+        // Say plainly when contacts exist but the account does not.
+        if (createdContactsRef.current.size > 0) {
+          const names = Array.from(createdContactsRef.current.values()).map((c) => c.contactName);
+          showToast({ ...partialFailureMessage(names, reason), type: "error", duration: 12000 });
+        } else {
+          showToast({ title: "Could not create the account", description: reason, type: "error" });
+        }
+        return;
+      }
     }
-    throw err;
-  }
-}
+
+    // The account exists now; nothing left to reuse on a later save.
+    createdContactsRef.current = new Map();
+
     // ===== UPDATE CONTACT ACCOUNT IDS =====
     for (let c of allContacts) {
       try {
@@ -310,6 +366,9 @@ for (let contact of selectedContacts) {
 
     showToast({
       title: "Account saved successfully!",
+      description: createdNow.length
+        ? `Created with ${createdNow.length === 1 ? "contact" : "contacts"} ${createdNow.join(", ")}.`
+        : undefined,
       type: "success",
     });
 
@@ -329,16 +388,14 @@ for (let contact of selectedContacts) {
     if (handleDrawerClose) handleDrawerClose();
   } catch (err) {
     console.error(err);
-    // Prefer the server's own message. A duplicate account returns 409
-    // "Account name is taken", which was being thrown away here - the user
-    // saw a generic failure and no indication the name already existed.
     showToast({
-      title:
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        "Something went wrong",
+      title: "Something went wrong",
+      description: friendlyError(err),
       type: "error",
     });
+  } finally {
+    submittingRef.current = false;
+    setIsSubmitting(false);
   }
 };
   const stepDescription = activeStep === 0

@@ -4,30 +4,35 @@ import { toast } from "sonner";
 const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
+  // duration (ms) is optional (v1.87.0): a message that needs reading - such
+  // as "Contact created, but the account was not" - can stay up longer than
+  // the 3-second default set on the Toaster.
   const showToast = ({
     title,
     description,
     type = "success",
+    duration,
   }) => {
+    const options = duration ? { description, duration } : { description };
     switch (type) {
       case "success":
-        toast.success(title, { description });
+        toast.success(title, options);
         break;
 
       case "error":
-        toast.error(title, { description });
+        toast.error(title, options);
         break;
 
       case "warning":
-        toast.warning(title, { description });
+        toast.warning(title, options);
         break;
 
       case "info":
-        toast.info(title, { description });
+        toast.info(title, options);
         break;
 
       default:
-        toast(title, { description });
+        toast(title, options);
     }
   };
 
