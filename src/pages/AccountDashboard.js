@@ -687,7 +687,18 @@ useEffect(() => {
               {accName || "Account"}
             </h1>
 
-            <ExternalLink className="h-3.5 w-3.5 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground" />
+            {/* v1.85.0: the arrow was an icon with no action. It now opens
+                this account, on the tab being viewed, in a new tab. */}
+            <Link
+              to={location.pathname + location.search}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open this account in a new tab"
+              aria-label="Open this account in a new tab"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Link>
           </div>
 
           {/* Navigation tabs */}

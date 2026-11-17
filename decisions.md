@@ -8,6 +8,49 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-17 · v1.85.0 · staging only
+
+### Records are real links, so right-click "Open in new tab" works
+
+**Reported:** opening a client, contact, folder or document in a new tab
+needed an arrow; the browser's right-click "Open link in new tab / new window"
+was not offered.
+
+**Found:** the browser only offers it on a link (`<a href>`).
+- **Already links:** account names on the Accounts list, and files in the
+  Documents tree.
+- **Not links:** contact names (a button opening the drawer), folder names (a
+  clickable div), and file names in Approvals, Signatures and Trash (buttons
+  calling `window.open`).
+- **Dead arrow:** the arrow beside the account name in the account header had
+  no action at all.
+
+**Decision:** one `RecordLink` (`components/RecordLink.jsx`), a real link
+whose plain left click still does what the screen did before. Ctrl, Cmd,
+Shift, middle-click and right-click are left to the browser, and such a click
+does not also act in the current tab. A record opened in a new tab needs a
+URL that reopens it:
+- **Contacts:** `/clients/contacts?contact=<id>` opens that contact's drawer
+  once the list loads. Closing the drawer drops the parameter.
+- **Folders:** `<documents page>?folder=<path>` expands the folder and every
+  folder above it, and scrolls it into view.
+- **Approvals and Signatures:** plain links to the file, in a new tab, as
+  the buttons already did.
+- **Trash:** a link to the file. A plain click still views or downloads it.
+- **Account header arrow:** opens this account, on the current tab, in a new
+  tab.
+
+**Rejected — a custom right-click menu.** It would replace the browser's own
+menu, with Copy link, Open in new window and incognito, and still could not
+open a real tab without a URL.
+
+**Not done:** "Firms" from the report. The admin app has no list of firms; if
+that is the Master Admin app, it is a separate change there.
+
+Tests: `RecordLink` / `recordLinks` 10.
+
+---
+
 ## 2026-11-17 · v1.84.0 · staging only
 
 ### Security: password dialog in the app, live session countdown, expiry warning

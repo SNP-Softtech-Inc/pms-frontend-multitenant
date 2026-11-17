@@ -522,7 +522,9 @@
 
 
 /* ─── ContactTable — @tanstack/react-table + shadcn DataTable ─── */
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import RecordLink from "../../components/RecordLink";
 import {useToastContext} from "../../context/ToastContext"
 import { Trash2, X, UserSearch, AtSign, Building2, Hash, TagsIcon } from "lucide-react";
 import { DataTable } from "../../components/data-table/data-table";
@@ -600,6 +602,27 @@ const { showToast } = useToastContext();
   });
 
   const contacts = contactsData || [];
+
+  // v1.85.0: a contact opened from a link (right-click → new tab on its
+  // name) arrives as ?contact=<id> and opens in the drawer here once the
+  // list has loaded. Closing the drawer drops the parameter again.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const linkedContactId = searchParams.get("contact");
+  const openedFromLink = useRef(null);
+
+  useEffect(() => {
+    if (!linkedContactId || isLoading) return;
+    if (openedFromLink.current === linkedContactId) return;
+    openedFromLink.current = linkedContactId;
+
+    const linked = contacts.find((c) => String(c._id) === linkedContactId);
+    if (linked) {
+      handleOpenDrawer(linked);
+    } else {
+      showToast({ title: "That contact could not be found", type: "info" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedContactId, isLoading, contacts]);
 
   // ================= DELETE =================
   const deleteMutation = useMutation({
@@ -744,12 +767,13 @@ const { showToast } = useToastContext();
         header: "Contact Name",
         size: 200,
         cell: ({ row, getValue }) => (
-          <button
-            onClick={() => handleOpenDrawer(row.original)}
-            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-transparent border-none p-0 cursor-pointer text-left truncate max-w-[180px] block"
+          <RecordLink
+            to={`/clients/contacts?contact=${row.original._id}`}
+            onOpen={() => handleOpenDrawer(row.original)}
+            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline cursor-pointer text-left truncate max-w-[180px] block"
           >
             {getValue() || "—"}
-          </button>
+          </RecordLink>
         ),
       },
       {
@@ -1041,6 +1065,11 @@ const { showToast } = useToastContext();
         onClose={() => {
           setDrawerOpen(false);
           queryClient.invalidateQueries(["contacts"]);
+          if (searchParams.has("contact")) {
+            const next = new URLSearchParams(searchParams);
+            next.delete("contact");
+            setSearchParams(next, { replace: true });
+          }
         }}
         selectedContact={selectedContact}
         mode={mode}

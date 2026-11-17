@@ -227,6 +227,27 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Opening records in a new tab (v1.85.0)
+
+```
+<RecordLink to|href [newTab] onOpen>          components/RecordLink.jsx
+  plain left click → onOpen() (drawer / expand / viewer), no navigation
+  Ctrl/Cmd/Shift/middle/right-click → the browser (new tab / window);
+                                      the row's own click does not run
+Contacts list    /clients/contacts?contact=<id>
+                 ContactTable: list loaded → open that contact's drawer
+                 drawer closed → ?contact removed
+Documents tree   folder: <path>?folder=<fullPath>
+                 FolderTreeView: tree loaded → expand ancestorPaths(),
+                 scroll [data-folder-path] into view       lib/recordLinks.js
+                 file: already a link (viewer on plain click)
+Approvals / Signatures   <a href=fileUrl target=_blank>
+Trash            RecordLink href=fileUrl; plain click = openTrashedFile
+Account header   ↗ → same account and tab, new browser tab
+```
+
+---
+
 ## Sign-in session: countdown, warning, renew, expiry (v1.84.0)
 
 ```

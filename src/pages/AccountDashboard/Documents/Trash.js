@@ -574,6 +574,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import RecordLink from "../../../components/RecordLink";
 import { accountDocsAPI } from "../../../services/api";
 import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
 import { keepIfSame } from "../../../lib/autoRefresh";
@@ -1005,11 +1006,15 @@ const renderRows = (items, level = 0) =>
                     {getFileIcon(item.name)}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => openTrashedFile(item)}
+                  {/* v1.85.0: a real link, so right-click offers "Open link
+                      in new tab / new window". A plain click still views or
+                      downloads it as before (openTrashedFile). */}
+                  <RecordLink
+                    href={`${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`}
+                    newTab
+                    onOpen={() => openTrashedFile(item)}
                     title="Open document in a new tab"
-                    className="text-left text-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
+                    className="text-left text-foreground no-underline underline-offset-2 transition-colors hover:text-primary hover:underline"
                     style={{
                       fontFamily: "var(--font-family)",
                       fontSize:
@@ -1020,7 +1025,7 @@ const renderRows = (items, level = 0) =>
                     <span className="ml-1 text-muted-foreground text-xs">
                       (Trashed)
                     </span>
-                  </button>
+                  </RecordLink>
                 </>
               )}
             </div>

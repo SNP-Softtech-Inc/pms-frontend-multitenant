@@ -2073,7 +2073,10 @@
 // };
 
 // FolderTreeView.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
+import RecordLink from "../../../components/RecordLink";
+import { ancestorPaths, withQuery } from "../../../lib/recordLinks";
 import customCss from "./docuseal-dark-theme.css";
 import { DocusealBuilder } from "@docuseal/react";
 import {
@@ -2206,6 +2209,35 @@ export const FolderTreeView = ({ accountId, templateAction = null }) => {
   const [description, setDescription] = useState("");
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false);
   const [folderTree, setFolderTree] = useState([]);
+
+  // v1.85.0: a folder opened from a link (right-click → new tab on its name)
+  // arrives as ?folder=<path>; once the tree has loaded it is shown expanded,
+  // with every folder above it, and scrolled into view.
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const linkedFolder = searchParams.get("folder");
+  const openedFolderRef = useRef(null);
+
+  useEffect(() => {
+    if (!linkedFolder || folderTree.length === 0) return;
+    if (openedFolderRef.current === linkedFolder) return;
+    openedFolderRef.current = linkedFolder;
+
+    setExpandedFolders((prev) => {
+      const next = { ...prev };
+      ancestorPaths(linkedFolder).forEach((p) => {
+        next[p] = true;
+      });
+      return next;
+    });
+
+    setTimeout(() => {
+      const target = Array.from(document.querySelectorAll("[data-folder-path]")).find(
+        (el) => el.getAttribute("data-folder-path") === linkedFolder
+      );
+      if (target) target.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 150);
+  }, [linkedFolder, folderTree]);
   const [selectedItem, setSelectedItem] = useState("");
   const [token, setToken] = useState("");
 
@@ -4033,7 +4065,14 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                                 "calc(0.875rem * var(--font-scale, 100) / 100)",
                             }}
                           >
-                            {item.name}
+                            <RecordLink
+                              to={withQuery(location.pathname, "folder", fullPath)}
+                              onOpen={() => toggleFolder(fullPath, meta.readOnly)}
+                              data-folder-path={fullPath}
+                              className="text-inherit no-underline hover:underline"
+                            >
+                              {item.name}
+                            </RecordLink>
                           </span>
 
                           {inheritedNewTag && (

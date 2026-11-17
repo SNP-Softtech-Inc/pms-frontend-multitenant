@@ -286,16 +286,17 @@ const statusStyles = (status) => {
       Opened straight from the click with no await first,
       so the browser does not block the tab. */}
   {signautrelist.fileUrl ? (
-    <button
-      type="button"
-      onClick={() =>
-        window.open(signautrelist.fileUrl, "_blank", "noopener,noreferrer")
-      }
+    // v1.85.0: a real link, so right-click offers "Open link in new tab /
+    // new window" too.
+    <a
+      href={signautrelist.fileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
       title="Open document in a new tab"
-      className="text-left text-primary "
+      className="text-left text-primary no-underline hover:underline"
     >
       {signautrelist.filename || "—"}
-    </button>
+    </a>
   ) : (
     signautrelist.filename || "—"
   )}
