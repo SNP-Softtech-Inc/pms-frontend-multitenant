@@ -662,6 +662,7 @@ import { Loader, X, Users } from "lucide-react";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { ShieldCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { contactPhonesText } from "./contactPhones";
 
 // Login/Notify/Email Sync are disabled for now (feature on hold, not
 // removed) - flip this back to true to re-enable the controls.
@@ -1184,6 +1185,22 @@ const handleContactUpdated = async () => {
                         }}
                       >
                         {c.contact?.email || "—"}
+                      </span>
+
+                      {/* Phone number(s) */}
+                      <span
+                        className="
+                mt-0.5 block truncate
+                text-muted-foreground
+              "
+                        title={contactPhonesText(c.contact) || undefined}
+                        style={{
+                          fontFamily: "var(--font-family)",
+                          fontSize:
+                            "calc(0.76rem * var(--font-scale, 100) / 100)",
+                        }}
+                      >
+                        {contactPhonesText(c.contact) || "No phone number"}
                       </span>
                     </div>
 
