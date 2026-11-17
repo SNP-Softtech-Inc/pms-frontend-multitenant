@@ -11,6 +11,14 @@ describe("formatPhone", () => {
     expect(formatPhone("12025550143")).toBe("+1 202 555 0143");
   });
 
+  it("splits the right country code whether it has 1, 2 or 3 digits", () => {
+    // As react-phone-input-2 saves them after the flag is picked.
+    expect(formatPhone("447911123456")).toBe("+44 7911 123456"); // UK
+    expect(formatPhone("971501234567")).toBe("+971 50 123 4567"); // UAE
+    expect(formatPhone("61412345678")).toBe("+61 412 345 678"); // Australia
+    expect(formatPhone("8613812345678")).toBe("+86 138 1234 5678"); // China
+  });
+
   it("accepts a number already written with + and spaces or dashes", () => {
     expect(formatPhone("+91 91759-81613")).toBe("+91 91759 81613");
     expect(formatPhone("+1 (202) 555-0143")).toBe("+1 202 555 0143");

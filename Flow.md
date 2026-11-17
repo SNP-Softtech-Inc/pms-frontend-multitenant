@@ -186,6 +186,16 @@ AccountDashboard/Info.js
     activation badge          activationStatusOf(contact) activationStatus.js
 ```
 
+The same `contactPhones.js` formats every contact phone shown on screen:
+the Contacts list's Phones column (`contactPhonesText`) and the "To" block of
+the invoice preview (`formatPhone`, `Invoices/PreviewDrawer.js`). Phone
+*inputs* (react-phone-input-2) format themselves and are not touched.
+
+```
+stored "919175981613" ──► formatPhone ──► "+91 91759 81613"
+                          valid with a "+"?  no → shown exactly as stored
+```
+
 ---
 
 ## Account page: Email tab (Inbox / Sent)

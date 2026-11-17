@@ -80,6 +80,35 @@ in the source; render tests are blocked in this repo). Mutation-checked.
 
 ---
 
+## 2026-11-11 · v1.79.0 · staging only
+
+### Every contact phone on screen shows its country code
+
+Asked for: phone numbers should display the correct international country
+codes. v1.69.0 did this on the account page only; the Contacts list still
+showed "919175981613", with no visible "+91".
+
+- **Now the Contacts list's Phones column and the invoice preview's "To"
+  block use the same `contactPhonesText` / `formatPhone` as the account
+  page.** Those are the only places a contact's phone is displayed as
+  text. The invoice preview's client details are not saved with the
+  invoice, so this is display only too.
+- **Checked against staging data** (masked): of the 6 stored numbers, 3
+  read as +91 India and 2 as +1 US, each matching how it was entered. One
+  11-digit number starting with 1 is not a valid US number and stays as
+  typed - no country code can be shown for it without guessing.
+- **Not changed:** the contact forms' phone inputs (they already show the
+  flag and code), the CSV import preview (shows the file as uploaded), and
+  invoice PDFs.
+- **Found, not changed:** the invoice preview's "From" phone is a
+  hardcoded placeholder, `+1 (555) 123-4567` (`CreateInvoiceDrawer.js`,
+  `companyInfo`); nothing sets the firm's real number.
+
+Tests: country codes of 1, 2 and 3 digits (US, UK, UAE, Australia, China)
+added to `contactPhones.test.js`.
+
+---
+
 ## 2026-11-13 · v1.78.0 · staging only
 
 ### Opening an email is quiet: no "Mark as read" toast, no re-fetch

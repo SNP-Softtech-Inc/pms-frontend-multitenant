@@ -534,6 +534,7 @@ import { DEFAULT_INTERVAL_MS as AUTO_REFRESH_MS } from "../../lib/autoRefresh";
 import { contactsAPI } from "../../services/api";
 import { useConfirm } from "../../components/ConfirmDialogContext";
 import { cn } from "../../lib/utils";
+import { contactPhonesText } from "../AccountDashboard/contactPhones";
 
 function TagPills({ tags }) {
   if (!tags?.length) return <span className="text-muted-foreground text-xs">—</span>;
@@ -777,11 +778,13 @@ const { showToast } = useToastContext();
         size: 160,
         enableSorting: false,
         cell: ({ getValue }) => {
-          const nums = getValue();
-          if (!nums?.length) return <span className="text-muted-foreground text-xs">—</span>;
+          // "+91 91759 81613" rather than the stored "919175981613" - the
+          // same text as the account page (contactPhones.js).
+          const text = contactPhonesText({ phoneNumbers: getValue() });
+          if (!text) return <span className="text-muted-foreground text-xs">—</span>;
           return (
-            <span className="text-sm text-foreground/80 truncate block max-w-[150px]">
-              {nums.join(", ")}
+            <span className="text-sm text-foreground/80 truncate block max-w-[150px]" title={text}>
+              {text}
             </span>
           );
         },

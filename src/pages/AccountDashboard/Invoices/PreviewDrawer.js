@@ -13,6 +13,7 @@ import {
 } from "../../../components/ui/table";
 import { Badge } from "../../../components/ui/badge";
 import { Separator } from "../../../components/ui/separator";
+import { formatPhone } from "../contactPhones";
 
 const PreviewDrawer = ({
   open,
@@ -191,7 +192,7 @@ return (
                   <p>{clientInfo.address}</p>
                   <p>{clientInfo.city}</p>
                   <p className="pt-2">{clientInfo.email}</p>
-                  <p>{clientInfo.phone}</p>
+                  <p>{formatPhone(clientInfo.phone)}</p>
                 </div>
               </div>
             </div>
