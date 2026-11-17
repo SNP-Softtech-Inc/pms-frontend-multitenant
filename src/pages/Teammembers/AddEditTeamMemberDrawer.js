@@ -303,6 +303,8 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { authAPI } from "../../services/api";
+import PermissionToggle from "./PermissionToggle";
+import { permissionLabel } from "./permissionLabels";
 import { useToastContext } from "../../context/ToastContext";
 const AddEditTeamMemberDrawer = ({ open, onClose, editData, onSuccess }) => {
   const isEdit = !!editData;
@@ -566,32 +568,16 @@ const {showToast}= useToastContext()
               <h3 className="text-base font-semibold mb-3">Access Rights</h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* v1.86.0: readable names and a clear on/off state
+                    (PermissionToggle). The stored keys are unchanged. */}
                 {permissionList.map((key) => (
-                  <div
+                  <PermissionToggle
                     key={key}
-                    className="p-3 rounded-lg border border-border bg-card flex justify-between items-center"
-                  >
-                    <span className="text-sm font-medium">{key}</span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={permissions[key]}
-                      onClick={() => handlePermissionChange(key)}
-                      disabled={disabledPermissions.includes(key)}
-                      className={`
-                        relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
-                        ${permissions[key] ? 'bg-primary' : 'bg-input'}
-                        ${disabledPermissions.includes(key) ? 'opacity-50 cursor-not-allowed' : ''}
-                      `}
-                    >
-                      <span
-                        className={`
-                          pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform
-                          ${permissions[key] ? 'translate-x-4' : 'translate-x-0'}
-                        `}
-                      />
-                    </button>
-                  </div>
+                    label={permissionLabel(key)}
+                    checked={Boolean(permissions[key])}
+                    unavailable={disabledPermissions.includes(key)}
+                    onToggle={() => handlePermissionChange(key)}
+                  />
                 ))}
               </div>
             </div>

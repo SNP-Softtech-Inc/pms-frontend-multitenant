@@ -8,6 +8,30 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-18 · v1.86.0 · staging only
+
+### Team member Access Rights: readable names, clear on/off
+
+**Reported:** permissions showed as camelCase keys (`managePayments`), and
+the toggles did not show clearly which were on.
+
+**Found:** the label printed the stored key. The "off" track was `bg-input`,
+nearly the white of the card. Permissions the app does not act on yet were
+drawn at half opacity, a third look nobody explained.
+
+**Decision:**
+- `permissionLabel` (`Teammembers/permissionLabels.js`) gives "Manage
+  Payments", "View All Accounts", "Manage Rates in Time Entries", "Manage IRS
+  Transcripts". Awkward keys are mapped by name, and any new key falls back
+  to splitting the camelCase. The stored keys do not change.
+- `PermissionToggle` has three distinct states. **On**: primary track,
+  highlighted card, "On". **Off**: grey track, grey label, "Off". **Not
+  available**: dashed card, "Not available", cannot be switched.
+
+Tests: 7.
+
+---
+
 ## 2026-11-17 · v1.85.0 · staging only
 
 ### Records are real links, so right-click "Open in new tab" works

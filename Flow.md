@@ -227,6 +227,19 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Team member Access Rights (v1.86.0)
+
+```
+Teammembers/AddEditTeamMemberDrawer.js  (role = employee)
+  permissionList (stored keys, unchanged)
+    → <PermissionToggle label={permissionLabel(key)} checked unavailable onToggle>
+         on: primary track, highlighted card, "On"
+         off: grey track, grey label, "Off"
+         unavailable (disabledPermissions): dashed, "Not available", locked
+```
+
+---
+
 ## Opening records in a new tab (v1.85.0)
 
 ```
