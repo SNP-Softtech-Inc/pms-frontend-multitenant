@@ -376,6 +376,11 @@ updateLoginDetails: (data) => authUserApi.patch("/api/auth/login-details", data)
   deactivateTeamMember: (id) =>
   authUserApi.patch(`/api/teammember/${id}/deactivate`),
 
+  // The way back from deactivate (signup-login v1.36.0). 409 for a member
+  // who never accepted the invitation - resend it instead.
+  reactivateTeamMember: (id) =>
+    authUserApi.patch(`/api/teammember/${id}/reactivate`),
+
 
   // Get single team member
   getTeamMemberById: (id) => authUserApi.get(`/api/teammember/${id}`),

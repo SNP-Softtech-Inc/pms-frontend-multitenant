@@ -227,6 +227,25 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Teams & Plans bulk actions (v1.89.0)
+
+```
+ActiveTeammembers / Deactivatemember / ActiveGroups  (Teammembers/)
+  DataTable onRowSelectionChange → selection {id: true}; key={tableKey}
+  DataTableToolbar selectedCount + bulkActions=<BulkActions kind rows onDone>
+BulkActions.jsx
+  active:   Add to group (AddToGroupDialog → addMembersToGroup(groupId, userIds))
+            Deactivate → deactivateTeamMember(id)
+  inactive: Reactivate → reactivateTeamMember(id)  (409: invite never accepted)
+            Resend activation → resendActivation(id)
+  all:      Delete → deleteTeamMember(id) | deleteGroup(id)
+  each: confirm(...) → runBulk(rows, request) one at a time  (bulk.js)
+        → bulkResultToast: "Deactivated 3 team members" | names the failures
+  onDone → clear selection, remount table, reload list
+```
+
+---
+
 ## Previewing Excel and Word (v1.88.0)
 
 ```

@@ -10,6 +10,7 @@ import {
 import {Label} from "../../components/ui/label"
 import { DataTable } from "../../components/data-table/data-table";
 import { DataTableToolbar } from "../../components/data-table/toolbar";
+import BulkActions from "./BulkActions";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -31,6 +32,16 @@ const ActiveTeammembers = ({ refresh, onEdit }) => {
 const confirm = useConfirm();
 const {showToast}= useToastContext()
   const [globalFilter, setGlobalFilter] = useState("");
+  // v1.89.0: rows ticked for a bulk action (DataTable selection, keyed by
+  // id). tableKey remounts the table to clear its ticks after an action.
+  const [selection, setSelection] = useState({});
+  const [tableKey, setTableKey] = useState(0);
+  const selectedRows = rows.filter((r) => selection[r.id]);
+  const afterBulk = () => {
+    setSelection({});
+    setTableKey((k) => k + 1);
+    fetchTeamMembers();
+  };
 
   // silent (auto refresh): "if (loading)" replaces the whole tab with a
   // spinner, so it is never set; an unchanged list keeps its identity so the
@@ -358,10 +369,14 @@ const columns = useMemo(
     <DataTableToolbar
       globalFilter={globalFilter}
       onGlobalFilterChange={setGlobalFilter}
+      selectedCount={selectedRows.length}
+      bulkActions={<BulkActions kind="active" rows={selectedRows} onDone={afterBulk} />}
     />
 
     {/* Table */}
     <DataTable
+      key={tableKey}
+      onRowSelectionChange={setSelection}
       columns={columns}
       data={rows}
       loading={loading}

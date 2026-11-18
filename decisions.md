@@ -8,6 +8,46 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-18 · v1.89.0 · staging only
+
+### Teams & Plans: bulk actions on members and groups
+
+**Asked:** on Templates → Teams & Plans (Active Members, Deactive Members,
+Groups), select several or all rows and act on them at once, with a
+confirmation before deleting, activating or deactivating.
+
+**Found:** the tables already drew row and select-all checkboxes (DataTable
+selection is on by default), but nothing used the selection.
+
+**Decision:** `BulkActions` (`Teammembers/BulkActions.jsx`) appears in the
+toolbar when rows are ticked:
+- **Active Members:** Add to group, Deactivate, Delete.
+- **Deactive Members:** Reactivate, Resend activation, Delete.
+- **Groups:** Delete.
+
+How it behaves:
+- Every action asks first, naming who it affects. Delete says it cannot be
+  undone. For members it suggests Deactivate to keep their history; for
+  groups it says members are not deleted.
+- Each action runs the same per-row request the row menu uses, one at a time
+  (`runBulk`, `bulk.js`). The result toast names any that failed and why,
+  e.g. "Ben Li: has not accepted the invitation yet."
+- Add to group sends the selected members' logins in one request. Members
+  without a login yet are skipped, and the toast says so.
+- After an action the list reloads and the ticks clear: the table is
+  remounted, because its selection lives inside it.
+- Reactivate is new server-side (signup-login v1.36.0), which also scopes
+  delete to the firm.
+
+**Not done:** bulk **Edit** of role or access rights. It needs a choice per
+permission (leave, on, off) across members whose rights differ. That is a
+separate screen worth agreeing on first.
+
+Tests: `bulk` 8; `BulkActions` 7 (through the buttons with the real confirm
+dialog, API faked).
+
+---
+
 ## 2026-11-18 · v1.88.0 · staging only
 
 ### Excel (and Word) files preview instead of downloading
