@@ -575,6 +575,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import RecordLink from "../../../components/RecordLink";
+import { isOfficeFile, previewUrl } from "../../../lib/filePreview";
 import { accountDocsAPI } from "../../../services/api";
 import { useAutoRefresh } from "../../../hooks/useAutoRefresh";
 import { keepIfSame } from "../../../lib/autoRefresh";
@@ -751,10 +752,11 @@ console.log("Account ID in Trash component:", accountId);
       const ext = item.name?.split(".").pop()?.toLowerCase() || "";
       const viewable = ["pdf", "jpg", "jpeg", "png", "gif", "webp", "txt"];
 
-      if (viewable.includes(ext)) {
+      if (viewable.includes(ext) || isOfficeFile(item.name)) {
         // Opened straight from the click with no await first, so the browser
-        // does not treat it as an unsolicited popup.
-        window.open(fileUrl, "_blank", "noopener,noreferrer");
+        // does not treat it as an unsolicited popup. Excel/Word go through
+        // the Office viewer (v1.88.0) rather than downloading.
+        window.open(previewUrl(fileUrl, item.name), "_blank", "noopener,noreferrer");
       } else {
         // Anything the browser will not render is downloaded instead.
         const link = document.createElement("a");
@@ -1010,7 +1012,7 @@ const renderRows = (items, level = 0) =>
                       in new tab / new window". A plain click still views or
                       downloads it as before (openTrashedFile). */}
                   <RecordLink
-                    href={`${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`}
+                    href={previewUrl(`${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`, item.name)}
                     newTab
                     onOpen={() => openTrashedFile(item)}
                     title="Open document in a new tab"

@@ -783,6 +783,7 @@ import {
   FileImage,
 } from 'lucide-react';
 import { ArrowLeft } from 'lucide-react';
+import { officeViewerUrl, previewUrl } from '../../../lib/filePreview';
 
 // Component to render text files
 const TextViewer = ({ fileUrl, fileName, scale, rotation }) => {
@@ -843,50 +844,27 @@ const TextViewer = ({ fileUrl, fileName, scale, rotation }) => {
 };
 
 // Component for Office documents (Word, Excel) with zoom support
-const OfficeViewer = ({ fileUrl, fileName, scale, rotation, fileType }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const iframeRef = useRef(null);
-
-  useEffect(() => {
-    const encodedUrl = encodeURIComponent(fileUrl);
-    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
-
-    if (iframeRef.current) {
-      iframeRef.current.src = viewerUrl;
-    }
-    setLoading(false);
-  }, [fileUrl]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="w-full h-full"
-      style={{
-        transform: `rotate(${rotation}deg) scale(${scale})`,
-        transformOrigin: 'center center',
-      }}
-    >
-      <iframe
-        ref={iframeRef}
-        className="w-full h-full border-0 rounded-lg"
-        title={`${fileType} Document: ${fileName}`}
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-        onError={() => {
-          setError('Failed to load document');
-          setLoading(false);
-        }}
-      />
-    </div>
-  );
-};
+//
+// v1.88.0: the iframe gets its src directly. It used to be set from an effect
+// through a ref - but the first render showed a spinner instead of the
+// iframe, so the ref was still null when the effect ran, the src was never
+// set, and Excel/Word files opened in this viewer as a blank pane.
+export const OfficeViewer = ({ fileUrl, fileName, scale = 1, rotation = 0, fileType }) => (
+  <div
+    className="w-full h-full"
+    style={{
+      transform: `rotate(${rotation}deg) scale(${scale})`,
+      transformOrigin: 'center center',
+    }}
+  >
+    <iframe
+      src={officeViewerUrl(fileUrl)}
+      className="w-full h-full border-0 rounded-lg"
+      title={`${fileType} Document: ${fileName}`}
+      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+    />
+  </div>
+);
 
 // Component for PDF files - uses the browser's native PDF viewer via iframe
 const PdfViewer = ({ fileUrl, fileName, rotation, onDownload }) => {
@@ -1227,7 +1205,8 @@ const DocumentViewer = ({
             <Download className="h-4 w-4 mr-2" />
             Download to view
           </Button>
-          <Button variant="outline" onClick={() => window.open(fileUrl, '_blank')}>
+          {/* v1.88.0: an Office file opens in the viewer, not as a download. */}
+          <Button variant="outline" onClick={() => window.open(previewUrl(fileUrl, currentFile.name), '_blank', 'noopener,noreferrer')}>
             Open in new tab
           </Button>
         </div>

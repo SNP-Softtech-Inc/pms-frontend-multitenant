@@ -8,6 +8,53 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-18 · v1.88.0 · staging only
+
+### Excel (and Word) files preview instead of downloading
+
+**Reported:** opening an Excel file with Inline Preview or Open in New Tab
+asked to download it.
+
+**Found:** a browser cannot display Excel or Word. Opening the raw file URL,
+in a tab or an `<iframe>`, downloads it.
+- **Documents tree:** already sent these files through Microsoft's Office
+  viewer (497df49).
+- **Production:** still lacks 4832b84, so files not matched in the tree fall
+  back to a raw `<iframe>`, which downloads. On staging that fallback goes
+  through `DocumentViewer`.
+- **DocumentViewer's `OfficeViewer`:** never loaded. Its iframe `src` was set
+  from an effect through a ref, but the first render showed a spinner
+  instead of the iframe, so the ref was null. Every Excel or Word file opened
+  in the viewer was a blank pane.
+- **Raw-URL links:** Approvals, Signatures, Trash and the viewer's own "Open
+  in new tab" linked the raw file. In Trash, Excel was always downloaded.
+
+**Decision:**
+- `previewUrl` / `officeViewerUrl` / `isOfficeFile` (`lib/filePreview.js`):
+  xls, xlsx, xlsm, xlsb, doc and docx go to the Office viewer; everything
+  else opens as it is. They are used by the viewer's Open in new tab,
+  Approvals, Signatures, and Trash (the link and the plain click).
+- `OfficeViewer` renders the iframe with its `src` directly. It is exported
+  so it can be tested.
+- Download stays an explicit action.
+
+**Rejected — rendering spreadsheets in the app with SheetJS.** The `xlsx`
+package on npm (0.18.5, already a dependency) has known flaws when parsing
+untrusted files: prototype pollution (CVE-2023-30533) and ReDoS
+(CVE-2024-22363). The fixed builds are published only on SheetJS's own CDN.
+Client uploads are untrusted. Revisit if previews must work without
+Microsoft.
+
+**Security note, not changed here:** the Office viewer works only because
+`/uploads/accounts/...` is served **without sign-in**. Anyone with a file's
+URL can download a client's document, and a URL can be guessed from the
+account id and folder names. Closing that needs signed or expiring URLs from
+folder-management. When it is closed, Office previews need such a URL too.
+
+Tests: `filePreview` 7, `OfficeViewer` 2.
+
+---
+
 ## 2026-11-18 · v1.87.0 · staging only
 
 ### Creating an account with contacts: names with brackets, checks first, no orphans, one save at a time

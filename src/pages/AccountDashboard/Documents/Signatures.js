@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { previewUrl } from "../../../lib/filePreview";
 import { FileSignature } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 import { esignAPI } from "../../../services/api";
@@ -289,7 +290,7 @@ const statusStyles = (status) => {
     // v1.85.0: a real link, so right-click offers "Open link in new tab /
     // new window" too.
     <a
-      href={signautrelist.fileUrl}
+      href={previewUrl(signautrelist.fileUrl, signautrelist.filename)}
       target="_blank"
       rel="noopener noreferrer"
       title="Open document in a new tab"

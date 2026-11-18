@@ -142,6 +142,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { previewUrl } from "../../../lib/filePreview";
 import { useToastContext } from "../../../context/ToastContext";
 import { Trash2 } from "lucide-react";
 import { useConfirm } from "../../../components/ConfirmDialogContext";
@@ -363,7 +364,7 @@ const statusStyles = (status) => {
                       // v1.85.0: a real link, so right-click offers "Open
                       // link in new tab / new window" too.
                       <a
-                        href={approval.fileUrl}
+                        href={previewUrl(approval.fileUrl, approval.filename)}
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Open document in a new tab"

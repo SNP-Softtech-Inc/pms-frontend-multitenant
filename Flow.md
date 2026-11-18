@@ -227,6 +227,23 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Previewing Excel and Word (v1.88.0)
+
+```
+lib/filePreview.js
+  isOfficeFile(name)     xls xlsx xlsm xlsb doc docx
+  officeViewerUrl(url)   https://view.officeapps.live.com/op/embed.aspx?src=<url>
+  previewUrl(url, name)  office → viewer, else the url itself
+Documents tree     click xlsx → Excel dialog (viewer); new tab → viewer (497df49)
+DocumentViewer     OfficeViewer: <iframe src={officeViewerUrl(fileUrl)}>
+                   "Open in new tab" (fallback) → previewUrl
+Approvals / Signatures   href = previewUrl(fileUrl, filename)
+Trash              href = previewUrl(...); plain click: office → viewer tab
+The viewer fetches the file itself: needs a public URL (uploads are public).
+```
+
+---
+
 ## Creating an account with contacts (v1.87.0)
 
 ```
