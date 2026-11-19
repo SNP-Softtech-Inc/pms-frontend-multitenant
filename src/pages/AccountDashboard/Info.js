@@ -1484,7 +1484,7 @@ import { useAutoRefresh } from "../../hooks/useAutoRefresh";
 import { keepIfSame } from "../../lib/autoRefresh";
 import { activationStatusOf } from "./activationStatus";
 import { contactPhonesText } from "./contactPhones";
-
+import PhoneNumbersWithFlags from "./PhoneNumbersWithFlags"
 // Login/Notify/Email Sync are disabled for now (feature on hold, not
 // removed) - flip this back to true to re-enable the controls.
 const CONTACT_LOGIN_FEATURES_ENABLED = false;
@@ -2077,7 +2077,7 @@ const AccountDetails = () => {
                           )}
 
                           {/* Email + phone */}
-                          <div
+                          {/* <div
                             className="space-y-2"
                             style={{
                               fontFamily: "var(--font-family)",
@@ -2114,8 +2114,33 @@ const AccountDetails = () => {
                                 {phones || "No phone number"}
                               </span>
                             </div>
-                          </div>
+                          </div> */}
+<div
+                            className="space-y-2"
+                            style={{
+                              fontFamily: "var(--font-family)",
+                              fontSize:
+                                "calc(0.8rem * var(--font-scale, 100) / 100)",
+                            }}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              {c.contact?.email ? (
+                                <a
+                                  href={`mailto:${c.contact.email}`}
+                                  className="truncate text-foreground hover:text-primary"
+                                >
+                                  {c.contact.email}
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  No email
+                                </span>
+                              )}
+                            </div>
 
+                            <PhoneNumbersWithFlags text={phones} />
+                          </div>
                           {/* Login / Notify / Email Sync */}
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                             {toggles.map((t) => (
