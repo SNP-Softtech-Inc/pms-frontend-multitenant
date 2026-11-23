@@ -4,12 +4,7 @@ import autoTable from "jspdf-autotable";
 // =====================================================
 // COMPANY DETAILS (hard-coded)
 // =====================================================
-// export const COMPANY_INFO = {
-//   name: "SNP Taxes",
-//   address: ["123 Main Street, Suite 100", "Austin, TX 78701"],
-//   phone: "(555) 123-4567",
-//   email: "billing@snptaxes.com",
-// };
+
 export const COMPANY_INFO = {
   name: "SNP Tax & Financials",
   address: [
@@ -31,7 +26,9 @@ const COLORS = {
   border: [229, 231, 235], // #E5E7EB
   rowAlt: [248, 249, 252], // #F8F9FC
 };
-
+// First contact's email from account.contacts[0].contact.email, falls back to account.email
+export const getBillToEmail = (account = {}) =>
+  account.contacts?.[0]?.contact?.email || account.email || "";
 export const formatAmount = (v) => `$${(Number(v) || 0).toFixed(2)}`;
 
 export const formatDate = (d) => {
@@ -217,15 +214,23 @@ export const buildInvoicePDF = (invoice, { logo, company = COMPANY_INFO } = {}) 
   setText(12, "bold");
   doc.text(account.accountName || "-", L, detailsTop + 6);
 
-  setText(9.5, "normal", COLORS.muted);
-  if (account.email) doc.text(account.email, L, detailsTop + 11.5);
-
-  const details = [
-    ["Invoice Number", `#${invoice.invoicenumber ?? "-"}`],
-    ["Invoice Date", formatDate(invoice.invoicedate)],
-    ["Date Paid", formatDate(getDatePaid(invoice, paymentRows))],
-  ];
-
+  // setText(9.5, "normal", COLORS.muted);
+  // if (account.email) doc.text(account.email, L, detailsTop + 11.5);
+const billToEmail = getBillToEmail(account);
+setText(9.5, "normal", COLORS.muted);
+if (billToEmail) doc.text(billToEmail, L, detailsTop + 11.5);
+  // const details = [
+  //   ["Invoice Number", `#${invoice.invoicenumber ?? "-"}`],
+  //   ["Invoice Date", formatDate(invoice.invoicedate)],
+  //   ["Date Paid", formatDate(getDatePaid(invoice, paymentRows))],
+  // ];
+const details = [
+  ["Invoice Number", `#${invoice.invoicenumber ?? "-"}`],
+  ["Invoice Date", formatDate(invoice.invoicedate)],
+  ...(paid
+    ? [["Date Paid", formatDate(getDatePaid(invoice, paymentRows))]]
+    : []),
+];
   let dy = detailsTop;
   details.forEach(([label, value]) => {
     setText(9.5, "normal", COLORS.muted);
@@ -402,6 +407,8 @@ const escapeHTML = (value) =>
 
 export const buildInvoicePrintHTML = (invoice, { logo, company = COMPANY_INFO } = {}) => {
   const account = invoice.account || {};
+  console.log("invoice details",account)
+  const billToEmail = getBillToEmail(account);
   const paymentRows = getPaymentRows(invoice);
   const totals = getInvoiceTotals(invoice);
   const paid = isInvoicePaid(invoice);
@@ -604,14 +611,19 @@ export const buildInvoicePrintHTML = (invoice, { logo, company = COMPANY_INFO } 
       <div>
         <div class="label-small">BILL TO</div>
         <div class="client-name">${escapeHTML(account.accountName || "-")}</div>
-        ${account.email ? `<div class="client-email">${escapeHTML(account.email)}</div>` : ""}
+      ${billToEmail ? `<div class="client-email">${escapeHTML(billToEmail)}</div>` : ""}
       </div>
 
+    
       <div class="info">
-        <div class="info-row"><span>Invoice Number</span><span>#${escapeHTML(invoice.invoicenumber ?? "-")}</span></div>
-        <div class="info-row"><span>Invoice Date</span><span>${formatDate(invoice.invoicedate)}</span></div>
-        <div class="info-row"><span>Date Paid</span><span>${formatDate(getDatePaid(invoice, paymentRows))}</span></div>
-      </div>
+  <div class="info-row"><span>Invoice Number</span><span>#${escapeHTML(invoice.invoicenumber ?? "-")}</span></div>
+  <div class="info-row"><span>Invoice Date</span><span>${formatDate(invoice.invoicedate)}</span></div>
+  ${
+    paid
+      ? `<div class="info-row"><span>Date Paid</span><span>${formatDate(getDatePaid(invoice, paymentRows))}</span></div>`
+      : ""
+  }
+</div>
     </div>
 
     ${description ? `<div class="description">${escapeHTML(description)}</div>` : ""}
