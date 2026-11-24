@@ -14,6 +14,8 @@ import {
 import { Badge } from "../../../components/ui/badge";
 import { Separator } from "../../../components/ui/separator";
 import { formatPhone } from "../contactPhones";
+import { isNewInvoiceRenderer } from "../../../lib/invoiceDocument";
+import ServerInvoicePreview from "./ServerInvoicePreview";
 
 const PreviewDrawer = ({
   open,
@@ -43,9 +45,15 @@ const PreviewDrawer = ({
     email: "client@example.com",
     phone: "+1 (555) 987-6543"
   },
-  currency = "$"
+  currency = "$",
+  serverPreview = null, // PMS-116: the invoice as it would be saved
 }) => {
   if (!open) return null;
+
+  // PMS-116: the one server template instead of this drawer's own design.
+  if (isNewInvoiceRenderer() && serverPreview) {
+    return <ServerInvoicePreview data={serverPreview} onClose={onClose} onSave={onSave} />;
+  }
 
   const formatCurrency = (amount) => {
     return `${currency}${parseFloat(amount || 0).toFixed(2)}`;

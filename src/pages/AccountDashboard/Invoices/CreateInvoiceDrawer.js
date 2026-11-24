@@ -2554,7 +2554,23 @@ setInvoiceStatus(invoice.invoiceStatus)
         companyInfo={companyInfo}
         clientInfo={clientInfo}
         currency="$"
-
+        // PMS-116: the same fields handleSave sends, for the server template.
+        serverPreview={{
+          account: selectedAccount?.value || "",
+          invoicenumber: /^\d+$/.test(String(invoicenumber)) ? invoicenumber : undefined,
+          invoicedate: startDate ? startDate.format("YYYY-MM-DD") : undefined,
+          description,
+          invoicetemplate: selectedTemplate?.value || "",
+          lineItems: rows.map((row) => ({
+            productorService: row.productName,
+            description: row.description,
+            rate: parseFloat(String(row.rate).replace("$", "")) || 0,
+            quantity: parseInt(row.qty, 10) || 1,
+            amount: parseFloat(String(row.amount).replace("$", "")) || 0,
+            tax: row.tax,
+          })),
+          summary: { subtotal, taxRate, taxTotal, total: totalAmount },
+        }}
       />
     </>
   );

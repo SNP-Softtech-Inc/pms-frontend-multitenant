@@ -227,6 +227,25 @@ Email/EmailViewer.js (type "inbox" | "sent")
 
 ---
 
+## Invoice documents (PMS-116, v1.90.0)
+
+With `REACT_APP_INVOICE_RENDERER=new` invoice-backend draws every invoice:
+
+```
+InvoiceList  Download ─► invoiceAPI.getInvoicePdf(id)  (blob) ─► downloadBlob
+             Print    ─► invoiceAPI.getInvoicePdf(id)  (blob) ─► printPdfBlob
+                                                              (hidden iframe, print the PDF)
+CreateInvoiceDrawer ─► PreviewDrawer(serverPreview = save payload)
+                         └─► ServerInvoicePreview
+                               └─► invoiceAPI.previewInvoiceHtml(form)
+                                     └─► InvoiceDocumentFrame  <iframe sandbox="" srcdoc>
+```
+
+Unset: the older jsPDF / HTML builders in `invoiceDocuments.js`, unchanged.
+Helpers: `src/lib/invoiceDocument.js` (tested in `invoiceDocument.test.js`).
+
+---
+
 ## Teams & Plans bulk actions (v1.89.0)
 
 ```

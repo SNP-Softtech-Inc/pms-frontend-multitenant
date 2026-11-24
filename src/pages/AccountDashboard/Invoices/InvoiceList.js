@@ -25,6 +25,7 @@ import {
 } from "../../../components/ui/table";
 import logo from "../../../Images/snp.png";
 import { buildInvoicePDF, buildInvoicePrintHTML } from "./invoiceDocuments";
+import { isNewInvoiceRenderer, invoiceFilename, downloadBlob, printPdfBlob } from "../../../lib/invoiceDocument";
 import PayInvoice from "./payInvoiceDrawer";
 import { Card, CardContent } from "../../../components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -659,7 +660,20 @@ const InvoiceTable = () => {
 // };
 
 // DOWNLOAD
-const handleDownload = async (_id) => {
+const handleDownload = async (_id, invoiceNumber) => {
+  // PMS-116: the server's PDF from the one invoice template.
+  if (isNewInvoiceRenderer()) {
+    try {
+      const res = await invoiceAPI.getInvoicePdf(_id);
+      downloadBlob(res.data, invoiceFilename(invoiceNumber));
+      showToast({ title: "Invoice downloaded successfully", type: "success" });
+      handleMenuClose();
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      showToast({ title: "Failed to download invoice", type: "error" });
+    }
+    return;
+  }
   try {
     const res = await invoiceAPI.getInvoiceForPrint(_id);
     const invoice = res.data.invoice;
@@ -677,6 +691,18 @@ const handleDownload = async (_id) => {
 
 // PRINT
 const handlePrint = async (_id) => {
+  // PMS-116: print the same PDF Download gives.
+  if (isNewInvoiceRenderer()) {
+    try {
+      const res = await invoiceAPI.getInvoicePdf(_id);
+      printPdfBlob(res.data);
+      handleMenuClose();
+    } catch (error) {
+      console.error("Error printing invoice:", error);
+      showToast({ title: "Failed to print invoice", type: "error" });
+    }
+    return;
+  }
   try {
     const res = await invoiceAPI.getInvoiceForPrint(_id);
     const invoice = res.data.invoice;
@@ -1209,7 +1235,7 @@ const invoiceSummary = accountInvoicesData.reduce(
                             Print
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleDownload(row._id)}
+                            onClick={() => handleDownload(row._id, row.invoicenumber)}
                           >
                             Download
                           </DropdownMenuItem>

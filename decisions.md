@@ -8,6 +8,38 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-24 · v1.90.0 · PMS-116 · not deployed
+
+### Invoices come from invoice-backend's one template
+
+**Asked (PMS-116):** one invoice design, Pending and Paid, for the create
+preview, the client view, the email attachment, print and download.
+
+**Decision:** invoice-backend renders it (see its decisions.md: one HTML
+template, PDF via headless Chromium). This app no longer draws invoices when
+`REACT_APP_INVOICE_RENDERER=new`:
+- **Download and Print** both fetch `GET /invoice/:id/pdf` and use that same
+  PDF (`lib/invoiceDocument.js`): Print loads it in a hidden iframe and prints
+  it, so Print and Download cannot differ.
+- **Create/edit preview** posts the form (the same fields `handleSave` sends)
+  to `POST /invoice/preview` and shows the HTML (`ServerInvoicePreview.js`).
+  This also ends the placeholder firm details ("Your Company Name") and the
+  DRAFT badge - the preview is the Pending invoice as the client will see it.
+
+**The HTML is shown in `<iframe sandbox="" srcdoc>`**
+(`components/InvoiceDocumentFrame.js`): an empty sandbox means no scripts and a
+unique origin, so the document cannot reach this app, its storage or its token,
+even if escaping failed somewhere. The document also carries its own CSP.
+
+**Switch:** unset (default) keeps the older `invoiceDocuments.js` builders
+exactly as they were. They are removed one release after the switch is on in
+production.
+
+**Not changed:** Templates → Invoice preview still uses its own drawer (not in
+the ticket's list); can follow the same pattern.
+
+---
+
 ## 2026-11-18 · v1.89.0 · staging only
 
 ### Teams & Plans: bulk actions on members and groups
