@@ -425,7 +425,8 @@ const refreshToken = useCallback(async () => {
 const loadUser = useCallback(async () => {
   try {
     let token = accessToken;
-console.log("access token",token)
+    // Never log the token: anyone looking at the console - or a screenshot of
+    // it - had a login good for up to 8 hours (removed v1.91.0).
     // First page load
     if (!token) {
       token = await refreshToken();

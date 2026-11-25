@@ -1059,6 +1059,7 @@ import {
 } from "../../services/tokenService";
 import { nextImapFormForEmail } from "./imapFormState";
 import ProviderRedirectNotice from "./ProviderRedirectNotice";
+import { startProviderConnect } from "./providerConnect";
 import { isCompleteAddress, routeForDiscovery, imapProviderIdFor } from "./connectRoute";
 import { sessionRemainingText } from "../../lib/sessionTime";
 import PasswordConfirmDialog from "../../components/PasswordConfirmDialog";
@@ -1828,10 +1829,11 @@ useEffect(() => {
   };
 
   // ---------------- CONNECTED MAILBOXES ----------------
+  // The login token travels only in the Authorization header that authUserApi
+  // adds - never in a URL (v1.91.0). getAccessToken() is only checked here to
+  // know whether there is a login at all.
   const loadMailboxes = async () => {
-    const token = getAccessToken();
-
-    if (!token) return;
+    if (!getAccessToken()) return;
 
     try {
       setLoadingMailboxes(true);
@@ -1840,8 +1842,8 @@ useEffect(() => {
       // Account Settings page over, so a failure leaves the section empty
       // rather than breaking the tab.
       const [accountsRes, providersRes] = await Promise.allSettled([
-        authAPI.getMailAccounts(token),
-        authAPI.getMailProviders(token),
+        authAPI.getMailAccounts(),
+        authAPI.getMailProviders(),
       ]);
 
       if (accountsRes.status === "fulfilled") {
@@ -1865,12 +1867,15 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Microsoft is a full-page redirect, like Gmail - the browser leaves the
-  // app and returns to this page once consent is given.
-  const handleConnectMicrosoft = () => {
-    const token = getAccessToken();
-
-    if (!token) {
+  // Google, Microsoft and Zoho sign-ins are full-page redirects - the browser
+  // leaves the app and returns to this page once consent is given.
+  //
+  // v1.91.0: the page no longer sends the browser to
+  // /api/…?token=<login token>. It asks the server (POST, token in the
+  // Authorization header) for the provider's sign-in URL, checks it is that
+  // provider's own page (providerConnect.js), and only then goes.
+  const handleStartProviderConnect = async (provider) => {
+    if (!getAccessToken()) {
       showToast({
         title: "Login token missing",
         description: "Please login again to connect a mailbox.",
@@ -1879,33 +1884,28 @@ useEffect(() => {
       return;
     }
 
-    // Say where the browser is going before it goes (ProviderRedirectNotice).
-    setProviderRedirect({
-      provider: "microsoft",
-      url: `${USER_URL}/api/emailsync/microsoft?token=${token}`,
-    });
-  };
+    try {
+      const url = await startProviderConnect(provider, authAPI.connectMailProvider);
 
-  // Zoho sign-in, the same full-page redirect as Microsoft. Only offered
-  // where the server reports Zoho available; otherwise Zoho keeps the
-  // password form.
-  const handleConnectZoho = () => {
-    const token = getAccessToken();
-
-    if (!token) {
+      // Say where the browser is going before it goes (ProviderRedirectNotice).
+      setProviderRedirect({ provider, url });
+    } catch (err) {
+      // The message only: an axios error carries the request's headers,
+      // Authorization included.
+      console.error(`Could not start the ${provider} sign-in:`, err?.message);
       showToast({
-        title: "Login token missing",
-        description: "Please login again to connect a mailbox.",
+        title: "Could not start the sign-in",
+        description: err?.response?.data?.message || "Please try again.",
         type: "error",
       });
-      return;
     }
-
-    setProviderRedirect({
-      provider: "zoho",
-      url: `${USER_URL}/api/emailsync/zoho?token=${token}`,
-    });
   };
+
+  const handleConnectMicrosoft = () => handleStartProviderConnect("microsoft");
+
+  // Only offered where the server reports Zoho available; otherwise Zoho
+  // keeps the password form.
+  const handleConnectZoho = () => handleStartProviderConnect("zoho");
 
   // A named provider button works if its mailbox can connect at all: by
   // password (IMAP), or for Zoho by signing in.
@@ -1941,8 +1941,7 @@ useEffect(() => {
     try {
       setImapDiscovery({ searching: true });
 
-      const token = getAccessToken();
-      const res = await authAPI.discoverImapHost(email, token);
+      const res = await authAPI.discoverImapHost(email);
       const data = res?.data || {};
 
       setImapDiscovery(data);
@@ -1989,12 +1988,10 @@ useEffect(() => {
     try {
       setConnectingImap(true);
 
-      const token = getAccessToken();
-
       // The server verifies by actually opening the mailbox before storing
       // anything, so a wrong password fails here rather than silently
       // becoming a mailbox that never syncs.
-      await authAPI.connectImapMailbox(imapForm, token);
+      await authAPI.connectImapMailbox(imapForm);
 
       showToast({
         title: "Mailbox connected",
@@ -2011,7 +2008,9 @@ useEffect(() => {
 
       await loadMailboxes();
     } catch (err) {
-      console.error("IMAP connect failed:", err);
+      // The message only: an axios error carries the request's headers
+      // (Authorization) and this request's body (the mailbox password).
+      console.error("IMAP connect failed:", err?.message);
 
       const data = err?.response?.data || {};
 
@@ -2038,8 +2037,7 @@ useEffect(() => {
 
   const handleDisconnectZoho = async (email) => {
     try {
-      const token = getAccessToken();
-      await authAPI.disconnectZohoMailbox(email, token);
+      await authAPI.disconnectZohoMailbox(email);
 
       showToast({
         title: "Mailbox disconnected",
@@ -2048,15 +2046,14 @@ useEffect(() => {
 
       await loadMailboxes();
     } catch (err) {
-      console.error("Zoho disconnect failed:", err);
+      console.error("Zoho disconnect failed:", err?.message);
       showToast({ title: "Could not disconnect", type: "error" });
     }
   };
 
   const handleDisconnectImap = async (email) => {
     try {
-      const token = getAccessToken();
-      await authAPI.disconnectImapMailbox(email, token);
+      await authAPI.disconnectImapMailbox(email);
 
       showToast({
         title: "Mailbox disconnected",
@@ -2065,39 +2062,14 @@ useEffect(() => {
 
       await loadMailboxes();
     } catch (err) {
-      console.error("IMAP disconnect failed:", err);
+      console.error("IMAP disconnect failed:", err?.message);
       showToast({ title: "Could not disconnect", type: "error" });
     }
   };
 
-  const handleConnectGmail = async () => {
-    try {
-      // const token = localStorage.getItem("token");
-   const token = getAccessToken();
-console.log("getasscestoken",token)
-   console.log()
-      if (!token) {
-        showToast({
-          title: "Login token missing",
-          description: "Please login again to connect Gmail.",
-          type: "error",
-        });
-        return;
-      }
-
-      setProviderRedirect({
-        provider: "google",
-        url: `${USER_URL}/api/googleauth/google?token=${token}`,
-      });
-    } catch (error) {
-      console.error(error);
-      showToast({
-        title: "Failed to connect Gmail",
-        description: "Failed to connect Gmail",
-        type: "error",
-      });
-    }
-  };
+  // Gmail, the same way as Microsoft and Zoho (v1.91.0). This used to print
+  // the login token to the console and put it in the URL.
+  const handleConnectGmail = () => handleStartProviderConnect("google");
 
   // Ask the server who runs this address, then go there: Google or Microsoft
   // sign-in, or the password form with the server already filled in. The
@@ -2113,7 +2085,7 @@ console.log("getasscestoken",token)
     let discovery = null;
 
     try {
-      const res = await authAPI.discoverImapHost(address, getAccessToken());
+      const res = await authAPI.discoverImapHost(address);
       discovery = res?.data || null;
     } catch (err) {
       // The password form, with its manual fields open, is still a way on.

@@ -117,7 +117,36 @@ The provider buttons are still there, behind "Choose your provider
 instead". The Zoho button signs in with Zoho when the server reports it
 available, and opens the password form otherwise. A Zoho mailbox connected
 by sign-in shows "Zoho · signed in with Zoho" and has its own Disconnect
-(`authAPI.disconnectZohoMailbox`, `GET /api/emailsync/zoho/disconnect`).
+(`authAPI.disconnectZohoMailbox`, `POST /api/emailsync/zoho/disconnect`
+with `{email}` - v1.91.0; it was a GET with `?token=&email=`).
+
+Google / Microsoft / Zoho sign-in, from either path above (v1.91.0 - the login
+token is never in a URL):
+
+```
+handleConnectGmail / handleConnectMicrosoft / handleConnectZoho
+  └─ handleStartProviderConnect(provider)               MyAccount.js
+       ├─ no getAccessToken() → "Login token missing" toast
+       └─ startProviderConnect(provider, authAPI.connectMailProvider)
+            │                                            providerConnect.js
+            ├─ authAPI.connectMailProvider(provider)     api.js
+            │    POST /api/googleauth/google/connect
+            │      or /api/emailsync/{microsoft|zoho}/connect
+            │    Authorization: Bearer <token> (attachInterceptors), no body
+            │    → {url}; the server set the state's one-time cookie
+            ├─ isProviderSignInUrl(provider, url)        https + that provider's
+            │    own origin only, no `token` parameter - else an error toast
+            └─ url
+       └─ setProviderRedirect({provider, url})
+            └─ ProviderRedirectNotice → scheduleRedirect(url)  (1.5 s, Cancel /
+               Continue now) → window.location.assign(url)     providerRedirect.js
+```
+
+Every other mailbox call (`getMailAccounts`, `getMailProviders`,
+`discoverImapHost`, `connectImapMailbox`, `disconnectImapMailbox`) also relies
+on the Authorization header alone; none puts the token on its URL any more.
+`src/noLoginTokenInUrls.test.js` fails the build's tests if any live line does,
+or logs a token.
 
 ---
 

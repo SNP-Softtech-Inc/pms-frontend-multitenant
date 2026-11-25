@@ -273,6 +273,12 @@ attachInterceptors(accNoteApi);
 attachInterceptors(signatureApi);
 attachInterceptors(templateApi)
 
+// Where a mailbox sign-in starts, per provider (authAPI.connectMailProvider).
+const MAIL_CONNECT_PATHS = Object.freeze({
+  google: "/api/googleauth/google/connect",
+  microsoft: "/api/emailsync/microsoft/connect",
+  zoho: "/api/emailsync/zoho/connect",
+});
 
 // ================= AUTH + USER APIs =================
 export const authAPI = {
@@ -464,41 +470,54 @@ getEmailNotifications: (archived = false) => {
 // servers; the provider routes were moved there for the same reason, so none
 // of this needs a new nginx location block.
 //
-// The token goes in the query string rather than a header because the connect
-// flows for Google and Microsoft are full-page redirects, not XHR - the
-// browser leaves the app, so there is nowhere to attach a header.
+// The login token is NOT put on any of these URLs (v1.91.0). authUserApi
+// already sends it in the Authorization header (attachInterceptors). It used to
+// go in the query string as well - nginx's access log kept it - and after a 401
+// the retry refreshed the header but kept the expired ?token=, which the
+// server reads first, so the retry failed. Any trailing `token` argument an old
+// caller still passes is ignored.
+
+// Start a Google / Microsoft / Zoho sign-in. The server prepares it (the
+// signed, browser-bound state, as before) and answers {url}: the provider's
+// own sign-in page, which pages/Settings/providerConnect.js checks before the
+// browser goes there. Replaces sending the browser to
+// /api/googleauth/google?token=<login token>.
+connectMailProvider: (provider) => {
+  const path = MAIL_CONNECT_PATHS[provider];
+  if (!path) throw new Error(`Unknown mail provider: ${provider}`);
+  return authUserApi.post(path);
+},
 
 // Every connected mailbox, whatever the provider, in one list.
-getMailAccounts: (token) =>
-  authUserApi.get(`/api/emailsync/mailaccounts?token=${token}`),
+getMailAccounts: () =>
+  authUserApi.get("/api/emailsync/mailaccounts"),
 
 // Which providers this server can actually connect right now, so the UI can
 // disable a button rather than offer one that answers 503.
-getMailProviders: (token) =>
-  authUserApi.get(`/api/emailsync/mailaccounts/providers?token=${token}`),
+getMailProviders: () =>
+  authUserApi.get("/api/emailsync/mailaccounts/providers"),
 
 // Find the mailbox's server from its address: known providers, the SRV
 // record, the MX record, then naming conventions - each actually connected to
 // before being offered. Replaces a one-line guess of imap.<domain>, which was
 // wrong for every Plesk and cPanel domain.
-discoverImapHost: (email, token) =>
+discoverImapHost: (email) =>
   authUserApi.get(
-    `/api/emailsync/imap/discover?email=${encodeURIComponent(email)}&token=${token}`,
+    `/api/emailsync/imap/discover?email=${encodeURIComponent(email)}`,
   ),
 
 // Verified server-side by actually opening INBOX before anything is stored.
-connectImapMailbox: (data, token) =>
-  authUserApi.post(`/api/emailsync/imap/connect?token=${token}`, data),
+connectImapMailbox: (data) =>
+  authUserApi.post("/api/emailsync/imap/connect", data),
 
-disconnectImapMailbox: (email, token) =>
-  authUserApi.post(`/api/emailsync/imap/disconnect?token=${token}`, { email }),
+disconnectImapMailbox: (email) =>
+  authUserApi.post("/api/emailsync/imap/disconnect", { email }),
 
 // A Zoho mailbox connected by signing in with Zoho. Kept, marked
-// disconnected, its tokens dropped.
-disconnectZohoMailbox: (email, token) =>
-  authUserApi.get(
-    `/api/emailsync/zoho/disconnect?token=${token}&email=${encodeURIComponent(email)}`,
-  ),
+// disconnected, its tokens dropped. A POST naming the mailbox in the body;
+// it was a GET with the token and address in the URL.
+disconnectZohoMailbox: (email) =>
+  authUserApi.post("/api/emailsync/zoho/disconnect", { email }),
 // Get communication emails - one account's (v1.81.0). With the account the
 // server sends only that account's emails, about 0.1-0.8 MB; without it,
 // every account's, which was 40 MB on staging. axios leaves an undefined

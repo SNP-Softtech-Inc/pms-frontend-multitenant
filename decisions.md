@@ -8,6 +8,78 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-25 · v1.91.0 · staging only
+
+### Mailbox sign-in without the login token in any URL
+
+**The problem (email-sync audit, issue #4).** Connect Gmail / Microsoft / Zoho
+sent the browser to `${REACT_APP_AUTH_USER}/api/…?token=<login token>`, and six
+mailbox API calls (`getMailAccounts`, `getMailProviders`, `discoverImapHost`,
+`connectImapMailbox`, `disconnectImapMailbox`, `disconnectZohoMailbox`) put
+`?token=` on their URLs. nginx's access log kept every one, and the browser
+kept the connect URL in its history - and in the address bar whenever the
+server answered with an error. Two debug lines also printed the token to the
+console: `MyAccount.js` on every Gmail connect, `AuthContext.js` on every
+`loadUser`. The token is a login for up to 8 hours.
+
+The old comment in `api.js` said the query string was needed "because the
+connect flows are full-page redirects - there is nowhere to attach a header".
+True of the redirect, but not of the step before it.
+
+**Decision.** The page asks first, then goes:
+`authAPI.connectMailProvider(provider)` POSTs to the backend's new connect
+route (signup-login v1.42.0) with the token in the Authorization header that
+`authUserApi` already adds; the server answers `{url}`; `providerConnect.js`
+checks it is that provider's own `https` origin (Google
+`accounts.google.com`, Microsoft `login.microsoftonline.com`, Zoho
+`accounts.zoho.com`) with no `token` parameter; then the existing
+`ProviderRedirectNotice` sends the browser there. The six API calls drop
+`?token=`; Zoho disconnect becomes a POST with `{email}` in the body.
+
+- **Why check the URL on the page too**: the page should never be a redirector
+  for whatever a response says. A lookalike host, `http`, a `javascript:` URL
+  or our own API are refused with a toast.
+- **Why the retry bug goes with it**: after a 401 the interceptor refreshed the
+  token into the header and retried the same URL - whose expired `?token=` the
+  server reads first, so the retry failed again. With no query token the retry
+  works.
+- **Errors are logged by message only** in the mailbox handlers touched here.
+  An axios error object carries the request's headers (Authorization) and, for
+  IMAP connect, the body with the mailbox password.
+
+**Order.** signup-login v1.42.0 must be on staging before this page: the
+connect POSTs do not exist on an older backend. The backend keeps the old GET
+routes, so the other order is the only one that breaks.
+
+**Not changed.**
+- `components/MyAccount.js` and `pages/Templates/ProposalTemp/Steps/MyAccount.js`
+  still hold the old Gmail line. Nothing imports them (only
+  `pages/Settings/MyAccount` is routed); `noLoginTokenInUrls.test.js` allows
+  them only while that stays true.
+- The old Email Sync flow in `MyAccount.js` (`handleEmailSync`,
+  `handleTokenLogin` → `${REACT_APP_EMAIL_SYNC}/emailsync/...`) - out of scope;
+  see below.
+- Production (`main`) - it still uses `GET /api/googleauth/google?token=`, which
+  is why the backend keeps that route.
+
+**Rejected.** A render test of the buttons (render tests are blocked here -
+2026-10-24); a source scan plus unit tests of `providerConnect.js` and of the
+requests `api.js` builds cover the same ground.
+
+**Found while doing this, not changed.**
+- `handleTokenLogin` calls `/emailsync/user/login-with-token/<email>` and
+  `handleEmailSync` calls `/emailsync/user/exists/<email>` with plain axios -
+  no login at all. Whether anything still answers them was not checked.
+- Elsewhere in the app, `console.error(err)` on axios errors prints the request
+  headers, Authorization included, in the expandable error object.
+- `USER_URL` in `MyAccount.js` is now unused; left to keep this diff to the fix.
+
+Tests (written first, seen failing - 13 of 16 - before the code):
+`src/pages/Settings/providerConnect.test.js`, `src/services/mailConnectApi.test.js`,
+`src/noLoginTokenInUrls.test.js`.
+
+---
+
 ## 2026-11-24 · v1.90.0 · PMS-116 · not deployed
 
 ### Invoices come from invoice-backend's one template
