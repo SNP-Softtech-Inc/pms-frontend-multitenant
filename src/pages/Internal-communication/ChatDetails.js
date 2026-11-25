@@ -443,6 +443,35 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
       }
       .chat-msg-body p { margin: 0; }
       .chat-msg-body a { color: hsl(var(--primary)); text-decoration: underline; }
+      @keyframes flashHighlight {
+    0% { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.35); }
+    100% { box-shadow: 0 0 0 4px transparent; }
+  }
+  .chat-msg-body p { margin: 0; }
+  .chat-msg-body a { color: hsl(var(--primary)); text-decoration: underline; }
+
+  /* Composer: cap height, scroll inside, toolbar stays visible */
+  .chat-composer .ck-editor__editable {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  /* Images inside the composer stay small */
+  .chat-composer .ck-content img,
+  .chat-composer .ck-content figure.image {
+    max-height: 160px;
+    width: auto !important;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  /* Images inside sent messages */
+  .chat-msg-body img {
+    max-width: 100%;
+    max-height: 240px;
+    height: auto;
+    border-radius: 8px;
+    object-fit: contain;
+  }
     `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
@@ -791,7 +820,7 @@ showToast({title:"Message updated",type:"success"})
           </div>
         )}
 
-        <div className="flex items-end gap-3">
+        {/* <div className="flex items-end gap-3">
           <div className="flex-1 min-w-0">
             <Editor value={editorContent} onChange={setEditorContent} />
           </div>
@@ -802,7 +831,19 @@ showToast({title:"Message updated",type:"success"})
             <span>Send</span>
             <SendHorizontal className="h-4 w-4" />
           </button>
-        </div>
+        </div> */}
+        <div className="flex items-end gap-3">
+  <div className="chat-composer flex-1 min-w-0">
+    <Editor value={editorContent} onChange={setEditorContent} />
+  </div>
+  <button
+    onClick={updateChatDescription}
+    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors shrink-0 self-end"
+  >
+    <span>Send</span>
+    <SendHorizontal className="h-4 w-4" />
+  </button>
+</div>
       </footer>
 
       {/* ================= EDIT DIALOG ================= */}
@@ -820,7 +861,7 @@ showToast({title:"Message updated",type:"success"})
               </button>
             </div>
 
-            <div style={{ maxWidth: 600 }}>
+            <div className="chat-composer"  style={{ maxWidth: 600 }}>
               <Editor value={editContent} onChange={setEditContent} />
             </div>
 
