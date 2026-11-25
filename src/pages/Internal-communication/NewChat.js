@@ -185,7 +185,7 @@ import React, { useState, useEffect } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { toast } from "react-toastify";
 
-import Editor from "../../components/TextEditor";
+import Editor from "../../components/textEditor/TextEditior";
 
 // ✅ AUTH & API
 import { useAuth } from "../../context/AuthContext";
@@ -207,11 +207,11 @@ import {
   PopoverTrigger,
 } from "../../components/ui/popover";
 import { cn } from "../../lib/utils";
-
+import { useToastContext } from "../../context/ToastContext";
 const NewChat = ({ open, handleClose, getsChatlist }) => {
   const { user } = useAuth();
   const loginUserId = user?._id || user?.id;
-
+ const { showToast } = useToastContext();
   const [description, setDescription] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [userData, setUserData] = useState([]);
@@ -248,7 +248,11 @@ const NewChat = ({ open, handleClose, getsChatlist }) => {
         console.log("Fetched users:", formatted);
       } catch (err) {
         console.error("User fetch error:", err?.response || err);
-        toast.error("Failed to load users");
+        // toast.error("Failed to load users");
+         showToast({
+        title: "Failed to update user",
+        type: "error",
+      });
       }
     };
 
@@ -260,14 +264,36 @@ const NewChat = ({ open, handleClose, getsChatlist }) => {
   // ================= CREATE CHAT =================
   const saveChat = async () => {
     try {
-      if (!selectedUser) {
-        return toast.error("Please select a user");
-      }
+      // if (!selectedUser) {
+      //   return 
+      //    showToast({
+      //   title: "Please select a user",
+      //   type: "error",
+      // });
+      // }
 
-      if (!description?.trim()) {
-        return toast.error("Message is required");
-      }
+      // if (!description?.trim()) {
+      //   return 
+      //     showToast({
+      //   title: "Message is required",
+      //   type: "error",
+      // });
+      // }
+if (!selectedUser) {
+  showToast({
+    title: "Please select a user",
+    type: "error",
+  });
+  return;
+}
 
+if (!description?.trim()) {
+  showToast({
+    title: "Message is required",
+    type: "error",
+  });
+  return;
+}
       setLoading(true);
       const payload = {
         participants: [loginUserId, selectedUser.value],
@@ -284,14 +310,21 @@ const NewChat = ({ open, handleClose, getsChatlist }) => {
 
       await internalChatAPI.sendMessage(payload);
 
-      toast.success("Chat created");
+     showToast({
+        title: "Chat created",
+        type: "success",
+      });
 
       handleClose();
       clearFields();
       getsChatlist();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to create chat");
+      // toast.error("Failed to create chat");
+       showToast({
+        title: "Failed to create chat",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

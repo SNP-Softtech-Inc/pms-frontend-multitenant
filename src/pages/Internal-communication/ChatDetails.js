@@ -398,7 +398,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { MoreVertical, X, CornerUpLeft, Pencil, Trash2, SendHorizontal, Check, CheckCheck } from "lucide-react";
-
+import { useToastContext } from "../../context/ToastContext";
 import Editor from "../../components/textEditor/TextEditior";
 
 // ✅ AUTH
@@ -409,7 +409,7 @@ import { internalChatAPI } from "../../services/api";
 const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
   const { user } = useAuth();
   const loginUserId = user?._id || user?.id;
-
+ const { showToast } = useToastContext();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
   const [editContent, setEditContent] = useState("");
@@ -484,8 +484,8 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
         messageData: newDescription,
       });
 
-      toast.success("Message sent");
-
+      // toast.success("Message sent");
+showToast({title:"Message sent",type:"success"})
       setEditorContent("");
       setReplyTo(null);
 
@@ -493,7 +493,8 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
       getsChatDetails();
     } catch (err) {
       console.error(err);
-      toast.error("Send failed");
+      // toast.error("Send failed");
+      showToast({title:"Send failed",type:"error"})
     }
   };
 
@@ -505,16 +506,24 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
         messageId: msg._id,
       });
 
-      toast.success("Deleted");
+      // toast.success("Deleted");
+      showToast({title:"Deleted",type:"success"})
       setMenuOpenId(null);
       getsChatDetails();
       getsChatlist();
     } catch (err) {
       console.error(err);
-      toast.error("Delete failed");
+      // toast.error("Delete failed");
+      showToast({title:"Delete failed",type:"error"})
     }
   };
 
+  // ✅ CHECK EDIT TIME
+  // const canEditMessage = (time) => {
+  //   const msgTime = new Date(time).getTime();
+  //   const now = new Date().getTime();
+  //   return now - msgTime <= 10 * 60 * 1000; // 10 min
+  // };
   // ✅ CHECK EDIT TIME
   const canEditMessage = (time) => {
     const msgTime = new Date(time).getTime();
@@ -523,18 +532,34 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
   };
 
   // ✅ OPEN EDIT
-  const handleEditMessage = (msg) => {
-    if (!canEditMessage(msg.time)) {
-      toast.info("Edit time expired");
-      setMenuOpenId(null);
-      return;
-    }
-    setEditingMessage(msg);
-    setEditContent(msg.message);
-    setEditDialogOpen(true);
+  // const handleEditMessage = (msg) => {
+  //   if (!canEditMessage(msg.time)) {
+  //     toast.info("Edit time expired");
+  //     setMenuOpenId(null);
+  //     return;
+  //   }
+  //   setEditingMessage(msg);
+  //   setEditContent(msg.message);
+  //   setEditDialogOpen(true);
+  //   setMenuOpenId(null);
+  // };
+ // ✅ OPEN EDIT
+// ✅ OPEN EDIT
+const handleEditMessage = (msg) => {
+  if (!canEditMessage(msg.time)) {
+    showToast({
+      title: "Edit time expired",
+      description: "You can only edit a message within 10 minutes of sending it",
+      type: "info", // use "error" if your toast doesn't support "info"
+    });
     setMenuOpenId(null);
-  };
-
+    return;
+  }
+  setEditingMessage(msg);
+  setEditContent(msg.message);
+  setEditDialogOpen(true);
+  setMenuOpenId(null);
+};
   // ✅ SAVE EDIT
   const handleSaveEdit = async () => {
     if (!editContent.trim()) return;
@@ -545,8 +570,8 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
         newMessage: editContent,
       });
 
-      toast.success("Message updated");
-
+      // toast.success("Message updated");
+showToast({title:"Message updated",type:"success"})
       setEditDialogOpen(false);
       setEditingMessage(null);
       setEditContent("");
@@ -554,7 +579,8 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
       getsChatDetails();
     } catch (err) {
       console.error(err);
-      toast.error("Update failed");
+      // toast.error("Update failed");
+      showToast({title:"Update failed",type:"error"})
     }
   };
 
@@ -668,6 +694,16 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
                   />
 
                   {/* Time + ticks */}
+                  {/* <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-slate-500">
+                    <span>{formatDate(msg.time)}</span>
+                    {isMe &&
+                      (msg.isRead ? (
+                        <CheckCheck className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <Check className="h-3.5 w-3.5 text-slate-500" />
+                      ))}
+                  </div> */}
+  {/* Time + ticks */}
                   <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-slate-500">
                     <span>{formatDate(msg.time)}</span>
                     {isMe &&
@@ -677,7 +713,6 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
                         <Check className="h-3.5 w-3.5 text-slate-500" />
                       ))}
                   </div>
-
                   {/* DROPDOWN MENU */}
                   {isMenuOpen && (
                     <div
@@ -696,12 +731,27 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
 
                       {selectedMessage && isMine(selectedMessage) && (
                         <>
-                          <button
+                          {/* <button
                             onClick={() => handleEditMessage(selectedMessage)}
                             className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-100 text-left"
                           >
                             <Pencil className="h-3.5 w-3.5" /> Edit
-                          </button>
+                          </button> */}
+                          {canEditMessage(selectedMessage.time) ? (
+  <button
+    onClick={() => handleEditMessage(selectedMessage)}
+    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-100 text-left"
+  >
+    <Pencil className="h-3.5 w-3.5" /> Edit
+  </button>
+) : (
+  <div
+    title="You can only edit a message within 10 minutes of sending it"
+    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-slate-400 cursor-not-allowed"
+  >
+    <Pencil className="h-3.5 w-3.5" /> Edit expired
+  </div>
+)}
                           <button
                             onClick={() => handleDeleteMessage(selectedMessage)}
                             className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 text-left"
@@ -742,7 +792,7 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
         )}
 
         <div className="flex items-end gap-3">
-          <div className="flex-1 min-w-0 rounded-lg border border-slate-200 bg-white overflow-hidden focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 transition">
+          <div className="flex-1 min-w-0">
             <Editor value={editorContent} onChange={setEditorContent} />
           </div>
           <button
@@ -770,7 +820,7 @@ const ChatDetails = ({ chat, getsChatDetails, getsChatlist, onClose }) => {
               </button>
             </div>
 
-            <div className="rounded-lg border border-slate-200 overflow-hidden focus-within:border-primary/50">
+            <div style={{ maxWidth: 600 }}>
               <Editor value={editContent} onChange={setEditContent} />
             </div>
 
