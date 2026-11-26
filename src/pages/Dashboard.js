@@ -239,6 +239,14 @@ const Dashboard = () => {
                 return true;
               });
             }
+            // =========================
+            // ✅ HIDE PARENT IF ALL SUBMENUS ARE HIDDEN
+            // =========================
+            // Only parents that had submenus to begin with are affected;
+            // plain menu items with no submenu are left as they are.
+            if (item.submenu?.length > 0 && newItem.submenu.length === 0) {
+              return null;
+            }
 
             // =========================
             // ✅ REMOVE PARENT ITEMS

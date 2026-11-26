@@ -3188,25 +3188,6 @@ const handleFileClick = async (fullPath, fileName, meta = {}) => {
     showToast(signStartErrorToast(err));
   }
 };
-  // const toggleSignStatus = async (item) => {
-  //   try {
-  //     const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${item.path}`;
-
-  //     const { data } = await esignAPI.generateToken({
-  //       url: fileUrl,
-  //       name: item.name,
-  //       accountId,
-  //     });
-
-  //     console.log("token data", data);
-
-  //     setToken(data.token);
-  //     setShowBuilderFor(item);
-  //     setOpenDialog(true);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
 
   // v1.83.0: sends the file's real name (cancelSignature.js) and shows the
   // server's reason in a toast instead of a bare browser alert.
@@ -5856,6 +5837,7 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                     setOpenDialog(false);
                   }}
                 />
+        
               )}
             </div>
 

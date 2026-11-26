@@ -25,12 +25,12 @@ const ProtectedRoute = ({ children, allowedRoles = [], blockedRoles = [], redire
   // Block specific roles from admin-only pages (e.g. team members hitting
   // the URL directly), without needing to know the exact admin role string.
   if (blockedRoles.length > 0 && blockedRoles.includes(user?.role)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/insights" replace />;
   }
 
   // Check role-based access
   if (allowedRoles.length > 0 && !hasRole(allowedRoles)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/insights" replace />;
   }
 
   return children || <Outlet />;
