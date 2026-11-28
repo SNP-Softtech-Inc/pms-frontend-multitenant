@@ -1496,7 +1496,27 @@ viewDocument: (data) =>
   // Approval toggle
   toggleApproval: (data) =>
     folderManagementApi.post("/accounts/docs/file/approval-toggle", data),
+  // ================= NOTES =================
+  // Notes are stored in the file's .meta.json (admin / team members only).
 
+  // Get all notes on a file
+  getFileNotes: (filePath) =>
+    folderManagementApi.get("/accounts/docs/notes", {
+      params: { filePath },
+    }),
+
+  // Add a note to a file
+  // data: { filePath, content, accountId?, accountName? }
+  addFileNote: (data) =>
+    folderManagementApi.post("/accounts/docs/notes", data),
+
+  // Edit an existing note
+  // data: { filePath, content, accountId?, accountName? }
+  updateFileNote: (noteId, data) =>
+    folderManagementApi.put(
+      `/accounts/docs/notes/${encodeURIComponent(noteId)}`,
+      data,
+    ),
   // ================= COMMON =================
 
   // Delete file/folder

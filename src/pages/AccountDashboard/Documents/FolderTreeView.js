@@ -2189,6 +2189,8 @@ import {
 } from "lucide-react";
 import DocumentViewer from "./DocumentViewer";
 import { ActionInProgressDialog } from "./drawers/useActionGuard";
+import { StickyNote } from "lucide-react";
+import FileNotesDialog from "./FileNotesDialog"; // adjust path
 // import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 // import { Badge } from "../../../components/ui/badge";
 export const FolderTreeView = ({ accountId, templateAction = null }) => {
@@ -2209,7 +2211,11 @@ export const FolderTreeView = ({ accountId, templateAction = null }) => {
   const [description, setDescription] = useState("");
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false);
   const [folderTree, setFolderTree] = useState([]);
+const [notesFile, setNotesFile] = useState(null);
 
+// Notes are for internal staff only. The backend enforces this as well.
+const NOTE_ROLES = ["admin", "team_member"];
+const canManageNotes = NOTE_ROLES.includes(String(user?.role || "").toLowerCase());
   // v1.85.0: a folder opened from a link (right-click → new tab on its name)
   // arrives as ?folder=<path>; once the tree has loaded it is shown expanded,
   // with every folder above it, and scrolled into view.
@@ -4951,7 +4957,17 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
                         label: "Download",
                         action: () => handleDownload(item),
                       },
+                      
                     );
+                      if (canManageNotes) {
+      menuItems.push({
+        icon: <StickyNote className="h-4 w-4" />,
+        label: item.meta?.notesCount
+          ? `Notes (${item.meta.notesCount})`
+          : "Notes",
+        action: () => setNotesFile(item),
+      });
+    }
                   } else if (docType === "firm") {
                     const currentStatus =
                       item.meta?.signStatus || "sendForSignature";
@@ -5174,7 +5190,12 @@ const getFilesFromCurrentFolder = (items, currentFolderPath) => {
       onDownload={handleDownloadFile}
       onPrint={handlePrintFile}
     />
-
+<FileNotesDialog
+  file={notesFile}
+  open={!!notesFile}
+  onClose={() => setNotesFile(null)}
+  onSaved={fetchFolderTree} // refreshes notesCount in the menu and badge
+/>
         {/* FILE VIEWER DIALOG */}
         <Dialog open={openFileViewer} onOpenChange={setOpenFileViewer}>
           <DialogContent
