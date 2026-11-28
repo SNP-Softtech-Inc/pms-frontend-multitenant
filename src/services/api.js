@@ -342,7 +342,8 @@ getCurrentUser: () => authUserApi.get("/api/auth/me"),
 refresh: () =>
     authUserApi.post("/api/auth/refresh-token"),
   resetPassword: (id, token, data) =>
-    authUserApi.post(`/api/auth/reset-password/${id}/${token}`, data),
+    // v1.92.0: id and token in the body, not the URL nginx logs (signup-login v1.53.0).
+    authUserApi.post("/api/auth/reset-password", { ...data, id, token }),
 
   verifyPassword: (data) => authUserApi.post("/api/auth/verify-password", data),
 changePassword: (data) => authUserApi.post("/api/auth/change-password", data),

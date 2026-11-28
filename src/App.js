@@ -79,6 +79,8 @@ function App() {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      {/* v1.92.0: new reset links carry id/token after '#'; old ones in the path. */}
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/reset-password/:id/:token" element={<ResetPassword />} />
       <Route
         path="/activate-team-member/:id/:token"

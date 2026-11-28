@@ -8,6 +8,25 @@ this way?" — not for routine edits. Update it in the same commit as the code.
 
 ---
 
+## 2026-11-28 · v1.92.0 · staging only
+
+**Decision:** the password-reset page takes the id and token from the link's
+`#id=…&token=…` (`src/lib/resetLink.js`), or from the old
+`/reset-password/:id/:token` path. It removes them from the address bar
+once read, and posts them in the request body to
+`POST /api/auth/reset-password` (signup-login v1.53.0) instead of in the URL.
+
+**Why:** the emailed link and the API call both put the reset token in a URL,
+and nginx logged it twice. Browsers never send what follows `#`.
+signup-login v1.54.0 switches the emailed link to that form after this
+deploys. Links in the old form keep working.
+
+**Tests:** helper unit tests plus source checks; render tests are blocked
+in this repo (2026-10-24). `brandAssets.test.js` already fails on `staging`
+(it expects the old tab title after the rename) and is untouched here.
+
+---
+
 ## 2026-11-25 · v1.91.0 · staging only
 
 ### Mailbox sign-in without the login token in any URL

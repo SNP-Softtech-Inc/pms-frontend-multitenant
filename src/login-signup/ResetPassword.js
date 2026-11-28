@@ -107,7 +107,7 @@
 
 // export default ResetPassword;
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "..//components/ui/button";
 import { Input } from "..//components/ui/input";
@@ -115,11 +115,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "..//components/ui/card
 import { Label } from "..//components/ui/label";
 import { useToastContext } from "../context/ToastContext";
 import { authAPI } from "../services/api";
+import { resetCredentialsFrom, hashWithoutCredentials } from "../lib/resetLink";
 import micropms from "../Images/logoAdmin.png";
 import { Eye, EyeOff } from "lucide-react";
 
 const ResetPassword = () => {
-  const { id, token } = useParams();
+  // v1.92.0: new links carry the id and token after '#' (never sent to the
+  // server); old links in the path still work. Read once, on first render.
+  const params = useParams();
+  const [{ id, token }] = useState(() => resetCredentialsFrom(params, window.location.hash));
+
+  // ...and take them out of the address bar, so they are not left in the
+  // browser's history.
+  useEffect(() => {
+    if (!window.location.hash) return;
+    window.history.replaceState(
+      window.history.state,
+      "",
+      window.location.pathname + window.location.search + hashWithoutCredentials(window.location.hash),
+    );
+  }, []);
   const navigate = useNavigate();
   const { showToast } = useToastContext();
   const [showPassword, setShowPassword] = useState(false);
